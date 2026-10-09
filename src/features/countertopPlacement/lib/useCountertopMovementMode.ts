@@ -64,8 +64,9 @@ const correctPose = async (api: CountertopApi, mode: "offset" | "none"): Promise
   if (mode === "offset") {
     try {
       await api.setOffset({ x: getCountertopRuntimeState()?.offset?.x ?? 0, y: 0 });
-      // Landed 'fits' over another sink cabinet: that is a sink move, not a lowering.
-      if (!(await api.getState())?.sink?.pending) return "lowered";
+      // Landed 'fits' over another sink cabinet: that is a sink move, not a lowering ('home' 3D settles itself).
+      const pending = (await api.getState())?.sink?.pending;
+      if (!pending || pending.status === "home") return "lowered";
     } catch (error) {
       if (isTransient(error)) throw error;
       // COUNTERTOP_POSE_INVALID: the sink would sit on a seam / gap / the wrong cabinet.

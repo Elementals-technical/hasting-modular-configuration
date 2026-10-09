@@ -23,6 +23,7 @@ export const COUNTERTOP_REASON_SLUGS: readonly CountertopReasonSlug[] = [
   "SINK_LANDING_UNFIT",
   "COUNTERTOP_COLLISION",
   "COUNTERTOP_VERTICAL_LOCKED",
+  "COUNTERTOP_BELOW_COVER",
 ];
 
 /** Standard = no custom length and no offset; `placementState` alone is not enough (see the step above). */

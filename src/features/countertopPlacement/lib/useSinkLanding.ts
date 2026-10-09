@@ -2,27 +2,37 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   createConfiguratorClient,
+  type CabinetLandSinkReceipt,
+  type CabinetLiftSinkReceipt,
   type CabinetMoveSinkReceipt,
   type CabinetsState,
   type ConfiguratorClient,
   type CountertopApi,
-  type CountertopSinkPending,
+  type CountertopSinkLocalM,
 } from "@/features/configuratorApi";
 import { getCountertopRuntimeState, subscribeCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
-export type SinkLandingClient = Pick<ConfiguratorClient, "moveSink" | "getCabinetsState" | "dispose">;
+export type SinkLandingClient = Pick<ConfiguratorClient, "moveSink" | "getCabinetsState" | "dispose"> &
+  Partial<Pick<ConfiguratorClient, "liftSink" | "landSink">>;
+export type SinkCommitReceipt = CabinetMoveSinkReceipt | CabinetLiftSinkReceipt | CabinetLandSinkReceipt;
 
 type Options = {
   ready: boolean;
   getApi: () => CountertopApi | null;
   /** Same UI sync as a committed placement (`adoptCommittedCabinetComposition`). */
-  onCommitted: (state: CabinetsState, receipt: CabinetMoveSinkReceipt) => void | Promise<void>;
+  onCommitted: (state: CabinetsState, receipt: SinkCommitReceipt) => void | Promise<void>;
   createClient?: () => SinkLandingClient;
 };
 
 type Pose = { x: number; y: number };
-/** A 'fits' landing and the pose the top had when its drag started (where a failed commit puts it back). */
-type Landing = { pending: CountertopSinkPending; before: Pose | null };
+/**
+ * A 'fits' landing and the pose the top had when its drag started (where a failed commit puts it back).
+ * `fromCabinetId: null`: a hosted sink lands (`landSink`), otherwise an SB sink moves (`moveSink`).
+ */
+type Landing = { kind: "landing"; cabinetId: string; fromCabinetId: string | null; before: Pose | null };
+/** The top carried an SB sink off the cabinets (`liftSink`); a failure is only logged, nothing is reverted. */
+type Lift = { kind: "lift"; fromCabinetId: string; sinkLocalM: CountertopSinkLocalM };
+type Job = Landing | Lift;
 
 const errorCode = (error: unknown) =>
   typeof error === "object" && error !== null && typeof (error as { code?: unknown }).code === "string"
@@ -33,12 +43,15 @@ const errorCode = (error: unknown) =>
  * SB <-> SC sink move (phase 1 §6d): every 'fits' `sink-landing` action commits `cabinets.moveSink` right away
  * (the SC under the sink becomes the SB, the old SB becomes an SC) and syncs the UI. A failed commit puts the
  * top back where the drag started, so `sink.pending` never stays set by the UI. One commit runs at a time.
+ * A hosted sink (after a `sink-lift` -> `cabinets.liftSink`) lands through `cabinets.landSink` instead.
+ * A missing `liftSink` (API_METHOD_UNAVAILABLE) is skipped with one warning; a missing move/land reverts.
  */
 export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Options) => {
   const [message, setMessage] = useState<string | null>(null);
   const poseBeforeRef = useRef<Pose | null>(null);
   const runningRef = useRef(false);
-  const nextRef = useRef<Landing | null>(null);
+  const nextRef = useRef<Job | null>(null);
+  const warnedRef = useRef(new Set<string>());
   const clientRef = useRef<SinkLandingClient | null>(null);
   const createClientRef = useRef(createClient ?? createConfiguratorClient);
   const onCommittedRef = useRef(onCommitted);
@@ -91,28 +104,46 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
   }, []);
 
   const commit = useCallback(
-    async ({ pending, before }: Landing) => {
+    async (job: Job) => {
       const sinkClient = client();
       if (!sinkClient) return;
-      const move = () => sinkClient.moveSink(pending.fromCabinetId, pending.cabinetId);
-      let receipt: CabinetMoveSinkReceipt;
+      const name = job.kind === "lift" ? "liftSink" : job.fromCabinetId === null ? "landSink" : "moveSink";
+      const send = (): Promise<SinkCommitReceipt> | undefined =>
+        job.kind === "lift"
+          ? sinkClient.liftSink?.(job.fromCabinetId, job.sinkLocalM)
+          : job.fromCabinetId === null
+            ? sinkClient.landSink?.(job.cabinetId)
+            : sinkClient.moveSink(job.fromCabinetId, job.cabinetId);
+      const skip = () => {
+        if (!warnedRef.current.has(name)) console.warn(`[sink-landing] cabinets.${name} is not available in this runtime`);
+        warnedRef.current.add(name);
+      };
+      let receipt: SinkCommitReceipt;
       try {
+        const attempt = async () => {
+          const sent = send();
+          if (!sent) throw Object.assign(new Error(name), { code: "API_METHOD_UNAVAILABLE" });
+          return sent;
+        };
         try {
-          receipt = await move();
+          receipt = await attempt();
         } catch (error) {
           // STALE_COMPOSITION: the client re-reads the revision on the retry.
           if (errorCode(error) !== "STALE_COMPOSITION") throw error;
-          receipt = await move();
+          receipt = await attempt();
         }
       } catch (error) {
-        console.warn("[sink-landing] moveSink failed", errorCode(error), error);
+        if (job.kind === "lift" && errorCode(error) === "API_METHOD_UNAVAILABLE") return skip();
+        console.warn(`[sink-landing] ${name} failed`, errorCode(error), error);
+        if (job.kind === "lift") return;
         setMessage("The sink could not be moved.");
-        await revert(before);
+        await revert(job.before);
         return;
       }
       try {
         const state = await sinkClient.getCabinetsState();
-        await onCommittedRef.current({ ...state, selectedCabinetId: receipt.sinkHostId ?? state.selectedCabinetId }, receipt);
+        const sinkHostId = (receipt as { sinkHostId?: string | null }).sinkHostId ?? null;
+        await onCommittedRef.current({ ...state, selectedCabinetId: sinkHostId ?? state.selectedCabinetId }, receipt);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "The sink moved; UI synchronisation failed.");
       }
@@ -122,18 +153,25 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
 
   /**
    * One commit at a time. A landing that arrives during a commit is not committed: its ids are from before
-   * moveSink (which issues new ones), so the top goes back to Standard instead and `sink.pending` clears.
+   * the commit (which issues new ones), so the top goes back to Standard instead and `sink.pending` clears.
+   * A lift that waited is dropped (stale ids too) with a warning; nothing is reverted.
    */
   const run = useCallback(
-    async (landing: Landing) => {
-      nextRef.current = landing;
+    async (job: Job) => {
+      nextRef.current = job;
       if (runningRef.current) return;
       runningRef.current = true;
       try {
         nextRef.current = null;
-        await commit(landing);
-        while (nextRef.current) {
+        await commit(job);
+        let waited: Job | null;
+        // `as`: the ref is set by the action listener while the commit is awaited.
+        while ((waited = nextRef.current as Job | null)) {
           nextRef.current = null;
+          if (waited.kind === "lift") {
+            console.warn("[sink-landing] a sink-lift arrived during a commit; its ids are stale, dropping it");
+            continue;
+          }
           console.warn("[sink-landing] a landing arrived during a commit; its ids are stale, resetting the offset");
           await revert(null);
         }
@@ -156,13 +194,19 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
     const api = getApi();
     if (!api) return undefined;
     return api.on("action", (action) => {
+      if (action?.type === "sink-lift") {
+        if (!action.fromCabinetId || !action.sinkLocalM) return;
+        void run({ kind: "lift", fromCabinetId: action.fromCabinetId, sinkLocalM: { ...action.sinkLocalM } });
+        return;
+      }
       if (action?.type !== "sink-landing" || action.landing.status !== "fits") return;
       const { cabinetId, fromCabinetId } = action.landing;
-      if (!cabinetId || !fromCabinetId) return;
+      // `fromCabinetId: null` is a hosted sink landing on an SC (`landSink`).
+      if (!cabinetId) return;
       const before = poseBeforeRef.current;
       poseBeforeRef.current = null;
       setMessage(null);
-      void run({ pending: { cabinetId, fromCabinetId }, before });
+      void run({ kind: "landing", cabinetId, fromCabinetId: fromCabinetId ?? null, before });
     });
   }, [ready, getApi, run]);
 

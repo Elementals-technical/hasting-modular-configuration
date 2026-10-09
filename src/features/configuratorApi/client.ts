@@ -9,6 +9,11 @@ import type {
   CabinetBeginMoveInput,
   CabinetMoveSinkInput,
   CabinetMoveSinkReceipt,
+  CabinetLiftSinkInput,
+  CabinetLiftSinkReceipt,
+  CabinetLandSinkInput,
+  CabinetLandSinkReceipt,
+  CountertopSinkLocalM,
   CabinetsState,
   ConfiguratorCapabilities,
   CabinetCatalogEntry,
@@ -80,6 +85,10 @@ export interface ConfiguratorClient {
   cancel(sessionId: string): Promise<CabinetDraftState>;
   /** Commit a pending 'fits' sink landing: SB <-> SC swap under NEW ids (`idMap`), the top lowered. */
   moveSink(fromCabinetId: string, toCabinetId: string): Promise<CabinetMoveSinkReceipt>;
+  /** The top takes the SB sink (`sink-lift` action); the SB becomes an SC under a new id. */
+  liftSink(fromCabinetId: string, sinkLocalM: CountertopSinkLocalM): Promise<CabinetLiftSinkReceipt>;
+  /** A hosted sink lands on an SC (`sink-landing` with `fromCabinetId: null`). */
+  landSink(toCabinetId: string): Promise<CabinetLandSinkReceipt>;
 
   getCompositionState(): Promise<CompositionState>;
   getCompositionRevision(): Promise<number>;
@@ -285,6 +294,24 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
     return this.enqueue(() =>
       this.runRevisionCommand("cabinets.moveSink", (command) =>
         this.namespace("cabinets", "moveSink", { ...command, ...input }),
+      ),
+    );
+  }
+
+  liftSink(fromCabinetId: string, sinkLocalM: CountertopSinkLocalM): Promise<CabinetLiftSinkReceipt> {
+    const input: CabinetLiftSinkInput = { fromCabinetId, sinkLocalM };
+    return this.enqueue(() =>
+      this.runRevisionCommand("cabinets.liftSink", (command) =>
+        this.namespace("cabinets", "liftSink", { ...command, ...input }),
+      ),
+    );
+  }
+
+  landSink(toCabinetId: string): Promise<CabinetLandSinkReceipt> {
+    const input: CabinetLandSinkInput = { toCabinetId };
+    return this.enqueue(() =>
+      this.runRevisionCommand("cabinets.landSink", (command) =>
+        this.namespace("cabinets", "landSink", { ...command, ...input }),
       ),
     );
   }

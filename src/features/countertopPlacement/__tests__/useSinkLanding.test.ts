@@ -30,7 +30,10 @@ const receipt = {
 
 const cabinets: CabinetsState = { cabinets: [], connections: [], selectedCabinetId: null } as unknown as CabinetsState;
 
-const setup = (moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => receipt)) => {
+const setup = (
+  moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => receipt),
+  extra: Partial<Pick<SinkLandingClient, "liftSink" | "landSink">> = {},
+) => {
   let emit: (action: CountertopAction) => void = () => undefined;
   const api = {
     on: vi.fn((_event: string, callback: (action: CountertopAction) => void) => {
@@ -40,7 +43,7 @@ const setup = (moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => recei
     setOffset: vi.fn(async () => undefined),
     resetOffset: vi.fn(async () => undefined),
   } as unknown as CountertopApi;
-  const client = { moveSink, getCabinetsState: vi.fn(async () => cabinets), dispose: vi.fn() };
+  const client = { moveSink, getCabinetsState: vi.fn(async () => cabinets), dispose: vi.fn(), ...extra };
   const onCommitted = vi.fn(async () => undefined);
   const hook = renderHook(() => useSinkLanding({ ready: true, getApi: () => api, onCommitted, createClient: () => client }));
   // The drag starts at x=0.1, then lifts the top and drops it over the side cabinet.
@@ -52,7 +55,7 @@ const setup = (moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => recei
       setCountertopRuntimeState(
         state({
           offset: { x: 0.65, y: 0 },
-          sink: { owner: "countertop", shiftM: 0, landing: null, pending: { cabinetId: "ULH-side-cabinet-b", fromCabinetId: "ULH-sink-cabinet-a" } },
+          sink: { owner: "countertop", shiftM: 0, landing: null, pending: { cabinetId: "ULH-side-cabinet-b", fromCabinetId: "ULH-sink-cabinet-a", status: "fits" } },
         }),
       );
       emit({
@@ -62,7 +65,11 @@ const setup = (moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => recei
     });
     await flush();
   };
-  return { api, client, onCommitted, hook, land };
+  const emitNow = async (action: CountertopAction) => {
+    act(() => emit(action));
+    await flush();
+  };
+  return { api, client, onCommitted, hook, land, emitNow };
 };
 
 // Lets the commit chain (moveSink -> getCabinetsState -> onCommitted / revert) settle.
@@ -151,5 +158,38 @@ describe("useSinkLanding", () => {
     expect(api.setOffset).not.toHaveBeenCalled();
     expect(warn).toHaveBeenCalledOnce();
     expect(hook.result.current.message).toBeNull();
+  });
+
+  it("lands a hosted sink (fromCabinetId null) through landSink, not moveSink", async () => {
+    const landReceipt = { ...receipt, idMap: { "ULH-side-cabinet-b": "ULH-sink-cabinet-n3" }, sinkHostId: "ULH-sink-cabinet-n3" };
+    const landSink = vi.fn(async () => landReceipt);
+    const { client, onCommitted, emitNow, api } = setup(undefined, { landSink });
+    await emitNow({
+      type: "sink-landing",
+      landing: { status: "fits", cabinetId: "ULH-side-cabinet-b", fromCabinetId: null, reason: null, snapDxM: 0 },
+    });
+
+    expect(landSink).toHaveBeenCalledWith("ULH-side-cabinet-b");
+    expect(client.moveSink).not.toHaveBeenCalled();
+    expect(onCommitted).toHaveBeenCalledWith({ ...cabinets, selectedCabinetId: "ULH-sink-cabinet-n3" }, landReceipt);
+    expect(api.setOffset).not.toHaveBeenCalled();
+  });
+
+  it("commits a sink-lift action through liftSink and syncs the composition", async () => {
+    const liftReceipt = {
+      ...receipt,
+      sinkHostId: undefined,
+      idMap: { "ULH-sink-cabinet-a": "ULH-side-cabinet-n4" },
+      sideCabinetId: "ULH-side-cabinet-n4",
+    };
+    const liftSink = vi.fn(async () => liftReceipt);
+    const { client, onCommitted, emitNow, api } = setup(undefined, { liftSink });
+    await emitNow({ type: "sink-lift", fromCabinetId: "ULH-sink-cabinet-a", sinkLocalM: { x: 0.1, y: 0, z: 0.02 } });
+
+    expect(liftSink).toHaveBeenCalledWith("ULH-sink-cabinet-a", { x: 0.1, y: 0, z: 0.02 });
+    expect(client.moveSink).not.toHaveBeenCalled();
+    expect(onCommitted).toHaveBeenCalledWith(cabinets, liftReceipt);
+    expect(api.setOffset).not.toHaveBeenCalled();
+    expect(api.resetOffset).not.toHaveBeenCalled();
   });
 });

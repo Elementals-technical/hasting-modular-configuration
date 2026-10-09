@@ -107,7 +107,7 @@ describe("useCountertopMovementMode", () => {
     await waitFor(() => expect(rejected.hook.result.current.notice?.codes).toContain("countertop.mode.reset"));
     cleanup();
 
-    const pending = { cabinetId: "sc", fromCabinetId: "sb" };
+    const pending = { cabinetId: "sc", fromCabinetId: "sb", status: "fits" as const };
     const landed = switchThickness("5-1/2", "4", { offset: { x: 0.2, y: 0.3 } }, (api) =>
       api.setOffset.mockImplementation((offset) =>
         patchState({ offset, sink: { owner: "countertop", shiftM: 0, landing: null, pending } }),

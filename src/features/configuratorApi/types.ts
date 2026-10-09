@@ -322,17 +322,24 @@ export type CountertopSinkLanding = {
   status: CountertopSinkLandingStatus;
   cabinetId: string | null;
   fromCabinetId: string | null;
-  reason: "TYPE" | "HEIGHT" | null;
+  /** 'DETACHED' (with status 'none'): the carried sink is beside the row; the pose is valid. */
+  reason: "TYPE" | "HEIGHT" | "DETACHED" | null;
   snapDxM: number;
 };
-/** A 'fits' landing waiting for the UI to commit (`cabinets.moveSink`) or decline. */
-export type CountertopSinkPending = { cabinetId: string; fromCabinetId: string };
+/**
+ * A landing waiting for the UI: 'fits' -> commit (`cabinets.moveSink` / `landSink`) or decline;
+ * 'home' -> 3D settles it itself (the whole top snaps), the UI commits nothing.
+ * `cabinetId` is null with several SB sinks; `fromCabinetId` is null for a hosted sink.
+ */
+export type CountertopSinkPending = { cabinetId: string | null; fromCabinetId: string | null; status: "fits" | "home" };
 /** `owner`: 'cabinet' while the top rests (the sink sits on its sink base); 'countertop' while it carries it. */
 export type CountertopSinkState = {
   owner: "cabinet" | "countertop" | null;
   shiftM: number;
   landing: CountertopSinkLanding | null;
   pending: CountertopSinkPending | null;
+  /** True while the top hosts the sink (after `cabinets.liftSink`). Newer builds only. */
+  hosted?: boolean;
 };
 export type CountertopPlacementState = "waiting" | "attached" | "moved";
 export type CountertopState = {
@@ -384,7 +391,9 @@ export type CountertopChangeReason =
 export type CountertopEvent = { reason?: CountertopChangeReason | (string & {}); type?: string; state: CountertopState };
 export type CountertopAction =
   | { type: "edit-size"; state: CountertopState }
-  | { type: "sink-landing"; landing: CountertopSinkLanding };
+  | { type: "sink-landing"; landing: CountertopSinkLanding }
+  /** Once per lift, when the top carries an SB sink off the cabinets: the UI commits `cabinets.liftSink`. */
+  | { type: "sink-lift"; fromCabinetId: string; sinkLocalM: CountertopSinkLocalM };
 /** 'guard' (default): an invalid pose is reverted and the call throws COUNTERTOP_POSE_INVALID. */
 export type CountertopCommandOptions = { validation?: "guard" | "skip" };
 export type CountertopApi = {
@@ -420,13 +429,29 @@ export type CountertopReasonSlug =
   | "SINK_LANDING_GAP"
   | "SINK_LANDING_UNFIT"
   | "COUNTERTOP_COLLISION"
-  | "COUNTERTOP_VERTICAL_LOCKED";
+  | "COUNTERTOP_VERTICAL_LOCKED"
+  | "COUNTERTOP_BELOW_COVER";
 /** `cabinets.moveSink`: commit a pending 'fits' landing (SB <-> SC swap under NEW ids, the top lowered). */
 export type CabinetMoveSinkInput = { fromCabinetId: string; toCabinetId: string };
 export type CabinetMoveSinkReceipt = ConfiguratorReceipt & {
   /** `{ [oldId]: newId }` for both swapped cabinets. */
   idMap: Record<string, string>;
   /** The new sink base (selected in 3D). */
+  sinkHostId: string;
+};
+/** The sink position in the countertop's local frame, metres. */
+export type CountertopSinkLocalM = { x: number; y: number; z: number };
+/** `cabinets.liftSink`: the top takes the SB sink (the SB becomes an SC under a new id). */
+export type CabinetLiftSinkInput = { fromCabinetId: string; sinkLocalM: CountertopSinkLocalM };
+export type CabinetLiftSinkReceipt = ConfiguratorReceipt & {
+  idMap: Record<string, string>;
+  /** The side cabinet the old SB became. */
+  sideCabinetId: string;
+};
+/** `cabinets.landSink`: a hosted sink lands on an SC (it becomes the SB under a new id). */
+export type CabinetLandSinkInput = { toCabinetId: string };
+export type CabinetLandSinkReceipt = ConfiguratorReceipt & {
+  idMap: Record<string, string>;
   sinkHostId: string;
 };
 
@@ -500,6 +525,10 @@ export interface ConfiguratorApi {
     select(scope: ConfiguratorScope, productId: string | null): Promise<ConfiguratorApiResult<{ selectedCabinetId: string | null }>>;
     /** Newer builds only (feature-detect). */
     moveSink?(input: ConfiguratorCommandMetadata & CabinetMoveSinkInput): Promise<ConfiguratorApiResult<CabinetMoveSinkReceipt>>;
+    /** Newer builds only (feature-detect). */
+    liftSink?(input: ConfiguratorCommandMetadata & CabinetLiftSinkInput): Promise<ConfiguratorApiResult<CabinetLiftSinkReceipt>>;
+    /** Newer builds only (feature-detect). */
+    landSink?(input: ConfiguratorCommandMetadata & CabinetLandSinkInput): Promise<ConfiguratorApiResult<CabinetLandSinkReceipt>>;
     on(event: string, callback: (event: ConfiguratorEventEnvelope<unknown>) => void, options?: unknown): ConfiguratorUnsubscribe;
   };
   cabinetPlacement: {
