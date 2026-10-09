@@ -14,7 +14,11 @@
       "Top_Porcelain_Strip": "images/basin/strip.jpg",
       "Top_Porcelain_Cover": "images/basin/cover.jpg",
       "Top_Porcelain_Prisma": "images/basin/prisma.jpg",
-      "Top_Porcelain_Quadra": "images/basin/quadro.jpg"
+      "Top_Porcelain_Quadra": "images/basin/quadro.jpg",
+      "Vessel_Blade11": "images/vessel/Vessel_Blade11.png",
+      "Vessel_Blade18": "images/vessel/Vessel_Blade18.png",
+      "Vessel_UrbanModo": "images/vessel/Vessel_UrbanModo_Flat.png",
+      "Vessel_UrbanMorris": "images/vessel/Vessel_UrbanMorris.png"
     }
   },
   "flows": {

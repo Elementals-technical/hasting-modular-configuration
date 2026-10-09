@@ -275,10 +275,34 @@
         },
         {
           "value": "Vessel",
-          "label": "Vessel cutout",
+          "label": "None",
           "order": 140,
           "category": "vessel",
           "legacyDescription": "Cutout without an integrated basin: the scene token the pages send when a vessel is used"
+        },
+        {
+          "value": "Vessel_Blade11",
+          "label": "Vessel Blade 11",
+          "order": 150,
+          "category": "vessel"
+        },
+        {
+          "value": "Vessel_Blade18",
+          "label": "Vessel Blade 18",
+          "order": 160,
+          "category": "vessel"
+        },
+        {
+          "value": "Vessel_UrbanModo",
+          "label": "Vessel Urban Modo",
+          "order": 170,
+          "category": "vessel"
+        },
+        {
+          "value": "Vessel_UrbanMorris",
+          "label": "Vessel Urban Morris",
+          "order": 180,
+          "category": "vessel"
         }
       ]
     },
@@ -525,6 +549,35 @@
           "allowed": ["NoG"]
         }
       ]
+    },
+    "vesselCompatibility": {
+      "hiddenStyles": ["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat"],
+      "allowedMaterialsByStyle": {
+        "Vessel_Blade11": ["ceramic"],
+        "Vessel_Blade18": ["ceramic"],
+        "Vessel_UrbanModo": ["solidsurface", "hpl", "porcelain"],
+        "Vessel_UrbanMorris": ["tekorlux", "sstkr", "tal", "tam"]
+      },
+      "allowedColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "solidsurface": ["T1C", "T1D"],
+          "hpl": ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"]
+        },
+        "Vessel_UrbanMorris": {
+          "tekorlux": ["TAL", "TAM"]
+        }
+      },
+      "unavailableColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "porcelain": ["TQ2"]
+        }
+      },
+      "defaultFinishByStyle": {
+        "Vessel_UrbanModo": {
+          "materialTokens": ["solidsurface", "ocritech", "ssocr", "sst1c"],
+          "colorCodes": ["T1C"]
+        }
+      }
     }
   },
   "messages": {
@@ -603,7 +656,6 @@
     "undermount": "Not offered: the client has no undermount \"currently\" (GEN-TOP-15).",
     "thinThickness": "Thin countertops only (P1133). Only 1/2\" is confirmed (Fenix, HPL: table 438). Porcelain 3/8\" or 1/2\" waits for GEN-TOP-05; the Solid-Surface token for GEN-MAT-01.",
     "solidSurfaceBasin": "Solid-Surface: Rectangular has no row in table 438; it is the Urban Standard Height candidate Top_Tekorlux_Rectangular until GEN-MAT-01.",
-    "vesselSinks": "The Master File lists no vessel sinks; only the vessel cutout is offered until the list is confirmed.",
     "sidePanelAvailability": "Side panels are as tall as the cabinet body without the plinth and come in two heights (P1125, Block2 Q0050). Their SKUs and allowed grooves wait for UFS-SP-01; until then Urban Freestanding offers the panels Urban Low Height offers (team, 2026-10-07): no groove or one upper groove beside an Upper or Central Groove cabinet (91 cm), no groove beside a Push-to-Open one (88 cm), none beside an open shelf. A Central Groove cabinet starts with the panel without a groove, as Urban Low Height has no central groove to follow.",
     "heightsAndDepths": "Heights 91H (Upper/Central Groove) and 88H (Push-to-Open), each with a 3 cm plinth, and depths 50/46 are in the cabinet table. The scene registers UF-sink-cabinet, UF-side-cabinet, UF-open-shelves and UF-open-shelves-side at 50/53/82/88 and 45/50, and draws the shared UF leg at 45 and 50 only.",
     "openShelves": "Open Shelf 25/35/50 cm and Open Side Shelf 15 cm (price list) are in the cabinet table at their height with the 3 cm plinth: the 88H shelf as 91 next to Upper/Central Groove cabinets, the 85H shelf and the Open Side Shelf as 88 next to Push-to-Open, as the docs propose until UFS-SIZ-02. Placed as UF-open-shelves and UF-open-shelves-side; the scene lays them out at 50/53/82/88 only, so a 91 shelf keeps its 88 cm template shape, as the cabinets beside it do. Their SKU height is the table height less the plinth."

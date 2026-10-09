@@ -8,6 +8,7 @@ import {
   configuratorSchema,
   parseProductProfile,
   selectDefaultValue,
+  selectOptions,
   selectOptionValues,
   type ConfiguratorGroupCatalog,
   type ProductProfile,
@@ -23,6 +24,8 @@ import urbanFreestandingManifest from "../../../../public/collections/urban-free
 import urbanFreestandingPresets from "../../../../public/collections/urban-freestanding/presets.json";
 import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 import urbanFreestandingProfileDocument from "../../../../public/collections/urban-freestanding/product-profile.json";
+import { isMaterialCompatibleWithVesselStyle } from "@/features/configurator-rule-core/countertop";
+import { extractColorCode } from "@/shared/lib/sku";
 import { resolveConfiguratorOptions } from "../lib/resolveSectionState";
 
 /**
@@ -185,5 +188,46 @@ describe("urban freestanding basin pictures", () => {
 
     expect(basins.filter((basin) => !pictures[basin])).toEqual(["Vessel"]);
     for (const picture of Object.values(pictures)) expect(urbanFreestandingImages.has(picture), picture).toBe(true);
+  });
+});
+
+describe("urban freestanding vessels", () => {
+  const { profile, configurator } = URBAN_FREESTANDING;
+  const vesselColours = resolveConfiguratorOptions(profile, "VesselColor", configurator);
+  const coloursOf = (vesselStyle: string) =>
+    vesselColours
+      .filter(({ value, traits }) =>
+        isMaterialCompatibleWithVesselStyle({
+          vesselStyle,
+          materialTokens: traits?.materials ?? [],
+          colorCode: extractColorCode(value),
+          profile,
+        }),
+      )
+      .map(({ value }) => value);
+
+  // The website's vessel styles for Urban Freestanding, with Urban Low Height's names and rules.
+  it("offers Blade, Modo and Morris, and the cutout without a vessel", () => {
+    const vessels = selectOptions(profile, "sinkType").filter(({ category }) => category === "vessel");
+
+    expect(vessels.map(({ value, label }) => [value, label])).toEqual([
+      ["Vessel", "None"],
+      ["Vessel_Blade11", "Vessel Blade 11"],
+      ["Vessel_Blade18", "Vessel Blade 18"],
+      ["Vessel_UrbanModo", "Vessel Urban Modo"],
+      ["Vessel_UrbanMorris", "Vessel Urban Morris"],
+    ]);
+  });
+
+  it("colours each style from configurator 11 as the website does: Morris in white only", () => {
+    expect(coloursOf("Vessel_Blade11")).toEqual([
+      "Antracite Matte OCF",
+      "Cemento Matte OCD",
+      "Cenere Matte OCE",
+      "Gloss White OCB",
+      "Matte White OCC",
+    ]);
+    expect(coloursOf("Vessel_UrbanModo")).toEqual(["Matte Black T1D", "Matte White T1C"]);
+    expect(coloursOf("Vessel_UrbanMorris")).toEqual(["Bianco Gloss TAL", "Bianco Matte TAM"]);
   });
 });

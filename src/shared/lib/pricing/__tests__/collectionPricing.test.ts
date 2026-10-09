@@ -31,6 +31,7 @@ import {
 import { createSkuBuilders } from "@/shared/lib/sku";
 
 import { buildCollectionPricingLines } from "../buildCollectionPricingLines";
+import { buildColorSkuMaps } from "../buildColorSkuMaps";
 import { resolvePriceFromResponse, resolvePriceRequest } from "../priceRequests";
 import type { PricingInput, PricingLine } from "../types";
 import {
@@ -952,6 +953,51 @@ describe("Urban Freestanding side panels, priced as Urban Standard Height's", ()
     ]);
     // The price list has no panel SKU of its own (UFS-SP-01): the total still stands, with a note.
     expect(upperGroove.gaps).toEqual([expect.objectContaining({ group: "sidePanel", blocksTotal: false })]);
+  });
+});
+
+describe("Urban Freestanding vessels, the website's Blade, Modo and Morris, priced as Urban Standard Height's", () => {
+  // The price server answered these SKUs on 2026-10-09: Modo $2,113, Blade 11 $1,573, Blade 18 $1,623,
+  // Morris $1,387, the vessel cutout $637.
+  const vesselOrder = (sinkType: string, vesselColor: string) => {
+    const top = "Pulpis Chiaro TKH";
+    const sinkBase = { target: { scope: "cabinet" as const, cabinetId: "sb" } };
+    return buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_FREESTANDING,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 88, depth: 50 } }],
+        {
+          Drawers: [{ ...sinkBase, value: "2" }],
+          Handle: [{ ...sinkBase, value: "PTO" }],
+          CountertopStyle: [at({ scope: "countertop" }, "vessel")],
+          CountertopColor: [at({ scope: "countertop" }, top)],
+          sinkType: [at({ scope: "basin" }, sinkType)],
+          VesselColor: [at({ scope: "basin" }, vesselColor)],
+        },
+        {
+          colorSkuMaps: buildColorSkuMaps(URBAN_FREESTANDING.configurator.groups),
+          cabinetColor: "Metal acciaio 2MA",
+          countertopColor: top,
+          countertopStyle: "vessel",
+          countertopThickness: "0.5",
+          sinkType,
+          vesselColor,
+        },
+      ),
+    );
+  };
+
+  it.each([
+    ["Vessel_UrbanModo", "Matte White T1C", "VES-URMOD-X-19.7W-5.5H-13D-SS-T1C"],
+    ["Vessel_Blade11", "Matte White OCC", "VES-BLD11-X-19.7W-6.1H-15D-CER-OCC"],
+    ["Vessel_Blade18", "Antracite Matte OCF", "VES-BLD18-X-21.7W-6.1H-15D-CER-OCF"],
+    // A Tekorlux colour the countertop colours do not name: its material comes from the vessel section.
+    ["Vessel_UrbanMorris", "Bianco Gloss TAL", "VES-URMORS-X-22.8W-5.1H-14.6D-SSTKR-TAL"],
+  ])("orders %s in %s with the vessel cutout", (sinkType, vesselColor, vesselSku) => {
+    const { lines } = vesselOrder(sinkType, vesselColor);
+
+    expect(lines.filter(({ group }) => group === "vessel").map(({ sku }) => sku)).toEqual([vesselSku]);
+    expect(lines.find(({ group }) => group === "holeCut")?.sku).toBe("CT-URHPL-HCUT");
   });
 });
 
