@@ -2,12 +2,13 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CountertopOverlayFrame } from "@/features/configuratorApi";
+import { COUNTERTOP_RESIZE_STEP_M, type CountertopOverlayFrame } from "@/features/configuratorApi";
 
 import { METRES_PER_INCH } from "../lib/countertopLength";
 import {
   createHandleDragSession,
   nudgeLengthM,
+  NUDGE_SHIFT_STEPS,
   type CountertopLengthAtPointer,
 } from "../lib/handleDrag";
 import { CountertopResizeHandles, type CountertopResizeHandlesProps } from "../ui/CountertopResizeHandles";
@@ -94,12 +95,12 @@ const setup = (overrides: Partial<CountertopResizeHandlesProps> = {}) => {
 };
 
 describe("CountertopResizeHandles", () => {
-  it("renders nothing when attached or without points", () => {
-    const { view } = setup({ frame: frameOf({ attached: true }) });
-    expect(view.container.innerHTML).toBe("");
-    expect(screen.queryAllByRole("button")).toHaveLength(0);
+  it("renders on a standard (attached) top and nothing without points", () => {
+    setup({ frame: frameOf({ attached: true }) });
+    expect(screen.queryAllByRole("button")).toHaveLength(2);
     cleanup();
-    setup({ frame: frameOf({ points: null }) });
+    const { view } = setup({ frame: frameOf({ points: null }) });
+    expect(view.container.innerHTML).toBe("");
     expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
 
@@ -232,18 +233,28 @@ describe("CountertopResizeHandles", () => {
     expect(props.onPreview).not.toHaveBeenCalled();
   });
 
-  it("nudges with the arrow keys: outward grows, Shift = 1in, no preview", () => {
+  it("nudges with the arrow keys by the resize step: outward grows, Shift = 10 steps, no preview", () => {
     const { props, handle } = setup();
+    const step = COUNTERTOP_RESIZE_STEP_M;
     fireEvent.keyDown(handle("right"), { key: "ArrowRight" });
-    expect(props.onCommit).toHaveBeenLastCalledWith("right", inches(84) + 0.0127);
+    expect(props.onCommit).toHaveBeenLastCalledWith("right", inches(84) + step);
     fireEvent.keyDown(handle("right"), { key: "ArrowLeft", shiftKey: true });
-    expect(props.onCommit).toHaveBeenLastCalledWith("right", inches(84) - 0.0254);
+    expect(props.onCommit).toHaveBeenLastCalledWith("right", inches(84) - step * NUDGE_SHIFT_STEPS);
     fireEvent.keyDown(handle("left"), { key: "ArrowLeft" });
-    expect(props.onCommit).toHaveBeenLastCalledWith("left", inches(84) + 0.0127);
+    expect(props.onCommit).toHaveBeenLastCalledWith("left", inches(84) + step);
     fireEvent.keyDown(handle("left"), { key: "ArrowRight" });
-    expect(props.onCommit).toHaveBeenLastCalledWith("left", inches(84) - 0.0127);
+    expect(props.onCommit).toHaveBeenLastCalledWith("left", inches(84) - step);
     expect(props.onCommit).toHaveBeenCalledTimes(4);
     expect(props.onPreview).not.toHaveBeenCalled();
+  });
+
+  it("clamps nudges to resizeBoundsM[side] over the frame limits", () => {
+    const resizeBoundsM = { left: null, right: { anchorXM: 0, minLengthM: inches(48), maxLengthM: inches(84) } };
+    const { props, handle } = setup({ resizeBoundsM });
+    fireEvent.keyDown(handle("right"), { key: "ArrowRight" });
+    expect(props.onCommit).not.toHaveBeenCalled();
+    fireEvent.keyDown(handle("left"), { key: "ArrowLeft" });
+    expect(props.onCommit).toHaveBeenLastCalledWith("left", inches(84) + COUNTERTOP_RESIZE_STEP_M);
   });
 });
 

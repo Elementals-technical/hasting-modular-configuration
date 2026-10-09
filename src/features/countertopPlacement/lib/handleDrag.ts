@@ -1,3 +1,5 @@
+import { COUNTERTOP_RESIZE_STEP_M } from "@/features/configuratorApi";
+
 /**
  * Framework-free drag controller for the countertop resize handles.
  *
@@ -49,8 +51,8 @@ export type HandleDragSession = {
 
 /** Minimum change (m) that counts as a real resize. */
 export const LENGTH_EPSILON_M = 1e-6;
-export const HALF_INCH_M = 0.0127;
-export const INCH_M = 0.0254;
+/** Shift + Arrow nudges this many resize steps (10 × 0.1″ = 1″). */
+export const NUDGE_SHIFT_STEPS = 10;
 
 const isThenable = <T>(value: unknown): value is PromiseLike<T> =>
   !!value && typeof (value as { then?: unknown }).then === "function";
@@ -214,8 +216,9 @@ export function bindHandleDragEvents(
 
 /**
  * Keyboard nudge for a focused handle: the key pointing away from the countertop grows it
- * (ArrowRight on the right end, ArrowLeft on the left end). 0.5in, Shift = 1in. Clamped to
- * `limits` when given. Returns null for other keys or when nothing would change.
+ * (ArrowRight on the right end, ArrowLeft on the left end). One `COUNTERTOP_RESIZE_STEP_M` (0.1″),
+ * Shift = `NUDGE_SHIFT_STEPS` steps. Clamped to `limits` when given. Returns null for other keys or
+ * when nothing would change.
  */
 export function nudgeLengthM({
   side,
@@ -232,7 +235,7 @@ export function nudgeLengthM({
 }): number | null {
   if (key !== "ArrowLeft" && key !== "ArrowRight") return null;
   const outward = side === "right" ? "ArrowRight" : "ArrowLeft";
-  const step = shiftKey ? INCH_M : HALF_INCH_M;
+  const step = COUNTERTOP_RESIZE_STEP_M * (shiftKey ? NUDGE_SHIFT_STEPS : 1);
   let next = lengthM + (key === outward ? step : -step);
   if (limits) next = Math.min(Math.max(next, limits.minLengthM), limits.maxLengthM);
   return Math.abs(next - lengthM) > LENGTH_EPSILON_M ? next : null;

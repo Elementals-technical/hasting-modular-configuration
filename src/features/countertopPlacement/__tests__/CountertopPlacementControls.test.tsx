@@ -176,7 +176,7 @@ describe("Countertop snapshot positioning", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Cancel countertop" }));
     await screen.findByRole("button", { name: "Countertop: Position & Size" });
-    expect(api.setOffset).toHaveBeenLastCalledWith({ x: 0.35, y: 0.1 });
+    expect(api.setOffset).toHaveBeenLastCalledWith({ x: 0.35, y: 0.1 }, { validation: "skip" });
     expect(api.setSize).toHaveBeenLastCalledWith({ length: 1.5 });
     expect(state().dragEnabled).toBe(true);
   });
@@ -429,7 +429,7 @@ describe("Countertop snapshot positioning", () => {
       expect(screen.queryByLabelText("Countertop positioning")).toBeNull();
       expect(getApi).toHaveBeenCalledOnce();
       await act(async () => vi.advanceTimersByTimeAsync(600));
-      runtimeApi = api;
+      runtimeApi = api as unknown as CountertopApi;
       await act(async () => vi.advanceTimersByTimeAsync(300));
       expect((screen.getByRole("button", { name: "Countertop: Position & Size" }) as HTMLButtonElement).disabled).toBe(
         false,

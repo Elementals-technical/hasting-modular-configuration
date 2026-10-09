@@ -8,9 +8,9 @@ import {
 } from "react";
 import clsx from "clsx";
 
-import type { CountertopOverlayFrame } from "@/features/configuratorApi";
+import type { CountertopOverlayFrame, CountertopState } from "@/features/configuratorApi";
 
-import { formatInches, metresToDisplayInches } from "../lib/countertopLength";
+import { formatInches, metresToDisplayInches, resizeBoundsLimitsM } from "../lib/countertopLength";
 import {
   bindHandleDragEvents,
   createHandleDragSession,
@@ -29,6 +29,8 @@ export type { CountertopLengthAtPointer, CountertopLengthPreview, CountertopResi
 export type CountertopResizeHandlesProps = {
   frame: CountertopOverlayFrame;
   disabled: boolean;
+  /** `getState().resizeBoundsM`: per-side limits of a one-end resize (preferred over `frame.limits`). */
+  resizeBoundsM?: CountertopState["resizeBoundsM"];
   /** Client px of the overlay root; frame coords = client - origin. */
   origin(): { left: number; top: number };
   lengthAtPointer(
@@ -59,9 +61,10 @@ export const snapLabelOf = (kind: string | null) => (kind ? (SNAP_LABELS[kind] ?
 const SIDES = ["left", "right"] as const;
 
 /**
- * Resize handles at both countertop ends. Dragging asks `lengthAtPointer` for the snapped length
- * under the pointer (rAF-throttled, one request in flight), previews it and commits on release;
- * Arrow keys nudge a focused handle by 0.5in (Shift = 1in).
+ * Resize handles at both countertop ends, on a standard (attached) top too: `resizeFrom` keeps the
+ * opposite end fixed (phase-1 §6a). Dragging asks `lengthAtPointer` for the snapped length under the
+ * pointer (rAF-throttled, one request in flight), previews it and commits on release; Arrow keys nudge
+ * a focused handle by one resize step (0.1″, Shift = 1″) within `resizeBoundsM[side]`.
  */
 export function CountertopResizeHandles(props: CountertopResizeHandlesProps) {
   const { frame, disabled } = props;
@@ -83,7 +86,7 @@ export function CountertopResizeHandles(props: CountertopResizeHandlesProps) {
   );
 
   const points = frame.points;
-  if (frame.attached === true || !points) return null;
+  if (!points) return null;
   const colliding = frame.status === "colliding";
 
   const startDrag = (side: CountertopResizeSide) => (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -138,7 +141,9 @@ export function CountertopResizeHandles(props: CountertopResizeHandlesProps) {
     if (disabled || sessionRef.current || typeof frame.lengthM !== "number") return;
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
     event.preventDefault();
-    const next = nudgeLengthM({ side, key: event.key, shiftKey: event.shiftKey, lengthM: frame.lengthM, limits: frame.limits });
+    const bounds = resizeBoundsLimitsM({ resizeBoundsM: propsRef.current.resizeBoundsM }, side);
+    const limits = bounds ? { minLengthM: bounds.minM, maxLengthM: bounds.maxM } : frame.limits;
+    const next = nudgeLengthM({ side, key: event.key, shiftKey: event.shiftKey, lengthM: frame.lengthM, limits });
     if (next !== null) propsRef.current.onCommit(side, next);
   };
 
