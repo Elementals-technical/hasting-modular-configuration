@@ -279,6 +279,20 @@ export type RoomApi = {
   getState?: () => unknown;
 };
 
+/** `ConfiguratorAPI.cabinetCover` (ULH): the thin covers the scene lays on the cabinet tops it leaves bare. */
+export type CabinetCoverApi = {
+  getState?: () => unknown;
+  whenSettled?: () => unknown;
+};
+
+/** One cover slab: a run of cabinet tops of one height and depth, in metres. */
+export type CabinetCoverSegment = {
+  productId: string;
+  widthM: number;
+  depthM: number;
+  cabinetIds: string[];
+};
+
 export type CountertopOverlayApi = {
   setActive(active: boolean): void;
   getState(): CountertopOverlayFrame | null;
@@ -508,6 +522,8 @@ export interface ConfiguratorApi {
   countertopOverlay?: CountertopOverlayApi;
   /** Room height per open collection (ULH lowers the room). Newer builds only (feature-detect). */
   room?: RoomApi;
+  /** Cabinet covers (ULH). Newer builds only (feature-detect). */
+  cabinetCover?: CabinetCoverApi;
   /** Only the members the typed layer uses; the rest of the namespace is read by the countertop feature. */
   countertop?: {
     setLengthLimits?: (limits: CountertopLengthLimitsM | null) => unknown;

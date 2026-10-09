@@ -3,6 +3,7 @@ import type { PricingGapGroup, ProductProfile, RuntimeBindingSet } from "@/entit
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { CabinetDimensions, CabinetEntry, ScopedValue, StableCabinetKey } from "@/entities/configuration";
 import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
+import type { CabinetCoverSize } from "@/shared/lib/cabinetCoverRuntime";
 import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
 import type { CountertopColorSkuCandidatesByValue, SkuBuilders } from "@/shared/lib/sku";
 
@@ -25,7 +26,9 @@ export type PricingLineGroup =
   /** The legs a composition stands on (collections priced from their SKU profile). */
   | "legs"
   /** Brackets of a thick countertop (collections priced from their SKU profile). */
-  | "bracket";
+  | "bracket"
+  /** The thin cover on the cabinet tops under a lifted countertop (Urban Low Height). */
+  | "cabinetCover";
 
 /** One line of the order: what is priced and how many pieces of it. */
 export type PricingLine = {
@@ -78,6 +81,8 @@ export type PricingInput = {
   sceneConfigs: readonly NormalizedProductConfigSnapshot[];
   /** The countertop's sink while it hosts one (after `cabinets.liftSink`): its basin replaces the global one. */
   hostedSink?: { sinkType: string | null; vesselColor: string | null } | null;
+  /** The cover slabs the scene lays on the cabinet tops while the countertop is lifted; null when it is not. */
+  cabinetCovers?: readonly CabinetCoverSize[] | null;
   cabinetEntries: readonly CabinetEntry[];
   dimensionsByCabinet: Readonly<Record<StableCabinetKey, CabinetDimensions>>;
   /** Applied runtime countertop length. Overrides only the priced top, never cabinet or basin geometry. */

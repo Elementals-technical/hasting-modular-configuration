@@ -16,6 +16,7 @@ import {
 } from "@/entities/configuration";
 import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
 import {
+  buildCabinetCoverSku,
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
@@ -91,6 +92,13 @@ const UNPRICED_VESSEL: Record<"not-chosen" | "no-material", { owner: string; rea
     owner: "product",
     reason: "VesselColor is set to a value the collection names no material for, so the vessel has no price.",
   },
+};
+
+/** Why a cover under a lifted countertop has no line: its SKU lacks the cabinet colour's material or code, or the style. */
+const UNPRICED_CABINET_COVER = {
+  owner: "product",
+  reason:
+    "The cover under the lifted countertop has no price: the cabinet colour names no material or colour code, or the countertop style is not chosen.",
 };
 
 /** Why a countertop priced as Urban Standard Height's has no top line. */
@@ -314,9 +322,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     // A countertop priced as Urban Standard Height's (Urban Low Height): its SKUs and rules, on this
     // composition — as deep as its cabinets, as wide as they are with their side panels.
     const firstSize = dimensionsByCabinet[cabinets[0].stableKey];
-    const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : null;
+    // A lifted top that carries the sink (`cabinets.liftSink`) leaves no sink base: its own basin is
+    // the composition's, ordered once, and sized by the cabinet it was lifted from — the first one here.
+    const hostedSink = sinkBases.length === 0 && input.hostedSink?.sinkType ? input.hostedSink : null;
+    const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : (hostedSink?.sinkType ?? null);
+    const basinCabinet = sinkBases[0] ?? (hostedSink ? cabinets[0] : null);
+    const basinCount = hostedSink ? 1 : sinkBases.length;
     // The countertop table sizes the top by the sink base of that basin (its minimum sink base width).
-    const sinkBaseWidth = sinkBases.length > 0 ? (dimensionsByCabinet[sinkBases[0].stableKey]?.width ?? null) : null;
+    const sinkBaseWidth = basinCabinet ? (dimensionsByCabinet[basinCabinet.stableKey]?.width ?? null) : null;
     const compositionWidthCm =
       widthCm === null ? null : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight);
     const countertop = resolveUshCountertop(input, {
@@ -333,8 +346,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       sinkType,
       widthCm: hasCommittedCountertopLength ? committedCountertopLengthCm : compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
-      sinkBases: sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
-      sinkBaseCount: sinkBases.length,
+      sinkBases: hostedSink
+        ? [{ id: "hosted", sinkType: hostedSink.sinkType }]
+        : sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
+      sinkBaseCount: basinCount,
     });
 
     countertopLines.forEach(add);
@@ -343,7 +358,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (!countertopLines.some(({ group }) => group === "countertop")) {
       gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
     }
-    const vesselColor = sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : null;
+    const vesselColor =
+      sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : (hostedSink?.vesselColor ?? null);
     buildUshVesselLines({
       profile,
       countertop,
@@ -353,7 +369,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       vesselColorSku: vesselColor ? readConfiguratorColor("VesselColor", vesselColor)?.sku : null,
       widthCm: compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
-      sinkBaseCount: sinkBases.length,
+      sinkBaseCount: basinCount,
     }).forEach(add);
   }
 
@@ -415,6 +431,39 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         ? colorSku("HandleGrooveColor", grooveColor)
         : { materialSku: null, colorCode: null },
     }).forEach(add);
+  }
+
+  // 7) Cabinet covers: while the countertop is lifted, the scene covers the cabinet tops with a thin
+  // slab per run of cabinets, in the cabinet colour and the top's style, as deep as the cabinet SKU
+  // spells the cabinets under it (a run has one depth). Identical slabs are one line.
+  const cover = skuProfile.cabinetCover;
+  if (cover && input.cabinetCovers?.length && cabinets.length > 0) {
+    const cabinetColor = readerOf(cabinets[0])("CabinetColor");
+    const materialSku = cabinetColor
+      ? resolveCollectionColorMaterial(skuProfile, profile, "CabinetColor", cabinetColor, readConfiguratorColor)
+      : null;
+    const colorCode = cabinetColor ? resolveCollectionColorCode(skuProfile, cabinetColor) : null;
+    const covers = new Map<string, number>();
+    let unpriced = false;
+    input.cabinetCovers.forEach(({ widthCm: coverWidthCm, cabinetIds }) => {
+      const under = cabinets.find(({ runtimeId }) => cabinetIds.includes(runtimeId)) ?? cabinets[0];
+      const coverDepthCm = dimensionsByCabinet[under.stableKey]?.depth ?? null;
+      const sku = buildCabinetCoverSku({
+        prefix: cover.prefix,
+        style: countertopStyle,
+        widthCm: coverWidthCm,
+        depthCm: coverDepthCm,
+        thicknessIn: cover.thicknessIn,
+        materialSku,
+        colorCode,
+      });
+      if (sku) covers.set(sku, (covers.get(sku) ?? 0) + 1);
+      else unpriced = true;
+    });
+    [...covers].forEach(([sku, quantity], index) =>
+      add({ id: index === 0 ? "cabinetCover" : `cabinetCover:${index}`, group: "cabinetCover", sku, quantity }),
+    );
+    if (unpriced) gaps.push({ group: "input", blocksTotal: true, ...UNPRICED_CABINET_COVER });
   }
 
   const ownPanel = skuProfile.sidePanel;

@@ -432,6 +432,19 @@ export const collectionSkuProfileSchema = z
     towelBar: pricedAsSchema.optional(),
     /** The side panels, for a collection that offers them. */
     sidePanel: z.union([pricedAsSchema, ownSidePanelSchema]).optional(),
+    /**
+     * The thin cover the scene lays on the cabinet tops while the countertop is lifted (Urban Low
+     * Height): `CT-{prefix}{material}-{style}-{W}W-{thickness}H-{D}D-{material}-{colour}`, in the
+     * cabinet's colour. Without it no cover is ordered.
+     */
+    cabinetCover: z
+      .object({
+        prefix: z.string().trim().min(1),
+        /** Inches, as the SKU spells it (0.5 → `.5H`). */
+        thicknessIn: z.number().positive(),
+      })
+      .strict()
+      .optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
     /** The legs a composition stands on, for a collection that offers them. */

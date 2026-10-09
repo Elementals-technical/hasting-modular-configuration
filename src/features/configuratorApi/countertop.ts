@@ -33,6 +33,12 @@ export const isStandardCountertop = (state: Pick<CountertopState, "customLength"
   Math.abs(state.offset?.x ?? 0) < COUNTERTOP_STANDARD_EPSILON_M &&
   Math.abs(state.offset?.y ?? 0) < COUNTERTOP_STANDARD_EPSILON_M;
 
+/** A top higher than this (metres) above its cabinets counts as lifted: the scene then covers their tops. */
+export const COUNTERTOP_LIFTED_ABOVE_M = 0.01;
+
+export const isLiftedCountertop = (state: Pick<CountertopState, "offset"> | null | undefined) =>
+  (state?.offset?.y ?? 0) > COUNTERTOP_LIFTED_ABOVE_M;
+
 export type CountertopFailureKind =
   /** The pose broke a rule; the runtime already reverted it. `reasons` holds the slugs. */
   | "pose-invalid"
