@@ -343,12 +343,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (!countertopLines.some(({ group }) => group === "countertop")) {
       gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
     }
+    const vesselColor = sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : null;
     buildUshVesselLines({
       profile,
       countertop,
       countertopColorSkuCandidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
       sinkType,
-      vesselColor: sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : null,
+      vesselColor,
+      vesselColorSku: vesselColor ? readConfiguratorColor("VesselColor", vesselColor)?.sku : null,
       widthCm: compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
       sinkBaseCount: sinkBases.length,

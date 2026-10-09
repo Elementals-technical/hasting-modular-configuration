@@ -94,20 +94,12 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
         )
       ).status,
     ).toBe("applied");
-    expect(
-      (
-        await changeAttribute(
-          {
-            attributeId: "HandleGrooveColor",
-            scope: "cabinet",
-            cabinetId: cabinet.stableKey,
-            value: index ? "Ambra 413 MT" : "Zafferano 412 MT",
-          },
-          deps,
-        )
-      ).status,
-    ).toBe("applied");
   }
+  // One groove colour for the composition, as its cabinet colour.
+  expect(
+    (await changeAttribute({ attributeId: "HandleGrooveColor", scope: "global", value: "Zafferano 412 MT" }, deps))
+      .status,
+  ).toBe("applied");
   expect((await changeAttribute({ attributeId: "SidePanels", scope: "global", value: "No" }, deps)).status).toBe(
     "applied",
   );
@@ -116,7 +108,7 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
 
 describe("Tricot persistence and collection vocabulary", () => {
   it.each(["prebuilt", "custom"] as const)(
-    "round-trips %s identity, order and separate patterns/groove colors",
+    "round-trips %s identity, order, separate patterns and the groove colour",
     async (flow) => {
       await givenChoices(flow);
       // Preserve unapproved top/basin selections as metadata, not as a claim of scene support.

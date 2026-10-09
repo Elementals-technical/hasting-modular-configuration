@@ -292,16 +292,6 @@
       }
     },
     {
-      "group": "vessel",
-      "blocksTotal": false,
-      "owner": "product",
-      "reason": "The Master File lists no vessel sinks (excludedFromThisProfile.vesselSinks): a vessel top is priced with its cutout and without a vessel until the list is confirmed.",
-      "appliesWhen": {
-        "attributeId": "CountertopStyle",
-        "values": ["vessel"]
-      }
-    },
-    {
       "group": "divider",
       "blocksTotal": true,
       "owner": "D, I",

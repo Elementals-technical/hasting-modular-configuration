@@ -29,6 +29,11 @@ export type UshVesselLinesInput = {
   /** The basin of the whole composition: a vessel (`Vessel_…`) is ordered. */
   sinkType: string | null;
   vesselColor: string | null;
+  /**
+   * The vessel colour's own material SKU, from the configurator section the collection reads it from,
+   * for a colour the countertop colours do not name (Urban Freestanding's Bianco Gloss TAL is SSTKR).
+   */
+  vesselColorSku?: string | null;
   /** The countertop across the composition and its depth, for a vessel without a size of its own. */
   widthCm: number | null;
   depthCm: number | null;
@@ -41,6 +46,7 @@ export const buildUshVesselLines = ({
   countertopColorSkuCandidatesByValue: candidatesByValue,
   sinkType,
   vesselColor,
+  vesselColorSku,
   widthCm,
   depthCm,
   sinkBaseCount,
@@ -58,7 +64,9 @@ export const buildUshVesselLines = ({
     : null;
   const materialSku = vesselColor
     ? (resolveCountertopMaterialSkuFromColorCode(colorCode) ??
-      resolveCountertopColorSkuFromCandidates({ value: vesselColor, candidatesByValue, preferredMaterialTokens }))
+      resolveCountertopColorSkuFromCandidates({ value: vesselColor, candidatesByValue, preferredMaterialTokens }) ??
+      vesselColorSku ??
+      null)
     : null;
 
   const sku = buildVesselSku({
