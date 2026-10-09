@@ -7,6 +7,8 @@ import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
 import { getCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
+import { commitHostedSinkLanding } from "./hostedSinkLanding";
+
 /** 'none': stays Standard; 'offset': slides left/right only (locked); 'free': slides and lifts. */
 export type CountertopMovementMode = "none" | "offset" | "free";
 
@@ -67,6 +69,8 @@ const correctPose = async (api: CountertopApi, mode: "offset" | "none"): Promise
       // Landed 'fits' over another sink cabinet: that is a sink move, not a lowering ('home' 3D settles itself).
       const pending = (await api.getState())?.sink?.pending;
       if (!pending || pending.status === "home") return "lowered";
+      // A hosted sink over an SC: the lowering is its landing (`landSink`), not a pose to undo.
+      if (await commitHostedSinkLanding(api)) return "lowered";
     } catch (error) {
       if (isTransient(error)) throw error;
       // COUNTERTOP_POSE_INVALID: the sink would sit on a seam / gap / the wrong cabinet.

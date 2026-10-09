@@ -2,6 +2,8 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 
 import { useReasonText } from "@/shared/lib/reasonText";
 
+import { commitHostedSinkLanding } from "../lib/hostedSinkLanding";
+
 import s from "./CountertopPlacementControls.module.scss";
 
 import {
@@ -251,6 +253,7 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
           await readTarget(api);
           await api.setSize({ length: null });
           const next = await settled(api);
+          await commitHostedSinkLanding(api);
           if (!next.attached) throw new Error("The countertop did not return to its standard position");
           offsetDirtyRef.current = false;
           setX(metres(next.offset?.x ?? 0));
@@ -271,6 +274,7 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
           read: () => readTarget(api),
           settled: () => settled(api),
         });
+        await commitHostedSinkLanding(api);
         finish();
         setStatus("Edits cancelled");
       });
@@ -283,6 +287,7 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
           await readTarget(api);
           await api.setOffset({ x: Number(x), y: Number(y) });
           const positioned = await settled(api);
+          await commitHostedSinkLanding(api);
           offsetDirtyRef.current = false;
           setX(metres(positioned.offset?.x ?? 0));
           setY(metres(positioned.offset?.y ?? 0));
@@ -363,6 +368,7 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
                   await readTarget(api);
                   await api.setOffset({ x: Number(x), y: Number(y) });
                   const next = await settled(api);
+                  await commitHostedSinkLanding(api);
                   offsetDirtyRef.current = false;
                   setX(metres(next.offset?.x ?? 0));
                   setY(metres(next.offset?.y ?? 0));

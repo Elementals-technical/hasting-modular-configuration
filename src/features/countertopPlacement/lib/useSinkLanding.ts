@@ -12,6 +12,8 @@ import {
 } from "@/features/configuratorApi";
 import { getCountertopRuntimeState, subscribeCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
+import { registerHostedSinkLanding } from "./hostedSinkLanding";
+
 export type SinkLandingClient = Pick<ConfiguratorClient, "moveSink" | "getCabinetsState" | "dispose"> &
   Partial<Pick<ConfiguratorClient, "liftSink" | "landSink">>;
 export type SinkCommitReceipt = CabinetMoveSinkReceipt | CabinetLiftSinkReceipt | CabinetLandSinkReceipt;
@@ -188,6 +190,17 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
     nextRef.current = null;
     poseBeforeRef.current = null;
   }, [ready]);
+
+  // API lowerings of a hosted sink emit no 'sink-landing' (see `commitHostedSinkLanding`).
+  useEffect(() => {
+    if (!ready) return undefined;
+    return registerHostedSinkLanding((cabinetId) => {
+      // A commit in flight (e.g. the drag-end landing) clears the pending itself; a second one would revert.
+      if (runningRef.current) return;
+      setMessage(null);
+      void run({ kind: "landing", cabinetId, fromCabinetId: null, before: null });
+    });
+  }, [ready, run]);
 
   useEffect(() => {
     if (!ready) return undefined;

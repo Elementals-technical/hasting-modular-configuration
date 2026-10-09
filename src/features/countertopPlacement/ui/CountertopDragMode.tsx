@@ -26,6 +26,7 @@ import {
   type CountertopSnapshot,
   type CountertopState,
 } from "../lib/countertopSession";
+import { commitHostedSinkLanding } from "../lib/hostedSinkLanding";
 import { CountertopDragOverlay } from "./CountertopDragOverlay";
 
 import s from "./CountertopDragMode.module.scss";
@@ -234,6 +235,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       await read(session);
       await session.api.setDragEnabled(false);
       const next = await settled(session);
+      if (await commitHostedSinkLanding(session.api)) return teardown(session);
       await onCommitted?.(next);
       await teardown(session);
     });
@@ -249,6 +251,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
         read: () => read(session),
         settled: () => settled(session),
       });
+      await commitHostedSinkLanding(session.api);
       await teardown(session);
     });
   };
@@ -262,6 +265,10 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       await api.setDragEnabled(false);
       await api.resetOffset();
       const next = await api.whenSettled();
+      if (await commitHostedSinkLanding(api)) {
+        if (session) await teardown(session);
+        return;
+      }
       await onCommitted?.(next);
       if (session) await teardown(session);
     });
