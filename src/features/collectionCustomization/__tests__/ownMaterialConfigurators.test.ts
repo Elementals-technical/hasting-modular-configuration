@@ -20,6 +20,7 @@ import tricotProfileDocument from "../../../../public/collections/tricot/product
 import urbanDuplexManifest from "../../../../public/collections/urban-duplex/manifest.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanFreestandingManifest from "../../../../public/collections/urban-freestanding/manifest.json";
+import urbanFreestandingPresets from "../../../../public/collections/urban-freestanding/presets.json";
 import urbanFreestandingProfileDocument from "../../../../public/collections/urban-freestanding/product-profile.json";
 import { resolveConfiguratorOptions } from "../lib/resolveSectionState";
 
@@ -139,5 +140,29 @@ describe("urban freestanding countertop", () => {
     expect(colours).toHaveLength(60);
     expect(colours).toContain("Pulpis Chiaro TKH");
     expect(colours).not.toContain("Gloss White");
+  });
+});
+
+describe("urban freestanding models", () => {
+  const { profile, configurator } = URBAN_FREESTANDING;
+  const products = urbanFreestandingPresets.flatMap(({ presetProducts }) => presetProducts);
+  const offered = (attributeId: string) =>
+    resolveConfiguratorOptions(profile, attributeId, configurator).map(({ value }) => value);
+
+  // The renders show brushed steel cabinets under a matte Statuario porcelain top with a Strip basin.
+  it("are built in the materials their renders show", () => {
+    expect(new Set(products.map(({ CabinetColor }) => CabinetColor))).toEqual(new Set(["Metal acciaio 2MA"]));
+    expect(new Set(products.map(({ CountertopColor }) => CountertopColor))).toEqual(
+      new Set(["Bianco Statuario Venato Matte TQV"]),
+    );
+    expect(new Set(products.map((product) => (product.name === "Sink-Base" ? product.sinkType : "no basin")))).toEqual(
+      new Set(["Top_Porcelain_Strip", "no basin"]),
+    );
+  });
+
+  it("take those materials from configurator 11 and the basin from the profile", () => {
+    expect(offered("CabinetColor")).toContain("Metal acciaio 2MA");
+    expect(offered("CountertopColor")).toContain("Bianco Statuario Venato Matte TQV");
+    expect(selectOptionValues(profile, "sinkType")).toContain("Top_Porcelain_Strip");
   });
 });
