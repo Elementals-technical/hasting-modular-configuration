@@ -146,5 +146,29 @@
         }
       ]
     }
+  },
+  "optionImages": {
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base-56.png",
+      "Sink-Cabinet": "images/cabinet/side-cabinet-56.png"
+    },
+    "Drawers": {
+      "2": "images/cabinet-style/2-drawer.png",
+      "1": "images/cabinet-style/1-drawer.png",
+      "1+inner": "images/cabinet-style/1-drawer.png"
+    },
+    "Handle": {
+      "UG": "images/handle/UpperGHandle.png"
+    }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      { "value": "Sink-Base", "when": { "Height": "53" }, "image": "images/cabinet/sink-base-53.png" },
+      { "value": "Sink-Base", "when": { "Height": "38" }, "image": "images/cabinet/sink-base-38.png" },
+      { "value": "Sink-Base", "when": { "Height": "28" }, "image": "images/cabinet/sink-base-28.png" },
+      { "value": "Sink-Cabinet", "when": { "Height": "53" }, "image": "images/cabinet/side-cabinet-53.png" },
+      { "value": "Sink-Cabinet", "when": { "Height": "38" }, "image": "images/cabinet/side-cabinet-38.png" },
+      { "value": "Sink-Cabinet", "when": { "Height": "28" }, "image": "images/cabinet/side-cabinet-28.png" }
+    ]
   }
 }
