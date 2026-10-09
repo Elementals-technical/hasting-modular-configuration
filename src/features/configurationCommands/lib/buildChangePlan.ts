@@ -16,6 +16,7 @@ import {
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { flutingRule } from "@/features/configurator-rule-core/options/rules/flutingRule";
 import { resolveColorTraits } from "./resolveColorTraits";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import type { ChangeBlockedReason, PlannedChange } from "../model/types";
@@ -55,6 +56,8 @@ export type BuildChangePlanArgs = {
   basin?: { sinkBaseIds?: readonly StableCabinetKey[]; sinkType?: string | null; vesselColor?: string | null };
   /** Placed cabinets, for changes that reach every drawer cabinet. */
   cabinets?: readonly CabinetEntry[];
+  /** Configurator sections of the active collection, for the material of a colour it lists (Urban Freestanding). */
+  configurator?: ConfiguratorGroupCatalog | null;
 };
 
 export type BuildChangePlanResult = { ok: true; plan: PlannedChange[] } | ({ ok: false } & ChangeBlockedReason);
@@ -146,6 +149,7 @@ export const buildChangePlan = ({
   towelBarColor,
   basin,
   cabinets = [],
+  configurator = null,
 }: BuildChangePlanArgs): BuildChangePlanResult => {
   const isDrawers = attributeId === "Drawers";
   const requestedTargets = isDrawers
@@ -176,18 +180,22 @@ export const buildChangePlan = ({
       });
     }
 
-    if (profile.ruleData.fluting?.eligibleMaterialAliasesByValue) {
-      const material = resolveColorTraits(value, null, profile)?.material;
+    // A pattern the new colour's material does not take is replaced: by the first one it takes, or
+    // cleared where it takes none (Urban Freestanding flutes Lacquer Matte only). A colour whose material
+    // is unknown leaves the patterns as they are.
+    const material = profile.ruleData.fluting ? resolveColorTraits(value, configurator, profile)?.material : undefined;
+    if (material) {
+      const noneValue = selectAttribute(profile, "DrawerPanelFluting")?.noneValue;
       const allowed = flutingRule({ material, targetPart: "CABINET" }, profile).options.filter(
         (option) => option.enabled,
       );
       for (const cabinet of cabinets) {
         const current = normalizeOptionValue(profile, "DrawerPanelFluting", patternValues[cabinet.stableKey]);
-        if (allowed.some((option) => option.value === current)) continue;
+        if (!current || current === noneValue || allowed.some((option) => option.value === current)) continue;
         plan.push({
           attributeId: "DrawerPanelFluting",
           target: { scope: "cabinet", cabinetId: cabinet.stableKey },
-          value: allowed[0]?.value ?? "",
+          value: allowed[0]?.value ?? noneValue ?? "",
           origin: "dependency",
           reasonCode: "fluting.notAvailable",
         });

@@ -1,5 +1,6 @@
 import type { RootState } from "@/app/store";
 import { normalizeOptionValue } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getActiveProductProfile, getAttributeValue, getCabinetEntries, isSinkBase } from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
@@ -58,7 +59,12 @@ const toSelection = (state: RootState): Selection => {
   };
 };
 
-export const evaluateChange = (change: AttributeChange, state: RootState): ChangeEvaluation => {
+export const evaluateChange = (
+  change: AttributeChange,
+  state: RootState,
+  /** Configurator sections of the active collection, for the material of a colour it lists. */
+  configurator: ConfiguratorGroupCatalog | null = null,
+): ChangeEvaluation => {
   const profile = getActiveProductProfile(state);
   const cabinets = getCabinetEntries(state);
 
@@ -118,6 +124,7 @@ export const evaluateChange = (change: AttributeChange, state: RootState): Chang
       vesselColor: getVesselColor(state),
     },
     cabinets,
+    configurator,
   });
 
   if (!planResult.ok) {
