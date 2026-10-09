@@ -8,11 +8,11 @@
       "Open-Side-Shelf": "images/cabinet/open-side-shelf.png"
     },
     "Drawers": {
-      "1": "images/cabinet/side-cabinet-upper-groove.png"
+      "1": "images/cabinet-style/1-drawer.png"
     },
     "Handle": {
-      "handle_urban_topcut": "images/handle/UpperGHandle.jpg",
-      "handle_pto": "images/handle/PTOHandle.jpg"
+      "handle_urban_topcut": "images/handle/UpperGHandle.png",
+      "handle_pto": "images/handle/PTOHandle.png"
     },
     "CountertopStyle": {
       "integrated": "images/countertop-style/Integrated.png",

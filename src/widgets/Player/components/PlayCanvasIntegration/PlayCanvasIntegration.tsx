@@ -108,10 +108,12 @@ import {
   isDragDropCollection,
   resolveCabinetDebugSelection,
 } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
-import type { CabinetsState } from "@/features/configuratorApi";
+import { createConfiguratorBridge, type CabinetsState } from "@/features/configuratorApi";
 import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
+import { setCabinetCoverRuntime } from "@/shared/lib/cabinetCoverRuntime";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
+import { createCabinetCoverPublisher } from "@/features/countertopPlacement/lib/cabinetCoverPublisher";
 import { lockCountertopInteraction } from "@/features/countertopPlacement/lib/lockCountertopInteraction";
 import { useCountertopMovementMode } from "@/features/countertopPlacement/lib/useCountertopMovementMode";
 import {
@@ -530,7 +532,17 @@ export const PlayCanvasIntegration = ({
     setCountertopPopoverState((current) => ({ ...current, visible: false }));
     getSelectTool()?.setSelectedByName(productId, { mode: "replace" });
   }, []);
+  // The cabinet covers of a lifted top (ULH), read from the scene with every applied countertop pose.
+  const [publishCabinetCovers] = useState(() => {
+    const bridge = createConfiguratorBridge();
+    return createCabinetCoverPublisher({
+      readCovers: async () => (await bridge.getCabinetCovers?.()) ?? null,
+      publish: setCabinetCoverRuntime,
+      onError: (error) => console.warn("[cabinet-cover] the covers could not be read", error),
+    });
+  });
   const publishCountertopSize = useCallback((state: CountertopState) => {
+    publishCabinetCovers(state);
     const length = state.size?.length;
     setCountertopRuntimeSize(
       state.readiness === "ready" &&
@@ -546,10 +558,11 @@ export const PlayCanvasIntegration = ({
           }
         : null,
     );
-  }, []);
+  }, [publishCabinetCovers]);
   // The one countertop `on('change')` subscriber: the live state for every consumer, the committed size for pricing.
   useEffect(() => {
     setCountertopRuntimeSize(null);
+    setCabinetCoverRuntime(null);
     setCountertopRuntimeState(null);
     if (!isPlayCanvasReady) return;
     let disposed = false;
@@ -578,6 +591,7 @@ export const PlayCanvasIntegration = ({
       disposed = true;
       stop();
       setCountertopRuntimeSize(null);
+      setCabinetCoverRuntime(null);
       setCountertopRuntimeState(null);
     };
   }, [countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);

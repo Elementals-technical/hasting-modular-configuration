@@ -194,7 +194,7 @@ export const buildCollectionCabinetSku = (
   // or in its price list's words (`22.0H`).
   const skuHeightCm =
     heightCm != null && ownSpelling?.heightOffsetCm ? heightCm + ownSpelling.heightOffsetCm : heightCm;
-  const heightCode = heightCm != null ? ownSpelling?.heightCodes?.[String(heightCm)] : undefined;
+  const heightCode = heightCm != null ? (ownSpelling ?? cabinet).heightCodes?.[String(heightCm)] : undefined;
   const sizes = [
     sizeToken(widthCm, "W"),
     heightCode ? `${heightCode}H` : sizeToken(skuHeightCm, "H"),

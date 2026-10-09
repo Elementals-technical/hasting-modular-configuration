@@ -1,10 +1,11 @@
 {
   "schemaVersion": 1,
   "collectionId": "urban-duplex",
-  "productTypes": {},
+  "productTypes": {
+    "Sink-Base": "UD-sink-cabinet",
+    "Sink-Cabinet": "UD-side-cabinet"
+  },
   "unplacedProductTypes": {
-    "Sink-Base": "Temporarily hidden in the builder: the scene registers no Urban Duplex sink base yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card and the models come back.",
-    "Sink-Cabinet": "Temporarily hidden in the builder: the scene registers no Urban Duplex side cabinet yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card and the models come back.",
     "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open shelf yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card comes back.",
     "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open side shelf yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card comes back."
   },
@@ -16,11 +17,15 @@
         "kind": "all"
       },
       "values": {
-        "kind": "identity",
-        "sceneKey": "Handle"
+        "kind": "map",
+        "patches": {
+          "UG": {
+            "HandleStyle": "Duplex"
+          }
+        }
       },
       "order": 20,
-      "note": "Upper Groove only. Sent as the Urban products take it, so a scene config keeps the handle once the scene has Urban Duplex products; there are none yet."
+      "note": "Upper Groove only. The Urban Duplex cabinets read HandleStyle (RuleHandleCabinetUrbanDuplex: Duplex shows the Base and Lateral Panel handles, Default the full ones); Upper Groove is Duplex."
     },
     {
       "attributeId": "Height",
@@ -59,7 +64,7 @@
         "sceneKey": "Depth"
       },
       "order": 30,
-      "note": "Number in cm, 50 or 46, one depth for the composition. Not translated, for the reason given for Height."
+      "note": "Number in cm, 50 or 46, one depth for the composition, as cabinet table 594, the Pricing (19.7D, 18.1D) and the product map give it (URBAN-DUPLEX-PRODUCT-MAP-UA: «50 / 46 см», «Ryan пише 50, не 50.5»). RuleDepthCabinetUrbanDuplex lays out 46 and 50.5 only, so the scene keeps 50 at the 46 cm geometry until 3D takes 50."
     },
     {
       "attributeId": "Drawers",
@@ -87,17 +92,17 @@
     {
       "attributeId": "BasePanelColor",
       "status": "state-only",
-      "reason": "The scene has no Urban Duplex product to paint; recorded for the SKU (BASP) and the rules only."
+      "reason": "The scene's Urban Duplex cabinets have no panel colour key (no materials rule for UD-sink-cabinet / UD-side-cabinet); recorded for the SKU (BASP) and the rules only."
     },
     {
       "attributeId": "LateralPanelColor",
       "status": "state-only",
-      "reason": "The scene has no Urban Duplex product to paint; recorded for the SKU (LTLP and the handle groove) and the rules only."
+      "reason": "The scene's Urban Duplex cabinets have no panel colour key (no materials rule for UD-sink-cabinet / UD-side-cabinet); recorded for the SKU (LTLP and the handle groove) and the rules only."
     },
     {
       "attributeId": "LateralPanelSide",
       "status": "state-only",
-      "reason": "The scene has no Urban Duplex product to mirror; recorded for the SKU (2DWL, 2DWR) only."
+      "reason": "The scene's Urban Duplex cabinets have no key to mirror the lateral panel; recorded for the SKU (2DWL, 2DWR) only."
     },
     {
       "attributeId": "Series",
@@ -141,13 +146,23 @@
     },
     {
       "attributeId": "sinkType",
-      "status": "state-only",
-      "reason": "The Urban Standard Height basin names. The scene has no Urban Duplex sink base to take them; recorded for the countertop rules and pricing only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "UD-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "sinkType",
+        "emptyValue": "Vessel"
+      },
+      "order": 40,
+      "note": "The Urban Standard Height basins, sent to every Urban Duplex Sink Base: the UD-sink-cabinet swaps its basin sub-product on sinkType, as the ULH-sink-cabinet does. \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
     },
     {
       "attributeId": "VesselColor",
       "status": "state-only",
-      "reason": "The scene has no Urban Duplex sink base to take a vessel; recorded for the rules only. The Master File lists no vessel sinks (excludedFromThisProfile.vesselSinks)."
+      "reason": "The Master File lists no vessel sinks for Urban Duplex (excludedFromThisProfile.vesselSinks); recorded for the rules only."
     },
     {
       "attributeId": "CountertopStyle",
@@ -182,7 +197,7 @@
     {
       "attributeId": "CabinetType",
       "status": "unbound",
-      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The scene has no Urban Duplex product yet: every value is in unplacedProductTypes."
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. Sink-Base and Sink-Cabinet are placed as UD-sink-cabinet and UD-side-cabinet; the shelves wait in unplacedProductTypes."
     },
     {
       "attributeId": "CabinetColorSku",

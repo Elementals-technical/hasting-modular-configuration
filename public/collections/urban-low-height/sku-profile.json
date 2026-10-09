@@ -209,6 +209,7 @@
   "countertop": { "pricedAs": "urban-standard-height" },
   "towelBar": { "pricedAs": "urban-standard-height" },
   "sidePanel": { "pricedAs": "urban-standard-height" },
+  "cabinetCover": { "prefix": "UR", "thicknessIn": 0.5 },
   "dividers": {},
   "gaps": [
     {

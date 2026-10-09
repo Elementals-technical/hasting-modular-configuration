@@ -859,6 +859,103 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(gaps).toEqual([]);
   });
 
+  // While the top is lifted the scene covers the cabinet tops with a thin slab per run of cabinets.
+  it("orders a cover per slab under a lifted top, in the cabinet colour, the top's style and the cabinet's depth", () => {
+    const vessel = { CountertopStyle: [at(countertop, "vessel")] };
+    const lifted = ulhOrder([sinkBase("ulh-sb")], vessel, {
+      cabinetCovers: [{ widthCm: 85.09, cabinetIds: ["Sink-Base-ulh-sb"] }],
+    });
+
+    // 46 cm deep, as the cabinet SKU spells it (18.1D).
+    expect(skusOf(lifted.lines, "cabinetCover")).toEqual([{ sku: "CT-UR3D-VES-33.5W-.5H-18.1D-3D-1C1", quantity: 1 }]);
+    expect(lifted.gaps).toEqual([]);
+
+    // Integrated top over a 46 cm and a 50 cm run: each slab is as deep as the cabinets under it;
+    // two identical slabs are one line of two. A slab naming no placed cabinet takes the first one's depth.
+    const twoRuns = ulhOrder(
+      [sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2", 50)],
+      {},
+      {
+        cabinetCovers: [
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-1"] },
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"] },
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"] },
+          { widthCm: 120, cabinetIds: ["unknown"] },
+        ],
+      },
+    );
+    expect(skusOf(twoRuns.lines, "cabinetCover")).toEqual([
+      { sku: "CT-UR3D-INTG-23.6W-.5H-18.1D-3D-1C1", quantity: 1 },
+      { sku: "CT-UR3D-INTG-23.6W-.5H-19.7D-3D-1C1", quantity: 2 },
+      { sku: "CT-UR3D-INTG-47.2W-.5H-18.1D-3D-1C1", quantity: 1 },
+    ]);
+    expect(twoRuns.lines.filter(({ group }) => group === "cabinetCover").map(({ id }) => id)).toEqual([
+      "cabinetCover",
+      "cabinetCover:1",
+      "cabinetCover:2",
+    ]);
+  });
+
+  // A lifted top takes the sink with it (`cabinets.liftSink`): the sink base becomes a side cabinet and
+  // the countertop hosts the basin, which the order keeps, once.
+  it("orders the basin a lifted top hosts when no sink base is left", () => {
+    const sideCabinet = {
+      stableKey: "ulh-sc",
+      runtimeId: "Side-Cabinet-ulh-sc",
+      size: { width: 60, height: 38, depth: 46 },
+    };
+
+    const integrated = ulhOrder([sideCabinet], {}, { hostedSink: { sinkType: "Top_HPLPrisma", vesselColor: null } });
+    expect(skusOf(integrated.lines, "basin")).toEqual([{ sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 }]);
+    expect(integrated.lines.find(({ group }) => group === "countertop")?.sku).toBe(
+      "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKF",
+    );
+
+    const vessel = ulhOrder(
+      [sideCabinet],
+      { CountertopStyle: [at(countertop, "vessel")] },
+      { hostedSink: { sinkType: "Vessel_Blade11", vesselColor: "Antracite Matte OCF" } },
+    );
+    expect(skusOf(vessel.lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 1 }]);
+    expect(skusOf(vessel.lines, "vessel")).toEqual([{ sku: "VES-BLD11-X-19.7W-6.1H-15D-CER-OCF", quantity: 1 }]);
+
+    // Without a hosted sink a top over side cabinets has no basin.
+    expect(skusOf(ulhOrder([sideCabinet]).lines, "basin")).toEqual([]);
+  });
+
+  it("keeps the sink bases' basins while one is placed, whatever the top reports as hosted", () => {
+    const { lines } = ulhOrder(
+      [sinkBase("ulh-sb")],
+      { sinkType: [at({ scope: "basin" }, "Top_HPLPrisma")] },
+      { hostedSink: { sinkType: "Vessel_Blade11", vesselColor: null } },
+    );
+
+    expect(skusOf(lines, "basin")).toEqual([{ sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 }]);
+    expect(skusOf(lines, "vessel")).toEqual([]);
+  });
+
+  it("orders no cover while the top rests on the cabinets", () => {
+    expect(skusOf(ulhOrder([sinkBase("ulh-sb")]).lines, "cabinetCover")).toEqual([]);
+    expect(skusOf(ulhOrder([sinkBase("ulh-sb")], {}, { cabinetCovers: null }).lines, "cabinetCover")).toEqual([]);
+    expect(skusOf(ulhOrder([sinkBase("ulh-sb")], {}, { cabinetCovers: [] }).lines, "cabinetCover")).toEqual([]);
+  });
+
+  it("keeps the total incomplete when the cabinet colour gives the cover no material", () => {
+    const { lines, gaps } = ulhOrder(
+      [sinkBase("ulh-sb")],
+      {},
+      {
+        cabinetColor: "Not A Colour",
+        cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"] }],
+      },
+    );
+
+    expect(skusOf(lines, "cabinetCover")).toEqual([]);
+    expect(gaps).toContainEqual(
+      expect.objectContaining({ group: "input", blocksTotal: true, reason: expect.stringContaining("cover") }),
+    );
+  });
+
   it("leaves out the basin a switch to vessel cleared, although the model recorded one for the composition", () => {
     // Placing a model records its basin for the composition; switching to vessel clears it at each
     // sink base (buildChangePlan), and the cleared one is what the sink base has.
@@ -1059,7 +1156,7 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
     // The panel colours nobody has chosen are the default model's: Bianco Calce DA ST and Pulpis Chiaro TKH.
     expect(cabinetSkusOf(lines)).toEqual([
       "VAN-URSTD-SC/2DW/UG/X-19.7W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
-      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22.0H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     ]);
     // Its countertop table sizes the top over both cabinets, 120 cm, at the first HPL thickness, 1/2".
     expect(lines.filter(({ group }) => group !== "cabinet").map(({ group, sku }) => ({ group, sku }))).toEqual([

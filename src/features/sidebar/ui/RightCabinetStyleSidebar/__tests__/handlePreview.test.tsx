@@ -76,6 +76,6 @@ describe("an Urban Low Height cabinet placed in an empty builder", () => {
     await waitFor(() =>
       expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_urban_topcut"),
     );
-    expect(previewSrc()).toBe("https://app.test/collections/urban-low-height/images/handle/UpperGHandle.jpg");
+    expect(previewSrc()).toBe("https://app.test/collections/urban-low-height/images/handle/UpperGHandle.png");
   });
 });

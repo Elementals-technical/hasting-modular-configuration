@@ -1,7 +1,9 @@
 import { runInBatchQueue } from "@/utils/functions/playcanvas/setConfigBatch";
 
+import { parseCabinetCoverSegments } from "./cabinetCover";
 import { ConfiguratorError } from "./types";
 import type {
+  CabinetCoverSegment,
   ConfiguratorApi,
   ConfiguratorNamespace,
   ConfiguratorUnsubscribe,
@@ -61,6 +63,8 @@ export type ConfiguratorBridge = {
   /** Resize from one end, the other fixed; rejects with API_METHOD_UNAVAILABLE when the build
    * has no `countertop.resizeFrom`. */
   resizeCountertopFrom?(side: CountertopResizeSide, lengthM: number): Promise<unknown>;
+  /** The settled cabinet covers; resolves null when the build has no `cabinetCover`. */
+  getCabinetCovers?(): Promise<CabinetCoverSegment[] | null>;
 };
 
 export type ConfiguratorBridgeOptions = {
@@ -314,6 +318,18 @@ export const createConfiguratorBridge = (
         return await countertop.resizeFrom(encodeData(side) as CountertopResizeSide, encodeData(lengthM) as number);
       } catch (error) {
         throw toBridgeError(error, operation);
+      }
+    },
+
+    // Read only, feature-detected like the overlays: covers follow the countertop and the cabinets.
+    async getCabinetCovers() {
+      const cover = getTarget()?.api.cabinetCover;
+      if (!isRecord(cover) || typeof cover.getState !== "function") return null;
+      try {
+        if (typeof cover.whenSettled === "function") await cover.whenSettled();
+        return parseCabinetCoverSegments(cover.getState());
+      } catch (error) {
+        throw toBridgeError(error, "cabinetCover.getState");
       }
     },
 

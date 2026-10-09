@@ -465,7 +465,7 @@ describe("partial production collection packages", () => {
     expect(data.diagnostics).toEqual([]);
   });
 
-  it("loads Urban Duplex from its local data and its own tables, with no scene product yet", async () => {
+  it("loads Urban Duplex from its local data and its own tables, its cabinets placed by the scene's UD products", async () => {
     const remote = makeRemote();
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -526,14 +526,12 @@ describe("partial production collection packages", () => {
       if (LateralPanelSide !== undefined) expect(optionsOf("LateralPanelSide")).toContain(LateralPanelSide);
     }
     expect(data.catalog.productProfile?.collectionId).toBe("urban-duplex");
-    // The scene has no Urban Duplex product yet (I): every cabinet type waits for one.
-    expect(data.catalog.runtimeBindings?.productTypes).toEqual({});
-    expect(Object.keys(data.catalog.runtimeBindings?.unplacedProductTypes ?? {})).toEqual([
-      "Sink-Base",
-      "Sink-Cabinet",
-      "Open-Shelf",
-      "Side-Shelf",
-    ]);
+    // The scene places the two drawer cabinets (I); the shelves wait for products of their own.
+    expect(data.catalog.runtimeBindings?.productTypes).toEqual({
+      "Sink-Base": "UD-sink-cabinet",
+      "Sink-Cabinet": "UD-side-cabinet",
+    });
+    expect(Object.keys(data.catalog.runtimeBindings?.unplacedProductTypes ?? {})).toEqual(["Open-Shelf", "Side-Shelf"]);
     // Priced from its own SKU words (D04), not the USH cabinet mappings.
     expect(data.catalog.skuProfile?.collectionId).toBe("urban-duplex");
     expect(data.catalog.cabinetSkuMappings).toBeUndefined();
@@ -545,8 +543,8 @@ describe("partial production collection packages", () => {
     });
     expect(data.catalog.productProfile?.ruleData.cabinetMatrixLegacyAdapter.tableId).toBe(594);
 
-    // The table has every cabinet type of the price list, but the scene has none yet, so the builder
-    // shows no card (unplacedProductTypes).
+    // The table has every cabinet type of the price list; the builder shows the cards of the two the
+    // scene places, not the shelves (unplacedProductTypes).
     const cabinetTable = data.sources.remote.cabinetTable;
     expect(cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
       "Sink-Base",
@@ -554,7 +552,7 @@ describe("partial production collection packages", () => {
       "Open-Shelf",
       "Side-Shelf",
     ]);
-    expect(data.catalog.cabinets?.typeCabinetRules).toEqual([]);
+    expect(data.catalog.cabinets?.typeCabinetRules.map(({ code }) => code)).toEqual(["Sink-Base", "Sink-Cabinet"]);
     if (!cabinetTable || !profile) return;
     const drawerCabinet = {
       depths: [50, 46],
