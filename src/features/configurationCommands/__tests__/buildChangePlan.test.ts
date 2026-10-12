@@ -413,16 +413,16 @@ describe("buildChangePlan", () => {
 
 /**
  * Urban Low Height: a handle takes two heights (upper groove 38/28 cm, push-to-open 35/25 cm),
- * so a handle chosen through one of its heights must end at that height, not at the nearest.
+ * so a change of handle moves the cabinets to the nearest height the new handle takes.
  */
-describe("buildChangePlan: a handle chosen through a height", () => {
+describe("buildChangePlan: a handle that takes several heights", () => {
   const parsedUlh = parseProductProfile(ulhProfileDocument);
   if (!parsedUlh.ok) throw new Error("Urban Low Height profile must parse");
   const ulhProfile = parsedUlh.profile;
   // The Urban Low Height cabinet table the collection loads (580).
   const ulhCatalog = buildCabinetCatalogFromMatrix(cabinetTable580 as ProductDatatable, ulhProfile);
 
-  const ulhPlan = (overrides: { preferredHeight?: number; height?: number; handleGrooveColor?: string } = {}) => {
+  const ulhPlan = (overrides: { height?: number; handleGrooveColor?: string } = {}) => {
     const result = buildChangePlan({
       attributeId: "Handle",
       value: "handle_pto",
@@ -435,7 +435,6 @@ describe("buildChangePlan: a handle chosen through a height", () => {
         drawers: "1",
         handle: "handle_urban_topcut",
       },
-      preferredHeight: overrides.preferredHeight,
       selectedProductIds: [],
       catalog: ulhCatalog,
       profile: ulhProfile,
@@ -449,25 +448,18 @@ describe("buildChangePlan: a handle chosen through a height", () => {
   const heightOf = (entries: ReturnType<typeof ulhPlan>) =>
     entries.find(({ attributeId }) => attributeId === "Height")?.value;
 
-  it("ends at the height asked for when the new handle takes it", () => {
-    const entries = ulhPlan({ preferredHeight: 25 });
+  it("moves to the nearest height of the new handle", () => {
+    const entries = ulhPlan();
 
     expect(entries[0]).toMatchObject({ attributeId: "Handle", value: "handle_pto", origin: "requested" });
-    expect(heightOf(entries)).toBe(25);
-  });
-
-  it("moves to the nearest height of the handle when none is asked for", () => {
-    expect(heightOf(ulhPlan())).toBe(35);
-  });
-
-  it("ignores a height the new handle does not take", () => {
-    expect(heightOf(ulhPlan({ preferredHeight: 28 }))).toBe(35);
+    expect(heightOf(entries)).toBe(35);
+    expect(heightOf(ulhPlan({ height: 28 }))).toBe(25);
   });
 
   it("still clears the groove colour push-to-open has no groove for", () => {
-    const entries = ulhPlan({ preferredHeight: 25, handleGrooveColor: "Rox Black TKQ" });
+    const entries = ulhPlan({ handleGrooveColor: "Rox Black TKQ" });
 
     expect(entries).toContainEqual(expect.objectContaining({ attributeId: "HandleGrooveColor", origin: "dependency" }));
-    expect(heightOf(entries)).toBe(25);
+    expect(heightOf(entries)).toBe(35);
   });
 });

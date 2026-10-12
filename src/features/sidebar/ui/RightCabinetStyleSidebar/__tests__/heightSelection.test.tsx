@@ -89,31 +89,34 @@ const renderUlhSidebar = (uiOverride: Record<string, unknown> = {}) =>
 const selectorTitles = () =>
   Array.from(document.querySelectorAll('[class*="contentItem"]')).map((row) => row.firstElementChild?.textContent);
 
-/** The Height selector of the sidebar: its title, and the options its menu lists once opened. */
-const heightTitle = () => screen.queryByText("Height", { selector: "div" });
+/** A selector of the sidebar: its title, and the options its menu lists once opened. */
+const selectorTitle = (name: string) => screen.queryByText(name, { selector: "div" });
+const heightTitle = () => selectorTitle("Height");
 
-const openHeightMenu = () => {
-  const title = heightTitle();
-  if (!title?.parentElement) throw new Error("The sidebar shows no Height selector");
+const openMenu = (name: string) => {
+  const title = selectorTitle(name);
+  if (!title?.parentElement) throw new Error(`The sidebar shows no ${name} selector`);
 
   fireEvent.click(within(title.parentElement).getByRole("button"));
-  return screen.getByRole("listbox", { name: "Height" });
+  return screen.getByRole("listbox", { name });
 };
 
-/** Each option reads as its height in inches followed by the handle it belongs to. */
+/** Each option reads as its height in inches. */
 const heightOptions = () =>
-  within(openHeightMenu())
+  within(openMenu("Height"))
     .getAllByRole("option")
     .map((option) => option.textContent);
 
-const chooseHeight = (inches: string) => {
-  const option = within(openHeightMenu())
+const chooseOption = (name: string, label: string) => {
+  const option = within(openMenu(name))
     .getAllByRole("option")
-    .find((node) => node.textContent?.startsWith(inches));
-  if (!option) throw new Error(`The Height selector offers no ${inches}`);
+    .find((node) => node.textContent === label);
+  if (!option) throw new Error(`The ${name} selector offers no ${label}`);
 
   fireEvent.click(option);
 };
+
+const chooseHeight = (inches: string) => chooseOption("Height", inches);
 
 const placeCabinet = () => {
   store.dispatch(addProductId(PLACED_CABINET));
@@ -147,10 +150,10 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("height of an Urban Low Height cabinet in the style sidebar", () => {
-  it("offers every height with its handle, in inches as the price list writes them", () => {
+  it("offers the two heights of the chosen handle, in inches as the price list writes them", () => {
     renderUlhSidebar();
 
-    expect(heightOptions()).toEqual(['9.8"Push to open', '11"Upper Groove', '13.8"Push to open', '15"Upper Groove']);
+    expect(heightOptions()).toEqual(['11"', '15"']);
   });
 
   it("keeps the choice for the next cabinet while none is placed", () => {
@@ -166,14 +169,15 @@ describe("height of an Urban Low Height cabinet in the style sidebar", () => {
     expect(scene.directBatch).not.toHaveBeenCalled();
   });
 
-  it("selects push-to-open with one of its heights, for the next cabinet", async () => {
+  it("offers the heights of push-to-open once that handle is chosen, and moves to the nearest", async () => {
     renderUlhSidebar();
 
-    chooseHeight('9.8"');
+    chooseOption("Handle", "Push to open");
 
-    await waitFor(() => expect(product().selectedDimensions.height).toBe(25));
-    expect(product().selectedProductConfig?.Handle).toBe("handle_pto");
-    expect(getCabinetBuilderProductConfig(store.getState())).toMatchObject({ Height: 25, Handle: "handle_pto" });
+    await waitFor(() => expect(product().selectedProductConfig?.Handle).toBe("handle_pto"));
+    expect(product().selectedDimensions.height).toBe(35);
+    expect(getCabinetBuilderProductConfig(store.getState())).toMatchObject({ Height: 35, Handle: "handle_pto" });
+    expect(heightOptions()).toEqual(['9.8"', '13.8"']);
     expect(scene.runtime?.calls ?? []).toEqual([]);
     expect(scene.directBatch).not.toHaveBeenCalled();
   });
@@ -192,11 +196,11 @@ describe("height of an Urban Low Height cabinet in the style sidebar", () => {
     expect(scene.directBatch).not.toHaveBeenCalled();
   });
 
-  it("asks before a height of the other handle changes the handle of the placed cabinets", async () => {
+  it("moves the placed cabinets to the nearest height of a new handle, after asking", async () => {
     placeCabinet();
     renderUlhSidebar();
 
-    chooseHeight('9.8"');
+    chooseOption("Handle", "Push to open");
 
     // Nothing is sent or recorded until the user confirms the handle change.
     await screen.findByText("Update Handle Style?");
@@ -205,17 +209,18 @@ describe("height of an Urban Low Height cabinet in the style sidebar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
 
-    await waitFor(() => expect(product().selectedDimensions.height).toBe(25));
+    await waitFor(() => expect(product().selectedDimensions.height).toBe(35));
     expect(product().selectedProductConfig?.Handle).toBe("handle_pto");
-    // One set: the handle, and the height asked for rather than the nearest (35 cm).
+    // One set: the handle, and the nearest height it takes.
     expect(scene.runtime?.calls).toHaveLength(1);
     expect(scene.runtime?.calls[0]).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ attributeId: "Handle", value: "handle_pto" }),
-        expect.objectContaining({ attributeId: "Height", target: { scope: "global" }, value: 25 }),
+        expect.objectContaining({ attributeId: "Height", target: { scope: "global" }, value: 35 }),
       ]),
     );
     expect(scene.directBatch).not.toHaveBeenCalled();
+    expect(heightOptions()).toEqual(['9.8"', '13.8"']);
   });
 });
 

@@ -1850,7 +1850,7 @@ export const PlayCanvasIntegration = ({
   // height it forces to the scene once. A handle changed by the rules reaches the scene
   // through the handle listener in optionsListener.ts.
   const handleSetHandleType = useCallback(
-    async (handleType: string, preferredHeight?: number) => {
+    async (handleType: string) => {
       const option = dimensionOptions.handles.find((h) => String(h.value) === handleType);
       if (option?.disabled) return;
 
@@ -1865,13 +1865,7 @@ export const PlayCanvasIntegration = ({
         }
 
         reportHandleChangeResult(
-          await changeAttributeValue({
-            attributeId: "Handle",
-            value: handleType,
-            scope: "cabinet",
-            cabinetId,
-            ...(preferredHeight === undefined ? {} : { preferredHeight }),
-          }),
+          await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
         );
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set handle type", error);
@@ -1890,22 +1884,13 @@ export const PlayCanvasIntegration = ({
     ],
   );
 
-  /**
-   * The cabinets of a composition share one height, so this resizes them all, as Depth does.
-   * A height of the other handle is a change of handle that ends at this height.
-   */
+  /** The cabinets of a composition share one height, so this resizes them all, as Depth does. */
   const handleSetHeight = useCallback(
     async (height: number) => {
       if (!productIds.length) return;
-      const choice = heightChoices.find((item) => item.height === height);
-      if (!choice) return;
+      if (!heightChoices.includes(height)) return;
       if (selectedDimensions.height === height) {
         setDropdownState((prev) => ({ ...prev, visible: false }));
-        return;
-      }
-
-      if (choice.changesHandle) {
-        await handleSetHandleType(choice.handle, height);
         return;
       }
 
@@ -1921,7 +1906,7 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [changeDimension, handleSetHandleType, heightChoices, productIds, saveSnapshot, selectedDimensions.height],
+    [changeDimension, heightChoices, productIds, saveSnapshot, selectedDimensions.height],
   );
 
   const handleCancelHandlePreview = useCallback(() => {
@@ -3316,11 +3301,9 @@ export const PlayCanvasIntegration = ({
       Height: {
         id: "resize-height",
         label: "Height",
-        // A height is shown with its handle: one of the other handle selects that handle.
-        children: heightChoices.map(({ height, handle }) => ({
+        children: heightChoices.map((height) => ({
           id: `resize-height-${height}`,
           label: cmToInchLabel(height),
-          trailing: handleOptions.find((option) => option.value === handle)?.label ?? handle,
           onClick: () => handleSetHeight(height),
         })),
       },

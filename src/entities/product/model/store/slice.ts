@@ -1,7 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import {
   applyConfiguratorRules,
-  REASON_REQUIRED_HEIGHT,
   type Intent,
   type OptionState,
   type Selection,
@@ -22,10 +21,6 @@ type DimensionOption = {
   reason?: string;
   reasonCode?: string;
 };
-
-/** A height the rules withhold only because the chosen handle does not take it. */
-export const isHeightOfAnotherHandle = (option: Pick<DimensionOption, "disabled" | "reasonCode">): boolean =>
-  Boolean(option.disabled) && option.reasonCode === REASON_REQUIRED_HEIGHT;
 
 type DimensionOptionGroup = {
   width: DimensionOption[];

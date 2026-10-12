@@ -18,7 +18,7 @@ import { findPlacedCabinetRule } from "./placedCabinetRule";
 
 /** Stable reason codes; the English fallback text lives in profile.messages. */
 const REASON_CENTRAL_GROOVE_REQUIRES_DRAWERS = "handle.centralGrooveRequiresDrawers";
-export const REASON_REQUIRED_HEIGHT = "handle.requiredHeight";
+const REASON_REQUIRED_HEIGHT = "handle.requiredHeight";
 const REASON_DEFAULT_REQUIRED_HEIGHT = "handle.defaultRequiredHeight";
 const REASON_DRAWERS_REQUIRED_HEIGHT = "drawers.requiredHeight";
 const REASON_NOT_AVAILABLE_FOR_CABINET_TYPE = "handle.notAvailableForCabinetType";

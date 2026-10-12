@@ -21,15 +21,7 @@ import type {
  * `DividersStyle` is `drawer`. The wider set is used here; the contract needs the same
  * widening before B writes its UI description against three.
  */
-export type AttributeChange = {
-  attributeId: string;
-  value: AttributeValue;
-  /**
-   * With a Handle change the user made by choosing a height: the height the cabinets end at,
-   * when the new handle takes it. Without it the rules pick the nearest height of the handle.
-   */
-  preferredHeight?: number;
-} & (
+export type AttributeChange = { attributeId: string; value: AttributeValue } & (
   | { scope: "global" | "countertop" }
   | { scope: "basin"; sinkBaseId?: StableCabinetKey }
   | { scope: "cabinet"; cabinetId: StableCabinetKey }

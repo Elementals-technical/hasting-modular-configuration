@@ -69,7 +69,8 @@ card із builder. Повернення card потребує scene product і �
 `cabinetMatrixLegacyAdapter.columns.heightsByHandle`, тому builder пропонує лише висоти вибраного handle,
 а зміна handle пересуває висоту до найближчої дозволеної (38 ↔ 35, 28 ↔ 25).
 
-Користувач обирає висоту у двох місцях; обидва показують усі чотири висоти, кожну з її handle:
+Користувач обирає висоту у двох місцях; обидва показують лише дві висоти вибраного handle
+(Upper Groove — 28 і 38 cm, Push-to-Open — 25 і 35 cm):
 
 - right sidebar Cabinet Builder — selector Height поруч із Width / Depth / Handle;
 - меню поставленої шафи — Resize ▸ Height.
@@ -89,11 +90,10 @@ card із builder. Повернення card потребує scene product і �
 йде через `changeDimension` (`{ attributeId: "Height", scope: "global" }`) і змінює всі шафи одразу, як
 Depth. Порожній builder стартує з 38 cm — це `defaultValue` атрибута `Height` у `product-profile.json`.
 
-Висота іншого handle змінює й handle: 35/25 cm вибирає Push-to-Open, 38/28 cm — Upper Groove. Це та сама
-зміна handle, що й через selector Handle (`{ attributeId: "Handle", preferredHeight }`), тільки вона
-закінчується на вибраній висоті, а не на найближчій: з поставленими шафами спершу з'являється
-підтвердження `handle.appliesToAllCabinets`, колір groove скидається для Push-to-Open, side panels
-втрачають upper groove. Handle і Height ідуть у сцену одним набором.
+Висоти іншого handle Height не пропонує: щоб їх отримати, користувач змінює Handle. Зміна handle
+(`{ attributeId: "Handle" }`) пересуває висоту до найближчої, яку приймає новий handle: з поставленими
+шафами спершу з'являється підтвердження `handle.appliesToAllCabinets`, колір groove скидається для
+Push-to-Open, side panels втрачають upper groove. Handle і Height ідуть у сцену одним набором.
 
 ## Product semantics
 

@@ -93,8 +93,6 @@ const STYLE_SIDEBAR_LOCKED_TUTORIAL_STEP_IDS: ReadonlySet<string> = new Set([
 interface PendingOssHandleChange {
   next: string;
   ossIds: string[];
-  /** The height the handle was chosen through, when it was. */
-  height?: number;
 }
 
 interface PendingDepthChange {
@@ -372,16 +370,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     [depthOptions],
   );
 
-  // A height is shown with its handle: choosing a height of the other handle selects that handle.
   const heightDisplayOptions = useMemo(
-    () =>
-      heightChoices.map(({ height, handle }) => ({
-        name: height,
-        value: height,
-        label: cmToInchLabel(height),
-        description: selectOptions(activeProfile, "Handle").find((option) => option.value === handle)?.label,
-      })),
-    [heightChoices, activeProfile],
+    () => heightChoices.map((height) => ({ name: height, value: height, label: cmToInchLabel(height) })),
+    [heightChoices],
   );
 
   const handleCloseSidebar = () => {
@@ -430,19 +421,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   /**
    * The cabinets of a composition share one height. Before any is placed this is the choice
-   * for the next cabinet; afterwards the command service resizes them all at once. A height of
-   * the other handle is a change of handle that ends at this height.
+   * for the next cabinet; afterwards the command service resizes them all at once.
    */
   const handleChangeHeight = async (value?: string | number) => {
     if (value === undefined) return;
     const nextHeight = Number(value);
-    const choice = heightChoices.find(({ height }) => height === nextHeight);
-    if (!choice || selectedDimensions.height === nextHeight) return;
-
-    if (choice.changesHandle) {
-      await handleSetHandleType(choice.handle, nextHeight);
-      return;
-    }
+    if (!heightChoices.includes(nextHeight) || selectedDimensions.height === nextHeight) return;
 
     if (selectedProducts.length === 0) {
       dispatch(setSelectedDimensions({ height: nextHeight }));
@@ -493,7 +477,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
    * confirmation when the profile says so, and sends the agreed set to the scene once.
    * Nothing changes before Confirm, so Cancel has nothing to revert.
    */
-  const requestHandleChange = async (handleType: string, height?: number) => {
+  const requestHandleChange = async (handleType: string) => {
     // Read at the moment of the change: removing Side Shelves just before changes the list.
     const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
 
@@ -501,18 +485,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (!cabinetId) {
       await saveSnapshot();
       dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
-      if (height !== undefined) dispatch(setSelectedDimensions({ height }));
       return;
     }
 
     showHandleChangeResult(
-      await changeAttributeValue({
-        attributeId: "Handle",
-        value: handleType,
-        scope: "cabinet",
-        cabinetId,
-        ...(height === undefined ? {} : { preferredHeight: height }),
-      }),
+      await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
     );
   };
 
@@ -539,7 +516,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     showHandleChangeResult(result);
   };
 
-  const handleSetHandleType = async (handleType: string, height?: number) => {
+  const handleSetHandleType = async (handleType: string) => {
     const previousHandle = selectedProductConfig?.Handle as string | undefined;
     // A scene id names the scene type ("UF-open-shelves-side-…"), which need not contain the cabinet type.
     const isSideShelf = (id: string) =>
@@ -554,7 +531,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
 
         if (ossIdsForLock.length > 0 && leavingNonGroove) {
-          setPendingOssHandleChange({ next: handleType, ossIds: ossIdsForLock, height });
+          setPendingOssHandleChange({ next: handleType, ossIds: ossIdsForLock });
           return;
         }
 
@@ -572,11 +549,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
     const ossIds = selectedProducts.filter(isSideShelf);
     if (isSwitchingAwayFromPto && ossIds.length > 0) {
-      setPendingOssHandleChange({ next: handleType, ossIds, height });
+      setPendingOssHandleChange({ next: handleType, ossIds });
       return;
     }
 
-    await requestHandleChange(handleType, height);
+    await requestHandleChange(handleType);
   };
 
   const closePendingOssHandleChange = () => {
@@ -585,7 +562,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const confirmPendingOssHandleChange = async () => {
     if (!pendingOssHandleChange) return;
-    const { next, ossIds, height } = pendingOssHandleChange;
+    const { next, ossIds } = pendingOssHandleChange;
     setPendingOssHandleChange(null);
 
     // The side shelves go through the composition command, which removes them from the scene
@@ -596,7 +573,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    await requestHandleChange(next, height);
+    await requestHandleChange(next);
   };
 
   useEffect(() => {

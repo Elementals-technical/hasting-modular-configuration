@@ -50,43 +50,32 @@ const choicesFor = (profile: ProductProfile, cabinetCatalog: ConfiguratorCatalog
   return getHeightChoices(state);
 };
 
-/** "height handle", with * on a height that replaces the chosen handle. */
-const brief = (choices: ReturnType<typeof getHeightChoices>) =>
-  choices.map(({ height, handle, changesHandle }) => `${height} ${handle}${changesHandle ? " *" : ""}`);
-
 describe("getHeightChoices", () => {
-  it("offers an Urban Low Height cabinet every height, each with the handle that takes it", () => {
+  it("offers an Urban Low Height cabinet with the upper groove 28 and 38 cm", () => {
     expect(
-      brief(choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Sink-Base", handle: UPPER_GROOVE, drawers: "1" })),
-    ).toEqual([`25 ${PUSH_TO_OPEN} *`, `28 ${UPPER_GROOVE}`, `35 ${PUSH_TO_OPEN} *`, `38 ${UPPER_GROOVE}`]);
+      choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Sink-Base", handle: UPPER_GROOVE, drawers: "1" }),
+    ).toEqual([28, 38]);
   });
 
-  it("marks the heights of the other handle once push-to-open is chosen", () => {
+  it("offers 25 and 35 cm once push-to-open is chosen", () => {
     expect(
-      brief(choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Side-Cabinet", handle: PUSH_TO_OPEN, drawers: "1" })),
-    ).toEqual([`25 ${PUSH_TO_OPEN}`, `28 ${UPPER_GROOVE} *`, `35 ${PUSH_TO_OPEN}`, `38 ${UPPER_GROOVE} *`]);
+      choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Side-Cabinet", handle: PUSH_TO_OPEN, drawers: "1" }),
+    ).toEqual([25, 35]);
   });
 
   it("keeps offering them once cabinets are placed: the composition is resized as a whole", () => {
     expect(
-      brief(
-        choicesFor(ulhProfile, ulhCatalog, {
-          cabinetType: "Side-Cabinet",
-          handle: PUSH_TO_OPEN,
-          drawers: "1",
-          placed: ["ULH-sink-cabinet-test1", "ULH-Open-Shelf-test2"],
-        }),
-      ),
-    ).toEqual([`25 ${PUSH_TO_OPEN}`, `28 ${UPPER_GROOVE} *`, `35 ${PUSH_TO_OPEN}`, `38 ${UPPER_GROOVE} *`]);
+      choicesFor(ulhProfile, ulhCatalog, {
+        cabinetType: "Side-Cabinet",
+        handle: PUSH_TO_OPEN,
+        drawers: "1",
+        placed: ["ULH-sink-cabinet-test1", "ULH-Open-Shelf-test2"],
+      }),
+    ).toEqual([25, 35]);
   });
 
-  it("reads the heights of the upper groove as its own before a handle is chosen, as the rules do", () => {
-    expect(brief(choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Sink-Base" }))).toEqual([
-      `25 ${PUSH_TO_OPEN} *`,
-      `28 ${UPPER_GROOVE}`,
-      `35 ${PUSH_TO_OPEN} *`,
-      `38 ${UPPER_GROOVE}`,
-    ]);
+  it("offers the heights of the upper groove before a handle is chosen, as the rules read them", () => {
+    expect(choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Sink-Base" })).toEqual([28, 38]);
   });
 
   it("offers nothing a placed cabinet cannot take, whatever the handle", () => {

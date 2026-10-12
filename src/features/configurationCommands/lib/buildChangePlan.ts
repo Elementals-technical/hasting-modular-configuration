@@ -44,8 +44,6 @@ export type BuildChangePlanArgs = {
   target: ValueTarget;
   /** Selection as it stands before the change. */
   selection: Selection;
-  /** Height asked for together with a handle; used when the new handle takes it. */
-  preferredHeight?: number;
   /** Products currently in the composition, for the supports-height check. */
   selectedProductIds: string[];
   catalog: ConfiguratorCatalog;
@@ -142,7 +140,6 @@ export const buildChangePlan = ({
   value,
   target,
   selection,
-  preferredHeight,
   selectedProductIds,
   catalog,
   profile,
@@ -328,12 +325,8 @@ export const buildChangePlan = ({
   }
 
   // A rule-driven height belongs to the same set: applying the change without it would
-  // leave the scene at a height the rules no longer allow. A handle chosen through one of its
-  // heights ends at that height rather than at the nearest one.
-  const takesPreferredHeight =
-    attributeId === "Handle" &&
-    heightResult.availableOptions.height.some((option) => option.value === preferredHeight && option.enabled);
-  const nextHeight = takesPreferredHeight ? preferredHeight : heightResult.nextSelection.height;
+  // leave the scene at a height the rules no longer allow.
+  const nextHeight = heightResult.nextSelection.height;
 
   if (typeof nextHeight === "number" && nextHeight !== selection.height) {
     plan.push({
