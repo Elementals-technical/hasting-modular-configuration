@@ -1,9 +1,11 @@
 import { runInBatchQueue } from "@/utils/functions/playcanvas/setConfigBatch";
 
-import { parseCabinetCoverSegments } from "./cabinetCover";
+import { parseCabinetCoverColorState, parseCabinetCoverSegments } from "./cabinetCover";
 import { ConfiguratorError } from "./types";
 import type {
   CabinetCoverSegment,
+  CabinetCoverColorState,
+  CabinetCoverConfigureResult,
   ConfiguratorApi,
   ConfiguratorNamespace,
   ConfiguratorUnsubscribe,
@@ -65,6 +67,10 @@ export type ConfiguratorBridge = {
   resizeCountertopFrom?(side: CountertopResizeSide, lengthM: number): Promise<unknown>;
   /** The settled cabinet covers; resolves null when the build has no `cabinetCover`. */
   getCabinetCovers?(): Promise<CabinetCoverSegment[] | null>;
+  /** Reads actual Lower materials; null when the scene cannot configure covers. */
+  getCabinetCoverColorState?(): Promise<CabinetCoverColorState | null>;
+  /** Changes composition-owned covers through their feature API, never product setConfig. */
+  setCabinetCoverColor?(materialId: string): Promise<CabinetCoverConfigureResult>;
 };
 
 export type ConfiguratorBridgeOptions = {
@@ -319,6 +325,31 @@ export const createConfiguratorBridge = (
       } catch (error) {
         throw toBridgeError(error, operation);
       }
+    },
+
+    async getCabinetCoverColorState() {
+      const cover = getTarget()?.api.cabinetCover;
+      if (!cover?.configure || !cover.getState) return null;
+      try {
+        if (cover.whenSettled) await cover.whenSettled();
+        return parseCabinetCoverColorState(cover.getState());
+      } catch (error) {
+        throw toBridgeError(error, "cabinetCover.getState");
+      }
+    },
+
+    async setCabinetCoverColor(materialId) {
+      if (!materialId.trim()) throw new ConfiguratorError("INVALID_INPUT", "A cover material is required.");
+      const result = await call<unknown>(
+        "cabinetCover.configure",
+        (api) => (api.cabinetCover?.configure?.bind(api.cabinetCover) as ApiMethod | undefined) ?? null,
+        [{ materialId }],
+      );
+      const statuses = ["applied", "unchanged", "invalid", "unsupported", "cancelled", "error"];
+      if (!isRecord(result) || !statuses.includes(String(result.status))) {
+        throw new ConfiguratorError("API_INVALID_RESPONSE", "The scene did not confirm the cover change.");
+      }
+      return { status: result.status as CabinetCoverConfigureResult["status"] };
     },
 
     // Read only, feature-detected like the overlays: covers follow the countertop and the cabinets.

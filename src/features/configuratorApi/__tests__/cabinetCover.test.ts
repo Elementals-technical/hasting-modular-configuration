@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createConfiguratorBridge } from "../bridge";
-import { parseCabinetCoverSegments } from "../cabinetCover";
+import { parseCabinetCoverColorState, parseCabinetCoverSegments } from "../cabinetCover";
 import type { ConfiguratorApi } from "../types";
 
 // `ConfiguratorAPI.cabinetCover.getState()` of a lifted top over one 24″ ULH cabinet (recorded in the browser).
@@ -37,6 +37,12 @@ describe("cabinet covers", () => {
     expect(segment.cabinetIds).toEqual(["ULH-side-cabinet-6dae"]);
     expect(segment.widthM).toBeCloseTo(0.6, 6);
     expect(segment.depthM).toBeCloseTo(0.4397, 4);
+    expect(segment.materialId).toBe("Rox Black TKQ");
+  });
+
+  it("retains a sized slab with an unknown finish so pricing can flag it", () => {
+    const unknown = { ...state, service: { entries: state.service.entries.map((entry) => ({ ...entry, segment: { ...entry.segment, materialId: undefined } })) } };
+    expect(parseCabinetCoverSegments(unknown)[0].materialId).toBeNull();
   });
 
   it("leaves out what the runtime does not report as a sized slab", () => {
@@ -69,5 +75,45 @@ describe("cabinet covers", () => {
 
     const older = bridgeFor({});
     expect(await older.getCabinetCovers?.()).toBeNull();
+  });
+
+  it("reads the visible cover material independently of stale preset settings", () => {
+    const parsed = parseCabinetCoverColorState({ ...state, settings: { materialId: "Bianco Male TFA" } });
+    expect(parsed?.segments[0]).toMatchObject({ materialId: "Rox Black TKQ", thicknessM: 0.0127 });
+    expect(parseCabinetCoverColorState({ ...state, service: { ...state.service, compositionId: "old" } })).toBeNull();
+  });
+
+  it("does not offer Lower when the runtime cannot change cover colors", async () => {
+    const bridge = bridgeFor({ cabinetCover: { getState: () => state } });
+    expect(await bridge.getCabinetCoverColorState?.()).toBeNull();
+    await expect(bridge.setCabinetCoverColor?.("Pulpis Chiaro TKH")).rejects.toMatchObject({
+      code: "API_METHOD_UNAVAILABLE",
+    });
+  });
+
+  it("configures only the feature material, keeping other cover settings intact", async () => {
+    const calls: unknown[] = [];
+    const bridge = bridgeFor({
+      cabinetCover: {
+        configure: async (patch) => {
+          calls.push(patch);
+          return { status: "applied" };
+        },
+        getState: () => state,
+      },
+    });
+    expect(await bridge.setCabinetCoverColor?.("Pulpis Chiaro TKH")).toEqual({ status: "applied" });
+    expect(calls).toEqual([{ materialId: "Pulpis Chiaro TKH" }]);
+    expect((await bridge.getCabinetCoverColorState?.())?.segments).toHaveLength(1);
+  });
+
+  it("preserves a runtime failure and rejects unconfirmed results or empty material names", async () => {
+    const failed = bridgeFor({ cabinetCover: { configure: async () => ({ status: "error" }) } });
+    expect(await failed.setCabinetCoverColor?.("Pulpis Chiaro TKH")).toEqual({ status: "error" });
+    const invalid = bridgeFor({ cabinetCover: { configure: async () => true } });
+    await expect(invalid.setCabinetCoverColor?.("Pulpis Chiaro TKH")).rejects.toMatchObject({
+      code: "API_INVALID_RESPONSE",
+    });
+    await expect(invalid.setCabinetCoverColor?.(" ")).rejects.toMatchObject({ code: "INVALID_INPUT" });
   });
 });

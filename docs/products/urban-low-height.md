@@ -154,6 +154,39 @@ cabinet несе ще й елемент handle groove. Countertop, towel bar і 
 немає в `SKU_SERIES_BY_COLLECTION`: pricing іде лише через `sku-profile.json`. Не можна використовувати
 URSTD SKU лише тому, що ULH ділить configurator 4 з USH.
 
+### Lower / CoverCountertop: колір, SKU і pricing (2026-10-12)
+
+Prebuilt Countertop Color має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`.
+Upper використовує наявний CountertopColor flow; Lower викликає native
+`ConfiguratorAPI.cabinetCover.configure({ materialId })`, без зміни кольору Upper або тумб.
+Lower бере палітру Cabinet Color, але лише підтверджені Ryan матеріали **3D, LACM, LACG, ST, BM, ESS**;
+allowlist міститься в `sku-profile.cabinetCover.materialSkus`. Matrix 589 для Upper не обмежує декоративний Lower.
+
+SKU Lower читає **фактично опублікований materialId кожного сегмента**, а не колір першої тумби:
+`CT-UR{material}-VES-{W}W-.5H-{D}D-{material}-{colour}`. Команда погодила постійний `VES` незалежно
+від стилю Upper, `.5H` і номінальну глибину тумб-підтримок: 46 см → `18.1D`, 50 см → `19.7D`.
+W — довжина відкритого сегмента зі сцени. Невідомі/різноглибинні підтримки або непідтверджений
+матеріал не отримують SKU через fallback: gap блокує complete total.
+
+Publisher читає settled covers після зміни countertop та раз на секунду, поки ULH player змонтований:
+native cabinetCover не має public change event. Матеріал є частиною runtime snapshot identity.
+Zero offset Upper не виключає Lower з pricing; snapshot мусить належати поточній composition.
+Compact Multi-Level import також adopts його primary cabinets у frontend state, записує спільні
+cabinet values та фактично імпортовані countertop selections, інакше pricing взагалі не стартував.
+Derived covers не включаються в список primary cabinets.
+
+Lower — окрема `cabinetCover` pricing line. CT resolver отримує точну довжину через `widthCm`;
+для однакових округлених SKU quantity і середня довжина зберігають сумарну довжину сегментів.
+**Backend price ще відсутній:** read-only перевірка `/pricing-v2/resolve` для прикладів Ryan і
+фактичних SKU `CT-UR3D-VES-35.4W-.5H-18.1D-3D-10B` / `CT-URLACG-VES-35.4W-.5H-18.1D-LACG-A6`
+повернула `price: null`, `No best match` (CT matrix 536 / pricePerUnit 529). Frontend позначає таку
+позицію як missing, а розрахунок — partial; ціна тумби/Upper не підставляється.
+
+Перевірено в браузері на preset 28: Upper offset `{x:0,y:0}`, Lower mesh-material змінюється
+3D white → Lacquer Gloss blue; Upper лишається `Bianco Male TFA`, SKU Lower і pricing request
+оновлюються з `widthCm=90`. Scene source/bundle не змінювали. Початкові Lower colours у presets,
+scene first-import cache та save/history featureSettings — окремі питання, без змін у цій правці.
+
 Основні gaps:
 
 - 6 Multi-Level presets без композицій.

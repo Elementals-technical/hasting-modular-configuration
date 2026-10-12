@@ -438,15 +438,16 @@ export const collectionSkuProfileSchema = z
     /** The side panels, for a collection that offers them. */
     sidePanel: z.union([pricedAsSchema, ownSidePanelSchema]).optional(),
     /**
-     * The thin cover the scene lays on the cabinet tops while the countertop is lifted (Urban Low
-     * Height): `CT-{prefix}{material}-{style}-{W}W-{thickness}H-{D}D-{material}-{colour}`, in the
-     * cabinet's colour. Without it no cover is ordered.
+     * The scene's decorative lower covers (Urban Low Height), independently coloured and ordered
+     * as `CT-{prefix}{material}-VES-{W}W-{thickness}H-{D}D-{material}-{colour}`.
      */
     cabinetCover: z
       .object({
         prefix: z.string().trim().min(1),
         /** Inches, as the SKU spells it (0.5 → `.5H`). */
         thicknessIn: z.number().positive(),
+        /** Confirmed decorative-cover materials, not the upper countertop's material matrix. */
+        materialSkus: z.array(z.string().trim().min(1)).min(1),
       })
       .strict()
       .optional(),

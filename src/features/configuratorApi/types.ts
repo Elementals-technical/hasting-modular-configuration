@@ -281,8 +281,19 @@ export type RoomApi = {
 
 /** `ConfiguratorAPI.cabinetCover` (ULH): the thin covers the scene lays on the cabinet tops it leaves bare. */
 export type CabinetCoverApi = {
+  configure?: (settings: { materialId: string }) => unknown;
   getState?: () => unknown;
   whenSettled?: () => unknown;
+};
+
+/** Applied cover materials and slab sizes, independent of the upper basin countertop. */
+export type CabinetCoverColorState = {
+  compositionId: string;
+  segments: (CabinetCoverSegment & { materialId: string; thicknessM: number })[];
+};
+
+export type CabinetCoverConfigureResult = {
+  status: "applied" | "unchanged" | "invalid" | "unsupported" | "cancelled" | "error";
 };
 
 /** One cover slab: a run of cabinet tops of one height and depth, in metres. */
@@ -291,6 +302,8 @@ export type CabinetCoverSegment = {
   widthM: number;
   depthM: number;
   cabinetIds: string[];
+  /** Actual published finish; null retains the slab as an explicitly unpriced line. */
+  materialId: string | null;
 };
 
 export type CountertopOverlayApi = {

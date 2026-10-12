@@ -543,7 +543,7 @@ export const PlayCanvasIntegration = ({
     setCountertopPopoverState((current) => ({ ...current, visible: false }));
     getSelectTool()?.setSelectedByName(productId, { mode: "replace" });
   }, []);
-  // The cabinet covers of a lifted top (ULH), read from the scene with every applied countertop pose.
+  // Actual Lower covers (ULH), independent of the Upper's offset and finish.
   const [publishCabinetCovers] = useState(() => {
     const bridge = createConfiguratorBridge();
     return createCabinetCoverPublisher({
@@ -592,6 +592,17 @@ export const PlayCanvasIntegration = ({
       if (!disposed && (!countertopEditingRef.current || state.readiness !== "ready")) publishCountertopSize(state);
     };
     const stop = api.on("change", ({ state }) => update(state), { emitCurrent: true });
+    // cabinetCover has no public change event. Read settled covers while the player is mounted,
+    // so material-only changes and restored multi-level presets also refresh Summary/pricing.
+    const coverPoll = activeCollectionId === "urban-low-height"
+      ? window.setInterval(() => {
+          if (!disposed && !countertopEditingRef.current) {
+            void Promise.resolve(api.getState())
+              .then((state) => { if (!disposed && !countertopEditingRef.current) publishCabinetCovers(state); })
+              .catch((error) => console.warn("[cabinet-cover] the countertop state could not be read", error));
+          }
+        }, 1000)
+      : null;
     void Promise.resolve()
       .then(() => api.getState())
       .then(update)
@@ -601,11 +612,13 @@ export const PlayCanvasIntegration = ({
     return () => {
       disposed = true;
       stop();
+      if (coverPoll !== null) window.clearInterval(coverPoll);
+      publishCabinetCovers.reset();
       setCountertopRuntimeSize(null);
       setCabinetCoverRuntime(null);
       setCountertopRuntimeState(null);
     };
-  }, [countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);
+  }, [activeCollectionId, countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCabinetCovers, publishCountertopSize]);
   const countertopMovement = useCountertopMovementMode(getCountertopApi, isPlayCanvasReady);
   const countertopMovementMode = countertopMovement.mode;
   useEffect(() => {

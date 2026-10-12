@@ -41,6 +41,17 @@ describe("resolvePriceRequest", () => {
     expect(resolvePriceRequest({ sku: DYNAMIC_TOP, widthCm: null, ...USH })).toEqual({ kind: "product" });
   });
 
+  it("sends Lower's exact segment length to CT pricing, even without a legacy series prefix", () => {
+    expect(resolvePriceRequest({
+      sku: "CT-URLACG-VES-35.4W-.5H-18.1D-LACG-A6",
+      widthCm: 90.0001,
+      countertopPrefix: null,
+      bookMatchingSkuPrefix: null,
+      pricedPerCm: true,
+    })).toEqual({ kind: "countertopTop", widthCm: 90.0001 });
+    expect(resolvePriceFromResponse({ price: null, error: "No best match" })).toBeNull();
+  });
+
   it.each([
     ["a vessel", "VES-URMOD-X-19.7W-5.5H-13D"],
     ["book matching", "VAN-URBMG-VER-3D"],
