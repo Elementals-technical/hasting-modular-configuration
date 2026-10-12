@@ -1,4 +1,4 @@
-import type { CabinetCoverSegment } from "./types";
+import type { CabinetCoverColorState, CabinetCoverSegment } from "./types";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
@@ -15,7 +15,7 @@ export const parseCabinetCoverSegments = (state: unknown): CabinetCoverSegment[]
 
   return entries.flatMap((entry): CabinetCoverSegment[] => {
     if (!isRecord(entry) || typeof entry.productId !== "string" || !isRecord(entry.segment)) return [];
-    const { xMinM, xMaxM, zMinM, zMaxM, cabinetIds } = entry.segment;
+    const { xMinM, xMaxM, zMinM, zMaxM, cabinetIds, materialId } = entry.segment;
     if (!finite(xMinM) || !finite(xMaxM) || !finite(zMinM) || !finite(zMaxM)) return [];
     const widthM = xMaxM - xMinM;
     const depthM = zMaxM - zMinM;
@@ -27,7 +27,28 @@ export const parseCabinetCoverSegments = (state: unknown): CabinetCoverSegment[]
         widthM,
         depthM,
         cabinetIds: Array.isArray(cabinetIds) ? cabinetIds.filter((id): id is string => typeof id === "string") : [],
+        materialId: typeof materialId === "string" && materialId.trim() ? materialId.trim() : null,
       },
     ];
   });
+};
+
+/** Reads the published materials rather than preset settings, which may not match the visible slabs. */
+export const parseCabinetCoverColorState = (state: unknown): CabinetCoverColorState | null => {
+  if (!isRecord(state) || typeof state.compositionId !== "string") return null;
+  const service = isRecord(state.service) ? state.service : null;
+  if (!service || (service.compositionId && service.compositionId !== state.compositionId)) return null;
+  const entries = Array.isArray(service.entries) ? service.entries : [];
+  const segments = parseCabinetCoverSegments(state).flatMap((segment) => {
+    const entry = entries.find((candidate) => isRecord(candidate) && candidate.productId === segment.productId);
+    const source = isRecord(entry) && isRecord(entry.segment) ? entry.segment : null;
+    return source &&
+      typeof source.materialId === "string" &&
+      source.materialId.trim() &&
+      finite(source.thicknessM) &&
+      source.thicknessM > 0
+      ? [{ ...segment, materialId: source.materialId, thicknessM: source.thicknessM }]
+      : [];
+  });
+  return { compositionId: state.compositionId, segments };
 };

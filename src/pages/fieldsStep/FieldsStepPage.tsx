@@ -25,6 +25,8 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
 import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
+import { CountertopColorLevelPicker } from "@/widgets/CountertopSections/ui/CountertopColorLevelPicker";
+import { useCoverCountertopColorField } from "@/widgets/CountertopSections/lib/useCoverCountertopColorField";
 
 import s from "./FieldsStepPage.module.scss";
 
@@ -42,6 +44,9 @@ const ColorSectionField = ({
   const dispatch = useAppDispatch();
   const profile = useAppSelector(getActiveProductProfile);
   const flowId = useCollectionNavigation()?.flowId;
+  const coverColor = useCoverCountertopColorField(
+    definition.attributeId === "CountertopColor" && flowId === "prebuilt",
+  );
 
   const orderSwatches = () => {
     const configuratorSection = selectConfiguratorSection(profile, definition.attributeId);
@@ -65,7 +70,17 @@ const ColorSectionField = ({
     }
   };
 
-  return <ColorField field={field} title={section.label} onChange={select} onOrderSwatches={orderSwatches} />;
+  return (
+    <CountertopColorLevelPicker
+      lowerField={coverColor.field}
+      processing={coverColor.processing}
+      error={coverColor.error}
+      onLowerChange={coverColor.changeColor}
+      onOrderSwatches={orderSwatches}
+    >
+      <ColorField field={field} title={section.label} onChange={select} onOrderSwatches={orderSwatches} />
+    </CountertopColorLevelPicker>
+  );
 };
 
 const SectionField = (props: SectionFieldProps) => {

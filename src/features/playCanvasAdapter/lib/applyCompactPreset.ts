@@ -4,6 +4,7 @@ import type {
   ConfiguratorClient,
   ConfiguratorCompactPreset,
   ConfiguratorImportReceipt,
+  CabinetsState,
 } from "@/features/configuratorApi";
 
 /** A collection preset entry that carries compact rows (format "ulh-compact-v1"). */
@@ -38,21 +39,29 @@ export const applyCompactPreset = (
   anchorPositionM?: CabinetPositionM,
 ): Promise<ConfiguratorImportReceipt> => client.importCompactPreset(toCompactPreset(preset), anchorPositionM);
 
-export type CompactPresetClient = Pick<ConfiguratorClient, "connect" | "importCompactPreset" | "dispose">;
+export type CompactPresetClient = Pick<ConfiguratorClient, "connect" | "importCompactPreset" | "dispose"> &
+  Partial<Pick<ConfiguratorClient, "getCabinetsState">>;
 
 /**
  * Applies a compact preset through a short-lived ConfiguratorClient (connect → import → dispose).
+ * Optional onImported adopts the actual primary cabinets into the caller's UI/pricing state.
  * Resolves null without creating a client when the preset has no compact rows (flat presets).
  */
 export const applyCompactPresetWithBridge = async (
   preset: CompactPresetSource | null | undefined,
   createClient: () => CompactPresetClient = createConfiguratorClient,
+  onImported?: (state: CabinetsState) => Promise<void>,
 ): Promise<ConfiguratorImportReceipt | null> => {
   if (!preset || !hasCompactRows(preset)) return null;
   const client = createClient();
   try {
     await client.connect();
-    return await applyCompactPreset(client, preset);
+    const receipt = await applyCompactPreset(client, preset);
+    if (onImported) {
+      if (!client.getCabinetsState) throw new Error("Imported compact cabinets cannot be read for pricing.");
+      await onImported(await client.getCabinetsState());
+    }
+    return receipt;
   } finally {
     client.dispose();
   }

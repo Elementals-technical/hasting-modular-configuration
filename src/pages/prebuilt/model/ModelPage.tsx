@@ -36,7 +36,8 @@ import {
   withPreservedCollectionId,
 } from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { applyCompactPresetWithBridge, hasCompactRows } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
+import { applyCompactPresetWithBridge, hasCompactRows, type CompactPresetSource } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
+import type { CabinetsState } from "@/features/configuratorApi";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductPreset,
@@ -465,6 +466,47 @@ export const ModelPage = () => {
     return overrides;
   }, [cabinetColor, handleGrooveColor]);
 
+  // Compact import bypasses applyPreset: adopt its actual primary cabinets so their sizes and
+  // colours enter the same pricing pipeline as flat presets. Derived covers are never cabinets.
+  const adoptCompactCabinets = useCallback(async (state: CabinetsState) => {
+    if (!state.cabinets.length) throw new Error("The compact preset reported no cabinets.");
+    const sharedCabinetValues = Object.fromEntries(
+      ["Handle", "CabinetColor", "HandleGrooveColor", "DrawerPanelFluting"].flatMap((attributeId) => {
+        const value = state.cabinets[0].selection[attributeId];
+        return typeof value === "string" && value && state.cabinets.every(({ selection }) => selection[attributeId] === value)
+          ? [[attributeId, normalizeOptionValue(activeProfileRef.current, attributeId, value) ?? value]]
+          : [];
+      }),
+    );
+    const adopted = await composition.adopt({
+      runtimeIds: state.cabinets.map(({ id }) => id),
+      products: state.cabinets.map(({ definitionId, selection }) => ({
+        productType: Object.entries(runtimeBindings?.productTypes ?? {}).find(([, type]) => type === definitionId)?.[0] ?? definitionId,
+        config: selection,
+      })),
+      // adopt intentionally leaves typed composition values to its caller (saved restore uses its
+      // own choices); a fresh compact model records the values its actual cabinets agree on.
+      record: sharedCabinetValues,
+    });
+    if (adopted.status !== "applied") throw new Error("The imported compact cabinets could not be recorded for pricing.");
+  }, [composition, runtimeBindings]);
+
+  const applyAndAdoptCompactPreset = useCallback(async (preset: CompactPresetSource | null | undefined) => {
+    const imported = await applyCompactPresetWithBridge(preset, undefined, adoptCompactCabinets);
+    if (!imported) return;
+    const config = { ...preset?.shared, ...preset?.top };
+    const color = typeof config.CountertopColor === "string" ? config.CountertopColor : undefined;
+    const sink = typeof config.sinkType === "string" ? config.sinkType : undefined;
+    syncCountertopSelectionFromSceneConfig({
+      CountertopColor: color,
+      sinkType: sink,
+      CountertopStyle: sink ? inferCountertopStyleFromSinkType(sink) : undefined,
+    }, { clearMissing: true });
+    if (typeof config.Thickness === "string" || typeof config.Thickness === "number") {
+      record({ Thickness: String(config.Thickness) });
+    }
+  }, [adoptCompactCabinets, record, syncCountertopSelectionFromSceneConfig]);
+
   const resetRestrictedCountertopSelections = useCallback(() => {
     record({ Thickness: "", VesselColor: "", FaucetHolesAmount: "0" });
   }, [record]);
@@ -532,7 +574,7 @@ export const ModelPage = () => {
         const selectedPreset = presetId === undefined ? null : (presets.find((preset) => preset.id === presetId) ?? null);
         if (hasCompactRows(selectedPreset)) {
           try {
-            await applyCompactPresetWithBridge(selectedPreset);
+            await applyAndAdoptCompactPreset(selectedPreset);
           } catch (error) {
             console.warn("[Prebuilt] The compact preset was not applied", error);
             return;
@@ -615,6 +657,7 @@ export const ModelPage = () => {
       }
     },
     [
+      applyAndAdoptCompactPreset,
       colorTransferableOverrides,
       composition,
       dispatch,
@@ -1016,7 +1059,7 @@ export const ModelPage = () => {
       // Compact presets (format "ulh-compact-v1") carry rows, not presetProducts: import them via the bridge.
       if (hasCompactRows(presetFromUrl)) {
         try {
-          await applyCompactPresetWithBridge(presetFromUrl);
+          await applyAndAdoptCompactPreset(presetFromUrl);
           sessionStorage.setItem("prebuiltModelInitialized", "1");
           dispatch(clearHistory());
         } catch (error) {
@@ -1068,6 +1111,7 @@ export const ModelPage = () => {
     };
     run();
   }, [
+    applyAndAdoptCompactPreset,
     canvasReady,
     composition,
     configIdFromUrl,

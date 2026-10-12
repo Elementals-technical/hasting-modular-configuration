@@ -78,6 +78,8 @@ export type {
   CabinetLandSinkReceipt,
   CountertopSinkLocalM,
   CabinetCoverApi,
+  CabinetCoverColorState,
+  CabinetCoverConfigureResult,
   CabinetCoverSegment,
   PlacementOverlayApi,
   PlacementOverlayFrame,
