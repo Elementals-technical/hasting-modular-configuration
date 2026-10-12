@@ -9,7 +9,7 @@ import { resolveForcedHeightForHandle } from "@/features/configurator-rule-core/
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { normalizeDividerType } from "@/features/dividers/model/normalize";
 import type { DividerType } from "@/features/dividers/model/types";
-import { hasCapability, normalizeOptionValue, type ProductProfile } from "@/entities/collection";
+import { hasCapability, normalizeOptionValue, selectAttribute, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
@@ -522,14 +522,18 @@ const productSlice = createSlice({
           const currentHeight = state.selectedDimensions.height;
           const isCurrentHeightValid = typeof currentHeight === "number" && cabinetRule.heights.includes(currentHeight);
 
-          // If current height is not valid for the new cabinet type, use the last available height
-          // (typically the default/preferred height for that cabinet type)
+          // If current height is not valid for the new cabinet type, use the height the collection
+          // names as its default, or else the last available height (typically the
+          // default/preferred height for that cabinet type)
           if (!isCurrentHeightValid) {
             // const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
             // const hasForcedHandle = currentHandle === "handle_pto" || currentHandle === "handle_urban_topcut" || currentHandle === "handle_urban_botcut";
 
             // if (!hasForcedHandle) {
-            const defaultHeight = cabinetRule.heights[cabinetRule.heights.length - 1];
+            const profileHeight = Number(selectAttribute(state.activeProfile, "Height")?.defaultValue);
+            const defaultHeight = cabinetRule.heights.includes(profileHeight)
+              ? profileHeight
+              : cabinetRule.heights[cabinetRule.heights.length - 1];
             state.selectedDimensions.height = defaultHeight;
             // }
           }

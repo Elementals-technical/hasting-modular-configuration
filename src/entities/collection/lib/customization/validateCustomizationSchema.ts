@@ -2,8 +2,11 @@ import {
   CUSTOMIZATION_FLOW_IDS,
   CUSTOMIZATION_SCREEN_IDS,
   PLAYER_MENU_ITEM_IDS,
+  PLAYER_MENU_RESIZE_IDS,
+  STYLE_SIDEBAR_FIELD_IDS,
   type CustomizationSchema,
   type CustomizationSchemaDiagnostic,
+  type CustomizationSchemaDiagnosticCode,
   type ValidateCustomizationSchemaResult,
 } from "../../model/customizationSchema";
 
@@ -13,6 +16,8 @@ const VALID_KINDS = new Set(["preset-picker", "cabinet-builder", "fields", "summ
 const VALID_CONTROLS = new Set(["swatches", "options-grid", "checkbox", "colors"]);
 const VALID_SCREENS = new Set<string>(CUSTOMIZATION_SCREEN_IDS);
 const VALID_MENU_ITEMS = new Set<string>(PLAYER_MENU_ITEM_IDS);
+const VALID_MENU_RESIZE_IDS = new Set<string>(PLAYER_MENU_RESIZE_IDS);
+const VALID_SIDEBAR_FIELDS = new Set<string>(STYLE_SIDEBAR_FIELD_IDS);
 
 const isRecord = (value: unknown): value is UnknownRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -382,12 +387,70 @@ const validateCountertopSettings = (countertop: unknown, diagnostics: Customizat
   }
 };
 
+/**
+ * A list the interface shows in the declared order: every entry is one of `validIds`, named once.
+ */
+const validateOrderedIds = (
+  value: unknown,
+  dataPath: string,
+  validIds: ReadonlySet<string>,
+  unknown: { code: CustomizationSchemaDiagnosticCode; of: string },
+  diagnostics: CustomizationSchemaDiagnostic[],
+) => {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    diagnostics.push({ code: "invalid-schema", dataPath, message: `${dataPath} must be an array` });
+    return;
+  }
+  const seen = new Set<string>();
+  value.forEach((id: unknown, index: number) => {
+    if (typeof id !== "string" || !validIds.has(id)) {
+      diagnostics.push({
+        code: unknown.code,
+        dataPath: `${dataPath}[${index}]`,
+        message: `"${String(id)}" is not ${unknown.of}`,
+      });
+      return;
+    }
+    if (seen.has(id)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `${dataPath}[${index}]`,
+        message: `"${id}" is listed twice`,
+      });
+    }
+    seen.add(id);
+  });
+};
+
+const validateStyleSidebar = (styleSidebar: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (styleSidebar === undefined) return;
+  if (!isRecord(styleSidebar)) {
+    diagnostics.push({ code: "invalid-schema", dataPath: "styleSidebar", message: "styleSidebar must be an object" });
+    return;
+  }
+  validateOrderedIds(
+    styleSidebar.fields,
+    "styleSidebar.fields",
+    VALID_SIDEBAR_FIELDS,
+    { code: "unknown-sidebar-field", of: "a selector of the style sidebar" },
+    diagnostics,
+  );
+};
+
 const validatePlayerMenu = (playerMenu: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
   if (playerMenu === undefined) return;
   if (!isRecord(playerMenu)) {
     diagnostics.push({ code: "invalid-schema", dataPath: "playerMenu", message: "playerMenu must be an object" });
     return;
   }
+  validateOrderedIds(
+    playerMenu.resize,
+    "playerMenu.resize",
+    VALID_MENU_RESIZE_IDS,
+    { code: "unknown-menu-item", of: "a size the Resize item of the player menu changes" },
+    diagnostics,
+  );
   const hidden = playerMenu.hidden;
   if (hidden === undefined) return;
   if (!Array.isArray(hidden)) {
@@ -436,6 +499,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validateOptionImageVariants(input.optionImageVariants, diagnostics);
   validateCountertopSettings(input.countertop, diagnostics);
   validatePlayerMenu(input.playerMenu, diagnostics);
+  validateStyleSidebar(input.styleSidebar, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };
 

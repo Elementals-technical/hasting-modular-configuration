@@ -1,0 +1,34 @@
+.stub {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 16px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
+
+  background: #ffffff;
+  color: var(--text-color-base);
+  text-align: center;
+
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+.title {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.text {
+  max-width: 320px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}

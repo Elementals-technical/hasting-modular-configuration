@@ -362,6 +362,47 @@ describe("validateCustomizationSchema", () => {
     }
   });
 
+  it("accepts the sizes the Resize item offers and the selectors of the style sidebar, in any order", () => {
+    expect(validateCustomizationSchema({ ...uiJson, playerMenu: { resize: ["Width", "Depth", "Height"] } }).ok).toBe(
+      true,
+    );
+    expect(validateCustomizationSchema({ ...uiJson, styleSidebar: {} }).ok).toBe(true);
+    expect(
+      validateCustomizationSchema({ ...uiJson, styleSidebar: { fields: ["Height", "Width", "Depth", "Handle"] } }).ok,
+    ).toBe(true);
+  });
+
+  it("names a size Resize does not change and a selector the style sidebar does not have", () => {
+    const result = validateCustomizationSchema({
+      ...uiJson,
+      playerMenu: { resize: ["Width", "Handle"] },
+      styleSidebar: { fields: ["Width", "height"] },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({ code: "unknown-menu-item", dataPath: "playerMenu.resize[1]" }),
+      expect.objectContaining({ code: "unknown-sidebar-field", dataPath: "styleSidebar.fields[1]" }),
+    ]);
+  });
+
+  it("rejects a list that is not an array or names an entry twice", () => {
+    for (const [override, dataPath] of [
+      [{ styleSidebar: ["Height"] }, "styleSidebar"],
+      [{ styleSidebar: { fields: "Height" } }, "styleSidebar.fields"],
+      [{ styleSidebar: { fields: ["Height", "Height"] } }, "styleSidebar.fields[1]"],
+      [{ playerMenu: { resize: "Height" } }, "playerMenu.resize"],
+      [{ playerMenu: { resize: ["Width", "Width"] } }, "playerMenu.resize[1]"],
+    ] as const) {
+      const result = validateCustomizationSchema({ ...uiJson, ...override });
+
+      expect(result.ok, dataPath).toBe(false);
+      if (result.ok) return;
+      expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-schema", dataPath }));
+    }
+  });
+
   it("rejects a non-object input", () => {
     const result = validateCustomizationSchema(null);
 

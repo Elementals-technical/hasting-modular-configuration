@@ -29,6 +29,7 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import {
   getDimensionOptions,
+  getHeightChoices,
   getCabinetCatalog,
   getActiveCountertopColor,
   getCountertopColorSku,
@@ -138,6 +139,7 @@ import {
   selectMessageOr,
   selectOptions,
   useActiveCollection,
+  type PlayerMenuResizeId,
 } from "@/entities/collection";
 import {
   resolveAttributeTarget,
@@ -703,6 +705,7 @@ export const PlayCanvasIntegration = ({
   }, []);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
+  const heightChoices = useAppSelector(getHeightChoices);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
@@ -1892,6 +1895,31 @@ export const PlayCanvasIntegration = ({
       saveSnapshot,
       selectedProductConfig,
     ],
+  );
+
+  /** The cabinets of a composition share one height, so this resizes them all, as Depth does. */
+  const handleSetHeight = useCallback(
+    async (height: number) => {
+      if (!productIds.length) return;
+      if (!heightChoices.includes(height)) return;
+      if (selectedDimensions.height === height) {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      try {
+        await saveSnapshot();
+        const result = await changeDimension({ attributeId: "Height", value: height, scope: "global" });
+        if (result.status !== "applied") {
+          console.warn("[PlayCanvasIntegration] The height was not changed", result);
+        }
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to set height", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [changeDimension, heightChoices, productIds, saveSnapshot, selectedDimensions.height],
   );
 
   const handleCancelHandlePreview = useCallback(() => {
@@ -3264,30 +3292,43 @@ export const PlayCanvasIntegration = ({
     const canMoveRight =
       selectedIdx >= 0 && selectedIdx < orderedIds.length - 1 && !ossCannotMove && !isOssAtEdge(selectedIdx + 1);
 
+    const resizeItems: Record<PlayerMenuResizeId, DropdownItem> = {
+      Width: {
+        id: "resize-width",
+        label: "Width",
+        children: widthOptions.map((value) => ({
+          id: `resize-width-${value}`,
+          label: cmToInchLabel(Number(value)),
+          onClick: () => handleSetWidth(Number(value)),
+        })),
+      },
+      Depth: {
+        id: "resize-depth",
+        label: "Depth",
+        children: depthOptions.map((value) => ({
+          id: `resize-depth-${value}`,
+          label: cmToInchLabel(Number(value)),
+          onClick: () => handleSetDepth(Number(value)),
+        })),
+      },
+      Height: {
+        id: "resize-height",
+        label: "Height",
+        children: heightChoices.map((height) => ({
+          id: `resize-height-${height}`,
+          label: cmToInchLabel(height),
+          onClick: () => handleSetHeight(height),
+        })),
+      },
+    };
+
     const items: DropdownItem[] = [
       {
         id: "resize",
         label: "Resize",
-        children: [
-          {
-            id: "resize-width",
-            label: "Width",
-            children: widthOptions.map((value) => ({
-              id: `resize-width-${value}`,
-              label: cmToInchLabel(Number(value)),
-              onClick: () => handleSetWidth(Number(value)),
-            })),
-          },
-          {
-            id: "resize-depth",
-            label: "Depth",
-            children: depthOptions.map((value) => ({
-              id: `resize-depth-${value}`,
-              label: cmToInchLabel(Number(value)),
-              onClick: () => handleSetDepth(Number(value)),
-            })),
-          },
-        ],
+        // The sizes the collection's ui.json lists (`playerMenu.resize`), in its order; one with
+        // nothing to choose is dropped with its empty submenu.
+        children: menuSupport.resize.map((sizeId) => resizeItems[sizeId]),
       },
       ...(repositionStatus.supported
         ? [dragRepositionItem]
@@ -3402,6 +3443,7 @@ export const PlayCanvasIntegration = ({
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
+    handleSetHeight,
     productIds,
     handleMoveProduct,
     handleOpenCabinetStyle,
@@ -3420,6 +3462,8 @@ export const PlayCanvasIntegration = ({
     canDuplicateSelectedCabinet,
     widthOptions,
     depthOptions,
+    heightChoices,
+    menuSupport.resize,
     isPrebuilt,
     isDrawerCabinet,
     isOneOrTwoDrawerProduct,

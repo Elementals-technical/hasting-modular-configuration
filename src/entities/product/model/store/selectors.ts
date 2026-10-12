@@ -32,6 +32,26 @@ export const getDrawerProduct = (state: RootState) => state.rootStateUI.product.
 
 export const getSelectedProductConfig = (state: RootState) => state.rootStateUI.product.selectedProductConfig;
 
+const NO_HEIGHT_CHOICES: number[] = [];
+
+/**
+ * Heights the user may choose between: those the chosen handle takes, when the handles of the
+ * active cabinet type take several (Urban Low Height: upper groove 38/28 cm, push-to-open
+ * 35/25 cm). The heights of another handle come with that handle. Empty when there is nothing to
+ * choose: one height, or a type whose heights no handle decides.
+ */
+export const getHeightChoices = createSelector(
+  [getDimensionOptions, getActiveCabinetRule],
+  (options, rule): number[] => {
+    if (Object.keys(rule?.heightsByHandle ?? {}).length === 0) return NO_HEIGHT_CHOICES;
+
+    // The rules leave enabled only the heights of the handle in use.
+    const choices = options.height.filter((option) => !option.disabled).map((option) => Number(option.value));
+
+    return choices.length > 1 ? choices : NO_HEIGHT_CHOICES;
+  },
+);
+
 export const getCabinetColor = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColor;
 
 export const getCabinetColorSku = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColorSku;

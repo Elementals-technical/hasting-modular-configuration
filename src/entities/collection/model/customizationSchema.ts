@@ -43,9 +43,30 @@ export const PLAYER_MENU_ITEM_IDS = [
 
 export type PlayerMenuItemId = (typeof PLAYER_MENU_ITEM_IDS)[number];
 
+/** Sizes of a placed cabinet the Resize item of the player menu can change. */
+export const PLAYER_MENU_RESIZE_IDS = ["Width", "Depth", "Height"] as const;
+
+export type PlayerMenuResizeId = (typeof PLAYER_MENU_RESIZE_IDS)[number];
+
 /** The collection's choices for the menu of the 3D player; every field is optional. */
 export type CustomizationPlayerMenu = {
   hidden?: PlayerMenuItemId[];
+  /** The sizes Resize offers, in this order. Without it: Width and Depth. */
+  resize?: PlayerMenuResizeId[];
+};
+
+/**
+ * Selectors of the style sidebar the cabinet builder opens for the cabinet being added: its sizes
+ * and its handle.
+ */
+export const STYLE_SIDEBAR_FIELD_IDS = ["Width", "Depth", "Height", "Handle"] as const;
+
+export type StyleSidebarFieldId = (typeof STYLE_SIDEBAR_FIELD_IDS)[number];
+
+/** The collection's choices for the style sidebar; every field is optional. */
+export type CustomizationStyleSidebar = {
+  /** The selectors the sidebar shows, in this order. Without it: Width, Depth and Handle. */
+  fields?: StyleSidebarFieldId[];
 };
 
 export type CustomizationFlowStepRef = {
@@ -161,6 +182,8 @@ export type CustomizationSchema = {
   countertop?: CustomizationCountertopSettings;
   /** Menu of the 3D player: items the collection hides although its data supports them. */
   playerMenu?: CustomizationPlayerMenu;
+  /** Style sidebar of the cabinet builder: the selectors the collection shows. */
+  styleSidebar?: CustomizationStyleSidebar;
 };
 
 /**
@@ -231,7 +254,8 @@ export type CustomizationSchemaDiagnosticCode =
   | "unsupported-screen"
   | "unknown-section-id"
   | "unsupported-control"
-  | "unknown-menu-item";
+  | "unknown-menu-item"
+  | "unknown-sidebar-field";
 
 export type CustomizationSchemaDiagnostic = {
   code: CustomizationSchemaDiagnosticCode;

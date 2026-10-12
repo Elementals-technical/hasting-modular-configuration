@@ -30,11 +30,13 @@ export type AttributeChange = { attributeId: string; value: AttributeValue } & (
 
 /**
  * Dimensions are core scene commands, rather than ProductProfile options. Width is
- * owned by one cabinet; Depth is deliberately shared by the USH composition.
+ * owned by one cabinet; Depth and Height are deliberately shared by the composition
+ * (the scene gives every product the height it is sent).
  */
 export type DimensionChange =
   | { attributeId: "Width"; value: number; scope: "cabinet"; cabinetId: StableCabinetKey }
-  | { attributeId: "Depth"; value: number; scope: "global" };
+  | { attributeId: "Depth"; value: number; scope: "global" }
+  | { attributeId: "Height"; value: number; scope: "global" };
 
 /** One entry of the agreed set handed to I. */
 export type PlannedChange = {

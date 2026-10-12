@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
+import cabinetTable580 from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
-import type { ProductProfile } from "@/entities/collection";
+import { parseProductProfile, type ProductProfile } from "@/entities/collection";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import type { CabinetEntry, ValueTarget } from "@/entities/configuration";
@@ -406,5 +408,58 @@ describe("buildChangePlan", () => {
     expect(result.plan[0].value).toBe("test_groove_handle");
     expect(result.plan).toContainEqual(expect.objectContaining({ attributeId: "Height", value: 56 }));
     expect(result.plan.some((entry) => entry.attributeId === "HandleGrooveColor")).toBe(false);
+  });
+});
+
+/**
+ * Urban Low Height: a handle takes two heights (upper groove 38/28 cm, push-to-open 35/25 cm),
+ * so a change of handle moves the cabinets to the nearest height the new handle takes.
+ */
+describe("buildChangePlan: a handle that takes several heights", () => {
+  const parsedUlh = parseProductProfile(ulhProfileDocument);
+  if (!parsedUlh.ok) throw new Error("Urban Low Height profile must parse");
+  const ulhProfile = parsedUlh.profile;
+  // The Urban Low Height cabinet table the collection loads (580).
+  const ulhCatalog = buildCabinetCatalogFromMatrix(cabinetTable580 as ProductDatatable, ulhProfile);
+
+  const ulhPlan = (overrides: { height?: number; handleGrooveColor?: string } = {}) => {
+    const result = buildChangePlan({
+      attributeId: "Handle",
+      value: "handle_pto",
+      target: cabinetTarget,
+      selection: {
+        cabinetType: "Sink-Base",
+        width: 60,
+        depth: 46,
+        height: overrides.height ?? 38,
+        drawers: "1",
+        handle: "handle_urban_topcut",
+      },
+      selectedProductIds: [],
+      catalog: ulhCatalog,
+      profile: ulhProfile,
+      handleGrooveColor: overrides.handleGrooveColor ?? null,
+    });
+    if (!result.ok) throw new Error(result.reason);
+
+    return result.plan;
+  };
+
+  const heightOf = (entries: ReturnType<typeof ulhPlan>) =>
+    entries.find(({ attributeId }) => attributeId === "Height")?.value;
+
+  it("moves to the nearest height of the new handle", () => {
+    const entries = ulhPlan();
+
+    expect(entries[0]).toMatchObject({ attributeId: "Handle", value: "handle_pto", origin: "requested" });
+    expect(heightOf(entries)).toBe(35);
+    expect(heightOf(ulhPlan({ height: 28 }))).toBe(25);
+  });
+
+  it("still clears the groove colour push-to-open has no groove for", () => {
+    const entries = ulhPlan({ handleGrooveColor: "Rox Black TKQ" });
+
+    expect(entries).toContainEqual(expect.objectContaining({ attributeId: "HandleGrooveColor", origin: "dependency" }));
+    expect(heightOf(entries)).toBe(35);
   });
 });

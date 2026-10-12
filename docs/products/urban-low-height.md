@@ -64,9 +64,36 @@ Table 580 описує:
 `Open-Side-Shelf` є в profile/table, але знаходиться в `unplacedProductTypes`; loader прибирає його
 card із builder. Повернення card потребує scene product і перенесення mapping у `productTypes`.
 
-Важливий незавершений зв'язок: table 580 має `handle_urban_topcut_heights_cm` та
-`handle_pto_heights_cm`, але cabinet catalog поки не використовує ці колонки. Тобто підтверджене
-правило Upper Groove 38/28, PTO 35/25 не повністю enforced catalog layer.
+Висоту вирішує handle: Upper Groove — 38/28 cm, Push-to-Open — 35/25 cm. Cabinet catalog читає колонки
+`handle_urban_topcut_heights_cm` і `handle_pto_heights_cm` table 580 через
+`cabinetMatrixLegacyAdapter.columns.heightsByHandle`, тому builder пропонує лише висоти вибраного handle,
+а зміна handle пересуває висоту до найближчої дозволеної (38 ↔ 35, 28 ↔ 25).
+
+Користувач обирає висоту у двох місцях; обидва показують лише дві висоти вибраного handle
+(Upper Groove — 28 і 38 cm, Push-to-Open — 25 і 35 cm):
+
+- right sidebar Cabinet Builder — selector Height поруч із Width / Depth / Handle;
+- меню поставленої шафи — Resize ▸ Height.
+
+Обидва місця вмикає `ui.json` колекції, а не код:
+
+- `styleSidebar.fields` — selectors правого sidebar у заданому порядку. Без нього sidebar показує
+  Width, Depth, Handle; ULH оголошує `["Width", "Depth", "Height", "Handle"]`.
+- `playerMenu.resize` — розміри пункту Resize у заданому порядку. Без нього — Width і Depth; ULH
+  оголошує `["Width", "Depth", "Height"]`.
+
+Запис у `ui.json` лише дозволяє показати Height. Самі висоти дає table 580: selector і пункт меню
+з'являються, коли handle типу шафи приймає кілька висот, тому для колекції з однією висотою на handle
+запис нічого не покаже.
+
+Висота спільна для композиції. Поки шаф немає, вибір стосується наступної шафи; після розміщення зміна
+йде через `changeDimension` (`{ attributeId: "Height", scope: "global" }`) і змінює всі шафи одразу, як
+Depth. Порожній builder стартує з 38 cm — це `defaultValue` атрибута `Height` у `product-profile.json`.
+
+Висоти іншого handle Height не пропонує: щоб їх отримати, користувач змінює Handle. Зміна handle
+(`{ attributeId: "Handle" }`) пересуває висоту до найближчої, яку приймає новий handle: з поставленими
+шафами спершу з'являється підтвердження `handle.appliesToAllCabinets`, колір groove скидається для
+Push-to-Open, side panels втрачають upper groove. Handle і Height ідуть у сцену одним набором.
 
 ## Product semantics
 
@@ -165,7 +192,13 @@ scene first-import cache та save/history featureSettings — окремі пи
 - 6 Multi-Level presets без композицій.
 - Open Side Shelf без scene product.
 - Open Side Shelf не цінується: його side не тримає жоден attribute, а gap у `sku-profile.json` блокує total.
-- Handle ↔ height coupling не читається catalog layer.
+- Height не пропонується, коли вибрано Open Shelf: полиця не має handle, який вирішує її висоти. Висоту
+  композиції змінюють через Sink Base або Side Cabinet.
+- Зміна висоти не пересуває ряди по вертикалі: нижній ряд дворядної композиції лишається на своїй
+  позначці. Перевірено в браузері 12.10.2026 на моделі 60″ Multi-Level у Custom: після 38 → 28 cm між
+  рядами лишається зазор 10 cm (верх нижньої шафи −10 cm, низ верхньої 0).
+- Open Shelf ширше 70 cm (80–120 cm при висоті 28/25 cm) не пропонується: колонку `widths_cm_by_height`
+  table 580 ніхто не читає.
 - Countertop/basin contract частково позичений у USH; table 589 не є доказом повної ULH семантики.
 - Manifest defaults не затверджені.
 - Fluting зберігається в state, але не має ULH scene binding.
