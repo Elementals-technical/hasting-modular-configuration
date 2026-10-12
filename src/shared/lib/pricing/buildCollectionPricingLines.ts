@@ -94,11 +94,11 @@ const UNPRICED_VESSEL: Record<"not-chosen" | "no-material", { owner: string; rea
   },
 };
 
-/** Why a cover under a lifted countertop has no line: its SKU lacks the cabinet colour's material or code, or the style. */
+/** Retain an explicit gap rather than pricing an unknown Lower finish as its cabinet's colour. */
 const UNPRICED_CABINET_COVER = {
   owner: "product",
   reason:
-    "The cover under the lifted countertop has no price: the cabinet colour names no material or colour code, or the countertop style is not chosen.",
+    "The lower countertop cover has no price: its applied colour/material or supporting cabinet depth is unknown or unsupported.",
 };
 
 /** Why a countertop priced as Urban Standard Height's has no top line. */
@@ -433,35 +433,48 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     }).forEach(add);
   }
 
-  // 7) Cabinet covers: while the countertop is lifted, the scene covers the cabinet tops with a thin
-  // slab per run of cabinets, in the cabinet colour and the top's style, as deep as the cabinet SKU
-  // spells the cabinets under it (a run has one depth). Identical slabs are one line.
+  // 7) Actual generated Lower panels, regardless of Upper offset/style. Their colour comes from
+  // the published scene slab, while D is the nominal depth of the supporting cabinet(s).
   const cover = skuProfile.cabinetCover;
-  if (cover && input.cabinetCovers?.length && cabinets.length > 0) {
-    const cabinetColor = readerOf(cabinets[0])("CabinetColor");
-    const materialSku = cabinetColor
-      ? resolveCollectionColorMaterial(skuProfile, profile, "CabinetColor", cabinetColor, readConfiguratorColor)
-      : null;
-    const colorCode = cabinetColor ? resolveCollectionColorCode(skuProfile, cabinetColor) : null;
-    const covers = new Map<string, number>();
+  if (cover && input.cabinetCovers?.length) {
+    const covers = new Map<string, { quantity: number; totalWidthCm: number }>();
     let unpriced = false;
-    input.cabinetCovers.forEach(({ widthCm: coverWidthCm, cabinetIds }) => {
-      const under = cabinets.find(({ runtimeId }) => cabinetIds.includes(runtimeId)) ?? cabinets[0];
-      const coverDepthCm = dimensionsByCabinet[under.stableKey]?.depth ?? null;
+    input.cabinetCovers.forEach(({ widthCm: coverWidthCm, cabinetIds, materialId }) => {
+      const color = materialId ? (normalizeOptionValue(profile, "CabinetColor", materialId) ?? materialId) : null;
+      const materialSku = color
+        ? resolveCollectionColorMaterial(skuProfile, profile, "CabinetColor", color, readConfiguratorColor)
+        : null;
+      const colorCode = color ? resolveCollectionColorCode(skuProfile, color) : null;
+      const depths = cabinetIds.map((id) => {
+        const under = cabinets.find(({ runtimeId }) => runtimeId === id);
+        return under ? (dimensionsByCabinet[under.stableKey]?.depth ?? null) : null;
+      });
+      const coverDepthCm = depths.length > 0 && depths.every((depth) => depth === depths[0]) ? depths[0] : null;
       const sku = buildCabinetCoverSku({
         prefix: cover.prefix,
-        style: countertopStyle,
         widthCm: coverWidthCm,
         depthCm: coverDepthCm,
         thicknessIn: cover.thicknessIn,
-        materialSku,
+        materialSku: materialSku && cover.materialSkus.includes(materialSku) ? materialSku : null,
         colorCode,
       });
-      if (sku) covers.set(sku, (covers.get(sku) ?? 0) + 1);
-      else unpriced = true;
+      if (sku) {
+        const previous = covers.get(sku);
+        covers.set(sku, {
+          quantity: (previous?.quantity ?? 0) + 1,
+          totalWidthCm: (previous?.totalWidthCm ?? 0) + coverWidthCm,
+        });
+      } else unpriced = true;
     });
-    [...covers].forEach(([sku, quantity], index) =>
-      add({ id: index === 0 ? "cabinetCover" : `cabinetCover:${index}`, group: "cabinetCover", sku, quantity }),
+    [...covers].forEach(([sku, { quantity, totalWidthCm }], index) =>
+      add({
+        id: index === 0 ? "cabinetCover" : `cabinetCover:${index}`,
+        group: "cabinetCover",
+        sku,
+        quantity,
+        // CT pricing is length-based. Preserve the total exact width even if rounded SKU tokens coincide.
+        widthCm: totalWidthCm / quantity,
+      }),
     );
     if (unpriced) gaps.push({ group: "input", blocksTotal: true, ...UNPRICED_CABINET_COVER });
   }

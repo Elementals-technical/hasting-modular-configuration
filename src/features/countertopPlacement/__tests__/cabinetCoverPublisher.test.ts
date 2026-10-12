@@ -21,13 +21,14 @@ const slab = (widthM: number): CabinetCoverSegment => ({
   widthM,
   depthM: 0.4397,
   cabinetIds: ["ULH-sink-cabinet-1"],
+  materialId: "Colortech Bianco 10B",
 });
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe("cabinet cover publisher", () => {
   afterEach(() => setCabinetCoverRuntime(null));
 
-  it("publishes the covers of a lifted top in centimetres, and none for a top on its cabinets", async () => {
+  it("publishes actual covers with their material, even for a zero-offset Upper", async () => {
     const published: (CabinetCoverRuntime | null)[] = [];
     const readCovers = vi.fn(async () => [slab(0.6)]);
     const publish = createCabinetCoverPublisher({ readCovers, publish: (next) => published.push(next) });
@@ -36,13 +37,17 @@ describe("cabinet cover publisher", () => {
     await flush();
     expect(published.at(-1)).toEqual({
       compositionId: "cabinets",
-      covers: [{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"] }],
+      covers: [{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"], materialId: "Colortech Bianco 10B" }],
     });
 
     publish(top(0));
     await flush();
+    expect(published.at(-1)?.covers[0].materialId).toBe("Colortech Bianco 10B");
+    expect(readCovers).toHaveBeenCalledTimes(2);
+
+    publish({ ...top(0), readiness: "not-ready" });
+    await flush();
     expect(published.at(-1)).toBeNull();
-    expect(readCovers).toHaveBeenCalledOnce();
   });
 
   it("reads once at a time and then only the newest pose", async () => {
@@ -62,7 +67,24 @@ describe("cabinet cover publisher", () => {
     await flush();
 
     expect(readCovers).toHaveBeenCalledTimes(2);
-    expect(published.map((next) => next?.covers[0].widthCm)).toEqual([60, 120]);
+    expect(published.map((next) => next?.covers[0].widthCm)).toEqual([120]);
+  });
+
+  it("does not republish an outstanding read after player cleanup", async () => {
+    let release: (segments: CabinetCoverSegment[] | null) => void = () => undefined;
+    const published = vi.fn();
+    const publish = createCabinetCoverPublisher({
+      readCovers: () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
+      publish: published,
+    });
+    publish(top(0));
+    publish.reset();
+    release([slab(0.6)]);
+    await flush();
+    expect(published).not.toHaveBeenCalled();
   });
 
   it("publishes none when the build has no covers or the read fails", async () => {
@@ -96,17 +118,25 @@ describe("cabinet cover runtime", () => {
 
     setCabinetCoverRuntime({
       compositionId: "cabinets",
-      covers: [{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"] }],
+      covers: [{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"], materialId: "Colortech Bianco 10B" }],
     });
     setCabinetCoverRuntime({
       compositionId: "cabinets",
-      covers: [{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"] }],
+      covers: [{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"], materialId: "Colortech Bianco 10B" }],
     });
     expect(listener).toHaveBeenCalledOnce();
-    expect(getCabinetCoverRuntime()?.covers).toEqual([{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"] }]);
+    expect(getCabinetCoverRuntime()?.covers).toEqual([
+      { widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"], materialId: "Colortech Bianco 10B" },
+    ]);
+
+    setCabinetCoverRuntime({
+      compositionId: "cabinets",
+      covers: [{ widthCm: 60, cabinetIds: ["ULH-sink-cabinet-1"], materialId: "Blu Pavone A6 GL" }],
+    });
+    expect(listener).toHaveBeenCalledTimes(2);
 
     setCabinetCoverRuntime(null);
-    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener).toHaveBeenCalledTimes(3);
     stop();
   });
 });

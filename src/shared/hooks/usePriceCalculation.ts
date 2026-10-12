@@ -74,7 +74,9 @@ export function usePriceCalculation() {
     () =>
       new Set(
         skuBuilders.collectionProfile
-          ? lines.filter(({ group, widthCm }) => group === "countertop" && widthCm != null).map(({ sku }) => sku)
+          ? lines
+              .filter(({ group, widthCm }) => (group === "countertop" || group === "cabinetCover") && widthCm != null)
+              .map(({ sku }) => sku)
           : [],
       ),
     [lines, skuBuilders.collectionProfile],

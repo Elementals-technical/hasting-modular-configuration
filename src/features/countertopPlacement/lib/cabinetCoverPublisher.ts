@@ -1,4 +1,4 @@
-import { isLiftedCountertop, type CabinetCoverSegment, type CountertopState } from "@/features/configuratorApi";
+import { type CabinetCoverSegment, type CountertopState } from "@/features/configuratorApi";
 import type { CabinetCoverRuntime } from "@/shared/lib/cabinetCoverRuntime";
 
 const CM_PER_M = 100;
@@ -12,37 +12,44 @@ type Options = {
 };
 
 /**
- * Publishes the covers of a settled countertop pose: none unless the top is lifted (the scene covers
- * the cabinet tops then). One read at a time; a pose that arrives meanwhile is read once after it,
- * so a slow read never publishes an older pose over a newer one.
+ * Publishes the actual settled covers, including lower rows with a zero-offset Upper.
+ * One read at a time; newer poses and cleanup invalidate outstanding reads.
  */
 export const createCabinetCoverPublisher = ({ readCovers, publish, onError }: Options) => {
   let running = false;
   let next: CountertopState | null | undefined;
+  let generation = 0;
 
   const read = async (state: CountertopState | null) => {
-    if (!state || state.readiness !== "ready" || !state.compositionId || !isLiftedCountertop(state)) {
+    const version = generation;
+    if (!state || state.readiness !== "ready" || !state.compositionId) {
       publish(null);
       return;
     }
     const compositionId = state.compositionId;
     try {
       const segments = await readCovers();
+      if (version !== generation || next !== undefined) return;
       publish(
         segments === null
           ? null
           : {
               compositionId,
-              covers: segments.map(({ widthM, cabinetIds }) => ({ widthCm: toCm(widthM), cabinetIds })),
+              covers: segments.map(({ widthM, cabinetIds, materialId }) => ({
+                widthCm: toCm(widthM),
+                cabinetIds,
+                materialId,
+              })),
             },
       );
     } catch (error) {
+      if (version !== generation || next !== undefined) return;
       publish(null);
       onError?.(error);
     }
   };
 
-  return (state: CountertopState | null): void => {
+  const enqueue = (state: CountertopState | null): void => {
     next = state;
     if (running) return;
     running = true;
@@ -58,4 +65,10 @@ export const createCabinetCoverPublisher = ({ readCovers, publish, onError }: Op
       }
     })();
   };
+  return Object.assign(enqueue, {
+    reset: () => {
+      ++generation;
+      next = undefined;
+    },
+  });
 };

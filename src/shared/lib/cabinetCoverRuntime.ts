@@ -1,8 +1,8 @@
 /**
  * One cover slab the scene lays on bare cabinet tops (ULH): its width in centimetres and the scene ids
- * of the cabinets under it, whose depth the order spells it with.
+ * of the cabinets under it, whose nominal depth the order spells it with, and its actual finish.
  */
-export type CabinetCoverSize = Readonly<{ widthCm: number; cabinetIds: readonly string[] }>;
+export type CabinetCoverSize = Readonly<{ widthCm: number; cabinetIds: readonly string[]; materialId: string | null }>;
 
 /** The covers of a settled countertop pose, for the order. */
 export type CabinetCoverRuntime = Readonly<{
@@ -28,6 +28,7 @@ const sameCovers = (left: CabinetCoverRuntime, right: CabinetCoverRuntime) =>
   left.covers.every(
     (cover, index) =>
       cover.widthCm === right.covers[index].widthCm &&
+      cover.materialId === right.covers[index].materialId &&
       cover.cabinetIds.join("|") === right.covers[index].cabinetIds.join("|"),
   );
 
@@ -41,7 +42,7 @@ export const setCabinetCoverRuntime = (next: CabinetCoverRuntime | null): void =
       : Object.freeze({
           compositionId: next.compositionId,
           covers: Object.freeze(
-            next.covers.map((c) => Object.freeze({ widthCm: c.widthCm, cabinetIds: Object.freeze([...c.cabinetIds]) })),
+            next.covers.map((c) => Object.freeze({ ...c, cabinetIds: Object.freeze([...c.cabinetIds]) })),
           ),
         });
   listeners.forEach((listener) => listener());
