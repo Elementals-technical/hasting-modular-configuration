@@ -1,5 +1,7 @@
 import { useRef, useState, useSyncExternalStore } from "react";
 import clsx from "clsx";
+import { ChevronDown, Minus, Plus } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
 
 import type {
   CountertopLengthAtPointer,
@@ -139,7 +141,11 @@ export function CountertopDragOverlay({
       )}
       {lengthAnchor && lengthIn !== null && attached && (
         <>
-          <span className={s.chip} style={{ left: lengthAnchor.x, top: lengthAnchor.y }} data-testid="countertop-length-chip">
+          <span
+            className={s.chip}
+            style={{ left: lengthAnchor.x, top: lengthAnchor.y }}
+            data-testid="countertop-length-chip"
+          >
             {formatInches(lengthIn)}
           </span>
           <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}>
@@ -162,7 +168,7 @@ export function CountertopDragOverlay({
             disabled={pending || atMin}
             onClick={() => step(-1)}
           >
-            −
+            <AppIcon icon={Minus} size={14} />
           </button>
           <button
             type="button"
@@ -189,7 +195,7 @@ export function CountertopDragOverlay({
                 setPresetsOpen((open) => !open);
               }}
             >
-              ▾
+              <AppIcon icon={ChevronDown} size={12} />
             </button>
           )}
           <button
@@ -199,7 +205,7 @@ export function CountertopDragOverlay({
             disabled={pending || atMax}
             onClick={() => step(1)}
           >
-            +
+            <AppIcon icon={Plus} size={14} />
           </button>
         </div>
       )}

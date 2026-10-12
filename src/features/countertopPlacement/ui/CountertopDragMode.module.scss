@@ -336,6 +336,12 @@ button.chip {
 }
 
 @media (max-width: 1024px) {
+  .toolbarButtons,
+  .chip,
+  .discardChip {
+    --icon-stroke-width: 1;
+  }
+
   .toolbar {
     top: 74px;
     right: 16px;

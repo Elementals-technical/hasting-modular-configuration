@@ -1,13 +1,7 @@
-import type { FC, SVGProps } from "react";
+import type { LucideProps } from "lucide-react";
+import { X } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
 
-export const CloseIconSVG: FC<SVGProps<SVGSVGElement>> = (props) => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path
-      d="M11 1L1 11M1 1L11 11"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
+export const CloseIconSVG = ({ width = 12, height = 12, ...props }: LucideProps) => (
+  <AppIcon {...props} icon={X} width={width} height={height} />
 );

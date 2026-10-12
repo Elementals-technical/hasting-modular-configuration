@@ -133,7 +133,7 @@
 
 /* Select Styling */
 .hubspot-form-custom select {
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.25' vector-effect='non-scaling-stroke' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-position: right 7.5px center;
   background-repeat: no-repeat;
   background-size: 15px 15px;

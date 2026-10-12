@@ -18,6 +18,10 @@ import {
   setSelectedSceneProduct,
   syncSelectedDimensionsFromScene as syncSelectedDimensionsFromSceneAction,
 } from "@/entities/product/model/store/slice";
+import { createSceneIcon } from "@/shared/ui/AppIcon/createSceneIcon";
+import { Check } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
+
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool, type SelectionAction, type SelectionInfo } from "@/utils/functions/playcanvas/getSelectTool";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
@@ -216,6 +220,11 @@ const installMobilePlayerPlusButtonStyles = (document: Document) => {
     document.querySelectorAll("button").forEach((button) => {
       if (button.textContent?.trim() === "+") {
         button.classList.add(PLAYER_PLUS_BUTTON_CLASS);
+        if (!button.hasAttribute("aria-label") && !button.hasAttribute("aria-labelledby")) {
+          button.setAttribute("aria-label", button.title || "Add");
+        }
+        const isMobile = document.defaultView?.matchMedia(MOBILE_TABLET_MEDIA_QUERY).matches ?? false;
+        button.replaceChildren(createSceneIcon(document, "plus", isMobile ? 16 : 20));
       }
     });
   };
@@ -2488,7 +2497,7 @@ export const PlayCanvasIntegration = ({
       if (drawerInfo.hasOccupiedDividers) {
         const indicator = document.createElement("div");
         const indicatorIconSize = isMobileTabletWidget ? 12 : 16;
-        indicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${indicatorIconSize}" height="${indicatorIconSize}" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        indicator.appendChild(createSceneIcon(parentEl.ownerDocument, "check", indicatorIconSize));
         indicator.style.background = "#262b31";
         indicator.style.color = "#fff";
         indicator.style.borderRadius = "999px";
@@ -2506,7 +2515,7 @@ export const PlayCanvasIntegration = ({
       const label = document.createElement("span");
       label.textContent = "Open Drawer";
       const plus = document.createElement("span");
-      plus.textContent = "+";
+      plus.appendChild(createSceneIcon(parentEl.ownerDocument, "plus", isMobileTabletWidget ? 10 : 14));
       plus.setAttribute("aria-hidden", "true");
       plus.style.width = isMobileTabletWidget ? "10px" : "14px";
       plus.style.height = isMobileTabletWidget ? "10px" : "14px";
@@ -3291,7 +3300,7 @@ export const PlayCanvasIntegration = ({
                   children: handleOptions.map((option) => ({
                     id: option.value,
                     label: option.label,
-                    trailing: selectedProductConfig?.Handle === option.value ? "✓" : "",
+                    trailing: selectedProductConfig?.Handle === option.value ? <AppIcon icon={Check} size={12} /> : null,
                     disabled: option.disabled,
                     disabledReason: option.reason,
                     onClick: () => handleSetHandleType(option.value),

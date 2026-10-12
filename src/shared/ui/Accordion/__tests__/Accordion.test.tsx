@@ -48,7 +48,7 @@ describe("Base UI accordion integration", () => {
     expect(trigger.hasAttribute("data-panel-open")).toBe(true);
     expect(trigger.closest('[data-tutorial-target="colors"]')).not.toBeNull();
     expect(trigger.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
-    expect(trigger.querySelector("svg")?.getAttribute("viewBox")).toBe("0 0 15 15");
+    expect(trigger.querySelector("svg")?.getAttribute("viewBox")).toBe("0 0 24 24");
   });
 
   it("switches a single open item and reports an empty string when collapsed", async () => {

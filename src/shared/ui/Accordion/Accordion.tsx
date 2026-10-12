@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
-import ChevronDownIcon from "@/shared/assets/images/svg/chevron-down.svg?react";
+import { ChevronDown } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
 import clsx from "clsx";
 import s from "./Accordion.module.scss";
 
@@ -33,7 +34,7 @@ const Trigger = React.forwardRef<React.ElementRef<typeof AccordionPrimitive.Trig
         className={(state) => clsx(s.Trigger, typeof className === "function" ? className(state) : className)}
       >
         <span>{children}</span>
-        <ChevronDownIcon className={s.Chevron} aria-hidden />
+        <AppIcon icon={ChevronDown} size={15} className={s.Chevron} aria-hidden />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   ),
