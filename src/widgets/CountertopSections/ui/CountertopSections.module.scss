@@ -1,9 +1,8 @@
 .innerRow {
-  margin-left: -20px;
-  margin-right: -20px;
+  margin-inline: calc(-1 * var(--accordion-content-padding-x, 20px));
   margin-bottom: 20px;
 
-  padding-top: 0 !important;
+  padding-top: var(--filter-row-padding-top, 0) !important;
 
   div {
     button {

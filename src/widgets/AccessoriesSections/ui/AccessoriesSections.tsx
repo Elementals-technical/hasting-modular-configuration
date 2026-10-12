@@ -21,6 +21,7 @@ import { useSidePanelState } from "../lib/useSidePanelState";
 import s from "./AccessoriesSections.module.scss";
 
 import type { ReactNode } from "react";
+import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
 
 export type AccessoriesAccordion = { sectionId: string; label: string; defaultOpen: boolean; content: ReactNode };
 
@@ -152,7 +153,7 @@ export const useAccessoriesSections = (stepId: string) => {
         sectionId: section.sectionId,
         label: section.label,
         defaultOpen: section.defaultOpen,
-        content: visibleFields.map(renderField),
+        content: <FieldStack>{visibleFields.map(renderField)}</FieldStack>,
       },
     ];
   });

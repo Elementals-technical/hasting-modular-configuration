@@ -49,12 +49,12 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   const reasonText = useReasonText();
 
   const handleClick = () => {
+    if (!isAvailable) return;
+
     if (isMixingRestricted) {
       onMixingRestrictedSelect?.(value);
       return;
     }
-
-    if (!isAvailable) return;
 
     onSelectStyle?.(value);
     handleOpenStyleSidebar();
@@ -80,23 +80,26 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
       : null;
 
   const card = (
-    <div className={itemClass} onClick={handleClick}>
-      <div className={s.image}>
-        <img src={imageSrc ?? none_img} alt="image" />
-      </div>
-      {!isAvailable || isMixingRestricted ? (
-        <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-      ) : (
-        <div className={s.title}>{title}</div>
-      )}
-
-      <Link
-        className={s.link}
-        to={detailsTo}
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
+    <div className={itemClass}>
+      <button
+        type="button"
+        className={s.selectButton}
+        aria-label={title}
+        aria-pressed={isActive}
+        aria-disabled={!isAvailable || undefined}
+        onClick={handleClick}
       >
+        <span className={s.image}>
+          <img src={imageSrc ?? none_img} alt="" />
+        </span>
+        {!isAvailable || isMixingRestricted ? (
+          <span className={`${s.title} ${s.titleDisabled}`}>{title}</span>
+        ) : (
+          <span className={s.title}>{title}</span>
+        )}
+      </button>
+
+      <Link className={s.link} to={detailsTo}>
         <span>Product Details</span>
         <span className={s.linkIcon}>
           <ArrowTopRight color={"#ad5534"} />

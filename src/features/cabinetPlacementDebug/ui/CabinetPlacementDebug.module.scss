@@ -62,6 +62,13 @@ $colliding: #e5484d;
   gap: 8px;
 }
 
+@media (max-width: 1024px) {
+  .toolbarButtons,
+  .discardChip {
+    --icon-stroke-width: 1;
+  }
+}
+
 %pill {
   display: inline-flex;
   align-items: center;

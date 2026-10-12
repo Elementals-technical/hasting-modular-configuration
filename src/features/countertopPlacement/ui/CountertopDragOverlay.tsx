@@ -105,7 +105,11 @@ export function CountertopDragOverlay({
       )}
       {lengthAnchor && lengthIn !== null && (
         <>
-          <span className={s.chip} style={{ left: lengthAnchor.x, top: lengthAnchor.y }} data-testid="countertop-length-chip">
+          <span
+            className={s.chip}
+            style={{ left: lengthAnchor.x, top: lengthAnchor.y }}
+            data-testid="countertop-length-chip"
+          >
             {formatInches(lengthIn)}
           </span>
           <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}>

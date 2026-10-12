@@ -1,0 +1,9 @@
+.stack {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+
+  @media (max-width: 767px) {
+    gap: 12px;
+  }
+}

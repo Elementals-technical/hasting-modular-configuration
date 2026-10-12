@@ -95,6 +95,13 @@
 }
 
 @media (max-width: 1024px) {
+  .canvasFullModeToggle,
+  .hintIconInner,
+  .generateBtn,
+  .shareIcon {
+    --icon-stroke-width: 1;
+  }
+
   .mobileStepNavigation {
     position: absolute;
     top: 0;

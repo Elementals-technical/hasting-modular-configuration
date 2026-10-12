@@ -30,7 +30,7 @@ export const CreateModelBtn = ({ onCreate }: CreateModelBtnProps) => {
   return (
     <div className={s.createModel}>
       <div className={s.selectArea} onClick={handleNavigate}>
-        <PlusIcon />
+        <PlusIcon size={24} />
       </div>
       <div className={s.title}>Create Your Own</div>
       <div className={s.desc}>Build your own custom, tailored concept</div>

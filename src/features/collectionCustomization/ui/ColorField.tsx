@@ -18,6 +18,7 @@ import {
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
+import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
 
 import { selectMaterialHierarchy, type FieldOptionState, type FieldRuntimeState } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration";
@@ -110,7 +111,7 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
     setSelectedFilter((prev) => ({ ...prev, [key]: value === undefined ? undefined : String(value) }));
 
   return (
-    <>
+    <div>
       <ViewModePanel
         onOrderSwatches={onOrderSwatches}
         fullModeTitle={title}
@@ -139,10 +140,12 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
           </BaseButton>
         )}
       </FilterRow>
-      {leadingOptions.length > 0 && (
-        <ProductOptionsGrid data={leadingOptions} handleAdd={pickSwatch} activeValue={activeValue} />
-      )}
-      <ProductOptionsGrid data={visibleOptions} handleAdd={pickSwatch} activeValue={activeValue} groupByDesc />
-    </>
+      <FieldStack>
+        {leadingOptions.length > 0 && (
+          <ProductOptionsGrid data={leadingOptions} handleAdd={pickSwatch} activeValue={activeValue} />
+        )}
+        <ProductOptionsGrid data={visibleOptions} handleAdd={pickSwatch} activeValue={activeValue} groupByDesc />
+      </FieldStack>
+    </div>
   );
 };

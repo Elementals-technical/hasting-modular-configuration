@@ -122,8 +122,8 @@ describe("FieldsStepPage colour fields", () => {
 
     const section = screen.getByRole("region", { name: "Cabinet Color" });
     const pictures = within(section)
-      .getAllByRole("img")
-      .map((image) => image.getAttribute("src"));
+      .getAllByRole("button")
+      .flatMap((button) => Array.from(button.querySelectorAll("img"), (image) => image.getAttribute("src")));
 
     expect(pictures).toContain("https://preview.threekit.com/api/files/hash/sha256-pulpis");
   });
