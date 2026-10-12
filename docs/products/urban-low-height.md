@@ -85,11 +85,36 @@ Rule data навмисно обмежений `cabinetMatrixLegacyAdapter`, `cab
 
 ## Runtime bindings
 
-`bound`: Handle, Height, Width, Depth, Drawers, CabinetColor, CountertopColor, Thickness, sinkType,
+`bound`: Handle, Height, Width, Depth, Drawers, CabinetColor, HandleGrooveColor, CountertopColor, Thickness, sinkType,
 VesselColor.
 
-`state-only`: CountertopStyle, DrawerPanelFluting, HandleGrooveColor, FaucetHolesAmount,
+`state-only`: CountertopStyle, DrawerPanelFluting, FaucetHolesAmount,
 FaucetHolesSpacing, BookMatching, LedOption.
+
+`HandleGrooveColor` передається всій композиції в custom і prebuilt. `RuleMaterialsCabinetULH`
+фарбує лише `ULH_Cabinet_HGroove` для Upper Groove (`handle_urban_topcut`), залишаючи корпус у
+`CabinetColor`. `None` або порожнє значення повертає паз до кольору корпусу; PTO не використовує
+додатковий колір. Binding також зберігає цей ключ при placement і restore через `resolveProductConfig`.
+
+### Handle Groove Color: дослідження flow (2026-10-12)
+
+1. `/custom/cabinet-builder?collectionId=urban-low-height&preset=1` завантажує ULH package і configurator 4.
+   Builder записує preset, його handle і початкові кольори; composition adapter розміщує ULH scene products.
+2. Color step бере секцію `handle-groove` з `ui.json`, кольори — з profile `optionsSource`;
+   секція доступна для `Handle.supportsGrooveColor` (Upper Groove).
+3. `useCabinetColorSections` → `useAttributeChangeHandler` → `resolveChangeRequest` адресує першу
+   шафу, бо profile scope — `cabinet`. `changeAttribute` перевіряє вибір і передає план runtime adapter.
+4. Причина дефекту: старий `state-only` binding означав успіх без scene call; `commitChange`
+   записував колір у Redux/presets, а `resolveProductConfig` видаляв його при placement/restore.
+   Водночас shipped `RuleMaterialsCabinetULH` уже читав `HandleGrooveColor` і мав окремий groove target.
+5. Виправлення: `bound`, identity `HandleGrooveColor`, `target: all`, `emptyValue: None`, `order: 50`.
+   Adapter надсилає один `setConfigBatch({}, { HandleGrooveColor: value })`; правило фарбує тільки паз.
+
+Браузерна перевірка локального custom preset 1: swatch **Castagno Chiaro 1C1** записав канонічне
+`Castagno chiaro 1C1` у scene config і матеріал активного `ULH_Cabinet_HGroove`. Корпус і фасад лишилися
+`Rox Black TKQ`; **None** повернув паз до `Rox Black TKQ`. JavaScript-помилок не було.
+Регресійні тести також перевіряють обидва flow, дві шафи, незалежний колір паза при зміні корпусу,
+PTO, placement/restore translation та відсутність запису кольору, коли сцена не готова.
 
 `unbound`: CabinetType (визначається placement), pricing metadata, GrainDirection, towel bars,
 side panels і dividers. Не надсилати state-only/unbound value напряму в PlayCanvas без зміни contract.
