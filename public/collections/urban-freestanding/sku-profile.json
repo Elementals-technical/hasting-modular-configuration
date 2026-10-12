@@ -7,7 +7,7 @@
     "SKU Curation: VAN-URFS-<SB|SC>/2DW/<UG|PTO|CG>/<X|CVB|CVA|CHB|CHA>-<W>-<H>-<D> with heights that include the 3 cm plinth (91H = 88+3, 88H = 85+3); VAN-UROS-3S-<W>-<88|85>H-<D> and VAN-UROSS-<L|R>-15W-85H-<D>, whose heights leave it out (\"88H + 3H compatiable\")",
     "Pricing: the sizes in inches (60 x 91 x 50 cm is 23.6W-35.8H-19.7D); the formula adds CAB-{material}-{colour code} and, on an Upper or Central Groove cabinet, HDL-{material}-{colour code} in the cabinet colour while no groove colour is offered",
     "Hasting Master File [Urban Freestanding]: 232 cabinet colours, coded as Urban Standard Height and Urban Low Height code them",
-    "Configurator 4: the material SKU of each cabinet and countertop colour",
+    "Configurator 11 (modular-config-phase-2-materials-(Urban Freestanding)): the material SKU of each cabinet and countertop colour",
     "Accessories Pricing!B4: faucet holes, hole cutout, dividers, towel bar and book matching use the Urban Standard Height SKUs"
   ],
   "cabinet": {
@@ -289,16 +289,6 @@
       "appliesWhen": {
         "attributeId": "sinkType",
         "values": ["Top_Tekorlux_Rectangular"]
-      }
-    },
-    {
-      "group": "vessel",
-      "blocksTotal": false,
-      "owner": "product",
-      "reason": "The Master File lists no vessel sinks (excludedFromThisProfile.vesselSinks): a vessel top is priced with its cutout and without a vessel until the list is confirmed.",
-      "appliesWhen": {
-        "attributeId": "CountertopStyle",
-        "values": ["vessel"]
       }
     },
     {

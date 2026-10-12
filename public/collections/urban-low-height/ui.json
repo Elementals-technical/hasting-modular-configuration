@@ -8,11 +8,11 @@
       "Open-Side-Shelf": "images/cabinet/open-side-shelf.png"
     },
     "Drawers": {
-      "1": "images/cabinet/side-cabinet-upper-groove.png"
+      "1": "images/cabinet-style/1-drawer.png"
     },
     "Handle": {
-      "handle_urban_topcut": "images/handle/UpperGHandle.jpg",
-      "handle_pto": "images/handle/PTOHandle.jpg"
+      "handle_urban_topcut": "images/handle/UpperGHandle.png",
+      "handle_pto": "images/handle/PTOHandle.png"
     },
     "CountertopStyle": {
       "integrated": "images/countertop-style/Integrated.png",
@@ -77,7 +77,7 @@
         "when": { "CabinetType": "Sink-Base", "CountertopStyle": "vessel" },
         "image": "images/cabinet/sink-base-vessel.png"
       },
-      { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-integrated.png" },
+      { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-upper-groove.png" },
       { "value": "1", "when": { "Height": "35" }, "image": "images/cabinet/side-cabinet-pto.png" },
       { "value": "1", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto.png" }
     ]

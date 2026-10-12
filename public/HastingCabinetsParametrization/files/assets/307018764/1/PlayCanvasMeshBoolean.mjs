@@ -343,6 +343,25 @@ export class MeshBoolean extends Script {
         );
     }
 
+    /** Show the pristine (un-cut) source until the next request re-cuts it (no CSG). */
+    restoreSourceMesh(reason = 'source-restored') {
+        if (this._destroyed || this._legacySuspended || this._isUpdating) return false;
+        const mi = MeshBooleanExecutor.getFirstMeshInstance(this.entity);
+        if (!mi || !this._sourceMesh) return false;
+        const pending = !!(this._pendingBooleanPromise || this._booleanTimer);
+        if (mi.mesh === this._sourceMesh) {
+            // Already whole: only a scheduled cut would carve it mid-drag — drop it; the caller re-cuts later.
+            if (!pending) return false;
+            this.cancelBoolean(reason);
+            this._lastBooleanSignature = null;
+            return true;
+        }
+        this.cancelBoolean(reason);
+        this._lastBooleanSignature = null;
+        return MeshBooleanExecutor._restoreSourceMesh(this, mi, this._sourceMesh,
+            MeshBooleanExecutor._getTargetStretcher(this.entity), mi.mesh, this._geometryRevision);
+    }
+
     _hasActiveCutterParents() {
         return this._cutters?.some(cutter => cutter && (!cutter.parent || cutter.parent.enabled)) || false;
     }

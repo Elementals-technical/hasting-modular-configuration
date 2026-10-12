@@ -10,19 +10,19 @@ import skuProfile from "../../../../public/collections/tricot/sku-profile.json";
 import runtimeBindings from "../../../../public/collections/tricot/runtime-bindings.json";
 import masterText from "../../../../public/collections/tricot/sources/master.tsv?raw";
 import configuratorFixture from "./fixtures/remote/configurator-4.json";
-import configurator9Fixture from "./fixtures/remote/configurator-9.json";
+import configurator12Fixture from "./fixtures/remote/configurator-12.json";
 import cabinetFixture from "./fixtures/remote/datatable-592.json";
 import countertopFixture from "./fixtures/remote/datatable-593.json";
 import compositionCsv from "../../../../public/collections/tricot/sources/preset-compositions.csv?raw";
 import images from "../../../../public/collections/tricot/sources/model-images.json";
 import { importPresetCompositionCsv } from "../lib/importPresetCompositionCsv";
-import { tricotProfile } from "./tricotFixtures";
+import { tricotConfigurator, tricotProfile } from "./tricotFixtures";
 import { buildPendingPresets, importMasterCatalog, parseMasterTable } from "../lib/importMasterCatalog";
 import { loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
 import { validatePresetHandoff } from "../lib/validatePresetHandoff";
 import { presetsSchema, sourceCatalogSchema } from "../model/schemas";
-import { isReadyCollectionData, type CollectionRuntimeDependencies } from "../model/types";
+import { isReadyCollectionData, type CollectionRuntimeDependencies, type RemoteCollectionLoader } from "../model/types";
 
 const root = "https://app.test/collections/";
 const masters = presetsSchema.parse(presets);
@@ -117,7 +117,7 @@ describe("Tricot source preparation", () => {
   it("imports all 42 explicit recipes and 88 modules with basin positions and stable image mappings", () => {
     // Every source recipe imports, the hidden model's too; the catalog shows the others.
     const sourcePresets = presetsSchema.parse(buildPendingPresets(sourceCatalogSchema.parse(catalog)));
-    const entries = importPresetCompositionCsv(compositionCsv, sourcePresets, tricotProfile);
+    const entries = importPresetCompositionCsv(compositionCsv, sourcePresets, tricotProfile, tricotConfigurator);
     expect(entries).toHaveLength(42);
     expect(entries.reduce((sum, e) => sum + e.presetProducts.length, 0)).toBe(88);
     const shownEntries = entries.filter(isShown);
@@ -153,21 +153,27 @@ describe("Tricot source preparation", () => {
     const row = rows.find((c) => c[headers.indexOf("model")] === first.sourceModel);
     if (!row) throw new Error("Missing fixture row");
     const csv = (body: string[][]) => [headers, ...body].map(quote).join("\n");
-    expect(() => importPresetCompositionCsv(csv([]), [first], tricotProfile)).toThrow("Missing source model");
-    expect(() => importPresetCompositionCsv(csv([row, row]), [first], tricotProfile)).toThrow("position");
+    expect(() => importPresetCompositionCsv(csv([]), [first], tricotProfile, tricotConfigurator)).toThrow(
+      "Missing source model",
+    );
+    expect(() => importPresetCompositionCsv(csv([row, row]), [first], tricotProfile, tricotConfigurator)).toThrow(
+      "position",
+    );
     const set = (key: string, value: string) => row.map((c, i) => (i === headers.indexOf(key) ? value : c));
-    expect(() => importPresetCompositionCsv(csv([set("Width", "56")]), [first], tricotProfile)).toThrow(
-      "Unsupported module",
-    );
-    expect(() => importPresetCompositionCsv(csv([set("CabinetPattern", "Loden")]), [first], tricotProfile)).toThrow(
-      "Incompatible cabinet pattern",
-    );
+    expect(() =>
+      importPresetCompositionCsv(csv([set("Width", "56")]), [first], tricotProfile, tricotConfigurator),
+    ).toThrow("Unsupported module");
+    expect(() =>
+      importPresetCompositionCsv(csv([set("CabinetPattern", "Loden")]), [first], tricotProfile, tricotConfigurator),
+    ).toThrow("Incompatible cabinet pattern");
     const second = set("Drawers", "2D");
     second[headers.indexOf("position")] = "2";
-    expect(() => importPresetCompositionCsv(csv([row, second]), [first], tricotProfile)).toThrow("Mixed drawer groups");
+    expect(() => importPresetCompositionCsv(csv([row, second]), [first], tricotProfile, tricotConfigurator)).toThrow(
+      "Mixed drawer groups",
+    );
   });
 
-  it("loads the approved partial scene bindings and 592/593 matrices, and opens with configurator 9", async () => {
+  it("loads the approved partial scene bindings and 592/593 matrices, and opens with its own configurator 12", async () => {
     const documents: Record<string, unknown> = {
       "manifest.json": manifest,
       "presets.json": presets,
@@ -178,7 +184,10 @@ describe("Tricot source preparation", () => {
       "runtime-bindings.json": runtimeBindings,
     };
     const remote = {
-      loadConfigurator: vi.fn(async () => configurator9Fixture),
+      loadConfigurator: vi.fn<RemoteCollectionLoader["loadConfigurator"]>(async (reference) => {
+        if (reference?.id === 12) return configurator12Fixture;
+        throw new Error(`Unexpected configurator: ${reference?.id}`);
+      }),
       loadCabinetTable: vi.fn(async () => cabinetFixture),
       loadCountertopTable: vi.fn(async () => countertopFixture),
     };
@@ -214,10 +223,10 @@ describe("Tricot source preparation", () => {
       "countertop",
       "summary",
     ]);
-    // Not staged, and configurator 9 lets the collection open; Tricot's own colours stay in its profile.
+    // Not staged, and its own configurator 12 lets the collection open; the profile keeps its colour lists.
     expect(data.manifest.availability).toBeUndefined();
     expect(isReadyCollectionData(data)).toBe(true);
-    expect(remote.loadConfigurator).toHaveBeenCalledWith(expect.objectContaining({ id: 9 }), expect.any(AbortSignal));
+    expect(remote.loadConfigurator).toHaveBeenCalledWith(expect.objectContaining({ id: 12 }), expect.any(AbortSignal));
     expect(remote.loadCabinetTable).toHaveBeenCalledWith(592, expect.any(AbortSignal));
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(593, expect.any(AbortSignal));
     expect(data.catalog.productProfile?.countertopRules).toHaveLength(12);
@@ -294,5 +303,22 @@ describe("Tricot source preparation", () => {
     await expect(check({ ...manifest, remote: { configurator: { id: 4 } } })).rejects.toThrow(
       "source identities disagree",
     );
+  });
+});
+
+/** Every file of the collection's image folder, keyed by its path from the collection folder. */
+const shippedImages = new Set(
+  Object.keys(import.meta.glob("/public/collections/tricot/images/**/*", { query: "?url" })).map((path) =>
+    path.replace("/public/collections/tricot/", ""),
+  ),
+);
+
+describe("Tricot basin pictures", () => {
+  it("shows the Class basin pictures, which have none for VA023, and ships each", () => {
+    const pictures: Record<string, string> = ui.optionImages.sinkType;
+    const basins = tricotProfile.attributes.find(({ attributeId }) => attributeId === "sinkType")?.options ?? [];
+
+    expect(basins.filter(({ value }) => !pictures[value]).map(({ value }) => value)).toEqual(["VA023"]);
+    for (const picture of Object.values(pictures)) expect(shippedImages.has(picture), picture).toBe(true);
   });
 });

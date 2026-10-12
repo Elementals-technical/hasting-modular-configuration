@@ -13,6 +13,9 @@ import urbanLowHeightSkuProfileDocument from "../../../../../../public/collectio
 
 import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
+import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
+import configurator14 from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
 import { collectionSkuProfileSchema, type CollectionSkuProfile, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
@@ -101,13 +104,15 @@ export const MAKO = {
   configurator: configurator9Catalog,
 };
 
-/** Configurator 9, which the Lame manifest reads: it holds the Lame palettes too. */
+/** Configurator 14, Lame's own. */
+const configurator14Groups = configurator14.availableOptions as unknown as ConfiguratorAvailableOption[];
+
 export const LAME = {
   profile: parseProfile(lameProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(lameSkuProfileDocument),
   configurator: {
-    groups: configurator9Groups,
-    groupsByName: Object.fromEntries(configurator9Groups.map((group) => [group.proxyName, group])),
+    groups: configurator14Groups,
+    groupsByName: Object.fromEntries(configurator14Groups.map((group) => [group.proxyName, group])),
   },
 };
 
@@ -123,64 +128,28 @@ export const URBAN_LOW_HEIGHT = {
   },
 };
 
-/** Configurator 4: the colours Urban Freestanding shares with Urban Standard Height. */
+/** Configurator 11, Urban Freestanding's own. */
+const configurator11Groups = configurator11.availableOptions as unknown as ConfiguratorAvailableOption[];
+
 export const URBAN_FREESTANDING = {
   profile: parseProfile(urbanFreestandingProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(urbanFreestandingSkuProfileDocument),
   configurator: {
-    groups: configurator4Groups,
-    groupsByName: Object.fromEntries(configurator4Groups.map((group) => [group.proxyName, group])),
+    groups: configurator11Groups,
+    groupsByName: Object.fromEntries(configurator11Groups.map((group) => [group.proxyName, group])),
   },
 };
 
-/**
- * Configurator 4 as Urban Duplex reads it: its two panels take the cabinet colours, its top the
- * countertop colours. The frozen fixture keeps two of each, so the colours of the website's default
- * model are added, as the configurator carries them.
- */
-const URBAN_DUPLEX_DEFAULT_COLORS: Record<string, { id: number; value: string; sku: string; material: string }[]> = {
-  "Cabinet Color": [
-    { id: 91_000, value: "Bianco Calce DA ST", sku: "ST", material: "Soft-Touch" },
-    { id: 91_001, value: "Pulpis Chiaro TKH", sku: "HPL", material: "HPL" },
-  ],
-  "Countertop Color": [{ id: 92_000, value: "Pulpis Chiaro TKH", sku: "HPL", material: "HPL" }],
-};
-
-const urbanDuplexConfigurator: ConfiguratorGroupCatalog = (() => {
-  const groups = configurator4Groups.map((group) => {
-    const colors = URBAN_DUPLEX_DEFAULT_COLORS[group.proxyName];
-    if (!colors) return group;
-
-    return {
-      ...group,
-      options: group.options.map((option, index) =>
-        index === 0
-          ? {
-              ...option,
-              variants: [
-                ...option.variants,
-                ...colors.map(({ id, value, sku, material }) => ({
-                  id,
-                  name: value,
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: { value, label: value, sku, Material: material },
-                })),
-              ],
-            }
-          : option,
-      ),
-    };
-  });
-
-  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
-})();
+/** Configurator 13, Urban Duplex's own: its two panels are the two options of one cabinet colour group. */
+const configurator13Groups = configurator13.availableOptions as unknown as ConfiguratorAvailableOption[];
 
 export const URBAN_DUPLEX = {
   profile: parseProfile(urbanDuplexProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(urbanDuplexSkuProfileDocument),
-  configurator: urbanDuplexConfigurator,
+  configurator: {
+    groups: configurator13Groups,
+    groupsByName: Object.fromEntries(configurator13Groups.map((group) => [group.proxyName, group])),
+  },
 };
 
 type Collection = {

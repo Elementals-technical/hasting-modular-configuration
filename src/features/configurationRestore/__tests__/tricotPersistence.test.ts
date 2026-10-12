@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
-import { tricotMatrixProfile, tricotTestBindings, tricotUi } from "@/entities/collection/__tests__/tricotFixtures";
+import {
+  tricotConfigurator,
+  tricotMatrixProfile,
+  tricotTestBindings,
+  tricotUi,
+} from "@/entities/collection/__tests__/tricotFixtures";
 import { resolveAttributeLabel } from "@/entities/collection/lib/customization/resolveAttributeLabel";
 import {
   clearRestore,
@@ -73,7 +78,13 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
     }),
   );
   const runtime = createTestRuntimePort();
-  const deps = { getState: store.getState, dispatch: store.dispatch, runtime: runtime.port, flow };
+  const deps = {
+    getState: store.getState,
+    dispatch: store.dispatch,
+    runtime: runtime.port,
+    flow,
+    configurator: tricotConfigurator,
+  };
   expect(
     (await changeAttribute({ attributeId: "CountertopColor", scope: "countertop", value: "Matte White" }, deps)).status,
   ).toBe("applied");
@@ -94,20 +105,12 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
         )
       ).status,
     ).toBe("applied");
-    expect(
-      (
-        await changeAttribute(
-          {
-            attributeId: "HandleGrooveColor",
-            scope: "cabinet",
-            cabinetId: cabinet.stableKey,
-            value: index ? "Ambra 413 MT" : "Zafferano 412 MT",
-          },
-          deps,
-        )
-      ).status,
-    ).toBe("applied");
   }
+  // One groove colour for the composition, as its cabinet colour.
+  expect(
+    (await changeAttribute({ attributeId: "HandleGrooveColor", scope: "global", value: "Zafferano 412 MT" }, deps))
+      .status,
+  ).toBe("applied");
   expect((await changeAttribute({ attributeId: "SidePanels", scope: "global", value: "No" }, deps)).status).toBe(
     "applied",
   );
@@ -116,7 +119,7 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
 
 describe("Tricot persistence and collection vocabulary", () => {
   it.each(["prebuilt", "custom"] as const)(
-    "round-trips %s identity, order and separate patterns/groove colors",
+    "round-trips %s identity, order, separate patterns and the groove colour",
     async (flow) => {
       await givenChoices(flow);
       // Preserve unapproved top/basin selections as metadata, not as a claim of scene support.

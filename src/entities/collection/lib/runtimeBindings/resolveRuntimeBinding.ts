@@ -148,7 +148,9 @@ export const resolveRuntimeBinding = (
  * The configuration value behind a value read back from the scene. An identity binding may send
  * a value under another name (`overrides`), so the scene holds "Acqua 419 Lacquered MT" for the
  * chosen "Acqua 419 MT". The chosen value is returned when the binding sends it as this scene
- * value; any other scene value is returned as it was read.
+ * value, or when both are pending (`unboundValues`): a product placed without a pending choice
+ * shows the scene's own value, which the binding declares in its place. Any other scene value is
+ * returned as it was read.
  */
 export const configurationValueOf = (
   set: RuntimeBindingSet | null,
@@ -161,8 +163,33 @@ export const configurationValueOf = (
   const binding = selectRuntimeBinding(set, attributeId);
   if (binding?.status !== "bound") return sceneValue;
 
+  const pending = binding.values.kind === "map" ? (binding.values.unboundValues ?? {}) : {};
+  if (Object.hasOwn(pending, chosenValue) && Object.hasOwn(pending, sceneValue)) return chosenValue;
+
   const patch = toPatch(binding, chosenValue);
   return patch && Object.keys(patch).length === 1 && Object.values(patch)[0] === sceneValue ? chosenValue : sceneValue;
+};
+
+/**
+ * The configuration value a scene value stands for, with no choice to compare it to: the one value
+ * the binding sends as it (an `overrides` entry, or a value map's patch), so the scene's
+ * "Nero 433 Lacquered MT" reads as Tricot's "Nero 433 MT". The binding is the only place that
+ * knows the scene's names. A scene value no value is sent as, or more than one, is returned as read.
+ */
+export const semanticValueOf = (set: RuntimeBindingSet | null, attributeId: string, sceneValue: string): string => {
+  const binding = set ? selectRuntimeBinding(set, attributeId) : null;
+  if (binding?.status !== "bound") return sceneValue;
+
+  const sentAs = (scenePatch: ScenePatch) =>
+    Object.keys(scenePatch).length === 1 && Object.values(scenePatch)[0] === sceneValue;
+  const values =
+    binding.values.kind === "identity"
+      ? Object.entries(binding.values.overrides ?? {}).flatMap(([value, sceneName]) =>
+          sceneName === sceneValue ? [value] : [],
+        )
+      : Object.entries(binding.values.patches).flatMap(([value, scenePatch]) => (sentAs(scenePatch) ? [value] : []));
+
+  return values.length === 1 ? values[0] : sceneValue;
 };
 
 /**

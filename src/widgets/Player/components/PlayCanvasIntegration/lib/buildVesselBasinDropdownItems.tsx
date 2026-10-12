@@ -30,7 +30,8 @@ export const buildVesselBasinDropdownItems = ({
 
     if (actionKey === SELECTION_ACTION_COLOR_ID && action.configKey) {
       items.push({
-        id: `vessel-basin-${actionId}`,
+        // The player menu item id, so a collection without the vessel colour section leaves it out.
+        id: "vessel-color",
         label,
         children: [
           {
@@ -64,7 +65,7 @@ export const buildVesselBasinDropdownItems = ({
     return items;
   }, [
     {
-      id: "vessel-basin-style",
+      id: "vessel-style",
       label: "Style",
       children: [
         {

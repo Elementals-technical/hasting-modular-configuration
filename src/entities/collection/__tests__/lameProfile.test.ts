@@ -4,7 +4,7 @@ import lameProfileDocument from "../../../../public/collections/lame/product-pro
 import lameManifest from "../../../../public/collections/lame/manifest.json";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
 
-import configurator9Document from "./fixtures/remote/configurator-9.json";
+import configurator14Document from "./fixtures/remote/configurator-14.json";
 import { parseProductProfile } from "../lib/parseProductProfile";
 import {
   isDrawerStyleMixingRestricted,
@@ -34,12 +34,12 @@ const profile = () => {
 const attribute = (attributeId: string) =>
   profile().attributes.find((candidate) => candidate.attributeId === attributeId);
 
-const configurator9 = configuratorSchema.parse(configurator9Document);
+const configurator14 = configuratorSchema.parse(configurator14Document);
 
 /** The colours a configurator section offers: a variant without a SKU is not offered. */
 const offeredColours = (attributeId: string) => {
   const section = selectConfiguratorSection(profile(), attributeId);
-  const group = configurator9.availableOptions.find(({ proxyName }) => proxyName === section);
+  const group = configurator14.availableOptions.find(({ proxyName }) => proxyName === section);
 
   return (group?.options ?? []).flatMap(({ variants }) =>
     variants.filter(isVisibleConfiguratorVariant).map(({ name }) => name),
@@ -89,7 +89,7 @@ describe("lame product profile", () => {
     expect(selectDefaultValue(profile(), "CabinetPattern")).toBe("Oxford");
   });
 
-  it("takes the colour catalogs from configurator 9 instead of listing them", () => {
+  it("takes the colour catalogs from its own configurator 14 instead of listing them", () => {
     const colours = ["CabinetColor", "HandleColor", "LegColor", "CountertopColor", "VesselColor"].map((attributeId) => [
       attributeId,
       attribute(attributeId)?.optionsSource,
@@ -99,11 +99,11 @@ describe("lame product profile", () => {
     expect(colours).toEqual([
       ["CabinetColor", "configurator:Select Cabinet Color", undefined],
       ["HandleColor", "configurator:Select Handle Color", undefined],
-      ["LegColor", "configurator:Select Leg Color", undefined],
+      ["LegColor", "configurator:Select Leg Cap Color", undefined],
       ["CountertopColor", "configurator:Select Countertop Color", undefined],
-      ["VesselColor", "configurator:Select Cabinet Color", undefined],
+      ["VesselColor", "configurator:Select Vessel Color", undefined],
     ]);
-    expect(lameManifest.remote.configurator.id).toBe(9);
+    expect(lameManifest.remote.configurator.id).toBe(14);
   });
 
   it("names the configurator and the tables its manifest loads", () => {
@@ -117,8 +117,10 @@ describe("lame product profile", () => {
 
   // Master File: 40 cabinet colours, 22 handle colours, 22 leg cap colours, 71 countertop colours of
   // which Matte White 8cm has no thin top (map sections 3, 4).
-  it("gets the Master File palettes from configurator 9, without the 8 cm top", () => {
+  it("gets the Master File palettes from configurator 14, without the 8 cm top", () => {
     expect(offeredColours("CabinetColor")).toHaveLength(40);
+    // The vessels come in the cabinet colours, offered by a section of their own.
+    expect(offeredColours("VesselColor")).toEqual(offeredColours("CabinetColor"));
     expect(offeredColours("HandleColor")).toHaveLength(22);
     expect(offeredColours("HandleColor")).toEqual(expect.arrayContaining(["Gold", "Silver"]));
     expect(offeredColours("LegColor")).toHaveLength(22);

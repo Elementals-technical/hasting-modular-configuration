@@ -1,6 +1,7 @@
 import {
   CUSTOMIZATION_FLOW_IDS,
   CUSTOMIZATION_SCREEN_IDS,
+  PLAYER_MENU_ITEM_IDS,
   type CustomizationSchema,
   type CustomizationSchemaDiagnostic,
   type ValidateCustomizationSchemaResult,
@@ -11,6 +12,7 @@ type UnknownRecord = Record<string, unknown>;
 const VALID_KINDS = new Set(["preset-picker", "cabinet-builder", "fields", "summary"]);
 const VALID_CONTROLS = new Set(["swatches", "options-grid", "checkbox", "colors"]);
 const VALID_SCREENS = new Set<string>(CUSTOMIZATION_SCREEN_IDS);
+const VALID_MENU_ITEMS = new Set<string>(PLAYER_MENU_ITEM_IDS);
 
 const isRecord = (value: unknown): value is UnknownRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -380,6 +382,33 @@ const validateCountertopSettings = (countertop: unknown, diagnostics: Customizat
   }
 };
 
+const validatePlayerMenu = (playerMenu: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (playerMenu === undefined) return;
+  if (!isRecord(playerMenu)) {
+    diagnostics.push({ code: "invalid-schema", dataPath: "playerMenu", message: "playerMenu must be an object" });
+    return;
+  }
+  const hidden = playerMenu.hidden;
+  if (hidden === undefined) return;
+  if (!Array.isArray(hidden)) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "playerMenu.hidden",
+      message: "playerMenu.hidden must be an array of menu item ids",
+    });
+    return;
+  }
+  hidden.forEach((itemId, index) => {
+    if (typeof itemId !== "string" || !VALID_MENU_ITEMS.has(itemId)) {
+      diagnostics.push({
+        code: "unknown-menu-item",
+        dataPath: `playerMenu.hidden[${index}]`,
+        message: `"${String(itemId)}" is not an item of the player menu`,
+      });
+    }
+  });
+};
+
 export const validateCustomizationSchema = (input: unknown): ValidateCustomizationSchemaResult => {
   if (!isRecord(input) || !isRecord(input.flows) || !isRecord(input.steps) || !isRecord(input.sections)) {
     return {
@@ -406,6 +435,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validateOptionImages(input.optionImages, diagnostics);
   validateOptionImageVariants(input.optionImageVariants, diagnostics);
   validateCountertopSettings(input.countertop, diagnostics);
+  validatePlayerMenu(input.playerMenu, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };
 

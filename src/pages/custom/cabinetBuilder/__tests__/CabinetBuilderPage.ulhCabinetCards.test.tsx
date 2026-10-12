@@ -143,12 +143,12 @@ describe("Urban Low Height cabinet pictures", () => {
     expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/side-cabinet-pto.png`);
   });
 
-  it("shows the integrated Sink Base on the drawer card once Sink Base is chosen", () => {
+  it("shows the upper-groove Sink Base on the drawer card once Sink Base is chosen", () => {
     store.dispatch(setActiveCabinetType("Sink-Base"));
     store.dispatch(setSelectedDimensions({ height: 38 }));
     renderBuilder();
 
-    expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/sink-base-integrated.png`);
+    expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/sink-base-upper-groove.png`);
   });
 
   it("shows the vessel Sink Base on the drawer card with a vessel countertop", () => {

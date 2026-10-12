@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import {
+  tricotConfigurator,
   tricotProfile,
   tricotSkuProfile,
   tricotTestBindings,
@@ -21,10 +22,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import { buildCabinetCatalogFromProfile } from "@/entities/product/lib/matrixCabinet";
 import { flutingRule } from "@/features/configurator-rule-core/options/rules/flutingRule";
-import {
-  resolveSectionFields,
-  resolveConfiguratorOptions,
-} from "@/features/collectionCustomization/lib/resolveSectionState";
+import { resolveSectionFields } from "@/features/collectionCustomization/lib/resolveSectionState";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import {
   createPlayCanvasRuntimePort,
@@ -32,7 +30,6 @@ import {
 } from "@/features/playCanvasAdapter/lib/createPlayCanvasRuntimePort";
 import { buildCollectionCabinetSku } from "@/shared/lib/sku/buildCollectionSkus";
 import type { ScenePatch } from "@/entities/collection";
-import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { changeAttribute } from "../lib/changeAttribute";
 
 beforeEach(() => {
@@ -51,6 +48,7 @@ const deps = (runtime = createTestRuntimePort().port, flow: "prebuilt" | "custom
   dispatch: store.dispatch,
   runtime,
   flow,
+  configurator: tricotConfigurator,
 });
 
 describe("Tricot finishes through fields, commands and runtime", () => {
@@ -112,12 +110,8 @@ describe("Tricot finishes through fields, commands and runtime", () => {
       expect(patches.slice(before).some((patch) => "test:DrawerPanelFluting" in patch)).toBe(false);
       expect(patches.some((patch) => patch["test:DrawerPanelFluting"] === "Cannette")).toBe(true);
       expect(
-        (
-          await changeAttribute(
-            { attributeId: "HandleGrooveColor", scope: "cabinet", cabinetId: first(), value: "Zafferano 412 MT" },
-            d,
-          )
-        ).status,
+        (await changeAttribute({ attributeId: "HandleGrooveColor", scope: "global", value: "Zafferano 412 MT" }, d))
+          .status,
       ).toBe("applied");
       expect(patches.at(-1)).toEqual({ "test:HandleGrooveColor": "Zafferano 412 MT" });
     },
@@ -152,49 +146,23 @@ describe("Tricot finishes through fields, commands and runtime", () => {
     expect(result.missing).toContainEqual({ attributeId: "DrawerPanelFluting", cause: "invalid-option" });
   });
 
-  it("offers closed source palettes and restricts broader external catalogs without discarding metadata", () => {
-    expect(resolveSectionFields(tricotUi, "cabinet-color", tricotProfile, {}, {})[0].field.options).toHaveLength(23);
-    expect(resolveSectionFields(tricotUi, "groove-color", tricotProfile, {}, {})[0].field.options).toHaveLength(20);
-    const profile = {
-      ...tricotProfile,
-      attributes: tricotProfile.attributes.map((attribute) =>
-        attribute.attributeId === "CabinetColor"
-          ? { ...attribute, optionsSource: "configurator:test-palettes" }
-          : attribute,
-      ),
-    };
-    const group: ConfiguratorGroupCatalog["groups"][number] = {
-      id: 1,
-      proxyName: "test-palettes",
-      proxyType: "material",
-      enabled: true,
-      metadata: {},
-      options: [
-        {
-          id: 2,
-          name: "palette",
-          resource: null,
-          paramString: null,
-          playcanvasString: null,
-          variants: ["Noce Canaletto 933", "Foreign 999"].map((name, index) => ({
-            id: index + 3,
-            name,
-            image: null,
-            enabled: true,
-            description: "",
-            metadata: { sku: "WDV", Material: "Wood Veneer", hex: "#aabbcc", image: "texture.jpg" },
-          })),
-        },
-      ],
-    };
-    const options = resolveConfiguratorOptions(profile, "CabinetColor", {
-      groups: [group],
-      groupsByName: { "test-palettes": group },
+  // The palettes are configurator 12's, as Class's are its configurator's: the profile lists no colours.
+  it("offers the palettes of configurator 12 with their materials, hex and SKU", () => {
+    const cabinetColors = resolveSectionFields(tricotUi, "cabinet-color", tricotProfile, {}, {}, tricotConfigurator)[0]
+      .field.options;
+    expect(cabinetColors).toHaveLength(23);
+    expect(
+      resolveSectionFields(tricotUi, "groove-color", tricotProfile, {}, {}, tricotConfigurator)[0].field.options,
+    ).toHaveLength(20);
+    expect(cabinetColors.find(({ value }) => value === "Nero 433 MT")).toMatchObject({
+      desc: "Lacquered MT",
+      traits: { sku: "LACM", hex: "#1f1f20" },
     });
-    expect(options.map(({ value }) => value)).toEqual(["Noce Canaletto 933"]);
-    expect(options[0]).toMatchObject({
-      image: "texture.jpg",
-      traits: { sku: "WDV", materials: ["Wood Veneer"], hex: "#aabbcc" },
+    expect(cabinetColors.find(({ value }) => value === "Rovere Oro 932")).toMatchObject({
+      desc: "Wood Veneer",
+      traits: { sku: "WDV" },
     });
+    // Without the configurator there is no palette: the profile no longer repeats it.
+    expect(resolveSectionFields(tricotUi, "cabinet-color", tricotProfile, {}, {})[0].field.options).toEqual([]);
   });
 });

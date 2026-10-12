@@ -2,6 +2,7 @@
 
 ## Project docs
 
+- [Documentation map](docs/INDEX.md)
 - [Parent configurator integration](docs/parent-configurator-integration.md)
 
 ## Google Analytics

@@ -14,7 +14,7 @@ The eight vertical slices were approved by the user. Issues and implementation n
 | 4     | [Countertop and basin selection](04-countertop-and-basin-selection.issue.md)            | AFK  | 3                    | Matrix connected; pricing/scene pending       |
 | 5     | [Side panels and pricing](05-side-panels-and-pricing.issue.md)                          | AFK  | 3                    | SKU/quantity/width implemented; scene pending |
 | 6     | [Summary and persistence](06-summary-and-persistence.issue.md)                          | AFK  | 4, 5                 | Prepared; acceptance pending                  |
-| 7     | [Product and scene handoff](07-product-and-scene-handoff.issue.md)                      | HITL | 1–6; external inputs | Partial cabinet runtime integrated; gaps remain |
+| 7     | [Product and scene handoff](07-product-and-scene-handoff.issue.md)                      | HITL | 1–6; external inputs | Cabinets place, pattern bound; visual gaps remain |
 | 8     | [Real-scene acceptance](08-real-scene-acceptance.issue.md)                              | AFK  | 7                    | Blocked by 7                                  |
 
 ## Baseline

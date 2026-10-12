@@ -150,7 +150,12 @@ export const buildCollectionCabinetSku = (
       if (cabinet.requireCompleteInput) missing.push({ attributeId: colorAttributeId, cause: "not-chosen" });
       return [];
     }
-    if (cabinet.requireCompleteInput && !selectOption(productProfile, colorAttributeId, value)) {
+    // A colour is the collection's when its profile lists it or, for colours the profile takes from the
+    // configurator section it names, when that section offers it.
+    const isOffered =
+      Boolean(selectOption(productProfile, colorAttributeId, value)) ||
+      Boolean(readConfiguratorColor?.(colorAttributeId, value));
+    if (cabinet.requireCompleteInput && !isOffered) {
       missing.push({ attributeId: colorAttributeId, cause: "invalid-option" });
       return [];
     }
@@ -189,7 +194,7 @@ export const buildCollectionCabinetSku = (
   // or in its price list's words (`22.0H`).
   const skuHeightCm =
     heightCm != null && ownSpelling?.heightOffsetCm ? heightCm + ownSpelling.heightOffsetCm : heightCm;
-  const heightCode = heightCm != null ? ownSpelling?.heightCodes?.[String(heightCm)] : undefined;
+  const heightCode = heightCm != null ? (ownSpelling ?? cabinet).heightCodes?.[String(heightCm)] : undefined;
   const sizes = [
     sizeToken(widthCm, "W"),
     heightCode ? `${heightCode}H` : sizeToken(skuHeightCm, "H"),

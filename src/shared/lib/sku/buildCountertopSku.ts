@@ -33,7 +33,8 @@ const MISSING_COUNTERTOP_MATERIAL_ERROR = "Cannot build countertop SKU without c
 const MISSING_COUNTERTOP_COLOR_ERROR = "Cannot build countertop SKU without countertop color code";
 const MISSING_COUNTERTOP_DIMENSIONS_ERROR = "Cannot build countertop SKU without width, depth, and thickness";
 const mapThicknessToSkuValue = (value: number): number => (Math.abs(value - 2.5) < 0.001 ? 2.4 : value);
-const formatThicknessToken = (value: number): string => {
+/** Inches as a SKU spells them: 0.5 → `.5`, 2 → `2`. */
+export const formatThicknessToken = (value: number): string => {
   const fixed = value.toFixed(1);
   const normalized = fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed;
   return normalized.replace(/^0(?=\.)/, "");

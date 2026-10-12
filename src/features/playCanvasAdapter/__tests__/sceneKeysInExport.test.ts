@@ -6,6 +6,7 @@ import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__
 import type { RuntimeBinding } from "@/entities/collection/model/runtimeBindings";
 
 import sceneCode from "../../../../public/HastingCabinetsParametrization/js/esm.mjs?raw";
+import ufsRuntimeBindingsDocument from "../../../../public/collections/urban-freestanding/runtime-bindings.json";
 
 /**
  * Which scene keys of the USH table the scene code actually reads (I06).
@@ -77,5 +78,19 @@ describe("Class sink and countertop rules in the scene code", () => {
     expect(classSinkRegistration).toContain("Thickness:.5");
     expect(sceneCode).toContain("3.125:{y:.066675}");
     expect(sceneCode).toContain("4.75:{y:.10795}");
+  });
+});
+
+describe("Urban Freestanding products in the scene code", () => {
+  it("registers the scene product of every UF cabinet type and paints the groove of the drawer cabinets", () => {
+    for (const sceneType of Object.values(ufsRuntimeBindingsDocument.productTypes)) {
+      expect(sceneCode).toContain(`registry.registerProduct("${sceneType}",`);
+    }
+
+    for (const sceneType of ["UF-sink-cabinet", "UF-side-cabinet"]) {
+      const registration = sceneCode.match(new RegExp(`registerProduct\\("${sceneType}".*?registerProduct\\(`))?.[0];
+
+      expect(registration).toContain("{rule:RuleMaterialsHandleUrbanFreestanding,priority:55}");
+    }
   });
 });

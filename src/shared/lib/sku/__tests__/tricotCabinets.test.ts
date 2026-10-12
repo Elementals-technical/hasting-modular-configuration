@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { tricotProfile, tricotSkuProfile, tricotTestBindings } from "@/entities/collection/__tests__/tricotFixtures";
+import {
+  tricotConfigurator,
+  tricotProfile,
+  tricotSkuProfile,
+  tricotTestBindings,
+} from "@/entities/collection/__tests__/tricotFixtures";
 import { buildCabinetCatalogFromProfile } from "@/entities/product/lib/matrixCabinet";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { validateChange } from "@/features/configurationCommands/lib/validateChange";
@@ -8,6 +13,7 @@ import { createSkuBuilders } from "../createSkuBuilders";
 import { pricingInput } from "@/shared/lib/pricing/__tests__/fixtures/pricingScenarios";
 import workbook from "@/shared/lib/pricing/__tests__/fixtures/tricot-cabinet-workbook.json";
 import { buildCollectionCabinetSku } from "../buildCollectionSkus";
+import { createConfiguratorColorReader } from "../configuratorColors";
 
 const patterns: Record<string, string> = { CAN: "Cannette", TWLL: "Twill", GES: "Gessato", SAT: "Satin", LOD: "Loden" };
 const widths: Record<string, number> = { "15.7": 40, "23.6": 60, "31.5": 80, "39.4": 100, "47.2": 120 };
@@ -19,12 +25,15 @@ const values = {
   CabinetColor: "Noce Canaletto 933",
   HandleGrooveColor: "Zafferano 412 MT",
 };
+// The colours, their materials and codes come from Tricot's configurator 12, as the app reads them.
+const readConfiguratorColor = createConfiguratorColorReader(tricotProfile, tricotConfigurator);
 const build = (overrides: Record<string, string> = {}, widthCm = 40, heightCm = 40, depthCm = 52) =>
   buildCollectionCabinetSku(tricotSkuProfile, tricotProfile, {
     read: (id) => (({ ...values, ...overrides }) as Record<string, string>)[id] ?? null,
     widthCm,
     heightCm,
     depthCm,
+    readConfiguratorColor,
   });
 
 describe("Tricot custom cabinets and pricing", () => {
@@ -58,7 +67,7 @@ describe("Tricot custom cabinets and pricing", () => {
       },
     ]);
     expect(tricotProfile.sourceRefs).toEqual({
-      configuratorId: 9,
+      configuratorId: 12,
       cabinetMatrixTableId: 592,
       countertopMatrixTableId: 593,
     });
@@ -67,7 +76,6 @@ describe("Tricot custom cabinets and pricing", () => {
       DrawerPanelFluting: "Cannette",
       CountertopColor: "Matte White",
       sinkType: "LB440",
-      SidePanels: "No",
     });
   });
 
@@ -138,10 +146,11 @@ describe("Tricot custom cabinets and pricing", () => {
     ).toBe(false);
   });
 
-  it("creates a cabinet order line but explicitly leaves unapproved countertop pricing incomplete", () => {
+  it("creates a cabinet order line, and no countertop line while no countertop colour is chosen", () => {
     const input = pricingInput({
       skuBuilders: createSkuBuilders({ status: "collection", collectionProfile: tricotSkuProfile }),
       activeProfile: tricotProfile,
+      configurator: tricotConfigurator,
       runtimeBindings: tricotTestBindings,
       cabinetEntries: [{ stableKey: "cabinet-1", runtimeId: "test-tricot-sc-1", index: 0 }],
       dimensionsByCabinet: { "cabinet-1": { width: 40, height: 40, depth: 52 } },
@@ -155,6 +164,7 @@ describe("Tricot custom cabinets and pricing", () => {
     const result = buildCollectionPricingLines(input);
     expect(result.lines.filter(({ group }) => group === "cabinet").map(({ sku }) => sku)).toEqual([build().sku]);
     expect(result.lines.some(({ group }) => group === "countertop")).toBe(false);
-    expect(result.gaps.some(({ group, blocksTotal }) => group === "countertop" && blocksTotal)).toBe(true);
+    // The top is priced as Class's GB top (tricotCountertopPricing.test.ts), so nothing blocks the total.
+    expect(result.gaps).toEqual([]);
   });
 });

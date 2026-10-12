@@ -8,7 +8,7 @@ import { ushSkuProfile } from "@/shared/lib/sku/__tests__/ushSkuProfileFixture";
 
 import { buildPricingLines } from "../buildPricingLines";
 import { expandLineSkus } from "../pricingLines";
-import { cabinet, pricingInput } from "./fixtures/pricingScenarios";
+import { cabinet, openShelf, pricingInput } from "./fixtures/pricingScenarios";
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => undefined);
@@ -64,6 +64,24 @@ describe("buildPricingLines", () => {
       "countertop:basin:config-1",
     ]);
     expect(lines.filter(({ group }) => group === "faucetHoles").every(({ sku }) => sku.startsWith("CT-UR"))).toBe(true);
+  });
+
+  it("prices a hosted sink's basin once from the countertop's CountertopSinkType", () => {
+    const sceneConfigs = ["Side-Cabinet-aaaaaa", "Side-Cabinet-bbbbbb"].map((id) => openShelf(id));
+    const basins = (lines: ReturnType<typeof buildPricingLines>) =>
+      lines.filter(({ group }) => group === "basin").map(({ sku, quantity }) => ({ sku, quantity }));
+    const hosted = buildPricingLines(
+      pricingInput({
+        sceneConfigs,
+        sinkType: "Top_HPLPrisma",
+        hostedSink: { sinkType: "Top_Tekorlux_Rectangular", vesselColor: null },
+      }),
+    );
+    const expected = buildPricingLines(pricingInput({ sceneConfigs, sinkType: "Top_Tekorlux_Rectangular" }));
+
+    expect(basins(hosted)).toHaveLength(1);
+    expect(basins(hosted)).toEqual(basins(expected));
+    expect(basins(hosted)[0].quantity).toBe(1);
   });
 
   it.each(["0", "2"])("orders a vessel cutout per sink base with %s faucet holes", (faucetHolesAmount) => {

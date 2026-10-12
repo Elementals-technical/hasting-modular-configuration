@@ -20,8 +20,11 @@ export const buildCollectionSidePanelSku = (
   if (!panel.colorAttributeId || !panel.elementCode)
     return unavailable("Approved panel color inheritance and SKU suffix are required.");
   const color = input.color && (normalizeOptionValue(profile, panel.colorAttributeId, input.color) ?? input.color);
-  if (!color || !selectOption(profile, panel.colorAttributeId, color))
-    return unavailable("A supported panel color is required.");
+  // A colour the profile lists, or one the configurator section the profile names for it offers.
+  const isOffered =
+    Boolean(color && selectOption(profile, panel.colorAttributeId, color)) ||
+    Boolean(color && input.readConfiguratorColor?.(panel.colorAttributeId, color));
+  if (!color || !isOffered) return unavailable("A supported panel color is required.");
   const material = resolveCollectionColorMaterial(
     skuProfile,
     profile,

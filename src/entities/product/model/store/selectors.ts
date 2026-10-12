@@ -1,6 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
+import { resolveCabinetTypeOfRuntimeId } from "@/entities/collection";
+import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/configuration";
 import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
 import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
 
@@ -129,11 +131,23 @@ export const getPlacedDividers = (state: RootState) => state.rootStateUI.product
 
 export const getPlacedCabinetStyles = (state: RootState) => state.rootStateUI.product.placedCabinetStyles;
 
-export const getSinkBaseCount = (state: RootState) =>
-  state.rootStateUI.product.productIds.filter((id) => id.startsWith("Sink-Base-")).length;
+/**
+ * Placed products of one cabinet type. The scene names a product after its own scene type
+ * (`Sink-Base-…` in Urban, `Class-sink-cabinet-…` in Class), so the type is read through the
+ * collection's runtime bindings rather than from a prefix of the id.
+ */
+const countPlacedCabinetsOfType = (state: RootState, cabinetType: string) => {
+  const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
 
-export const getSideShelfCount = (state: RootState) =>
-  state.rootStateUI.product.productIds.filter((id) => id.startsWith("Side-Shelf-")).length;
+  return state.rootStateUI.product.productIds.filter(
+    (id) => resolveCabinetTypeOfRuntimeId(profile, bindings, id) === cabinetType,
+  ).length;
+};
+
+export const getSinkBaseCount = (state: RootState) => countPlacedCabinetsOfType(state, "Sink-Base");
+
+export const getSideShelfCount = (state: RootState) => countPlacedCabinetsOfType(state, "Side-Shelf");
 
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 

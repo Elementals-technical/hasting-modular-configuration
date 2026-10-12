@@ -19,6 +19,7 @@ import {
   isHiddenConfiguratorDisplayValue,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
+import { getConfiguratorProductElement } from "@/entities/configurator/lib/configuratorGroupKind";
 import type { ProductProfile } from "@/entities/collection";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
@@ -221,8 +222,11 @@ export const adaptThreekitConfig = (
     if (!group.enabled) continue;
     if (group.proxyType !== "material") continue;
 
-    const parentName = group.proxyName;
+    // Configurator 4's element name for every configurator ("Select Countertop Color" -> "Countertop Color").
+    const parentName = getConfiguratorProductElement(group.proxyName);
     const valuesArray: AttributeValue[] = [];
+    // A group whose options hold the same colours (Duplex: Base Panel, Lateral Panel) offers each once.
+    const seenValues = new Set<string>();
 
     for (const option of group.options ?? []) {
       for (const variant of option.variants ?? []) {
@@ -234,7 +238,7 @@ export const adaptThreekitConfig = (
             ? outer.metadata
             : {}
         ) as Record<string, unknown>;
-        const overrides = getConfiguratorVariantOverrides({ proxyName: parentName, variant });
+        const overrides = getConfiguratorVariantOverrides({ proxyName: group.proxyName, variant });
 
         const label = pickString(
           outer.label,
@@ -248,6 +252,8 @@ export const adaptThreekitConfig = (
 
         const value = pickString(outer.value, nested.value, overrides.value, variant.name) ?? label;
         if (isHiddenConfiguratorDisplayValue(label) || isHiddenConfiguratorDisplayValue(value)) continue;
+        if (seenValues.has(value)) continue;
+        seenValues.add(value);
 
         const explicitMaterial = pickString(nested.Material, outer.Material);
         const material =

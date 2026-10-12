@@ -16,6 +16,38 @@ export const CUSTOMIZATION_SCREEN_IDS = [
 
 export type CustomizationScreenId = (typeof CUSTOMIZATION_SCREEN_IDS)[number];
 
+/**
+ * Items of the menu the 3D player opens on a cabinet, a countertop or a vessel. The code shows an
+ * item where the collection's data supports it; `playerMenu.hidden` hides one the product does not
+ * want for the collection.
+ */
+export const PLAYER_MENU_ITEM_IDS = [
+  "resize",
+  "reposition",
+  "color",
+  "add",
+  "cabinet-style",
+  "handle-style",
+  "accessories",
+  "duplicate",
+  "open",
+  "delete",
+  "countertop-color",
+  "countertop-thickness",
+  "countertop-style",
+  "basin-style",
+  "countertop-position",
+  "vessel-style",
+  "vessel-color",
+] as const;
+
+export type PlayerMenuItemId = (typeof PLAYER_MENU_ITEM_IDS)[number];
+
+/** The collection's choices for the menu of the 3D player; every field is optional. */
+export type CustomizationPlayerMenu = {
+  hidden?: PlayerMenuItemId[];
+};
+
 export type CustomizationFlowStepRef = {
   stepId: string;
   path: string;
@@ -127,6 +159,8 @@ export type CustomizationSchema = {
   optionImageVariants?: OptionImageVariants;
   /** Countertop editing settings of the collection; every field is optional. */
   countertop?: CustomizationCountertopSettings;
+  /** Menu of the 3D player: items the collection hides although its data supports them. */
+  playerMenu?: CustomizationPlayerMenu;
 };
 
 /**
@@ -196,7 +230,8 @@ export type CustomizationSchemaDiagnosticCode =
   | "unsupported-kind"
   | "unsupported-screen"
   | "unknown-section-id"
-  | "unsupported-control";
+  | "unsupported-control"
+  | "unknown-menu-item";
 
 export type CustomizationSchemaDiagnostic = {
   code: CustomizationSchemaDiagnosticCode;

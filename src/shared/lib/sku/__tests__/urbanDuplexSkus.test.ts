@@ -3,10 +3,13 @@ import { describe, expect, it } from "vitest";
 import urbanDuplexProfileDocument from "../../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexSkuProfileDocument from "../../../../../public/collections/urban-duplex/sku-profile.json";
 
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
-import { collectionSkuProfileSchema, parseProductProfile } from "@/entities/collection";
-import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
-import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import configurator13Document from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
+import {
+  collectionSkuProfileSchema,
+  configuratorSchema,
+  parseProductProfile,
+  type ConfiguratorGroupCatalog,
+} from "@/entities/collection";
 
 import { buildCollectionCabinetSku, type CollectionValueReader } from "../buildCollectionSkus";
 import { createConfiguratorColorReader } from "../configuratorColors";
@@ -23,49 +26,11 @@ if (!parsed.ok) throw new Error("Urban Duplex profile failed validation");
 const profile = parsed.profile;
 const skuProfile = collectionSkuProfileSchema.parse(urbanDuplexSkuProfileDocument);
 
-/** Cabinet colours of configurator 4 beyond the 3D ones the frozen fixture keeps, as the Master File names them. */
-const CONFIGURATOR_4_CABINET_COLORS: readonly { value: string; sku: string; material: string }[] = [
-  { value: "Bianco Calce DA ST", sku: "ST", material: "Soft-Touch" },
-  { value: "Nero 03 ST", sku: "ST", material: "Soft-Touch" },
-  { value: "Pulpis Chiaro TKH", sku: "HPL", material: "HPL" },
-  { value: "Rovere Valdweg TKK", sku: "HPL", material: "HPL" },
-  { value: "Metallizzato Copper M7 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Nero 03 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Blu Laguna A7 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Rosa Etoile 45 GL", sku: "LACG", material: "Lacquered GL" },
-  { value: "Rovere Avena 06E", sku: "ESS", material: "Essenze" },
-  { value: "Rovere Bianco 06A", sku: "ESS", material: "Essenze" },
-];
-
-const configurator: ConfiguratorGroupCatalog = (() => {
-  const groups = (configurator4.availableOptions as unknown as ConfiguratorAvailableOption[]).map((group) =>
-    group.proxyName === "Cabinet Color"
-      ? {
-          ...group,
-          options: [
-            ...group.options,
-            ...CONFIGURATOR_4_CABINET_COLORS.map(({ value, sku, material }, position) => ({
-              ...group.options[0],
-              id: 90_000 + position,
-              name: material,
-              variants: [
-                {
-                  id: 90_000 + position,
-                  name: value,
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: { value, label: value, sku, Material: material },
-                },
-              ],
-            })),
-          ],
-        }
-      : group,
-  );
-
-  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
-})();
+const configurator13 = configuratorSchema.parse(configurator13Document);
+const configurator: ConfiguratorGroupCatalog = {
+  groups: configurator13.availableOptions,
+  groupsByName: Object.fromEntries(configurator13.availableOptions.map((group) => [group.proxyName, group])),
+};
 
 const readConfiguratorColor = createConfiguratorColorReader(profile, configurator);
 
@@ -100,7 +65,7 @@ describe("Urban Duplex cabinet SKU", () => {
         70,
         56,
       ),
-    ).toEqual({ sku: "VAN-URDPX-SB/2DWL/UG/X-27.6W-22H-19.7D-BASP-LACM-M7-LTLP-LACM-03-HNDL-LACM-03", missing: [] });
+    ).toEqual({ sku: "VAN-URDPX-SB/2DWL/UG/X-27.6W-22.0H-19.7D-BASP-LACM-M7-LTLP-LACM-03-HNDL-LACM-03", missing: [] });
   });
 
   it("spells each cabinet style at its heights, the handle groove in the lateral panel colour", () => {
@@ -116,7 +81,7 @@ describe("Urban Duplex cabinet SKU", () => {
         60,
         38,
       ).sku,
-    ).toBe("VAN-URDPX-SB/1DWR/UG/X-23.6W-15H-19.7D-BASP-LACM-A7-LTLP-HPL-TKK-HNDL-HPL-TKK");
+    ).toBe("VAN-URDPX-SB/1DWR/UG/X-23.6W-15.0H-19.7D-BASP-LACM-A7-LTLP-HPL-TKK-HNDL-HPL-TKK");
     // VAN-URDPX-SB/1DWIDL/UG/X-47.2W-20.9H-19.7D-BASP-ESS-06E-LTLP-ESS-06A-HNDL-ESS-06A.
     expect(
       cabinet(
@@ -144,12 +109,12 @@ describe("Urban Duplex cabinet SKU", () => {
         28,
         46,
       ).sku,
-    ).toBe("VAN-URDPX-SC/1DWL/UG/X-27.6W-11H-18.1D-BASP-LACG-45-LTLP-ST-03-HNDL-ST-03");
+    ).toBe("VAN-URDPX-SC/1DWL/UG/X-27.6W-11.0H-18.1D-BASP-LACG-45-LTLP-ST-03-HNDL-ST-03");
   });
 
   it("spells the default model's colours and reads the drawer spellings of the presets", () => {
     expect(cabinet({ Drawers: "2D", LateralPanelSide: "R" }, 70, 56).sku).toBe(
-      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22.0H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     );
     expect(cabinet({ Drawers: "1D", LateralPanelSide: "R" }, 90, 53).sku).toBe(
       "VAN-URDPX-SB/1DWR/UG/X-35.4W-20.9H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
@@ -158,7 +123,7 @@ describe("Urban Duplex cabinet SKU", () => {
 
   it("writes X for a side not chosen, as for any code without a value", () => {
     expect(cabinet({ Drawers: "2" }, 60, 56).sku).toBe(
-      "VAN-URDPX-SB/2DWX/UG/X-23.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWX/UG/X-23.6W-22.0H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     );
   });
 });

@@ -328,8 +328,9 @@ export const SwatchOrder = ({ onSendData, onSelectMaterial }: SwatchOrderProps) 
       "Towel Bar Color": towelBarColor,
       Vessels: vesselColor,
     };
-    return mapped.productElementOptions.filter(
-      (group) => Boolean(activeByElement[group.value]),
+    // A group the panel cannot tell is in use (a Mako or Lame handle or leg colour) stays offered.
+    return mapped.productElementOptions.filter((group) =>
+      Object.hasOwn(activeByElement, group.value) ? Boolean(activeByElement[group.value]) : true,
     );
   }, [mapped.productElementOptions, cabinetColor, handleGrooveColor, countertopColor, towelBarColor, vesselColor]);
 

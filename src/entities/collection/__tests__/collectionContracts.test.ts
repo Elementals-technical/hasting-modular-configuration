@@ -150,7 +150,8 @@ describe("collection contracts", () => {
     });
     expect(urbanFreestandingManifest.defaultPresetId).toBeUndefined();
     expect(urbanFreestandingManifest.remote).toEqual({
-      configurator: { id: 4, view: "full", serialize: true },
+      // Its own material configurator (modular-config-phase-2-materials-(Urban Freestanding)).
+      configurator: { id: 11, view: "full", serialize: true },
       // Its own countertop and cabinet tables (matrix-coutnertop-UFS, matrix-cabinet-UFS).
       countertopTable: { id: 591 },
       cabinetTable: { id: 590 },
@@ -173,7 +174,8 @@ describe("collection contracts", () => {
     });
     expect(urbanDuplexManifest.defaultPresetId).toBeUndefined();
     expect(urbanDuplexManifest.remote).toEqual({
-      configurator: { id: 4, view: "full", serialize: true },
+      // Its own material configurator (modular-config-phase-2-materials-(duplex)).
+      configurator: { id: 13, view: "full", serialize: true },
       // Its own countertop and cabinet tables (matrix-coutnertop-duplex, matrix-cabinet-duplex).
       countertopTable: { id: 595 },
       cabinetTable: { id: 594 },
@@ -196,9 +198,9 @@ describe("collection contracts", () => {
     });
     expect(lameManifest.defaultPresetId).toBeUndefined();
     expect(lameManifest.remote).toEqual({
-      // Configurator 9, which holds the Lame palettes, and its own tables (matrix-coutnertop-lame,
-      // matrix-cabinet-lame).
-      configurator: { id: 9, view: "full", serialize: true },
+      // Its own material configurator (modular-config-phase-2-materials-(Lame)) and its own tables
+      // (matrix-coutnertop-lame, matrix-cabinet-lame).
+      configurator: { id: 14, view: "full", serialize: true },
       countertopTable: { id: 597 },
       cabinetTable: { id: 596 },
     });

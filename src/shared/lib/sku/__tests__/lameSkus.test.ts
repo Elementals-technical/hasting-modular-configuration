@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import lameProfileDocument from "../../../../../public/collections/lame/product-profile.json";
 import lameSkuProfileDocument from "../../../../../public/collections/lame/sku-profile.json";
 
-import configurator9Document from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import configurator14Document from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
 import {
   collectionSkuProfileSchema,
   configuratorSchema,
@@ -34,10 +34,10 @@ if (!parsed.ok) throw new Error("Lame profile failed validation");
 const profile = parsed.profile;
 const skuProfile = collectionSkuProfileSchema.parse(lameSkuProfileDocument);
 
-const configurator9 = configuratorSchema.parse(configurator9Document);
+const configurator14 = configuratorSchema.parse(configurator14Document);
 const configurator: ConfiguratorGroupCatalog = {
-  groups: configurator9.availableOptions,
-  groupsByName: Object.fromEntries(configurator9.availableOptions.map((group) => [group.proxyName, group])),
+  groups: configurator14.availableOptions,
+  groupsByName: Object.fromEntries(configurator14.availableOptions.map((group) => [group.proxyName, group])),
 };
 const readConfiguratorColor = createConfiguratorColorReader(profile, configurator);
 

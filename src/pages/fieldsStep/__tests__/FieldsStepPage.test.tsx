@@ -8,6 +8,7 @@ import { renderWithFixtureCollection } from "@/entities/collection/__tests__/fix
 import { FieldsStepPage } from "../FieldsStepPage";
 
 vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion");
+vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport");
 
 afterEach(cleanup);
 

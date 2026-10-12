@@ -6,6 +6,7 @@ import { rootReducer } from "@/app/store/reducer";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import {
   countertopDatatableSchema,
@@ -30,6 +31,7 @@ import {
 import { createSkuBuilders } from "@/shared/lib/sku";
 
 import { buildCollectionPricingLines } from "../buildCollectionPricingLines";
+import { buildColorSkuMaps } from "../buildColorSkuMaps";
 import { resolvePriceFromResponse, resolvePriceRequest } from "../priceRequests";
 import type { PricingInput, PricingLine } from "../types";
 import {
@@ -825,13 +827,20 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     const { lines, gaps } = ulhOrder(
       [sinkBase("ulh-sb")],
       { CountertopColor: [], CountertopStyle: [] },
-      { countertopColor: CountertopColor, countertopStyle: CountertopStyle, sinkType },
+      {
+        // The countertop table the collection loads.
+        countertopRules: parseCountertopMatrix(countertopDatatableSchema.parse(datatable589)),
+        countertopColor: CountertopColor,
+        countertopStyle: CountertopStyle,
+        sinkType,
+      },
     );
 
-    // Pietra Di Savoia Antracite TQ6 is Porcelain; table 438 gives Porcelain 46 cm deep 1/2" first.
+    // Bianco Male TFA is Fenix (FX); table 589 gives Fenix 46 cm deep 1/2" first, and a Prisma 50 basin
+    // over a 60 cm sink base.
     expect(lines.filter(({ group }) => group === "countertop" || group === "basin").map(({ sku }) => sku)).toEqual([
-      "CT-URPOR-INTG-23.6W-.5H-18.1D-POR-TQ6",
-      "CT-URPOR-COVER-.5H-POR-TQ6",
+      "CT-URFX-INTG-23.6W-.5H-18.1D-FX-TFA",
+      "CT-URFX-PRISMA-.5H-FX-TFA",
     ]);
     expect(gaps).toEqual([]);
   });
@@ -848,6 +857,103 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     // Blade 11 is ceramic, 19.7" wide and 15" deep whatever the top it stands on.
     expect(skusOf(lines, "vessel")).toEqual([{ sku: "VES-BLD11-X-19.7W-6.1H-15D-CER-OCF", quantity: 2 }]);
     expect(gaps).toEqual([]);
+  });
+
+  // While the top is lifted the scene covers the cabinet tops with a thin slab per run of cabinets.
+  it("orders a cover per slab under a lifted top, in the cabinet colour, the top's style and the cabinet's depth", () => {
+    const vessel = { CountertopStyle: [at(countertop, "vessel")] };
+    const lifted = ulhOrder([sinkBase("ulh-sb")], vessel, {
+      cabinetCovers: [{ widthCm: 85.09, cabinetIds: ["Sink-Base-ulh-sb"] }],
+    });
+
+    // 46 cm deep, as the cabinet SKU spells it (18.1D).
+    expect(skusOf(lifted.lines, "cabinetCover")).toEqual([{ sku: "CT-UR3D-VES-33.5W-.5H-18.1D-3D-1C1", quantity: 1 }]);
+    expect(lifted.gaps).toEqual([]);
+
+    // Integrated top over a 46 cm and a 50 cm run: each slab is as deep as the cabinets under it;
+    // two identical slabs are one line of two. A slab naming no placed cabinet takes the first one's depth.
+    const twoRuns = ulhOrder(
+      [sinkBase("ulh-sb-1"), sinkBase("ulh-sb-2", 50)],
+      {},
+      {
+        cabinetCovers: [
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-1"] },
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"] },
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"] },
+          { widthCm: 120, cabinetIds: ["unknown"] },
+        ],
+      },
+    );
+    expect(skusOf(twoRuns.lines, "cabinetCover")).toEqual([
+      { sku: "CT-UR3D-INTG-23.6W-.5H-18.1D-3D-1C1", quantity: 1 },
+      { sku: "CT-UR3D-INTG-23.6W-.5H-19.7D-3D-1C1", quantity: 2 },
+      { sku: "CT-UR3D-INTG-47.2W-.5H-18.1D-3D-1C1", quantity: 1 },
+    ]);
+    expect(twoRuns.lines.filter(({ group }) => group === "cabinetCover").map(({ id }) => id)).toEqual([
+      "cabinetCover",
+      "cabinetCover:1",
+      "cabinetCover:2",
+    ]);
+  });
+
+  // A lifted top takes the sink with it (`cabinets.liftSink`): the sink base becomes a side cabinet and
+  // the countertop hosts the basin, which the order keeps, once.
+  it("orders the basin a lifted top hosts when no sink base is left", () => {
+    const sideCabinet = {
+      stableKey: "ulh-sc",
+      runtimeId: "Side-Cabinet-ulh-sc",
+      size: { width: 60, height: 38, depth: 46 },
+    };
+
+    const integrated = ulhOrder([sideCabinet], {}, { hostedSink: { sinkType: "Top_HPLPrisma", vesselColor: null } });
+    expect(skusOf(integrated.lines, "basin")).toEqual([{ sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 }]);
+    expect(integrated.lines.find(({ group }) => group === "countertop")?.sku).toBe(
+      "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKF",
+    );
+
+    const vessel = ulhOrder(
+      [sideCabinet],
+      { CountertopStyle: [at(countertop, "vessel")] },
+      { hostedSink: { sinkType: "Vessel_Blade11", vesselColor: "Antracite Matte OCF" } },
+    );
+    expect(skusOf(vessel.lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 1 }]);
+    expect(skusOf(vessel.lines, "vessel")).toEqual([{ sku: "VES-BLD11-X-19.7W-6.1H-15D-CER-OCF", quantity: 1 }]);
+
+    // Without a hosted sink a top over side cabinets has no basin.
+    expect(skusOf(ulhOrder([sideCabinet]).lines, "basin")).toEqual([]);
+  });
+
+  it("keeps the sink bases' basins while one is placed, whatever the top reports as hosted", () => {
+    const { lines } = ulhOrder(
+      [sinkBase("ulh-sb")],
+      { sinkType: [at({ scope: "basin" }, "Top_HPLPrisma")] },
+      { hostedSink: { sinkType: "Vessel_Blade11", vesselColor: null } },
+    );
+
+    expect(skusOf(lines, "basin")).toEqual([{ sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 }]);
+    expect(skusOf(lines, "vessel")).toEqual([]);
+  });
+
+  it("orders no cover while the top rests on the cabinets", () => {
+    expect(skusOf(ulhOrder([sinkBase("ulh-sb")]).lines, "cabinetCover")).toEqual([]);
+    expect(skusOf(ulhOrder([sinkBase("ulh-sb")], {}, { cabinetCovers: null }).lines, "cabinetCover")).toEqual([]);
+    expect(skusOf(ulhOrder([sinkBase("ulh-sb")], {}, { cabinetCovers: [] }).lines, "cabinetCover")).toEqual([]);
+  });
+
+  it("keeps the total incomplete when the cabinet colour gives the cover no material", () => {
+    const { lines, gaps } = ulhOrder(
+      [sinkBase("ulh-sb")],
+      {},
+      {
+        cabinetColor: "Not A Colour",
+        cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"] }],
+      },
+    );
+
+    expect(skusOf(lines, "cabinetCover")).toEqual([]);
+    expect(gaps).toContainEqual(
+      expect.objectContaining({ group: "input", blocksTotal: true, reason: expect.stringContaining("cover") }),
+    );
   });
 
   it("leaves out the basin a switch to vessel cleared, although the model recorded one for the composition", () => {
@@ -947,6 +1053,51 @@ describe("Urban Freestanding side panels, priced as Urban Standard Height's", ()
   });
 });
 
+describe("Urban Freestanding vessels, the website's Blade, Modo and Morris, priced as Urban Standard Height's", () => {
+  // The price server answered these SKUs on 2026-10-09: Modo $2,113, Blade 11 $1,573, Blade 18 $1,623,
+  // Morris $1,387, the vessel cutout $637.
+  const vesselOrder = (sinkType: string, vesselColor: string) => {
+    const top = "Pulpis Chiaro TKH";
+    const sinkBase = { target: { scope: "cabinet" as const, cabinetId: "sb" } };
+    return buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_FREESTANDING,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 88, depth: 50 } }],
+        {
+          Drawers: [{ ...sinkBase, value: "2" }],
+          Handle: [{ ...sinkBase, value: "PTO" }],
+          CountertopStyle: [at({ scope: "countertop" }, "vessel")],
+          CountertopColor: [at({ scope: "countertop" }, top)],
+          sinkType: [at({ scope: "basin" }, sinkType)],
+          VesselColor: [at({ scope: "basin" }, vesselColor)],
+        },
+        {
+          colorSkuMaps: buildColorSkuMaps(URBAN_FREESTANDING.configurator.groups),
+          cabinetColor: "Metal acciaio 2MA",
+          countertopColor: top,
+          countertopStyle: "vessel",
+          countertopThickness: "0.5",
+          sinkType,
+          vesselColor,
+        },
+      ),
+    );
+  };
+
+  it.each([
+    ["Vessel_UrbanModo", "Matte White T1C", "VES-URMOD-X-19.7W-5.5H-13D-SS-T1C"],
+    ["Vessel_Blade11", "Matte White OCC", "VES-BLD11-X-19.7W-6.1H-15D-CER-OCC"],
+    ["Vessel_Blade18", "Antracite Matte OCF", "VES-BLD18-X-21.7W-6.1H-15D-CER-OCF"],
+    // A Tekorlux colour the countertop colours do not name: its material comes from the vessel section.
+    ["Vessel_UrbanMorris", "Bianco Gloss TAL", "VES-URMORS-X-22.8W-5.1H-14.6D-SSTKR-TAL"],
+  ])("orders %s in %s with the vessel cutout", (sinkType, vesselColor, vesselSku) => {
+    const { lines } = vesselOrder(sinkType, vesselColor);
+
+    expect(lines.filter(({ group }) => group === "vessel").map(({ sku }) => sku)).toEqual([vesselSku]);
+    expect(lines.find(({ group }) => group === "holeCut")?.sku).toBe("CT-URHPL-HCUT");
+  });
+});
+
 describe("Urban Freestanding handle colour, offered as Urban Standard Height offers it", () => {
   it("spells the groove colour the configuration holds on an Upper Groove cabinet, and the cabinet colour until one is chosen", () => {
     const cabinetSku = (handleGrooveColor: string) =>
@@ -1005,7 +1156,7 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
     // The panel colours nobody has chosen are the default model's: Bianco Calce DA ST and Pulpis Chiaro TKH.
     expect(cabinetSkusOf(lines)).toEqual([
       "VAN-URSTD-SC/2DW/UG/X-19.7W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
-      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
+      "VAN-URDPX-SB/2DWR/UG/X-27.6W-22.0H-19.7D-BASP-ST-DA-LTLP-HPL-TKH-HNDL-HPL-TKH",
     ]);
     // Its countertop table sizes the top over both cabinets, 120 cm, at the first HPL thickness, 1/2".
     expect(lines.filter(({ group }) => group !== "cabinet").map(({ group, sku }) => ({ group, sku }))).toEqual([

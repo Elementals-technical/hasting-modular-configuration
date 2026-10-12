@@ -1,6 +1,9 @@
 import type { CollectionPreset } from "../model/schemas";
 import type { ProductProfile } from "../model/productProfile";
-import { normalizeOptionValue, selectOption } from "./productProfileSelectors";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
+
+import { normalizeOptionValue, selectConfiguratorGroup, selectOption } from "./productProfileSelectors";
 import { isPatternMaterialAllowed } from "./materialEligibility";
 import { parseMasterTable } from "./importMasterCatalog";
 
@@ -16,6 +19,8 @@ export const importPresetCompositionCsv = (
   csv: string,
   masters: readonly CollectionPreset[],
   profile: ProductProfile,
+  /** The configurator sections a colour the profile does not list is taken from (Tricot's configurator 12). */
+  configurator: { groups: readonly ConfiguratorAvailableOption[] } | null = null,
 ): PresetCompositionHandoff[] => {
   const [headers, ...cells] = parseMasterTable(csv, ",");
   const required = [
@@ -47,8 +52,13 @@ export const importPresetCompositionCsv = (
     if (!masters.some((p) => p.sourceModel === row.model)) throw new Error(`Unknown source model: ${row.model}`);
     groups.set(row.model, [...(groups.get(row.model) ?? []), row]);
   }
+  // A colour the profile takes from a configurator section is the one that section offers.
+  const offered = (id: string, value: string) =>
+    selectConfiguratorGroup(profile, id, configurator)
+      ?.options.flatMap(({ variants }) => variants)
+      .find((variant) => isVisibleConfiguratorVariant(variant) && (variant.metadata?.value ?? variant.name) === value);
   const canonical = (id: string, value: string) => {
-    const normalized = normalizeOptionValue(profile, id, value);
+    const normalized = normalizeOptionValue(profile, id, value) ?? (offered(id, value) ? value : null);
     if (!normalized) throw new Error(`Unsupported ${id}: ${value}`);
     return normalized;
   };
@@ -91,8 +101,15 @@ export const importPresetCompositionCsv = (
       if (module.hasSink) basinPositions.push({ cabinetIndex: index });
       const CabinetColor = canonical("CabinetColor", row.CabinetColor);
       const DrawerPanelFluting = canonical("DrawerPanelFluting", row.CabinetPattern);
+      // The material of a listed colour is its category's; of a configurator colour, its SKU's.
       const category = selectOption(profile, "CabinetColor", CabinetColor)?.category;
-      const material = category ? profile.ruleData.cabinetColorTraits?.materialByCategory?.[category] : undefined;
+      const sku = offered("CabinetColor", CabinetColor)?.metadata?.sku;
+      const traits = profile.ruleData.cabinetColorTraits;
+      const material = category
+        ? traits?.materialByCategory?.[category]
+        : typeof sku === "string"
+          ? traits?.materialBySku?.[sku]
+          : undefined;
       if (!isPatternMaterialAllowed(profile, DrawerPanelFluting, material))
         throw new Error(`Incompatible cabinet pattern: ${row.model}`);
       return {

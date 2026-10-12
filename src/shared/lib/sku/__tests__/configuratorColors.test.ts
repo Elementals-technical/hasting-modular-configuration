@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import urbanDuplexProfileDocument from "../../../../../public/collections/urban-duplex/product-profile.json";
+
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
+import { parseProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
@@ -76,5 +80,31 @@ describe("createConfiguratorColorReader", () => {
 
       expect(counts).toEqual(MATERIAL_CODES[attributeId]);
     });
+  });
+});
+
+describe("createConfiguratorColorReader with one section for two attributes", () => {
+  const parsed = parseProductProfile(urbanDuplexProfileDocument);
+  if (!parsed.ok) throw new Error("Urban Duplex profile failed validation");
+  // Configurator 13 holds both Duplex panels in one section, an option each.
+  const duplexGroups = configurator13.availableOptions as unknown as ConfiguratorAvailableOption[];
+  // Bianco Calce DA ST taken off the lateral panel, so that the two options differ.
+  const groups = duplexGroups.map((group) => ({
+    ...group,
+    options: group.options.map((option) =>
+      option.name === "Lateral Panel"
+        ? { ...option, variants: option.variants.filter(({ name }) => name !== "Bianco Calce DA ST") }
+        : option,
+    ),
+  }));
+  const readDuplex = createConfiguratorColorReader(parsed.profile, {
+    groups,
+    groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])),
+  });
+
+  it("reads each panel from its own option", () => {
+    expect(readDuplex("BasePanelColor", "Bianco Calce DA ST")).toEqual({ sku: "ST", material: "Soft-Touch" });
+    expect(readDuplex("LateralPanelColor", "Bianco Calce DA ST")).toBeNull();
+    expect(readDuplex("LateralPanelColor", "Pulpis Chiaro TKH")).toEqual({ sku: "HPL", material: "HPL" });
   });
 });

@@ -11,8 +11,8 @@ import { isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeB
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 /**
- * The scene registers no Urban Duplex product yet: every cabinet type waits in unplacedProductTypes,
- * and the Duplex values are recorded for the SKU and the rules without a scene call.
+ * The scene places the Urban Duplex drawer cabinets (UD-sink-cabinet, UD-side-cabinet) and lays out their
+ * sizes, drawers, handles and basin; it has no panel colours, so those are recorded for the SKU only.
  */
 
 const parsedProfile = parseProductProfile(urbanDuplexProfileDocument);
@@ -47,7 +47,7 @@ const SHARED_PRESET_VALUES = [
 ];
 
 /** A value of each attribute a mapped binding translates; any other attribute takes any value. */
-const MAPPED_VALUE: Record<string, string> = { Drawers: "2", TowelBarOption: "Left" };
+const MAPPED_VALUE: Record<string, string> = { Drawers: "2", Handle: "UG", TowelBarOption: "Left" };
 
 const resolve = (attributeId: string, value: string | number) =>
   resolveRuntimeBinding(urbanDuplexRuntimeBindings(), attributeId, value);
@@ -64,14 +64,12 @@ describe("urban-duplex runtime bindings", () => {
     );
   });
 
-  it("place no cabinet type until the scene has an Urban Duplex product", () => {
-    expect(urbanDuplexRuntimeBindings().productTypes).toEqual({});
-    expect(Object.keys(urbanDuplexRuntimeBindings().unplacedProductTypes ?? {})).toEqual([
-      "Sink-Base",
-      "Sink-Cabinet",
-      "Open-Shelf",
-      "Side-Shelf",
-    ]);
+  it("place the drawer cabinets as the scene's UD products; the shelves wait for products of their own", () => {
+    expect(urbanDuplexRuntimeBindings().productTypes).toEqual({
+      "Sink-Base": "UD-sink-cabinet",
+      "Sink-Cabinet": "UD-side-cabinet",
+    });
+    expect(Object.keys(urbanDuplexRuntimeBindings().unplacedProductTypes ?? {})).toEqual(["Open-Shelf", "Side-Shelf"]);
   });
 
   it("let every shared value of a model and every field but the cabinet type through", () => {
@@ -86,7 +84,7 @@ describe("urban-duplex runtime bindings", () => {
       ["LateralPanelColor", "Pulpis Chiaro TKH"],
       ["LateralPanelSide", "L"],
       ["Series", "URSTD"],
-      ["sinkType", "Top_HPLStrip"],
+      ["VesselColor", "Bianco Gloss TAL"],
     ]) {
       expect(isStateOnlyResolution(resolve(attributeId, value)), attributeId).toBe(true);
     }
@@ -94,11 +92,24 @@ describe("urban-duplex runtime bindings", () => {
 
   it("send the sizes and the three drawer styles in the spellings the scene config keeps", () => {
     expect(patchOf("Height", 56)).toEqual({ Height: 56 });
+    // 50 and 46 cm, as the cabinet table and the Pricing give them; not the 50.5 of Urban Standard Height.
     expect(patchOf("Depth", 46)).toEqual({ Depth: 46 });
+    expect(patchOf("Depth", 50)).toEqual({ Depth: 50 });
     expect(patchOf("Width", 60)).toEqual({ Width: 60 });
-    expect(patchOf("Handle", "UG")).toEqual({ Handle: "UG" });
+    // Upper Groove is the Duplex handle (RuleHandleCabinetUrbanDuplex reads HandleStyle).
+    expect(patchOf("Handle", "UG")).toEqual({ HandleStyle: "Duplex" });
     expect(patchOf("Drawers", "2")).toEqual({ Drawers: "2D" });
     expect(patchOf("Drawers", "1")).toEqual({ Drawers: "1D" });
     expect(patchOf("Drawers", "1+inner")).toEqual({ Drawers: "1DWID" });
+  });
+
+  it("send the basin to the sink base only, with the vessel placeholder for an empty one", () => {
+    expect(patchOf("sinkType", "Top_HPLStrip")).toEqual({ sinkType: "Top_HPLStrip" });
+    const binding = urbanDuplexRuntimeBindings().bindings.find(({ attributeId }) => attributeId === "sinkType");
+    expect(binding).toMatchObject({
+      status: "bound",
+      target: { kind: "productType", productType: "UD-sink-cabinet" },
+      values: { emptyValue: "Vessel" },
+    });
   });
 });

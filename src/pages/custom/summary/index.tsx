@@ -59,6 +59,10 @@ import {
   SPECIAL_VARIANT_DISPLAY_VALUE,
   getConfiguratorVariantOverrides,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
+import {
+  getConfiguratorGroupKind,
+  type ConfiguratorGroupKind,
+} from "@/entities/configurator/lib/configuratorGroupKind";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
   createConfiguratorColorReader,
@@ -412,16 +416,17 @@ export const CustomSummaryPage = () => {
 
   const { cabinetColorSkuByName, handleGrooveColorSkuByName, countertopColorSkuCandidatesByValue } = useMemo(() => {
     const groups = configuratorGroups;
-    const buildMapForProxy = (proxyName: string) => {
+    // By kind, so a collection's own configurator ("Select Cabinet Color") reads as configurator 4 does.
+    const buildMapForKind = (kind: ConfiguratorGroupKind) => {
       const map = new Map<string, string>();
       groups
-        .filter((group) => group.proxyName === proxyName)
+        .filter((group) => getConfiguratorGroupKind(group.proxyName) === kind)
         .forEach((group) => {
           group.options.forEach((option) => {
             option.variants?.forEach((variant) => {
               if (!variant.enabled) return;
               const meta = (variant.metadata ?? {}) as Record<string, unknown>;
-              const overrides = getConfiguratorVariantOverrides({ proxyName, variant });
+              const overrides = getConfiguratorVariantOverrides({ proxyName: group.proxyName, variant });
               const value = overrides.value || (meta.value as string) || variant.name;
               const sku = (meta.sku as string) || "";
               if (value && sku) map.set(value, sku);
@@ -432,8 +437,8 @@ export const CustomSummaryPage = () => {
     };
 
     return {
-      cabinetColorSkuByName: buildMapForProxy("Cabinet Color"),
-      handleGrooveColorSkuByName: buildMapForProxy("Handle Groove Color"),
+      cabinetColorSkuByName: buildMapForKind("cabinet"),
+      handleGrooveColorSkuByName: buildMapForKind("groove"),
       countertopColorSkuCandidatesByValue: buildCountertopColorSkuCandidates(groups),
     };
   }, [configuratorGroups]);

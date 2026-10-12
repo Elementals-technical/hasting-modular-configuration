@@ -7,6 +7,13 @@ import type {
   ConfiguratorApiResult,
   CabinetBeginAddInput,
   CabinetBeginMoveInput,
+  CabinetMoveSinkInput,
+  CabinetMoveSinkReceipt,
+  CabinetLiftSinkInput,
+  CabinetLiftSinkReceipt,
+  CabinetLandSinkInput,
+  CabinetLandSinkReceipt,
+  CountertopSinkLocalM,
   CabinetsState,
   ConfiguratorCapabilities,
   CabinetCatalogEntry,
@@ -76,6 +83,12 @@ export interface ConfiguratorClient {
   settle(sessionId: string): Promise<CabinetDraftState>;
   apply(sessionId: string): Promise<ConfiguratorReceipt>;
   cancel(sessionId: string): Promise<CabinetDraftState>;
+  /** Commit a pending 'fits' sink landing: SB <-> SC swap under NEW ids (`idMap`), the top lowered. */
+  moveSink(fromCabinetId: string, toCabinetId: string): Promise<CabinetMoveSinkReceipt>;
+  /** The top takes the SB sink (`sink-lift` action); the SB becomes an SC under a new id. */
+  liftSink(fromCabinetId: string, sinkLocalM: CountertopSinkLocalM): Promise<CabinetLiftSinkReceipt>;
+  /** A hosted sink lands on an SC (`sink-landing` with `fromCabinetId: null`). */
+  landSink(toCabinetId: string): Promise<CabinetLandSinkReceipt>;
 
   getCompositionState(): Promise<CompositionState>;
   getCompositionRevision(): Promise<number>;
@@ -274,6 +287,33 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
         this.namespace("cabinetPlacement", "beginMove", { ...command, sessionId, productId: input.productId }),
       );
     });
+  }
+
+  moveSink(fromCabinetId: string, toCabinetId: string): Promise<CabinetMoveSinkReceipt> {
+    const input: CabinetMoveSinkInput = { fromCabinetId, toCabinetId };
+    return this.enqueue(() =>
+      this.runRevisionCommand("cabinets.moveSink", (command) =>
+        this.namespace("cabinets", "moveSink", { ...command, ...input }),
+      ),
+    );
+  }
+
+  liftSink(fromCabinetId: string, sinkLocalM: CountertopSinkLocalM): Promise<CabinetLiftSinkReceipt> {
+    const input: CabinetLiftSinkInput = { fromCabinetId, sinkLocalM };
+    return this.enqueue(() =>
+      this.runRevisionCommand("cabinets.liftSink", (command) =>
+        this.namespace("cabinets", "liftSink", { ...command, ...input }),
+      ),
+    );
+  }
+
+  landSink(toCabinetId: string): Promise<CabinetLandSinkReceipt> {
+    const input: CabinetLandSinkInput = { toCabinetId };
+    return this.enqueue(() =>
+      this.runRevisionCommand("cabinets.landSink", (command) =>
+        this.namespace("cabinets", "landSink", { ...command, ...input }),
+      ),
+    );
   }
 
   updateDraft(sessionId: string, expectedCandidateRevision: number, placement: CabinetPlacement): Promise<CabinetDraftState> {
@@ -692,7 +732,10 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
     const operation = "composition.getState";
     const result = await this.namespace<CompositionState>("composition", "getState", scope);
     unwrap(result, operation);
-    const revision = (result.context as ConfiguratorApiContext | undefined)?.dependencies?.compositionRevision;
+    // The context carries the revision; the composition state repeats it in `data.dependencies` (fallback).
+    const revision =
+      (result.context as ConfiguratorApiContext | undefined)?.dependencies?.compositionRevision ??
+      (result.ok ? (result.data as { dependencies?: { compositionRevision?: unknown } } | undefined)?.dependencies?.compositionRevision : undefined);
     if (typeof revision !== "number" || !Number.isFinite(revision)) {
       throw new ConfiguratorError("API_INVALID_RESPONSE", "composition.getState did not include a revision.", {
         operation,

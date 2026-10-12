@@ -1,5 +1,12 @@
 import type { RootState } from "@/app/store";
-import { normalizeOptionValue, selectOption, selectDefaultValue, type ProductProfile } from "@/entities/collection";
+import {
+  normalizeOptionValue,
+  selectConfiguratorGroup,
+  selectOption,
+  selectDefaultValue,
+  type ProductProfile,
+} from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getAttributeValue,
   getCabinetEntries,
@@ -13,12 +20,27 @@ import { parseThicknessValue, normalizeBasinKey } from "@/features/configurator-
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import type { AttributeChange, ChangeBlockedReason, PlannedChange } from "../model/types";
 
+/** The material a configurator section lists a countertop colour under, as the matrix names it ("Glass MT"). */
+const configuratorMaterialOf = (
+  profile: ProductProfile,
+  configurator: ConfiguratorGroupCatalog | null,
+  value: string,
+): string | undefined => {
+  const variant = selectConfiguratorGroup(profile, "CountertopColor", configurator)
+    ?.options.flatMap(({ variants }) => variants)
+    .find((candidate) => (candidate.metadata?.value ?? candidate.name) === value);
+  const material = variant?.metadata?.Material;
+  return typeof material === "string" && material ? material : undefined;
+};
+
 /** Uses the exact loaded matrix for opt-in collections; legacy command behavior is unchanged. */
 export const evaluateCountertopChange = (
   change: AttributeChange,
   target: ValueTarget,
   state: RootState,
   profile: ProductProfile,
+  /** The configurator sections a colour the profile does not list is taken from (Tricot's configurator 12). */
+  configurator: ConfiguratorGroupCatalog | null = null,
 ): { blocked?: ChangeBlockedReason; dependencies: PlannedChange[] } => {
   const dependencies: PlannedChange[] = [];
   if (
@@ -57,7 +79,9 @@ export const evaluateCountertopChange = (
     id === change.attributeId ? String(change.value) : legacy || selectDefaultValue(profile, id);
   const color = read("CountertopColor", options.CountertopColor);
   const canonical = normalizeOptionValue(profile, "CountertopColor", color) ?? color;
-  const category = selectOption(profile, "CountertopColor", canonical)?.category;
+  const category =
+    selectOption(profile, "CountertopColor", canonical)?.category ??
+    configuratorMaterialOf(profile, configurator, canonical);
   if (!category) return { blocked: invalid(), dependencies };
   const colorChange = change.attributeId === "CountertopColor";
   const thickness = colorChange ? "" : read("Thickness", options.Thickness);

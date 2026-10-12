@@ -4,6 +4,8 @@ export { buildStepRoutes } from "./lib/buildStepRoutes";
 export type { StepScreen, StepScreens } from "./lib/buildStepRoutes";
 export { useCollectionNavigation } from "./lib/useCollectionNavigation";
 export { buildStepPathById, useStepPathById } from "./lib/useStepPathById";
+export { resolveAttributeTarget, resolveScreenTarget, toTargetUrl } from "./lib/resolveAttributeTarget";
+export type { CustomizationTarget } from "./lib/resolveAttributeTarget";
 export { useEntryStep } from "./lib/useEntryStep";
 export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigate";
 export { useCollectionNavigate } from "./lib/useCollectionNavigate";

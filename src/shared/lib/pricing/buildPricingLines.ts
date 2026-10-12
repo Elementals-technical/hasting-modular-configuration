@@ -54,9 +54,10 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
     handleGrooveColor,
     handleGrooveColorSku,
     countertopColor,
-    vesselColor,
+    vesselColor: globalVesselColor,
     countertopStyle,
-    sinkType,
+    sinkType: globalSinkType,
+    hostedSink,
     drawerPanelFluting,
     grainDirection,
     bookMatching,
@@ -67,6 +68,9 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
     sidePanelLeft,
     sidePanelRight,
   } = input;
+  // A hosted sink (no SB) is priced from the countertop's own basin, still once (sinkBaseCount floors at 1).
+  const sinkType = hostedSink?.sinkType ?? globalSinkType;
+  const vesselColor = hostedSink?.vesselColor ?? globalVesselColor;
 
   const profile = skuBuilders.profile;
   if (!profile) return [];

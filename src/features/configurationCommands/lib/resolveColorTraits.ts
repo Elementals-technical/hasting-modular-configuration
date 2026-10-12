@@ -1,6 +1,12 @@
 import type { CabinetColorTraitsRuleData, ProductProfile } from "@/entities/collection";
-import { selectConfiguratorSection, selectOption, selectRuleData } from "@/entities/collection";
+import {
+  selectConfiguratorGroup,
+  selectConfiguratorSection,
+  selectOption,
+  selectRuleData,
+} from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
   getConfiguratorVariantOverrides,
   isHiddenConfiguratorDisplayValue,
@@ -39,37 +45,32 @@ const fromCsv = (value: unknown): string[] =>
 
 export { selectConfiguratorSection };
 
-const findColorOption = (
-  colorName: string,
-  configurator: ConfiguratorGroupCatalog,
-  section: string,
-): ColorOption | null => {
-  for (const group of configurator.groups.filter(({ proxyName }) => proxyName === section)) {
-    for (const option of group.options) {
-      for (const variant of option.variants) {
-        if (!isVisibleConfiguratorVariant(variant)) continue;
+// The group is the one the attribute's source names, narrowed to its option when the source names one.
+const findColorOption = (colorName: string, group: ConfiguratorAvailableOption): ColorOption | null => {
+  for (const option of group.options) {
+    for (const variant of option.variants) {
+      if (!isVisibleConfiguratorVariant(variant)) continue;
 
-        const meta: Record<string, unknown> = variant.metadata ?? {};
-        const nested = isRecord(meta.metadata) ? meta.metadata : {};
-        const overrides = getConfiguratorVariantOverrides({ proxyName: group.proxyName, variant });
-        const label = pick(meta.label, meta.Label, nested.label, nested.Label, overrides.label, variant.name);
-        const value = pick(meta.value, nested.value, overrides.value, variant.name);
+      const meta: Record<string, unknown> = variant.metadata ?? {};
+      const nested = isRecord(meta.metadata) ? meta.metadata : {};
+      const overrides = getConfiguratorVariantOverrides({ proxyName: group.proxyName, variant });
+      const label = pick(meta.label, meta.Label, nested.label, nested.Label, overrides.label, variant.name);
+      const value = pick(meta.value, nested.value, overrides.value, variant.name);
 
-        if (isHiddenConfiguratorDisplayValue(label) || isHiddenConfiguratorDisplayValue(value)) continue;
-        if ((value ?? variant.name) !== colorName && variant.name !== colorName) continue;
+      if (isHiddenConfiguratorDisplayValue(label) || isHiddenConfiguratorDisplayValue(value)) continue;
+      if ((value ?? variant.name) !== colorName && variant.name !== colorName) continue;
 
-        // Mirrors `buildConfiguratorOptions`: the option name is a material only where the section
-        // is split by material.
-        const materials = fromCsv(pick(nested.Material, meta.Material));
-        const optionMaterial = group.options.length > 1 ? option.name : undefined;
+      // Mirrors `buildConfiguratorOptions`: the option name is a material only where the section
+      // is split by material.
+      const materials = fromCsv(pick(nested.Material, meta.Material));
+      const optionMaterial = group.options.length > 1 ? option.name : undefined;
 
-        return {
-          label: label ?? variant.name,
-          optionName: option.name,
-          sku: pick(meta.sku) ?? "",
-          materials: [...new Set(optionMaterial ? [optionMaterial, ...materials] : materials)],
-        };
-      }
+      return {
+        label: label ?? variant.name,
+        optionName: option.name,
+        sku: pick(meta.sku) ?? "",
+        materials: [...new Set(optionMaterial ? [optionMaterial, ...materials] : materials)],
+      };
     }
   }
 
@@ -113,7 +114,8 @@ export const resolveColorTraits = (
   if (localMaterial) return { material: localMaterial, finish: resolveFinish(colorName, traits.finishCodes) };
   if (!section || !configurator) return null;
 
-  const option = findColorOption(colorName, configurator, section);
+  const group = selectConfiguratorGroup(profile, attributeId, configurator);
+  const option = group ? findColorOption(colorName, group) : null;
 
   return {
     material: option ? resolveMaterial(option, section, traits) : "",

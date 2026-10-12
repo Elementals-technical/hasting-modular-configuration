@@ -58,7 +58,10 @@ export type ProfileAttribute = {
   confirmation?: AttributeConfirmation;
   /** Closed catalog. Absent when the options come from an external source. */
   options?: ProfileOption[];
-  /** Reference to an external option source, resolved by A (e.g. "configurator:Handle Groove Color"). */
+  /**
+   * Reference to an external option source, resolved by A (e.g. "configurator:Handle Groove Color"), or one option
+   * of a group that has several ("configurator:Select Cabinet Colors/Base Panel").
+   */
   optionsSource?: string;
   /** Value the attribute starts at. Not the same as a computed fallback. */
   initialValue?: string;

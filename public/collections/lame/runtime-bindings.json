@@ -180,7 +180,7 @@
         }
       },
       "order": 50,
-      "note": "Placed at composition level. The overrides are Mako's, for the configurator 9 colours Lame shares with it: the scene names its materials with the material (\"Acqua 419 MT\" is \"Acqua 419 Glass MT\")."
+      "note": "Placed at composition level. The overrides are Mako's, for the colours Lame's configurator 14 shares with Mako's configurator 9: the scene names its materials with the material (\"Acqua 419 MT\" is \"Acqua 419 Glass MT\")."
     },
     {
       "attributeId": "Thickness",

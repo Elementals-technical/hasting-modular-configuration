@@ -5,6 +5,7 @@ export {
   canBuildCountertopSku,
   type CountertopSkuInput,
 } from "./buildCountertopSku";
+export { buildCabinetCoverSku, type CabinetCoverSkuInput } from "./buildCabinetCoverSku";
 export { buildTowelBarSku, TOWEL_BAR_DEFAULTS, type TowelBarSkuInput } from "./buildTowelBarSku";
 export { buildSidePanelSku, SIDE_PANEL_WIDTH_CM, type SidePanelSkuInput } from "./buildSidePanelSku";
 export { buildDividerSku, type DividerSkuInput } from "./buildDividerSku";
