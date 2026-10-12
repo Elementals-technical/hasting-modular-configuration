@@ -1,7 +1,10 @@
 import type { RootState } from "@/app/store";
 
-export const getCanUndo = (state: RootState) => state.rootStateUI.history.past.length > 0;
-export const getCanRedo = (state: RootState) => state.rootStateUI.history.future.length > 0;
+export const getIsHistoryBlocked = (state: RootState) => state.rootStateUI.history.isBlocked;
+export const getCanUndo = (state: RootState) =>
+  state.rootStateUI.history.past.length > 0 && !state.rootStateUI.history.isBlocked;
+export const getCanRedo = (state: RootState) =>
+  state.rootStateUI.history.future.length > 0 && !state.rootStateUI.history.isBlocked;
 export const getIsHistoryRestoring = (state: RootState) => state.rootStateUI.history.isRestoring;
 export const getLastPastSnapshot = (state: RootState) => {
   const { past } = state.rootStateUI.history;

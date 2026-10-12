@@ -704,6 +704,114 @@ describe("Cabinet debug selection and mode", () => {
   });
 });
 
+describe("Cabinet drag and drop reports a change from its start to its end", () => {
+  const setUp = (client: ReturnType<typeof fixture>) => {
+    const before = vi.fn();
+    const abandoned = vi.fn();
+    const committed = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={client.createClient}
+        onBeforeCompositionChange={before}
+        onCompositionChangeAbandoned={abandoned}
+        onCompositionCommitted={committed}
+      />,
+    );
+    return { before, abandoned, committed };
+  };
+  const startDraft = async () => {
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+  };
+
+  it("announces the change before the draft opens, while the scene can still describe itself", async () => {
+    const f = fixture();
+    const { before, abandoned } = setUp(f);
+
+    await startDraft();
+
+    expect(before).toHaveBeenCalledOnce();
+    expect(before.mock.invocationCallOrder[0]).toBeLessThan(f.client.beginAdd.mock.invocationCallOrder[0]);
+    expect(abandoned).not.toHaveBeenCalled();
+  });
+
+  it("waits for the announcement before it opens the draft", async () => {
+    const f = fixture();
+    let release: () => void = () => undefined;
+    const { before } = setUp(f);
+    before.mockImplementation(() => new Promise<void>((resolve) => (release = resolve)));
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+
+    fireEvent.click(add);
+    await waitFor(() => expect(before).toHaveBeenCalledOnce());
+    expect(f.client.beginAdd).not.toHaveBeenCalled();
+
+    await act(async () => release());
+    await waitFor(() => expect(f.client.beginAdd).toHaveBeenCalledOnce());
+  });
+
+  it("ends an applied draft as a change", async () => {
+    const f = fixture();
+    const { abandoned, committed } = setUp(f);
+    await startDraft();
+
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => expect(committed).toHaveBeenCalledOnce());
+    expect(abandoned).not.toHaveBeenCalled();
+  });
+
+  it("ends a cancelled draft as no change", async () => {
+    const f = fixture();
+    const { abandoned, committed } = setUp(f);
+    await startDraft();
+
+    const cancel = screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement;
+    await waitFor(() => expect(cancel.disabled).toBe(false));
+    fireEvent.click(cancel);
+
+    await waitFor(() => expect(abandoned).toHaveBeenCalledOnce());
+    expect(committed).not.toHaveBeenCalled();
+  });
+
+  it("ends a draft the runtime refused to open as no change", async () => {
+    const f = fixture();
+    f.client.beginAdd.mockRejectedValueOnce(new Error("COMPOSITION_BUSY"));
+    const { before, abandoned } = setUp(f);
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+
+    fireEvent.click(add);
+
+    await waitFor(() => expect(abandoned).toHaveBeenCalledOnce());
+    expect(before).toHaveBeenCalledOnce();
+  });
+
+  it("ends the open draft as no change when the runtime cancels it, and ignores a report of another one", async () => {
+    const f = fixture();
+    const { abandoned } = setUp(f);
+    await startDraft();
+
+    f.emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-0" });
+    expect(abandoned).not.toHaveBeenCalled();
+
+    f.emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-1" });
+    expect(abandoned).toHaveBeenCalledOnce();
+
+    f.emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-1" });
+    expect(abandoned).toHaveBeenCalledOnce();
+  });
+});
+
 describe("Drag & Drop collections", () => {
   it("enables cabinet/countertop Drag & Drop for ULH only", () => {
     expect(isDragDropCollection("urban-low-height")).toBe(true);

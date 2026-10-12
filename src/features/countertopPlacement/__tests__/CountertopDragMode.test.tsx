@@ -129,6 +129,8 @@ const fixture = ({ overlay = true, introSeen = true }: { overlay?: boolean; intr
     setCountertopLengthLimits: vi.fn(async () => true),
   } satisfies CountertopOverlayBridge;
   const onCommitted = vi.fn();
+  const onSessionStart = vi.fn();
+  const onSessionDiscarded = vi.fn();
   const onStatusChange = vi.fn();
   const ref = createRef<CountertopDragModeHandle>();
   render(
@@ -140,6 +142,8 @@ const fixture = ({ overlay = true, introSeen = true }: { overlay?: boolean; intr
       lengthLimitsIn={{ min: 48, max: 120 }}
       createBridge={() => bridge}
       onCommitted={onCommitted}
+      onSessionStart={onSessionStart}
+      onSessionDiscarded={onSessionDiscarded}
       onStatusChange={onStatusChange}
     />,
   );
@@ -151,6 +155,8 @@ const fixture = ({ overlay = true, introSeen = true }: { overlay?: boolean; intr
     bridge,
     ref,
     onCommitted,
+    onSessionStart,
+    onSessionDiscarded,
     onStatusChange,
     stopOverlay,
     emit: (f: CountertopOverlayFrame | null) => act(() => emit(f)),
@@ -372,6 +378,92 @@ describe("CountertopDragMode", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: false })));
     expect(f.bridge.setCountertopOverlayActive).not.toHaveBeenCalled();
+  });
+});
+
+describe("CountertopDragMode reports an edit from its start to its end", () => {
+  const order = (spy: { mock: { invocationCallOrder: number[] } }) => spy.mock.invocationCallOrder[0];
+
+  it("announces the edit before the top can move", async () => {
+    const f = fixture();
+    await enter(f);
+
+    expect(f.onSessionStart).toHaveBeenCalledOnce();
+    expect(order(f.onSessionStart)).toBeLessThan(order(f.api.setDragEnabled));
+  });
+
+  it("ends a moved top as a change", async () => {
+    const f = fixture();
+    await enter(f);
+    f.emit(frameOf());
+    f.move({ x: 0.3, y: 0 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+    expect(f.onSessionDiscarded).not.toHaveBeenCalled();
+  });
+
+  it("ends a top applied where it stood as no change, and still syncs it", async () => {
+    const f = fixture();
+    await enter(f);
+    f.emit(frameOf());
+
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+    expect(f.onSessionDiscarded).toHaveBeenCalledOnce();
+    expect(order(f.onSessionDiscarded)).toBeLessThan(order(f.onCommitted));
+  });
+
+  it("ends a cancelled edit as no change", async () => {
+    const f = fixture();
+    await enter(f);
+    f.emit(frameOf());
+    f.move({ x: 0.3, y: 0.1 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Discard countertop changes" }));
+
+    await waitFor(() => expect(f.onSessionDiscarded).toHaveBeenCalledOnce());
+    expect(f.onCommitted).not.toHaveBeenCalled();
+  });
+
+  it("treats Standard outside drag mode as an edit of its own", async () => {
+    const f = fixture();
+    await waitFor(() =>
+      expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ available: true })),
+    );
+    f.move({ x: 0.3, y: 0 });
+
+    act(() => f.ref.current!.standard());
+
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+    expect(f.onSessionStart).toHaveBeenCalledOnce();
+    expect(order(f.onSessionStart)).toBeLessThan(order(f.api.resetOffset));
+    expect(f.onSessionDiscarded).not.toHaveBeenCalled();
+  });
+
+  it("ends Standard on a top that already is standard as no change", async () => {
+    const f = fixture();
+    await waitFor(() =>
+      expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ available: true })),
+    );
+
+    act(() => f.ref.current!.standard());
+
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+    expect(f.onSessionDiscarded).toHaveBeenCalledOnce();
+  });
+
+  it("announces Standard inside drag mode once, with the session", async () => {
+    const f = fixture();
+    await enter(f);
+    f.move({ x: 0.3, y: 0 });
+
+    act(() => f.ref.current!.standard());
+
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+    expect(f.onSessionStart).toHaveBeenCalledOnce();
   });
 });
 

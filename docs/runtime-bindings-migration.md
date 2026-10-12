@@ -138,13 +138,19 @@ type ConfigurationSceneRestorer = {
   restore(request: SceneRestoreRequest): Promise<SceneRestoreResult>;
 };
 
-type SceneRestoreRequest = { products: { sourceId: string; productType: string; config: Record<string, unknown> | null }[] };
+type SceneRestoreRequest = {
+  products: { sourceId: string; productType: string; config: Record<string, unknown> | null }[];
+  layout?: SceneLayout;
+};
+
+/** Where the products stood, as the scene wrote it down. Only the adapter reads `document`. */
+type SceneLayout = { version: 1; document: Record<string, unknown>; cabinetIds: Record<string, string> };
 ```
 
 `createSceneRestorer({ getBindings })` rebuilds a composition in composition order:
 
 1. **Preflight**, before the scene is touched: a non-empty composition, unique source ids, a config per product, loaded bindings and a scene type for every product type through `productTypes` of the bindings (`Side-Cabinet` is placed as `Sink-Cabinet`). The scene's product registry is not reachable from the host page, so the table is the check.
-2. The scene is cleared once (`removeAllProduct`), then each product is added on the right with `addProduct` and configured with `setConfig`. `addProduct` returns the runtime id, which gives the exact old → new mapping; `presetProducts` clears the scene itself and silently skips a product it cannot create, so it is not used here.
+2. The scene is cleared once (`clearSceneProducts`), then rebuilt in one call of the native `presetProducts`, which returns the runtime ids. (An earlier version added the products one by one with `addProduct` and `setConfig`; the code no longer does.)
 3. A product that fails does not stop the rest. The actual order is read back through the scene reader and compared with the request.
 
 | Status | Meaning | Scene touched |
@@ -155,6 +161,18 @@ type SceneRestoreRequest = { products: { sourceId: string; productType: string; 
 | `partial` | The scene was cleared but a product was not created (`not-created`), its config refused (`config-rejected`), the order differs (`order-mismatch`) or clearing failed (`scene-error`); `matches` lists what exists | Yes |
 
 The scene side is three new `sceneBridge` operations on the batch queue: `clearSceneProducts`, `addSceneProduct` (a missing id is a failure) and `setSceneProductConfig` (`false` from the scene is `product-not-found`; the legacy wrapper swallowed it). `createTestSceneRestorer()` is the stand-in.
+
+**A request with a layout.** Step 2 places the products in one row, left to right. A collection whose cabinets stand in rows (Urban Low Height) cannot be rebuilt that way, so its requests carry `layout`: the document the scene exports for a composition (`composition.exportPreset`) and the runtime id each cabinet had at that moment. After preflight the restorer gives the document back (`composition.importPreset`), which replaces the composition and returns the new id of every cabinet; steps 2 and 3 are skipped and `matches` follow the scene's own order.
+
+| `importSceneLayout` | Meaning | What the restorer does |
+|---|---|---|
+| `imported` | The scene holds the layout | `restored`, with `matches` built from the receipt |
+| `not-ready` | The scene is busy (`COMPOSITION_BUSY`, `LEGACY_WRITERS_BUSY`, `STALE_COMPOSITION` after one retry, not ready yet); nothing was changed | `not-ready` |
+| `unusable` | The layout names other products than the request, the scene refused the document (`PRESET_*`, `RECOVERY_REQUIRED`, no such method) or the receipt is incomplete | Steps 2 and 3: the products come back in one row |
+
+`captureSceneLayout()` reads a layout and never fails loudly: it does not wait for a scene that is not ready, gives up after two seconds, reads again once when the composition changed between its two reads, and resolves `null` otherwise. `parseSceneLayout` checks a stored layout before it is used. All three live in `features/playCanvasAdapter/lib/sceneLayout.ts`; no other file calls the two scene methods for a restore.
+
+**Who sends a layout.** History snapshots (`SceneSnapshot.sceneLayout`) and saved configurations (`metadata.sceneLayout`), both through `captureFreeLayout`, which answers only for Drag & Drop collections. The history reads it through a slot (`setSceneLayoutCapture`, registered in `main.tsx`), so `entities/history` gains no import of a feature. A layout is kept only when it describes exactly the products of the snapshot or of the save. A snapshot or a configuration without one restores as before.
 
 **First consumer: undo/redo.** `restoreSnapshot(snapshot, { dispatch, getState })` builds the request from the history snapshot and returns the result. A snapshot product without a config is rejected instead of silently dropped. On `restored`/`partial` it records only the products that exist; the snapshot now keeps each product's stable key (`cabinetKeys`), and `restoreCabinets` gives the rebuilt products their keys back before the product ids change, so values addressed to a cabinet survive undo. Values of cabinets that are not in the rebuilt composition are dropped. `BottomCanvasButtons` moves the history only when the scene was rebuilt and logs a partial result.
 

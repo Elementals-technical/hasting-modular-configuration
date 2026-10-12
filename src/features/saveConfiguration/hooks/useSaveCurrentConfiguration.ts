@@ -2,7 +2,9 @@ import { useCallback } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useSaveConfigurationMutation } from "@/entities";
+import type { SceneLayout } from "@/entities/configuration";
 import { getActiveCollectionId, getRestoreState, getRuntimeSyncState } from "@/entities/configuration/model/store/selectors";
+import { captureFreeLayout } from "@/features/cabinetPlacementDebug/lib/captureFreeLayout";
 import {
   getHasSubmittedCart,
   getIsAutofillEnabled,
@@ -44,6 +46,25 @@ export type BuildConfigurationRequestOptions = {
 };
 
 /**
+ * The layout of the saved products. A layout that names a product the save does not hold
+ * describes another composition (the scene changed between the two reads) and is left out.
+ */
+const readSavedLayout = async (
+  collectionId: string | null,
+  orderedProductIds: readonly string[],
+): Promise<SceneLayout | null> => {
+  try {
+    const layout = await captureFreeLayout(collectionId);
+    if (!layout) return null;
+
+    const saved = new Set(orderedProductIds);
+    return Object.values(layout.cabinetIds).every((id) => saved.has(id)) ? layout : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
  * Builds the request without sending it.
  *
  * Separate from saving so a caller that de-duplicates identical saves can compare
@@ -64,6 +85,8 @@ export const useBuildConfigurationRequest = () => {
 
       if (!orderedProductIds.length) return null;
 
+      const sceneLayout = await readSavedLayout(savePayload.fragment.collectionId, orderedProductIds);
+
       const metadata = buildConfigurationMetadata({
         path: options.path ?? pathname,
         orderedProductIds,
@@ -75,6 +98,7 @@ export const useBuildConfigurationRequest = () => {
           hasSubmittedCart,
         },
         fragment: savePayload.fragment,
+        sceneLayout,
       });
 
       return { configuration, metadata };

@@ -1,5 +1,6 @@
-import type { ConfigurationRecord, SceneRestoreProduct } from "@/entities/configuration";
+import type { ConfigurationRecord, SceneLayout, SceneRestoreProduct } from "@/entities/configuration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
+import { parseSceneLayout } from "@/features/playCanvasAdapter/lib/sceneLayout";
 import { readConfigurationFragment, type ConfigurationFragment } from "@/features/saveConfiguration";
 
 /**
@@ -25,6 +26,8 @@ export type RestorePlan = {
   configId: string;
   /** Cabinets in composition order, for the scene restorer. */
   products: SceneRestoreProduct[];
+  /** Where the cabinets stood; null when the configuration was saved without it. */
+  sceneLayout: SceneLayout | null;
   topConfigs: RestoreTopConfig[];
   configuration: Record<string, unknown>;
   metadata: Record<string, unknown>;
@@ -112,6 +115,15 @@ export const buildRestorePlan = (configId: string, record: ConfigurationRecord):
     (BLOCKING_FRAGMENT_ISSUES.has(issue.code) || isStrictV2 ? issues : warnings).push(issue);
   }
 
+  // The layout only adds the rows: without it the cabinets still come back, in one row.
+  const sceneLayout = parseSceneLayout(metadata.sceneLayout);
+  if (metadata.sceneLayout !== undefined && metadata.sceneLayout !== null && !sceneLayout) {
+    warnings.push({
+      code: "layout.invalid",
+      message: "The saved layout cannot be read; the cabinets come back in one row.",
+    });
+  }
+
   if (issues.length > 0) return { ok: false, issues };
 
   return {
@@ -119,6 +131,7 @@ export const buildRestorePlan = (configId: string, record: ConfigurationRecord):
     plan: {
       configId,
       products,
+      sceneLayout,
       topConfigs,
       configuration,
       metadata,

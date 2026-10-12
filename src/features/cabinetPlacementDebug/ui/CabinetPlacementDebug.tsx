@@ -24,6 +24,10 @@ type Props = {
   externalBusy?: boolean;
   onPlacementBusyChange?: (busy: boolean) => void;
   onCompositionCommitted?: (state: CabinetsState) => void | Promise<void>;
+  /** A change is about to start. Awaited first: the scene cannot describe itself once a draft is open. */
+  onBeforeCompositionChange?: () => void | Promise<void>;
+  /** The change announced by `onBeforeCompositionChange` did not happen (cancelled, or it failed to start). */
+  onCompositionChangeAbandoned?: () => void;
   onRepositionAvailabilityChange?: (status: CabinetRepositionAvailability) => void;
   /** Engineering tools (Move selected, add side, Save/Restore JSON): `?placementDebug` in the URL. */
   showDebugTools?: boolean;
@@ -69,6 +73,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     externalBusy = false,
     onPlacementBusyChange,
     onCompositionCommitted,
+    onBeforeCompositionChange,
+    onCompositionChangeAbandoned,
     onRepositionAvailabilityChange,
     showDebugTools = false,
   },
@@ -79,6 +85,10 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   const activeSessionRef = useRef<string | null>(null);
   const onCommittedRef = useRef(onCompositionCommitted);
   onCommittedRef.current = onCompositionCommitted;
+  const onBeforeChangeRef = useRef(onBeforeCompositionChange);
+  onBeforeChangeRef.current = onBeforeCompositionChange;
+  const onAbandonedRef = useRef(onCompositionChangeAbandoned);
+  onAbandonedRef.current = onCompositionChangeAbandoned;
   const receiptSyncRef = useRef(new Map<string, Promise<void>>());
   const refreshCapabilitiesRef = useRef<(() => Promise<void>) | null>(null);
   const [connected, setConnected] = useState(false);
@@ -206,6 +216,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                 const action = dataOf(event);
                 if (activeSessionRef.current && action.sessionId !== activeSessionRef.current) return;
                 if (action.status === "committed" || action.status === "cancelled") {
+                  // Only the open draft: a late report of an earlier one must not drop the next start.
+                  if (action.status === "cancelled" && activeSessionRef.current) onAbandonedRef.current?.();
                   setSession(null);
                   setDraft(null);
                   setStatus(action.status === "committed" ? "Placement applied" : "Placement cancelled");
@@ -324,8 +336,11 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   };
   const start = (kind: "add" | "move", explicitProductId?: string) => {
     if (activeSessionRef.current) return;
+    let announced = false;
     void command(async (client) => {
       if (!client) return;
+      await onBeforeChangeRef.current?.();
+      announced = true;
       let next: CabinetDraftState;
       if (kind === "add") {
         if (!selection) return;
@@ -378,6 +393,10 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       setSessionId(next.sessionId);
       setDraft(next);
       setStatus("Drag the cabinet in the canvas, then Apply or Cancel");
+      announced = false;
+    }).finally(() => {
+      // Announced, but no draft opened (nothing to add, or the runtime refused).
+      if (announced) onAbandonedRef.current?.();
     });
   };
   const finish = (action: "apply" | "cancel") =>
@@ -396,7 +415,18 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       setDraft(null);
       setStatus(action === "apply" ? "Placement applied" : "Placement cancelled");
       if (action === "apply") await syncCommitted(client, result as ConfiguratorReceipt);
+      else onAbandonedRef.current?.();
     });
+  /** An import of the test controls: announced like a draft, so it can be undone the same way. */
+  const replaceComposition = async <T,>(send: () => Promise<T>): Promise<T> => {
+    await onBeforeChangeRef.current?.();
+    try {
+      return await send();
+    } catch (failure) {
+      onAbandonedRef.current?.();
+      throw failure;
+    }
+  };
   const busy =
     externalBusy ||
     !connected ||
@@ -569,7 +599,9 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                 onClick={() =>
                   void command(async (client) => {
                     if (!client || !restoreConfirmed) return;
-                    const receipt = await client.importPreset(JSON.parse(presetJson) as ConfiguratorPreset);
+                    const receipt = await replaceComposition(() =>
+                      client.importPreset(JSON.parse(presetJson) as ConfiguratorPreset),
+                    );
                     await syncCommitted(client, receipt);
                     setRestoreConfirmed(false);
                     setStatus("Preset restored; cabinet IDs refreshed");
@@ -609,8 +641,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                 onClick={() =>
                   void command(async (client) => {
                     if (!client || !restoreConfirmed) return;
-                    const receipt = await client.importCompactPreset(
-                      JSON.parse(presetJson) as ConfiguratorCompactPreset,
+                    const receipt = await replaceComposition(() =>
+                      client.importCompactPreset(JSON.parse(presetJson) as ConfiguratorCompactPreset),
                     );
                     await syncCommitted(client, receipt);
                     setRestoreConfirmed(false);
