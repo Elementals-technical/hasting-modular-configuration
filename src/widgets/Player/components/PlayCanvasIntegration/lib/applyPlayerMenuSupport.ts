@@ -13,7 +13,10 @@ const isPlayerMenuItemId = (id: string): id is PlayerMenuItemId => MENU_ITEM_IDS
  * entries, Handle Style without handles). Items that are not player menu items (an option of a
  * submenu, a debug entry) are kept as they are.
  */
-export const applyPlayerMenuSupport = (items: DropdownItem[], support: PlayerMenuSupport): DropdownItem[] =>
+export const applyPlayerMenuSupport = (
+  items: DropdownItem[],
+  support: Pick<PlayerMenuSupport, "items">,
+): DropdownItem[] =>
   items.flatMap((item) => {
     if (isPlayerMenuItemId(item.id) && !support.items.has(item.id)) return [];
     if (!item.children) return [item];

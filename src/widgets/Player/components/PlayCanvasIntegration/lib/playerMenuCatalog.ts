@@ -5,6 +5,7 @@ import {
   type CustomizationSchema,
   type CustomizationScreenId,
   type PlayerMenuItemId,
+  type PlayerMenuResizeId,
   type ProductProfile,
 } from "@/entities/collection";
 import {
@@ -49,10 +50,17 @@ const PLAYER_MENU_ITEMS: Record<PlayerMenuItemId, PlayerMenuItemSpec> = {
   "vessel-color": { leadsTo: { attributeId: "VesselColor" } },
 };
 
-/** The items a collection offers in one flow of the menu, and where each that leads somewhere goes. */
+const DEFAULT_RESIZE: readonly PlayerMenuResizeId[] = ["Width", "Depth"];
+
+/**
+ * The items a collection offers in one flow of the menu, where each that leads somewhere goes, and
+ * the sizes its Resize item changes.
+ */
 export type PlayerMenuSupport = {
   items: ReadonlySet<PlayerMenuItemId>;
   targets: Partial<Record<PlayerMenuItemId, CustomizationTarget>>;
+  /** The collection's `playerMenu.resize` (ui.json), else Width and Depth. */
+  resize: readonly PlayerMenuResizeId[];
 };
 
 const resolveSpecTarget = (
@@ -93,5 +101,5 @@ export const resolvePlayerMenuSupport = (
     if (target) targets[itemId] = target;
   }
 
-  return { items, targets };
+  return { items, targets, resize: schema?.playerMenu?.resize ?? DEFAULT_RESIZE };
 };

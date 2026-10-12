@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
@@ -26,6 +26,7 @@ import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getActiveCabinetRule,
+  getHeightChoices,
   getSelectedDimensions,
   getSelectedProducts,
   getSelectedSceneProduct,
@@ -55,6 +56,7 @@ import {
   selectEffectiveFallback,
   selectOptions,
   useActiveCollection,
+  type StyleSidebarFieldId,
 } from "@/entities/collection";
 import { useOptionImages } from "@/features/collectionCustomization";
 import {
@@ -76,6 +78,7 @@ import { REASON_HANDLE_HEIGHT_LOCKED } from "@/features/configurator-rule-core/c
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
+import { resolveStyleSidebarFields } from "../../lib/resolveStyleSidebarFields";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
@@ -90,6 +93,8 @@ const STYLE_SIDEBAR_LOCKED_TUTORIAL_STEP_IDS: ReadonlySet<string> = new Set([
 interface PendingOssHandleChange {
   next: string;
   ossIds: string[];
+  /** The height the handle was chosen through, when it was. */
+  height?: number;
 }
 
 interface PendingDepthChange {
@@ -108,6 +113,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const placementButtonsVisibleRef = useRef(false);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
+  const heightChoices = useAppSelector(getHeightChoices);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
@@ -127,6 +133,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const saveSnapshot = useHistorySnapshot();
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
+  const styleSidebarFields = resolveStyleSidebarFields(
+    useActiveCollection((collection) => collection.catalog.customization ?? null),
+  );
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
@@ -135,12 +144,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [isStyleSidebarTutorialStepActive, setIsStyleSidebarTutorialStepActive] = useState(false);
   const {
     change: changeAttributeValue,
+    changeDimension,
     confirm: confirmAttributeValue,
     getState: getCommandState,
     composition,
   } = useChangeAttribute();
   /** Height the command service is applying; the dimensions effect must not send it again. */
   const commandHeightRef = useRef<number | null>(null);
+  /** A height change is on its way to the scene; a second one waits for the next click. */
+  const heightChangeInFlightRef = useRef(false);
   const hasModalOpen =
     pendingHandlePreview !== null ||
     pendingOssHandleChange !== null ||
@@ -360,6 +372,18 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     [depthOptions],
   );
 
+  // A height is shown with its handle: choosing a height of the other handle selects that handle.
+  const heightDisplayOptions = useMemo(
+    () =>
+      heightChoices.map(({ height, handle }) => ({
+        name: height,
+        value: height,
+        label: cmToInchLabel(height),
+        description: selectOptions(activeProfile, "Handle").find((option) => option.value === handle)?.label,
+      })),
+    [heightChoices, activeProfile],
+  );
+
   const handleCloseSidebar = () => {
     if (isStyleSidebarTutorialStepActive) return;
 
@@ -404,9 +428,43 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     }
   };
 
-  // const handleChangeHeight = (value: string | number) => {
-  //   dispatch(setSelectedDimensions({ height: Number(value) }));
-  // };
+  /**
+   * The cabinets of a composition share one height. Before any is placed this is the choice
+   * for the next cabinet; afterwards the command service resizes them all at once. A height of
+   * the other handle is a change of handle that ends at this height.
+   */
+  const handleChangeHeight = async (value?: string | number) => {
+    if (value === undefined) return;
+    const nextHeight = Number(value);
+    const choice = heightChoices.find(({ height }) => height === nextHeight);
+    if (!choice || selectedDimensions.height === nextHeight) return;
+
+    if (choice.changesHandle) {
+      await handleSetHandleType(choice.handle, nextHeight);
+      return;
+    }
+
+    if (selectedProducts.length === 0) {
+      dispatch(setSelectedDimensions({ height: nextHeight }));
+      return;
+    }
+
+    if (heightChangeInFlightRef.current) return;
+    heightChangeInFlightRef.current = true;
+
+    try {
+      await saveSnapshot();
+      commandHeightRef.current = nextHeight;
+
+      const result = await changeDimension({ attributeId: "Height", value: nextHeight, scope: "global" });
+      if (result.status !== "applied") {
+        commandHeightRef.current = null;
+        console.warn("[Sidebar] The height was not changed", result);
+      }
+    } finally {
+      heightChangeInFlightRef.current = false;
+    }
+  };
 
   /** Shows what the command service answered; an applied change needs nothing more. */
   const showHandleChangeResult = (result: ChangeResult) => {
@@ -435,7 +493,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
    * confirmation when the profile says so, and sends the agreed set to the scene once.
    * Nothing changes before Confirm, so Cancel has nothing to revert.
    */
-  const requestHandleChange = async (handleType: string) => {
+  const requestHandleChange = async (handleType: string, height?: number) => {
     // Read at the moment of the change: removing Side Shelves just before changes the list.
     const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
 
@@ -443,11 +501,18 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (!cabinetId) {
       await saveSnapshot();
       dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+      if (height !== undefined) dispatch(setSelectedDimensions({ height }));
       return;
     }
 
     showHandleChangeResult(
-      await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
+      await changeAttributeValue({
+        attributeId: "Handle",
+        value: handleType,
+        scope: "cabinet",
+        cabinetId,
+        ...(height === undefined ? {} : { preferredHeight: height }),
+      }),
     );
   };
 
@@ -474,7 +539,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     showHandleChangeResult(result);
   };
 
-  const handleSetHandleType = async (handleType: string) => {
+  const handleSetHandleType = async (handleType: string, height?: number) => {
     const previousHandle = selectedProductConfig?.Handle as string | undefined;
     // A scene id names the scene type ("UF-open-shelves-side-…"), which need not contain the cabinet type.
     const isSideShelf = (id: string) =>
@@ -489,7 +554,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
 
         if (ossIdsForLock.length > 0 && leavingNonGroove) {
-          setPendingOssHandleChange({ next: handleType, ossIds: ossIdsForLock });
+          setPendingOssHandleChange({ next: handleType, ossIds: ossIdsForLock, height });
           return;
         }
 
@@ -507,11 +572,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
     const ossIds = selectedProducts.filter(isSideShelf);
     if (isSwitchingAwayFromPto && ossIds.length > 0) {
-      setPendingOssHandleChange({ next: handleType, ossIds });
+      setPendingOssHandleChange({ next: handleType, ossIds, height });
       return;
     }
 
-    await requestHandleChange(handleType);
+    await requestHandleChange(handleType, height);
   };
 
   const closePendingOssHandleChange = () => {
@@ -520,7 +585,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const confirmPendingOssHandleChange = async () => {
     if (!pendingOssHandleChange) return;
-    const { next, ossIds } = pendingOssHandleChange;
+    const { next, ossIds, height } = pendingOssHandleChange;
     setPendingOssHandleChange(null);
 
     // The side shelves go through the composition command, which removes them from the scene
@@ -531,7 +596,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    await requestHandleChange(next);
+    await requestHandleChange(next, height);
   };
 
   useEffect(() => {
@@ -743,6 +808,69 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     vesselColor,
   ]);
 
+  // The collection's ui.json lists the selectors and their order (`styleSidebar.fields`); one with
+  // nothing to choose is left out.
+  const selectors: Record<StyleSidebarFieldId, ReactNode> = {
+    Width: (
+      <div className={s.contentItem} key="Width">
+        <div>Width</div>
+        <FilterSelection
+          label={"Width"}
+          options={widthDisplayOptions}
+          value={selectedDimensions.width ?? ""}
+          hintPlacement="left"
+          showHints={false}
+          onSelect={(value) => handleChangeWidth(value)}
+        />
+      </div>
+    ),
+    Depth: (
+      <div className={s.contentItem} key="Depth">
+        <div>Depth</div>
+        <FilterSelection
+          label={"Depth"}
+          options={depthDisplayOptions}
+          value={selectedDimensions.depth ?? ""}
+          hintPlacement="left"
+          showHints={false}
+          onSelect={(value) => handleChangeDepth(value)}
+        />
+      </div>
+    ),
+    Height: heightDisplayOptions.length > 0 && (
+      <div className={s.contentItem} key="Height">
+        <div>Height</div>
+        <FilterSelection
+          label={"Height"}
+          options={heightDisplayOptions}
+          value={selectedDimensions.height ?? ""}
+          hintPlacement="left"
+          showHints={false}
+          onSelect={(value) => handleChangeHeight(value)}
+        />
+      </div>
+    ),
+    Handle: !handlesDisabled && (
+      <div className={s.contentItem} key="Handle">
+        <div>Handle</div>
+        <FilterSelection
+          label={"Handle"}
+          options={handleOptions}
+          value={selectedProductConfig?.Handle as string | undefined}
+          hintPlacement="left"
+          showHints={false}
+          onSelect={(value) => {
+            if (value === undefined) return;
+            handleSetHandleType(String(value));
+          }}
+          onDisabledSelect={(value) => {
+            handleSetHandleType(String(value));
+          }}
+        />
+      </div>
+    ),
+  };
+
   return (
     <>
       <PopupCenterContent isOpening={handleLockNotice !== null} onClose={() => setHandleLockNotice(null)}>
@@ -848,59 +976,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           <ArrowRight width="16" />
         </div>
         <div className={s.content}>
-          <div className={s.contentItem}>
-            <div>Width</div>
-            <FilterSelection
-              label={"Width"}
-              options={widthDisplayOptions}
-              value={selectedDimensions.width ?? ""}
-              hintPlacement="left"
-              showHints={false}
-              onSelect={(value) => handleChangeWidth(value)}
-            />
-          </div>
-
-          <div className={s.contentItem}>
-            <div>Depth</div>
-            <FilterSelection
-              label={"Depth"}
-              options={depthDisplayOptions}
-              value={selectedDimensions.depth ?? ""}
-              hintPlacement="left"
-              showHints={false}
-              onSelect={(value) => handleChangeDepth(value)}
-            />
-          </div>
-
-          {/* <div className={s.contentItem}>
-          <div>Height</div>
-          <FilterSelection
-            label={"Height"}
-            options={dimensionOptions.height}
-            value={selectedDimensions.height}
-            onSelect={(value) => handleChangeHeight(value)}
-          />
-        </div> */}
-
-          {!handlesDisabled && (
-            <div className={s.contentItem}>
-              <div>Handle</div>
-              <FilterSelection
-                label={"Handle"}
-                options={handleOptions}
-                value={selectedProductConfig?.Handle as string | undefined}
-                hintPlacement="left"
-                showHints={false}
-                onSelect={(value) => {
-                  if (value === undefined) return;
-                  handleSetHandleType(String(value));
-                }}
-                onDisabledSelect={(value) => {
-                  handleSetHandleType(String(value));
-                }}
-              />
-            </div>
-          )}
+          {styleSidebarFields.map((fieldId) => selectors[fieldId])}
 
           <div className={`${s.bottomText} ${s.mobileBottomText}`}>
             Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet

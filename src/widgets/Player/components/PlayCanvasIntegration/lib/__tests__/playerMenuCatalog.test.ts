@@ -63,6 +63,14 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
+  it("resizes Width and Depth unless the collection's ui.json lists the sizes itself", () => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      expect(supportOf("urban-standard-height", flowId).resize).toEqual(["Width", "Depth"]);
+      // Urban Low Height lists Height too: its cabinets take two heights per handle.
+      expect(supportOf("urban-low-height", flowId).resize).toEqual(["Width", "Depth", "Height"]);
+    }
+  });
+
   it("leaves out what Class has no data for: the accessories page and a handle choice", () => {
     for (const flowId of CUSTOMIZATION_FLOW_IDS) {
       const { items } = supportOf("class", flowId);

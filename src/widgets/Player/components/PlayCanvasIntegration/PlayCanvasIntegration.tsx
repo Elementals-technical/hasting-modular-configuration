@@ -29,6 +29,7 @@ import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButt
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import {
   getDimensionOptions,
+  getHeightChoices,
   getCabinetCatalog,
   getActiveCountertopColor,
   getCountertopColorSku,
@@ -138,6 +139,7 @@ import {
   selectMessageOr,
   selectOptions,
   useActiveCollection,
+  type PlayerMenuResizeId,
 } from "@/entities/collection";
 import {
   resolveAttributeTarget,
@@ -690,6 +692,7 @@ export const PlayCanvasIntegration = ({
   }, []);
 
   const dimensionOptions = useAppSelector(getDimensionOptions);
+  const heightChoices = useAppSelector(getHeightChoices);
   const cabinetCatalog = useAppSelector(getCabinetCatalog);
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
@@ -1847,7 +1850,7 @@ export const PlayCanvasIntegration = ({
   // height it forces to the scene once. A handle changed by the rules reaches the scene
   // through the handle listener in optionsListener.ts.
   const handleSetHandleType = useCallback(
-    async (handleType: string) => {
+    async (handleType: string, preferredHeight?: number) => {
       const option = dimensionOptions.handles.find((h) => String(h.value) === handleType);
       if (option?.disabled) return;
 
@@ -1862,7 +1865,13 @@ export const PlayCanvasIntegration = ({
         }
 
         reportHandleChangeResult(
-          await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
+          await changeAttributeValue({
+            attributeId: "Handle",
+            value: handleType,
+            scope: "cabinet",
+            cabinetId,
+            ...(preferredHeight === undefined ? {} : { preferredHeight }),
+          }),
         );
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set handle type", error);
@@ -1879,6 +1888,40 @@ export const PlayCanvasIntegration = ({
       saveSnapshot,
       selectedProductConfig,
     ],
+  );
+
+  /**
+   * The cabinets of a composition share one height, so this resizes them all, as Depth does.
+   * A height of the other handle is a change of handle that ends at this height.
+   */
+  const handleSetHeight = useCallback(
+    async (height: number) => {
+      if (!productIds.length) return;
+      const choice = heightChoices.find((item) => item.height === height);
+      if (!choice) return;
+      if (selectedDimensions.height === height) {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      if (choice.changesHandle) {
+        await handleSetHandleType(choice.handle, height);
+        return;
+      }
+
+      try {
+        await saveSnapshot();
+        const result = await changeDimension({ attributeId: "Height", value: height, scope: "global" });
+        if (result.status !== "applied") {
+          console.warn("[PlayCanvasIntegration] The height was not changed", result);
+        }
+      } catch (error) {
+        console.error("[PlayCanvasIntegration] Failed to set height", error);
+      } finally {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+      }
+    },
+    [changeDimension, handleSetHandleType, heightChoices, productIds, saveSnapshot, selectedDimensions.height],
   );
 
   const handleCancelHandlePreview = useCallback(() => {
@@ -3251,30 +3294,45 @@ export const PlayCanvasIntegration = ({
     const canMoveRight =
       selectedIdx >= 0 && selectedIdx < orderedIds.length - 1 && !ossCannotMove && !isOssAtEdge(selectedIdx + 1);
 
+    const resizeItems: Record<PlayerMenuResizeId, DropdownItem> = {
+      Width: {
+        id: "resize-width",
+        label: "Width",
+        children: widthOptions.map((value) => ({
+          id: `resize-width-${value}`,
+          label: cmToInchLabel(Number(value)),
+          onClick: () => handleSetWidth(Number(value)),
+        })),
+      },
+      Depth: {
+        id: "resize-depth",
+        label: "Depth",
+        children: depthOptions.map((value) => ({
+          id: `resize-depth-${value}`,
+          label: cmToInchLabel(Number(value)),
+          onClick: () => handleSetDepth(Number(value)),
+        })),
+      },
+      Height: {
+        id: "resize-height",
+        label: "Height",
+        // A height is shown with its handle: one of the other handle selects that handle.
+        children: heightChoices.map(({ height, handle }) => ({
+          id: `resize-height-${height}`,
+          label: cmToInchLabel(height),
+          trailing: handleOptions.find((option) => option.value === handle)?.label ?? handle,
+          onClick: () => handleSetHeight(height),
+        })),
+      },
+    };
+
     const items: DropdownItem[] = [
       {
         id: "resize",
         label: "Resize",
-        children: [
-          {
-            id: "resize-width",
-            label: "Width",
-            children: widthOptions.map((value) => ({
-              id: `resize-width-${value}`,
-              label: cmToInchLabel(Number(value)),
-              onClick: () => handleSetWidth(Number(value)),
-            })),
-          },
-          {
-            id: "resize-depth",
-            label: "Depth",
-            children: depthOptions.map((value) => ({
-              id: `resize-depth-${value}`,
-              label: cmToInchLabel(Number(value)),
-              onClick: () => handleSetDepth(Number(value)),
-            })),
-          },
-        ],
+        // The sizes the collection's ui.json lists (`playerMenu.resize`), in its order; one with
+        // nothing to choose is dropped with its empty submenu.
+        children: menuSupport.resize.map((sizeId) => resizeItems[sizeId]),
       },
       ...(repositionStatus.supported
         ? [dragRepositionItem]
@@ -3389,6 +3447,7 @@ export const PlayCanvasIntegration = ({
     handleRemoveProducts,
     handleSetWidth,
     handleSetDepth,
+    handleSetHeight,
     productIds,
     handleMoveProduct,
     handleOpenCabinetStyle,
@@ -3407,6 +3466,8 @@ export const PlayCanvasIntegration = ({
     canDuplicateSelectedCabinet,
     widthOptions,
     depthOptions,
+    heightChoices,
+    menuSupport.resize,
     isPrebuilt,
     isDrawerCabinet,
     isOneOrTwoDrawerProduct,

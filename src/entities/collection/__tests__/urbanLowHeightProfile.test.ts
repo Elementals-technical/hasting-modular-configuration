@@ -66,6 +66,10 @@ describe("urban-low-height product profile", () => {
     expect(selectOptionValues(profile(), "Height")).toEqual(["38", "35", "28", "25"]);
   });
 
+  it("starts a cabinet at 38 cm, the height the models stand at", () => {
+    expect(profile().attributes.find(({ attributeId }) => attributeId === "Height")?.defaultValue).toBe("38");
+  });
+
   it("names every fluting by the product map's type A or B and maps it to its SKU code", () => {
     const fluting = profile().attributes.find(({ attributeId }) => attributeId === "DrawerPanelFluting");
 

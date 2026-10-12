@@ -21,7 +21,15 @@ import type {
  * `DividersStyle` is `drawer`. The wider set is used here; the contract needs the same
  * widening before B writes its UI description against three.
  */
-export type AttributeChange = { attributeId: string; value: AttributeValue } & (
+export type AttributeChange = {
+  attributeId: string;
+  value: AttributeValue;
+  /**
+   * With a Handle change the user made by choosing a height: the height the cabinets end at,
+   * when the new handle takes it. Without it the rules pick the nearest height of the handle.
+   */
+  preferredHeight?: number;
+} & (
   | { scope: "global" | "countertop" }
   | { scope: "basin"; sinkBaseId?: StableCabinetKey }
   | { scope: "cabinet"; cabinetId: StableCabinetKey }
@@ -30,11 +38,13 @@ export type AttributeChange = { attributeId: string; value: AttributeValue } & (
 
 /**
  * Dimensions are core scene commands, rather than ProductProfile options. Width is
- * owned by one cabinet; Depth is deliberately shared by the USH composition.
+ * owned by one cabinet; Depth and Height are deliberately shared by the composition
+ * (the scene gives every product the height it is sent).
  */
 export type DimensionChange =
   | { attributeId: "Width"; value: number; scope: "cabinet"; cabinetId: StableCabinetKey }
-  | { attributeId: "Depth"; value: number; scope: "global" };
+  | { attributeId: "Depth"; value: number; scope: "global" }
+  | { attributeId: "Height"; value: number; scope: "global" };
 
 /** One entry of the agreed set handed to I. */
 export type PlannedChange = {

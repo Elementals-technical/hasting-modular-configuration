@@ -137,6 +137,7 @@ export const evaluateChange = (
     value: String(change.value ?? ""),
     target: targetResult.target,
     selection: toSelection(state),
+    preferredHeight: change.preferredHeight,
     selectedProductIds: state.rootStateUI.product.productIds,
     catalog: getCabinetCatalog(state),
     profile: activeProfile,

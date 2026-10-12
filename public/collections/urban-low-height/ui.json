@@ -301,5 +301,11 @@
         }
       ]
     }
+  },
+  "styleSidebar": {
+    "fields": ["Width", "Depth", "Height", "Handle"]
+  },
+  "playerMenu": {
+    "resize": ["Width", "Depth", "Height"]
   }
 }

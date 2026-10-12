@@ -5,6 +5,7 @@ import { resolveCabinetTypeOfRuntimeId } from "@/entities/collection";
 import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/configuration";
 import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
 import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
+import { isHeightOfAnotherHandle } from "./slice";
 
 export const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.activeCabinetType;
 
@@ -31,6 +32,49 @@ export const getSelectedProducts = (state: RootState) => state.rootStateUI.produ
 export const getDrawerProduct = (state: RootState) => state.rootStateUI.product.activeDrawerProduct;
 
 export const getSelectedProductConfig = (state: RootState) => state.rootStateUI.product.selectedProductConfig;
+
+export type HeightChoice = {
+  height: number;
+  /** The handle a cabinet of this height has. */
+  handle: string;
+  /** Whether choosing this height replaces the handle chosen now. */
+  changesHandle: boolean;
+};
+
+const NO_HEIGHT_CHOICES: HeightChoice[] = [];
+
+/**
+ * Heights the user may choose between, when the handles of the active cabinet type take several
+ * (Urban Low Height: upper groove 38/28 cm, push-to-open 35/25 cm). A height of another handle is
+ * offered with that handle, which choosing it selects; a height withheld for any other reason is
+ * not offered. Empty when there is nothing to choose: one height, or a type whose heights no
+ * handle decides.
+ */
+export const getHeightChoices = createSelector(
+  [getDimensionOptions, getActiveCabinetRule, getSelectedProductConfig],
+  (options, rule, config): HeightChoice[] => {
+    const heightsByHandle = rule?.heightsByHandle ?? {};
+    if (Object.keys(heightsByHandle).length === 0) return NO_HEIGHT_CHOICES;
+
+    const currentHandle = typeof config?.Handle === "string" ? config.Handle : null;
+    const offeredHandles = options.handles.filter((option) => !option.disabled).map((option) => String(option.value));
+    const handleOf = (height: number, changesHandle: boolean): string | undefined => {
+      const handles = offeredHandles.filter((handle) => heightsByHandle[handle]?.includes(height));
+      return !changesHandle && currentHandle && handles.includes(currentHandle) ? currentHandle : handles[0];
+    };
+
+    const choices = options.height.flatMap((option): HeightChoice[] => {
+      const changesHandle = isHeightOfAnotherHandle(option);
+      if (option.disabled && !changesHandle) return [];
+
+      const height = Number(option.value);
+      const handle = handleOf(height, changesHandle);
+      return handle ? [{ height, handle, changesHandle }] : [];
+    });
+
+    return choices.length > 1 ? choices : NO_HEIGHT_CHOICES;
+  },
+);
 
 export const getCabinetColor = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColor;
 

@@ -96,6 +96,7 @@
     {
       "attributeId": "Height",
       "scope": "cabinet",
+      "defaultValue": "38",
       "options": [
         { "value": "38", "label": "38 cm", "order": 10 },
         { "value": "35", "label": "35 cm", "order": 20 },
