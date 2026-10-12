@@ -81,8 +81,18 @@ describe("urban-low-height runtime bindings", () => {
     expect(patchOf("TowelBarColor", "Gold")).toEqual({ TowelBarColor: "Gold" });
   });
 
-  it("record the countertop style, the fluting and the groove colour without a scene call", () => {
-    for (const attributeId of ["CountertopStyle", "DrawerPanelFluting", "HandleGrooveColor"]) {
+  it("send the groove colour to the composition and clear it with the scene's None", () => {
+    expect(resolveRuntimeBinding(ulhRuntimeBindings, "HandleGrooveColor", "Bianco LACM", "custom")).toMatchObject({
+      ok: true,
+      target: { kind: "all" },
+      patch: { HandleGrooveColor: "Bianco LACM" },
+    });
+    expect(patchOf("HandleGrooveColor", "")).toEqual({ HandleGrooveColor: "None" });
+    expect(patchOf("HandleGrooveColor", "None")).toEqual({ HandleGrooveColor: "None" });
+  });
+
+  it("record the countertop style and the fluting without a scene call", () => {
+    for (const attributeId of ["CountertopStyle", "DrawerPanelFluting"]) {
       expect(isStateOnlyResolution(resolveRuntimeBinding(ulhRuntimeBindings, attributeId, "x"))).toBe(true);
     }
   });

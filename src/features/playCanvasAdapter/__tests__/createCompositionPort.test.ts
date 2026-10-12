@@ -265,6 +265,7 @@ describe("createCompositionPort", () => {
           Handle: "handle_pto",
           Drawers: "1D",
           sinkType: "Top_HPLPrisma",
+          HandleGrooveColor: "Black",
           ProductType: "ULH-sink-cabinet",
           productType: "ULH-sink-cabinet",
         },
