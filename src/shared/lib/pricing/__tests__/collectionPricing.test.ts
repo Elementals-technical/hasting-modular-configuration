@@ -1221,6 +1221,35 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
       "VAN-URSTD-SC/1DW/UG/X-19.7W-20.9H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
     ]);
   });
+
+  it("orders a Lower slab over a low cabinet in its own colour, read from the Base Panel palette", () => {
+    const order = (materialId: string) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          URBAN_DUPLEX,
+          [cabinet("sb", "Sink-Base", 70, 28), cabinet("sc", "Sink-Cabinet", 90, 28)],
+          {
+            Series: [ofCabinet("sb", "URDPX"), ofCabinet("sc", "URDPX")],
+            Drawers: [ofCabinet("sb", "1D"), ofCabinet("sc", "1D")],
+            Handle: [ofCabinet("sb", "UG"), ofCabinet("sc", "UG")],
+            LateralPanelSide: [ofCabinet("sb", "L"), ofCabinet("sc", "R")],
+          },
+          { countertopRules, cabinetCovers: [{ widthCm: 90, cabinetIds: ["Sink-Cabinet-sc"], materialId }] },
+        ),
+      );
+    const coverSkusOf = (lines: PricingLine[]) =>
+      lines.filter(({ group }) => group === "cabinetCover").map(({ sku }) => sku);
+
+    // Soft-Touch is a cover material: 90 cm over a 50 cm deep cabinet, as Urban Low Height spells it.
+    expect(coverSkusOf(order("Bianco Calce DA ST").lines)).toEqual(["CT-URST-VES-35.4W-.5H-19.7D-ST-DA"]);
+
+    // HPL is a panel colour the decorative top does not come in: no SKU, and the total says so.
+    const hpl = order("Pulpis Chiaro TKH");
+    expect(coverSkusOf(hpl.lines)).toEqual([]);
+    expect(hpl.gaps).toContainEqual(
+      expect.objectContaining({ blocksTotal: true, reason: expect.stringContaining("cover") }),
+    );
+  });
 });
 
 describe("Lame legs, offered before they have a price", () => {

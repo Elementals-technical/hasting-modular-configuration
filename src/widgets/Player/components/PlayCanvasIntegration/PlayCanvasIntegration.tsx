@@ -565,7 +565,8 @@ export const PlayCanvasIntegration = ({
     setCountertopPopoverState((current) => ({ ...current, visible: false }));
     getSelectTool()?.setSelectedByName(productId, { mode: "replace" });
   }, []);
-  // Actual Lower covers (ULH), independent of the Upper's offset and finish.
+  // Actual Lower covers, independent of the Upper's offset and finish; a collection offers them by its SKU profile.
+  const offersCabinetCovers = useActiveCollection((collection) => Boolean(collection.catalog.skuProfile?.cabinetCover));
   const [publishCabinetCovers] = useState(() => {
     const bridge = createConfiguratorBridge();
     return createCabinetCoverPublisher({
@@ -616,7 +617,7 @@ export const PlayCanvasIntegration = ({
     const stop = api.on("change", ({ state }) => update(state), { emitCurrent: true });
     // cabinetCover has no public change event. Read settled covers while the player is mounted,
     // so material-only changes and restored multi-level presets also refresh Summary/pricing.
-    const coverPoll = activeCollectionId === "urban-low-height"
+    const coverPoll = offersCabinetCovers
       ? window.setInterval(() => {
           if (!disposed && !countertopEditingRef.current) {
             void Promise.resolve(api.getState())
@@ -640,7 +641,7 @@ export const PlayCanvasIntegration = ({
       setCabinetCoverRuntime(null);
       setCountertopRuntimeState(null);
     };
-  }, [activeCollectionId, countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCabinetCovers, publishCountertopSize]);
+  }, [activeCollectionId, countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, offersCabinetCovers, publishCabinetCovers, publishCountertopSize]);
   const countertopMovement = useCountertopMovementMode(getCountertopApi, isPlayCanvasReady);
   const countertopMovementMode = countertopMovement.mode;
   useEffect(() => {

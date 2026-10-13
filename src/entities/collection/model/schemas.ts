@@ -438,7 +438,7 @@ export const collectionSkuProfileSchema = z
     /** The side panels, for a collection that offers them. */
     sidePanel: z.union([pricedAsSchema, ownSidePanelSchema]).optional(),
     /**
-     * The scene's decorative lower covers (Urban Low Height), independently coloured and ordered
+     * The scene's decorative lower covers (Urban Low Height, Urban Duplex), independently coloured and ordered
      * as `CT-{prefix}{material}-VES-{W}W-{thickness}H-{D}D-{material}-{colour}`.
      */
     cabinetCover: z
@@ -448,6 +448,8 @@ export const collectionSkuProfileSchema = z
         thicknessIn: z.number().positive(),
         /** Confirmed decorative-cover materials, not the upper countertop's material matrix. */
         materialSkus: z.array(z.string().trim().min(1)).min(1),
+        /** The cabinet colour attribute whose palette the cover takes; `CabinetColor` when omitted. */
+        colorAttributeId: z.string().trim().min(1).optional(),
       })
       .strict()
       .optional(),

@@ -23,6 +23,7 @@ import {
   createConfiguratorColorReader,
   isChosenColor,
   OPEN_SIDE_SHELF_SIDE,
+  resolveCabinetCoverColorAttributeId,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
@@ -438,11 +439,12 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const cover = skuProfile.cabinetCover;
   if (cover && input.cabinetCovers?.length) {
     const covers = new Map<string, { quantity: number; totalWidthCm: number }>();
+    const colorAttributeId = resolveCabinetCoverColorAttributeId(cover);
     let unpriced = false;
     input.cabinetCovers.forEach(({ widthCm: coverWidthCm, cabinetIds, materialId }) => {
-      const color = materialId ? (normalizeOptionValue(profile, "CabinetColor", materialId) ?? materialId) : null;
+      const color = materialId ? (normalizeOptionValue(profile, colorAttributeId, materialId) ?? materialId) : null;
       const materialSku = color
-        ? resolveCollectionColorMaterial(skuProfile, profile, "CabinetColor", color, readConfiguratorColor)
+        ? resolveCollectionColorMaterial(skuProfile, profile, colorAttributeId, color, readConfiguratorColor)
         : null;
       const colorCode = color ? resolveCollectionColorCode(skuProfile, color) : null;
       const depths = cabinetIds.map((id) => {

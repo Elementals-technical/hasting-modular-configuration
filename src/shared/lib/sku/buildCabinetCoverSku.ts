@@ -12,6 +12,10 @@ export type CabinetCoverSkuInput = {
   colorCode: string | null;
 };
 
+/** The cabinet colour attribute a collection's covers take their palette and material codes from. */
+export const resolveCabinetCoverColorAttributeId = (cover: { colorAttributeId?: string }): string =>
+  cover.colorAttributeId ?? "CabinetColor";
+
 const positive = (value: number | null): value is number =>
   typeof value === "number" && Number.isFinite(value) && value > 0;
 

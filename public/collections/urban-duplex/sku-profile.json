@@ -11,7 +11,8 @@
     "Open Shelf VAN-UROS-<2S|1S>-<W>-<H>-<D> (2S at 56/53 cm, 1S at 38/28 cm) in the Base Panel colour and Open Side Shelf VAN-UROSS-<L|R>-5.9W-<H>-<D> in the Lateral Panel colour, as the renders show them; Pricing gives them a single CAB element",
     "Hasting Master File [Urban Duplex]: the Base Panel and Lateral Panel colours are the 232 cabinet colours of Urban Standard Height and Urban Low Height, coded as those code them",
     "Configurator 13 (modular-config-phase-2-materials-(duplex)): the material SKU of each cabinet and countertop colour",
-    "Accessories Pricing (Urban Standard Height): faucet holes, hole cutout and towel bar use the Urban Standard Height SKUs"
+    "Accessories Pricing (Urban Standard Height): faucet holes, hole cutout and towel bar use the Urban Standard Height SKUs",
+    "Urban Duplex product map (P1005 as Urban Low Height defines it; Ryan ULH positioning section 2.8 and Block 2 section 3): the decorative Lower top of an uncovered low cabinet is Urban Low Height's, CT-UR{material}-VES-{W}W-.5H-{D}D-{material}-{colour} in the materials 3D/LACM/LACG/ST/BM/ESS, until the client confirms it for Urban Duplex (DUP-TOP-01); it takes the Base Panel palette, the same 232 colours as the Lateral Panel's, until DUP-TOP-03"
   ],
   "cabinet": {
     "series": "URDPX",
@@ -368,6 +369,12 @@
   },
   "towelBar": {
     "pricedAs": "urban-standard-height"
+  },
+  "cabinetCover": {
+    "prefix": "UR",
+    "thicknessIn": 0.5,
+    "materialSkus": ["3D", "LACM", "LACG", "ST", "BM", "ESS"],
+    "colorAttributeId": "BasePanelColor"
   },
   "dividers": {},
   "gaps": [
