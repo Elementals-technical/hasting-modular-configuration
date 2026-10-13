@@ -97,11 +97,10 @@ const CASES: Case[] = [
     profile: parseProfile(makoProfileDocument),
     bindings: makoRuntimeBindings,
     sinkBaseSceneType: "Mako-sink-cabinet",
+    // The Mako scene paints the handles and legs of every cabinet at once, so each is chosen once.
     changes: (first, second) => [
       { attributeId: "HandleColor", target: { scope: "cabinet", cabinetId: first }, value: "Gold" },
-      { attributeId: "HandleColor", target: { scope: "cabinet", cabinetId: second }, value: "Silver" },
-      { attributeId: "LegColor", target: { scope: "cabinet", cabinetId: first }, value: "Silver" },
-      { attributeId: "LegColor", target: { scope: "cabinet", cabinetId: second }, value: "Gold" },
+      { attributeId: "LegColor", target: { scope: "cabinet", cabinetId: second }, value: "Silver" },
       { attributeId: "sinkType", target: { scope: "basin", sinkBaseId: second }, value: "LB575" },
     ],
   },
@@ -228,6 +227,25 @@ describe.each(CASES)("$collectionId: change → save → open", (testCase) => {
       return restored === value ? [] : [{ attributeId, target, saved: value, restored }];
     });
     expect(lost).toEqual([]);
+  });
+
+  it("brings a value of the whole composition back to every cabinet", async () => {
+    const { addressed } = await givenChanges(testCase);
+    const record = savedRecordFromState(testCase);
+
+    startOver();
+    openCollection(testCase);
+    await restoreRecord(record);
+
+    const cabinets = getCabinetEntries(store.getState());
+    const shared = addressed.filter(({ attributeId }) => attributeId === "HandleColor" || attributeId === "LegColor");
+    const held = shared.map(({ attributeId }) =>
+      cabinets.map(({ stableKey }) =>
+        getAttributeValue(store.getState(), attributeId, { scope: "cabinet", cabinetId: stableKey }),
+      ),
+    );
+
+    expect(held).toEqual(shared.map(({ value }) => cabinets.map(() => value)));
   });
 
   it("is not opened into another collection", async () => {

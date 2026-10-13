@@ -19,6 +19,7 @@
   },
   "defaults": {
     "CabinetColor": "Antracite 400 MT",
+    "HandleColor": "Antracite 400 MT",
     "CountertopColor": "Nero 433 GL",
     "CountertopStyle": "integrated",
     "sinkType": "VA005"

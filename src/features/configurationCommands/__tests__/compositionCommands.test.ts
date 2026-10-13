@@ -31,6 +31,7 @@ import {
 import { buildCollectionPricingLines } from "@/shared/lib/pricing";
 import { collectionPricingInput, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 
+import { changeAttribute } from "../lib/changeAttribute";
 import {
   addCabinet,
   adoptComposition,
@@ -387,6 +388,196 @@ describe("composition commands", () => {
         });
         // Adopting keeps the composition's values to the caller: a restore adopts saved scene configs.
         expect(product().selectedProductConfig?.Handle).toBeUndefined();
+      });
+    });
+
+    /**
+     * The Mako scene paints the handles and legs of every cabinet at once. The state holds such a
+     * value at every cabinet too, so the order names the colour the scene shows for each of them.
+     */
+    describe("a value the scene gives every cabinet", () => {
+      beforeEach(() => {
+        store.dispatch(setActiveProfile(makoProfile));
+        store.dispatch(setActiveCollectionId("mako"));
+        store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
+      });
+
+      const heldBy = (attributeId: string) =>
+        getCabinetEntries(store.getState()).map(({ stableKey }) => cabinetValue(attributeId, stableKey));
+
+      /** Cabinet SKUs without their size, which these tests do not vary. */
+      const handleBlocks = () => {
+        const state = store.getState();
+        const input = collectionPricingInput(
+          MAKO,
+          getCabinetEntries(state).map(({ stableKey, runtimeId }) => ({
+            stableKey,
+            runtimeId,
+            size: { width: 60, height: 52, depth: 52 },
+          })),
+          { ...getValuesByAttributeId(state) },
+          {
+            runtimeBindings: makoRuntimeBindings,
+            selectedProductConfig: product().selectedProductConfig,
+            placedCabinetStyles: product().placedCabinetStyles,
+          },
+        );
+
+        return buildCollectionPricingLines(input)
+          .lines.filter(({ group }) => group === "cabinet")
+          .map(({ sku }) => sku.replace(/^.*?-(HDL-.*)$/, "$1"));
+      };
+
+      const chooseHandleColor = async (
+        { runtime, deps }: ReturnType<typeof setup>,
+        value: string,
+        cabinet = getCabinetEntries(store.getState())[0],
+      ) =>
+        changeAttribute(
+          { attributeId: "HandleColor", value, scope: "cabinet", cabinetId: cabinet.stableKey },
+          { getState: deps.getState, dispatch: deps.dispatch, runtime: runtime.port, flow: "custom" },
+        );
+
+      it("is recorded at every cabinet when a field changes it, and sent to the scene once", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+
+        const result = await chooseHandleColor(fixture, "Gold");
+
+        expect(result.status).toBe("applied");
+        expect(fixture.runtime.calls).toHaveLength(1);
+        expect(fixture.runtime.calls[0].map(({ attributeId, value }) => [attributeId, value])).toEqual([
+          ["HandleColor", "Gold"],
+        ]);
+        // Before, only the first cabinet took the new colour and the others kept the model's.
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+      });
+
+      it("is recorded at every cabinet whichever cabinet the change names", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+
+        await chooseHandleColor(fixture, "Gold", getCabinetEntries(store.getState())[2]);
+
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold"]);
+      });
+
+      it("stays with the composition when its first cabinet is removed", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await chooseHandleColor(fixture, "Gold");
+
+        await removeCabinets([product().productIds[0]], fixture.deps);
+
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL"]);
+      });
+
+      it("goes to a cabinet added later, in the scene and in the state", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await chooseHandleColor(fixture, "Gold");
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2D" } },
+            placement: { kind: "end" },
+          },
+          fixture.deps,
+        );
+
+        // The model stands on legs in the cabinet colour, and so does the cabinet that joins it.
+        expect(lastCall(fixture.composition)).toMatchObject({
+          op: "add",
+          product: { config: { Width: 40, Drawers: "2", HandleColor: "Gold", LegColor: "None" } },
+        });
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+        expect(heldBy("LegColor")).toEqual(["None", "None", "None", "None"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+      });
+
+      it("starts the first cabinet of an empty composition at the collection's handle colour", async () => {
+        const { composition, deps } = setup();
+
+        await addCabinet(
+          { product: { productType: "Sink-Base", config: { Width: 60, Drawers: "2D" } }, placement: { kind: "end" } },
+          deps,
+        );
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toEqual({
+          Width: 60,
+          Drawers: "2",
+          HandleColor: "Antracite 400 MT",
+        });
+        expect(heldBy("HandleColor")).toEqual(["Antracite 400 MT"]);
+        // Legs have no starting value: a cabinet stands on them only once they are chosen.
+        expect(heldBy("LegColor")).toEqual([undefined]);
+        expect(handleBlocks()).toEqual(["HDL-LACM-400"]);
+      });
+
+      it("keeps the value a copied cabinet carries, and records the composition's", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await chooseHandleColor(fixture, "Gold");
+
+        // A duplicate is placed with the scene config of its source, which names the scene material.
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Drawers: "2D", HandleColor: "Gold", LegColor: "" } },
+            placement: { kind: "end" },
+          },
+          fixture.deps,
+        );
+
+        const call = lastCall(fixture.composition);
+        expect(call.op === "add" && call.product.config).toMatchObject({ HandleColor: "Gold", LegColor: "None" });
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+      });
+
+      it("does not put legs back on a cabinet that joins a composition whose legs were switched off", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await changeAttribute(
+          {
+            attributeId: "LegColor",
+            value: "",
+            scope: "cabinet",
+            cabinetId: getCabinetEntries(store.getState())[0].stableKey,
+          },
+          {
+            getState: fixture.deps.getState,
+            dispatch: fixture.deps.dispatch,
+            runtime: fixture.runtime.port,
+            flow: "custom",
+          },
+        );
+        expect(heldBy("LegColor")).toEqual(["", "", ""]);
+
+        await addCabinet(
+          { product: { productType: "Sink-Cabinet", config: { Drawers: "2D" } }, placement: { kind: "end" } },
+          fixture.deps,
+        );
+
+        const call = lastCall(fixture.composition);
+        expect(call.op === "add" && Object.keys(call.product.config)).not.toContain("LegColor");
+      });
+
+      it("adds nothing to a cabinet of a collection without such values", async () => {
+        store.dispatch(setActiveProfile(ushProfile));
+        store.dispatch(setActiveCollectionId("urban-standard-height"));
+        store.dispatch(setActiveRuntimeBindings(ushRuntimeBindings));
+        const { composition, deps } = setup(["cab-a"]);
+
+        await addCabinet(
+          { product: { productType: "Sink-Base", config: { Width: 60, Drawers: "1D" } }, placement: { kind: "end" } },
+          deps,
+        );
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toEqual({ Width: 60, Drawers: "1" });
+        expect(getValuesByAttributeId(store.getState())).toEqual({});
       });
     });
 
