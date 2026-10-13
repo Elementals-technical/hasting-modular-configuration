@@ -10,11 +10,14 @@ import { rootReducer } from "@/app/store/reducer";
 import { parseProductProfile, parseRuntimeBindings, type ProductProfile } from "@/entities/collection";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
+import { getCabinetEntries, setAttributeValue, syncCabinets } from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { getHeightChoices } from "@/entities/product/model/store/selectors";
+import { selectPlacedSeriesCabinets, selectPlacedSeriesHeights } from "@/entities/product/model/store/seriesCabinets";
 import {
   addProductId,
+  recordComposition,
   replaceCollectionData,
   setActiveCabinetType,
   setSelectedProductConfig,
@@ -147,5 +150,74 @@ describe("getHeightChoices", () => {
     );
 
     expect(getHeightChoices(state)).toEqual([]);
+  });
+});
+
+/**
+ * An Urban Duplex composition with a side cabinet Urban Standard Height or Urban Low Height
+ * supplies. The cabinets share a height, and that cabinet comes in the heights of its series only.
+ */
+describe("the heights beside a cabinet of another series", () => {
+  const SINK_BASE = "UD-sink-cabinet-test1";
+  const SIDE_CABINET = "UD-side-cabinet-test2";
+
+  /** A one-drawer sink base and a side cabinet of `series`; one more one-drawer cabinet is being added. */
+  const withSideCabinetOf = (series: string) => {
+    let state = rootReducer(undefined, { type: "@@INIT" });
+    state = rootReducer(state, replaceCollectionData({ profile: duplexProfile, cabinetCatalog: duplexCatalog }));
+    state = rootReducer(
+      state,
+      recordComposition({
+        productIds: [SINK_BASE, SIDE_CABINET],
+        placedCabinetStyles: { [SINK_BASE]: "1", [SIDE_CABINET]: "1" },
+      }),
+    );
+    state = rootReducer(state, syncCabinets([SINK_BASE, SIDE_CABINET]));
+    const [sinkBase, sideCabinet] = getCabinetEntries(state);
+    for (const [cabinet, value] of [
+      [sinkBase, "URDPX"],
+      [sideCabinet, series],
+    ] as const) {
+      state = rootReducer(
+        state,
+        setAttributeValue({ attributeId: "Series", target: { scope: "cabinet", cabinetId: cabinet.stableKey }, value }),
+      );
+    }
+    state = rootReducer(state, setActiveCabinetType("Sink-Cabinet"));
+    return rootReducer(state, setSelectedProductConfig({ Handle: "UG", Drawers: "1D" }));
+  };
+
+  it("finds the cabinet by the series the state holds for it, with the rule of that series", () => {
+    const placed = selectPlacedSeriesCabinets(withSideCabinetOf("URLH"));
+
+    expect(placed).toEqual([
+      {
+        runtimeId: SIDE_CABINET,
+        drawers: "1",
+        rule: expect.objectContaining({ code: "Sink-Cabinet", series: "URLH" }),
+      },
+    ]);
+    // The collection's own cabinets are not among them.
+    expect(selectPlacedSeriesCabinets(withSideCabinetOf("URDPX"))).toEqual([]);
+    expect(selectPlacedSeriesHeights(withSideCabinetOf("URDPX"))).toBeNull();
+  });
+
+  it("keeps the composition at 53 cm beside an Urban Standard Height one-drawer cabinet", () => {
+    const state = withSideCabinetOf("URSTD");
+
+    expect(selectPlacedSeriesHeights(state)).toEqual([53]);
+    // One height is left, so there is nothing to choose.
+    expect(getHeightChoices(state)).toEqual([]);
+  });
+
+  it("leaves the Slim heights beside an Urban Low Height cabinet", () => {
+    const state = withSideCabinetOf("URLH");
+
+    expect(selectPlacedSeriesHeights(state)).toEqual([38, 28]);
+    expect(getHeightChoices(state)).toEqual([28, 38]);
+  });
+
+  it("leaves all three heights of one drawer while every cabinet is the collection's own", () => {
+    expect(getHeightChoices(withSideCabinetOf("URDPX"))).toEqual([28, 38, 53]);
   });
 });

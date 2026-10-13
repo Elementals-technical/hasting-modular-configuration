@@ -196,14 +196,24 @@
       { "value": "Sink-Cabinet", "when": { "Height": "53" }, "image": "images/cabinet/side-cabinet-53.png" },
       { "value": "Sink-Cabinet", "when": { "Height": "38" }, "image": "images/cabinet/side-cabinet-38.png" },
       { "value": "Sink-Cabinet", "when": { "Height": "28" }, "image": "images/cabinet/side-cabinet-28.png" }
+    ],
+    "Drawers": [
+      { "value": "2", "when": { "Series": "URSTD" }, "image": "images/cabinet-style/urban-standard-2-drawer.png" },
+      { "value": "1", "when": { "Series": "URSTD" }, "image": "images/cabinet-style/urban-standard-1-drawer.png" },
+      {
+        "value": "1+inner",
+        "when": { "Series": "URSTD" },
+        "image": "images/cabinet-style/urban-standard-1-drawer.png"
+      },
+      { "value": "1", "when": { "Series": "URLH" }, "image": "images/cabinet-style/urban-low-height-1-drawer.png" }
     ]
   },
   "styleSidebar": {
     "fields": ["Width", "Depth", "Height", "Handle"],
-    "attributes": ["LateralPanelSide"]
+    "attributes": [{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }]
   },
   "playerMenu": {
     "resize": ["Width", "Depth", "Height"],
-    "attributes": ["LateralPanelSide"]
+    "attributes": [{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }]
   }
 }

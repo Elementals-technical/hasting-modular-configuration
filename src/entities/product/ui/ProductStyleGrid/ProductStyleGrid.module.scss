@@ -5,6 +5,21 @@
   grid-row-gap: 12px;
 }
 
+.groupSection + .groupSection {
+  margin-top: 16px;
+}
+
+.groupTitle {
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e5e6ea;
+  color: #282828;
+  font-family: Poppins;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 20px;
+}
+
 @media (max-width: 1400px) {
   .optionsGrid {
     grid-template-columns: repeat(3, 1fr);
@@ -22,6 +37,12 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-column-gap: 8px;
     grid-row-gap: 8px;
+  }
+
+  .groupTitle {
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 16px;
   }
 }
 

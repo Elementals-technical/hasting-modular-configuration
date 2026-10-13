@@ -1,4 +1,8 @@
-import type { CustomizationSchema } from "../../model/customizationSchema";
+import {
+  perCabinetAttributeId,
+  type CustomizationSchema,
+  type PerCabinetAttribute,
+} from "../../model/customizationSchema";
 import type { CollectionDiagnostic } from "../../model/diagnostics";
 import type { RuntimeBindingSet } from "../../model/runtimeBindings";
 import type { ProductProfile } from "../../model/productProfile";
@@ -57,9 +61,14 @@ export const validateCollectionRuntimeContract = (
     message: issueMessage(issue),
   }));
 
+const perCabinetAttributesOf = (schema?: CustomizationSchema): PerCabinetAttribute[] => [
+  ...(schema?.styleSidebar?.attributes ?? []),
+  ...(schema?.playerMenu?.attributes ?? []),
+];
+
 /** The cabinet values the style sidebar and the player menu change for one cabinet alone. */
 export const collectPerCabinetAttributeIds = (schema?: CustomizationSchema): string[] => [
-  ...new Set([...(schema?.styleSidebar?.attributes ?? []), ...(schema?.playerMenu?.attributes ?? [])]),
+  ...new Set(perCabinetAttributesOf(schema).map(perCabinetAttributeId)),
 ];
 
 /**
@@ -70,8 +79,8 @@ export const validatePerCabinetAttributes = (
   profile: ProductProfile,
   set: RuntimeBindingSet,
   schema?: CustomizationSchema,
-): CollectionDiagnostic[] =>
-  collectPerCabinetAttributeIds(schema).flatMap((attributeId): CollectionDiagnostic[] => {
+): CollectionDiagnostic[] => [
+  ...collectPerCabinetAttributeIds(schema).flatMap((attributeId): CollectionDiagnostic[] => {
     const binding = selectRuntimeBinding(set, attributeId);
     const isPerCabinet =
       selectAttribute(profile, attributeId)?.scope === "cabinet" && binding?.status === "bound" && binding.perProduct;
@@ -87,4 +96,23 @@ export const validatePerCabinetAttributes = (
             message: `"${attributeId}" is offered for one cabinet alone, but is not a cabinet value bound perProduct`,
           },
         ];
-  });
+  }),
+  // What decides whether a cabinet is offered a value is read at that cabinet, so it is one of its own.
+  ...[
+    ...new Set(
+      perCabinetAttributesOf(schema).flatMap((entry) => (typeof entry === "string" ? [] : Object.keys(entry.when))),
+    ),
+  ].flatMap((attributeId): CollectionDiagnostic[] =>
+    selectAttribute(profile, attributeId)?.scope === "cabinet"
+      ? []
+      : [
+          {
+            code: "runtime.unknown-condition-attribute",
+            severity: "error",
+            dataset: "customization",
+            dataPath: attributeId,
+            message: `"${attributeId}" decides which cabinets are offered a value, but is not a cabinet value of the profile`,
+          },
+        ],
+  ),
+];

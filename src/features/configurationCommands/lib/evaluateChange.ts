@@ -16,6 +16,7 @@ import {
 } from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
+import { seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { checkAvailability } from "./availabilityGates";
 import { buildChangePlan } from "./buildChangePlan";
@@ -68,6 +69,7 @@ const toSelection = (state: RootState): Selection => {
     height: product.selectedDimensions.height ?? 0,
     drawers: normalizeOptionValue(profile, "Drawers", config?.Drawers),
     handle: normalizeOptionValue(profile, "Handle", config?.Handle),
+    series: seriesOfConfig(config),
   };
 };
 

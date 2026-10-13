@@ -10,7 +10,11 @@ import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabin
 import { normalizeDividerType } from "@/features/dividers/model/normalize";
 import type { DividerType } from "@/features/dividers/model/types";
 import { hasCapability, normalizeOptionValue, selectAttribute, type ProductProfile } from "@/entities/collection";
-import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import {
+  SERIES_ATTRIBUTE_ID,
+  seriesOfConfig,
+  type ConfiguratorCatalog,
+} from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
 
@@ -185,6 +189,7 @@ const toSelection = (state: ProductState): Selection => ({
   height: state.selectedDimensions.height ?? 0,
   drawers: mapDrawerConfigToRule(state.selectedProductConfig?.Drawers, state.activeProfile),
   handle: mapHandleConfigToRule(state.selectedProductConfig?.Handle, state.activeProfile),
+  series: seriesOfConfig(state.selectedProductConfig),
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
@@ -514,6 +519,18 @@ const productSlice = createSlice({
 
       state.activeCabinetType = newCabinetTypeId;
 
+      // A series that supplies no cabinet of the new type does not go with it: the next cabinet is
+      // the collection's own (an Urban Standard side cabinet was configured, a Sink Base is next).
+      const series = seriesOfConfig(state.selectedProductConfig);
+      const suppliesType = state.cabinetCatalog.typeCabinetRules.some(
+        (rule) => rule.code === newCabinetTypeId && rule.series === series,
+      );
+      if (series && !suppliesType && state.selectedProductConfig) {
+        state.selectedProductConfig = Object.fromEntries(
+          Object.entries(state.selectedProductConfig).filter(([key]) => key !== SERIES_ATTRIBUTE_ID),
+        );
+      }
+
       // When switching to a new cabinet type, set a default height if current height is invalid
       if (newCabinetTypeId !== previousCabinetType && newCabinetTypeId !== null) {
         const cabinetRule = state.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === newCabinetTypeId);
@@ -629,6 +646,7 @@ const productSlice = createSlice({
             cabinetType: state.activeCabinetType,
             drawers,
             handle,
+            series: seriesOfConfig(state.selectedProductConfig),
           });
 
         const targetHeight = forcedHeightFor(nextHandle);

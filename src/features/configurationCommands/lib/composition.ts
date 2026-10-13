@@ -1,13 +1,15 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
-import { normalizeOptionValue, selectAttribute } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectDefaultValue } from "@/entities/collection";
 import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
   getCabinetEntries,
+  getValuesByAttributeId,
+  isSameTarget,
   markRuntimeOutOfSync,
   requestSceneStateSync,
   resolveStableKey,
@@ -25,7 +27,12 @@ import type {
 import { recordComposition } from "@/entities/product/model/store/slice";
 
 import { recordCarriedChanges, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
-import { selectBroadcastValues, selectPlacedWithValues } from "./compositionValues";
+import {
+  isOwnCabinetValue,
+  NOT_CARRIED_ATTRIBUTE_IDS,
+  selectBroadcastValues,
+  selectPlacedWithValues,
+} from "./compositionValues";
 import { recordValues, replayValues, type ReplayValues } from "./replayValues";
 import { toSceneValue } from "./sceneValue";
 import type { PlannedChange } from "../model/types";
@@ -143,9 +150,6 @@ const drawerStyles = (
         }),
       );
 
-/** Sizes are read from the scene and drawer styles go with the composition, so neither is carried. */
-const NOT_CARRIED_ATTRIBUTE_IDS = new Set(["Width", "Height", "Depth", "Drawers"]);
-
 type CarriedValues = {
   /** Values of a cabinet's own, e.g. a Mako handle colour: recorded at the cabinet that carries them. */
   perCabinet: PlannedChange[];
@@ -251,6 +255,42 @@ const recordInherited = (
       value: isAttributeValue(own) ? (normalizeOptionValue(profile, attributeId, own) ?? own) : value,
       origin: "requested",
     };
+  });
+  recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
+};
+
+/**
+ * Records at a cabinet that joined the composition the values that are its own
+ * (`isOwnCabinetValue`): the series it was placed as, the collection's own where its config names
+ * none. The scene sent them to that product alone, so no other cabinet reads them.
+ *
+ * A cabinet that holds none yet (a shelf of a model, a cabinet placed before the state kept
+ * them) is recorded as the collection's own, so that it does not read the newcomer's.
+ */
+const recordOwnValues = (deps: CompositionDeps, runtimeId: string, config: Readonly<Record<string, unknown>>): void => {
+  const state = deps.getState();
+  const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
+  if (!profile || !bindings) return;
+
+  const cabinets = getCabinetEntries(state);
+  const recorded = getValuesByAttributeId(state);
+  const changes = profile.attributes.flatMap(({ attributeId }): PlannedChange[] => {
+    if (!isOwnCabinetValue(profile, bindings, attributeId)) return [];
+
+    return cabinets.flatMap((cabinet): PlannedChange[] => {
+      const target = { scope: "cabinet", cabinetId: cabinet.stableKey } as const;
+      const isNew = cabinet.runtimeId === runtimeId;
+      if (!isNew && recorded[attributeId]?.some((entry) => isSameTarget(entry.target, target))) return [];
+
+      const placedWith = isNew ? config[attributeId] : undefined;
+      const value =
+        isAttributeValue(placedWith) && placedWith !== null && placedWith !== ""
+          ? (normalizeOptionValue(profile, attributeId, placedWith) ?? placedWith)
+          : selectDefaultValue(profile, attributeId);
+
+      return value === "" ? [] : [{ attributeId, target, value, origin: "requested" }];
+    });
   });
   recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
 };
@@ -407,7 +447,10 @@ export const addCabinet = async (
     inSceneOrder(expected, result.scene),
     runtimeId && style ? { [runtimeId]: style } : {},
   );
-  if (runtimeId) recordInherited(deps, runtimeId, inherited, product.config);
+  if (runtimeId) {
+    recordInherited(deps, runtimeId, inherited, product.config);
+    recordOwnValues(deps, runtimeId, product.config);
+  }
 
   return settleValues(deps, recorded, { afterPlacement, record });
 };

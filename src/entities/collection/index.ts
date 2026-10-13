@@ -176,6 +176,7 @@ export type {
   OptionImageVariants,
   CustomizationPlayerMenu,
   CustomizationStyleSidebar,
+  PerCabinetAttribute,
   PlayerMenuItemId,
   PlayerMenuResizeId,
   StyleSidebarFieldId,
@@ -187,6 +188,7 @@ export {
   PLAYER_MENU_ITEM_IDS,
   PLAYER_MENU_RESIZE_IDS,
   STYLE_SIDEBAR_FIELD_IDS,
+  perCabinetAttributeId,
 } from "./model/customizationSchema";
 export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
 

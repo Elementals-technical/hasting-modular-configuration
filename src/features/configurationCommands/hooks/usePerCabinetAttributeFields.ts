@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { useActiveCollection } from "@/entities/collection";
+import { useActiveCollection, type PerCabinetAttribute } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries, getValuesByAttributeId } from "@/entities/configuration";
 import type { StableCabinetKey } from "@/entities/configuration";
 import { useAppSelector } from "@/shared/hooks/store/redux";
@@ -11,11 +11,12 @@ const NO_FIELDS: PerCabinetAttributeField[] = [];
 
 /**
  * The cabinet values the active collection offers for one cabinet alone, as a selector shows
- * them for `cabinetId` — or for the cabinet being added, when `null`.
+ * them for `cabinetId` — or for the cabinet being added, when `null`, whose config is `pending`.
  */
 export const usePerCabinetAttributeFields = (
-  attributeIds: readonly string[] | undefined,
+  attributes: readonly PerCabinetAttribute[] | undefined,
   cabinetId: StableCabinetKey | null,
+  pending: Readonly<Record<string, unknown>> | null = null,
 ): PerCabinetAttributeField[] => {
   const schema = useActiveCollection((collection) => collection.catalog.customization ?? null);
   const profile = useAppSelector(getActiveProductProfile);
@@ -24,9 +25,9 @@ export const usePerCabinetAttributeFields = (
 
   return useMemo(
     () =>
-      attributeIds?.length
-        ? buildPerCabinetAttributeFields({ profile, schema, recorded, firstCabinetId, attributeIds, cabinetId })
+      attributes?.length
+        ? buildPerCabinetAttributeFields({ profile, schema, recorded, firstCabinetId, attributes, cabinetId, pending })
         : NO_FIELDS,
-    [attributeIds, cabinetId, firstCabinetId, profile, recorded, schema],
+    [attributes, cabinetId, firstCabinetId, pending, profile, recorded, schema],
   );
 };

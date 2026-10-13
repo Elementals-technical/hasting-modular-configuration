@@ -1,16 +1,19 @@
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 
+import type { RootState } from "@/app/store";
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { selectOptionImageContext } from "@/entities/product/model/store/derivedSelectors";
 import {
+  getCabinetCatalog,
   getCountertopColorSku,
   getCountertopStyle,
   getDimensionOptions,
   getSelectedDimensions,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
+import { findCabinetRule, SERIES_ATTRIBUTE_ID } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
   filterDepthValuesByCountertopRules,
   useCountertopRules,
@@ -114,6 +117,17 @@ const styleToDescription = (style?: string | null) => {
 
 const cmToInches = (cm: number) => Number((cm / 2.54).toFixed(1));
 
+/** The widths of the cabinet `series` supplies of a type, in inches; null for the collection's own. */
+const selectSeriesWidthsText = (state: RootState, cabinetType: string | null, series: string | null): string | null => {
+  const rule = series ? findCabinetRule(getCabinetCatalog(state), cabinetType, series) : null;
+  if (!rule?.series) return null;
+
+  return [...rule.widths]
+    .sort((a, b) => a - b)
+    .map((width) => `${cmToInches(width)}"`)
+    .join(", ");
+};
+
 export const CabinetStyleDetailsPage = () => {
   const navigate = useCollectionNavigate();
   const cabinetBuilderStepPath = useCollectionNavigation("custom")?.currentStep?.path;
@@ -132,6 +146,8 @@ export const CabinetStyleDetailsPage = () => {
 
   const style = params.get("style");
   const cabinetType = params.get("cabinetType");
+  // The series whose cabinet the card stood for, where the collection offers those of several.
+  const series = params.get("series");
 
   const title = params.get("title")?.trim() || styleToLabel(style);
 
@@ -153,7 +169,12 @@ export const CabinetStyleDetailsPage = () => {
     variants: optionImageVariants,
     attributeId: "Drawers",
     value: style ?? "",
-    context: { ...optionImageContext, CabinetType: cabinetType ?? "", Height: String(currentHeight) },
+    context: {
+      ...optionImageContext,
+      CabinetType: cabinetType ?? "",
+      Height: String(currentHeight),
+      ...(series ? { [SERIES_ATTRIBUTE_ID]: series } : {}),
+    },
   });
 
   const widthsInches = useMemo(() => {
@@ -200,8 +221,12 @@ export const CabinetStyleDetailsPage = () => {
     styleDetails?.about ??
     `Designed for modern living, this ${styleToDescription(style)} ${cabinetLabel} brings together clean aesthetics, precision Italian craftsmanship, and smart, lifestyle-driven storage to stow your bathroom essentials in style.`;
 
+  // A cabinet another series supplies comes in the widths of that series.
+  const seriesWidthsText = useAppSelector((state) => selectSeriesWidthsText(state, cabinetType, series));
   const widthsText =
-    styleDetails?.widthsText ?? (widthsInches.length ? widthsInches.map((value) => `${value}"`).join(", ") : "N/A");
+    seriesWidthsText ??
+    styleDetails?.widthsText ??
+    (widthsInches.length ? widthsInches.map((value) => `${value}"`).join(", ") : "N/A");
   const filteredDepthsText = depthsInches.length ? depthsInches.map((value) => `${value}"`).join(" or ") : "N/A";
   const depthsText =
     sinkType === "Top_Ocritech_Oly55" ? filteredDepthsText : styleDetails?.depthsText ?? filteredDepthsText;

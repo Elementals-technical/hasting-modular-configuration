@@ -455,13 +455,24 @@ const validateOrderedIds = (
 };
 
 /** Attribute ids, each once. Whether the collection has them is its runtime contract's to say. */
-const validateAttributeIds = (ids: unknown, dataPath: string, diagnostics: CustomizationSchemaDiagnostic[]) => {
-  if (ids === undefined) return;
-  if (!Array.isArray(ids) || !ids.every(isNonEmptyString) || new Set(ids).size !== ids.length) {
+/** An attribute id, or the id with the values the cabinet must hold (`PerCabinetAttribute`). */
+const perCabinetAttributeIdOf = (entry: unknown): string | null => {
+  if (isNonEmptyString(entry)) return entry;
+  if (!isRecord(entry) || !isNonEmptyString(entry.attributeId) || !isRecord(entry.when)) return null;
+
+  const conditions = Object.entries(entry.when);
+  return conditions.length > 0 && conditions.every(([, value]) => typeof value === "string") ? entry.attributeId : null;
+};
+
+const validateAttributeIds = (entries: unknown, dataPath: string, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (entries === undefined) return;
+
+  const ids = Array.isArray(entries) ? entries.map(perCabinetAttributeIdOf) : [null];
+  if (ids.includes(null) || new Set(ids).size !== ids.length) {
     diagnostics.push({
       code: "invalid-schema",
       dataPath,
-      message: `${dataPath} must be an array of attribute ids, each listed once`,
+      message: `${dataPath} must be an array of attribute ids, each listed once, alone or as { attributeId, when }`,
     });
   }
 };

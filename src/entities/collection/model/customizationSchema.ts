@@ -48,6 +48,17 @@ export const PLAYER_MENU_RESIZE_IDS = ["Width", "Depth", "Height"] as const;
 
 export type PlayerMenuResizeId = (typeof PLAYER_MENU_RESIZE_IDS)[number];
 
+/**
+ * A cabinet value offered for one cabinet alone: its attribute id, or the id with what the
+ * cabinet must hold to be offered it. `when` is read as an `OptionImageVariant`'s, against the
+ * cabinet's own values: Urban Duplex offers the side of the lateral panel to its own cabinets,
+ * not to the ones Urban Standard Height and Urban Low Height supply, which have no panel.
+ */
+export type PerCabinetAttribute = string | { attributeId: string; when: Record<string, string> };
+
+export const perCabinetAttributeId = (entry: PerCabinetAttribute): string =>
+  typeof entry === "string" ? entry : entry.attributeId;
+
 /** The collection's choices for the menu of the 3D player; every field is optional. */
 export type CustomizationPlayerMenu = {
   hidden?: PlayerMenuItemId[];
@@ -57,7 +68,7 @@ export type CustomizationPlayerMenu = {
    * Cabinet values the menu of a placed cabinet changes for that cabinet alone, each a submenu of
    * its options (Urban Duplex: the side of the lateral panel). Each must be bound `perProduct`.
    */
-  attributes?: string[];
+  attributes?: PerCabinetAttribute[];
 };
 
 /**
@@ -76,7 +87,7 @@ export type CustomizationStyleSidebar = {
    * Cabinet values the sidebar offers after its own selectors: for the cabinet selected in the
    * scene, changed for it alone, else for the cabinet being added. Each must be bound `perProduct`.
    */
-  attributes?: string[];
+  attributes?: PerCabinetAttribute[];
 };
 
 export type CustomizationFlowStepRef = {

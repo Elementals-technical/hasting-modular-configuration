@@ -1,8 +1,10 @@
 import type { RootState } from "@/app/store";
 import {
+  perCabinetAttributeId,
   selectDefaultValue,
   selectOptions,
   type CustomizationSchema,
+  type PerCabinetAttribute,
   type ProductProfile,
 } from "@/entities/collection";
 import { resolveAttributeLabel } from "@/entities/collection/lib/customization/resolveAttributeLabel";
@@ -36,9 +38,11 @@ type FieldInputs = {
   recorded: Readonly<Record<string, readonly ScopedValue[] | undefined>>;
   /** Where the composition's value is recorded. */
   firstCabinetId: StableCabinetKey | undefined;
-  attributeIds: readonly string[];
+  attributes: readonly PerCabinetAttribute[];
   /** The cabinet the fields are for; `null` for one that is not placed yet. */
   cabinetId: StableCabinetKey | null;
+  /** The config of the cabinet being added, for what decides whether it is offered a value. */
+  pending?: Readonly<Record<string, unknown>> | null;
 };
 
 const asText = (value: unknown): string | null => (typeof value === "string" && value !== "" ? value : null);
@@ -48,18 +52,33 @@ export const buildPerCabinetAttributeFields = ({
   schema,
   recorded,
   firstCabinetId,
-  attributeIds,
+  attributes,
   cabinetId,
-}: FieldInputs): PerCabinetAttributeField[] =>
-  attributeIds.flatMap((attributeId) => {
+  pending = null,
+}: FieldInputs): PerCabinetAttributeField[] => {
+  const ownValue = (attributeId: string): string | null =>
+    cabinetId
+      ? asText(
+          recorded[attributeId]?.find(({ target }) => isSameTarget(target, { scope: "cabinet", cabinetId }))?.value,
+        )
+      : null;
+  // What the cabinet holds itself: a placed one in the state, one being added in its config.
+  // Without a value of its own it is the collection's cabinet, with the starting value.
+  const heldValue = (attributeId: string): string =>
+    (cabinetId ? ownValue(attributeId) : asText(pending?.[attributeId])) ?? selectDefaultValue(profile, attributeId);
+
+  return attributes.flatMap((entry) => {
+    const attributeId = perCabinetAttributeId(entry);
+    const isOffered =
+      typeof entry === "string" || Object.entries(entry.when).every(([id, value]) => heldValue(id) === value);
+    if (!isOffered) return [];
+
     const options = selectOptions(profile, attributeId).map(({ value, label }) => ({ value, label }));
     // Nothing to choose: the collection lists a value its profile does not offer.
     if (options.length === 0) return [];
 
     const entries = recorded[attributeId];
-    const own = cabinetId
-      ? asText(entries?.find(({ target }) => isSameTarget(target, { scope: "cabinet", cabinetId }))?.value)
-      : null;
+    const own = ownValue(attributeId);
 
     return [
       {
@@ -73,12 +92,13 @@ export const buildPerCabinetAttributeFields = ({
       },
     ];
   });
+};
 
 /** The fields as the state holds them, for a handler that reads the state when it runs. */
 export const selectPerCabinetAttributeFields = (
   state: RootState,
   schema: CustomizationSchema | null | undefined,
-  attributeIds: readonly string[],
+  attributes: readonly PerCabinetAttribute[],
   cabinetId: StableCabinetKey | null,
 ): PerCabinetAttributeField[] =>
   buildPerCabinetAttributeFields({
@@ -86,6 +106,6 @@ export const selectPerCabinetAttributeFields = (
     schema,
     recorded: getValuesByAttributeId(state),
     firstCabinetId: getCabinetEntries(state)[0]?.stableKey,
-    attributeIds,
+    attributes,
     cabinetId,
   });

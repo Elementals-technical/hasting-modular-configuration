@@ -169,7 +169,12 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
-import { useChangeAttribute, useChangeDimension, usePerCabinetAttributeFields } from "@/features/configurationCommands";
+import {
+  selectOwnCabinetValues,
+  useChangeAttribute,
+  useChangeDimension,
+  usePerCabinetAttributeFields,
+} from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
@@ -2198,7 +2203,13 @@ export const PlayCanvasIntegration = ({
         // Live scene is authoritative for dimensions/colors — it reflects the
         // current resized state. selectedProductConfig may be stale for
         // Width/Depth (it is not refreshed on resize, only on cabinet click).
-        const mergedConfig = { ...selectedProductConfig, ...config };
+        // The scene config does not name what the state holds for the cabinet alone (its series,
+        // the side of its lateral panel): the copy takes those of the cabinet it is a copy of.
+        const mergedConfig = {
+          ...selectedProductConfig,
+          ...config,
+          ...selectOwnCabinetValues(store.getState(), duplicateSourceId, { sentToOne: true }),
+        };
 
         console.log("mergedConfig", mergedConfig);
 
@@ -2247,6 +2258,7 @@ export const PlayCanvasIntegration = ({
     selectedDimensions.width,
     selectedProductConfig,
     productIds.length,
+    store,
   ]);
 
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
@@ -3137,7 +3149,11 @@ export const PlayCanvasIntegration = ({
         dispatch(setActiveCabinetType(resolvedCabinetTypeId));
       }
 
-      dispatch(setSelectedProductConfig(config));
+      // With what is the cabinet's alone and the scene config does not name: its series, which
+      // decides the widths and heights it comes in.
+      dispatch(
+        setSelectedProductConfig({ ...config, ...selectOwnCabinetValues(store.getState(), selectedSceneProduct) }),
+      );
 
       const nextDimensions: { width?: number; height?: number; depth?: number } = {};
 
@@ -3151,7 +3167,7 @@ export const PlayCanvasIntegration = ({
     };
 
     loadConfig();
-  }, [dispatch, resolveCabinetTypeId, selectedSceneProduct]);
+  }, [dispatch, resolveCabinetTypeId, selectedSceneProduct, store]);
 
   useEffect(() => {
     if (!selectedSceneProduct) return;

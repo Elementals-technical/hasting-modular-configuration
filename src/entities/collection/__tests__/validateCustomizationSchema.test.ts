@@ -424,12 +424,39 @@ describe("validateCustomizationSchema", () => {
     ).toBe(true);
   });
 
+  it("accepts such a value with what the cabinet must hold to be offered it", () => {
+    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", when: { Series: "URDPX" } }];
+
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        styleSidebar: { attributes: ownCabinetsOnly },
+        playerMenu: { attributes: [...ownCabinetsOnly, "Other"] },
+      }).ok,
+    ).toBe(true);
+  });
+
   it("rejects such a list that is not attribute ids, each once", () => {
     for (const [override, dataPath] of [
       [{ styleSidebar: { attributes: "LateralPanelSide" } }, "styleSidebar.attributes"],
       [{ styleSidebar: { attributes: ["LateralPanelSide", ""] } }, "styleSidebar.attributes"],
       [{ playerMenu: { attributes: ["LateralPanelSide", "LateralPanelSide"] } }, "playerMenu.attributes"],
       [{ playerMenu: { attributes: [1] } }, "playerMenu.attributes"],
+      // A condition names values; one without any is no condition, and an id still stands once.
+      [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide" }] } }, "playerMenu.attributes"],
+      [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: {} }] } }, "playerMenu.attributes"],
+      [
+        { playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: { Series: 1 } }] } },
+        "playerMenu.attributes",
+      ],
+      [
+        {
+          styleSidebar: {
+            attributes: ["LateralPanelSide", { attributeId: "LateralPanelSide", when: { Series: "URDPX" } }],
+          },
+        },
+        "styleSidebar.attributes",
+      ],
     ] as const) {
       const result = validateCustomizationSchema({ ...uiJson, ...override });
 

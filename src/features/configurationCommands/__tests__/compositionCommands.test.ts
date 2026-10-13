@@ -35,6 +35,7 @@ import { buildCollectionPricingLines } from "@/shared/lib/pricing";
 import { collectionPricingInput, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 
 import { changeAttribute } from "../lib/changeAttribute";
+import { selectOwnCabinetValues } from "../lib/compositionValues";
 import {
   addCabinet,
   adoptComposition,
@@ -737,6 +738,61 @@ describe("composition commands", () => {
         await add(deps, "Sink-Cabinet", { Width: 60, Drawers: "2D" });
 
         expect(sides()).toEqual(["R", "R", "L", "R"]);
+      });
+
+      const seriesHeld = () => {
+        const order = getCabinetEntries(store.getState()).map(({ stableKey }) => stableKey);
+        return order.map((cabinetId) => getAttributeValue(store.getState(), "Series", { scope: "cabinet", cabinetId }));
+      };
+
+      it("records the series of a cabinet that joins: the one it was placed as, else the collection's", async () => {
+        const { composition, deps } = setup();
+
+        await add(deps, "Sink-Base", { Width: 60, Drawers: "2D" });
+        // A side cabinet Urban Standard Height supplies, picked as a style of that series.
+        await add(deps, "Sink-Cabinet", { Width: 35, Drawers: "2D", Series: "URSTD" });
+        await add(deps, "Open-Shelf", { Width: 35 });
+
+        // The scene is told the series of that one product; its binding turns it into the full handles.
+        const calls = composition.calls.flatMap((call) => (call.op === "add" ? [call.product.config.Series] : []));
+        expect(calls).toEqual([undefined, "URSTD", undefined]);
+        // Each cabinet holds its own, so none reads the series of the one beside it.
+        expect(seriesHeld()).toEqual(["URDPX", "URSTD", "URDPX"]);
+      });
+
+      it("records the collection's series at the cabinets that held none, once one of another series joins", async () => {
+        // Placed before the state kept the series of each cabinet.
+        const { deps } = setup(["UD-sink-cabinet-a1b2c3d4e", "UD-side-cabinet-f5g6h7i8j"]);
+        expect(seriesHeld()).toEqual([undefined, undefined]);
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 25, Drawers: "1D", Series: "URLH" } },
+            placement: { kind: "beside", anchorRuntimeId: "UD-sink-cabinet-a1b2c3d4e", side: "left" },
+          },
+          deps,
+        );
+
+        // The newcomer stands first, where the composition's values are read: the others keep their own.
+        expect(seriesHeld()).toEqual(["URLH", "URDPX", "URDPX"]);
+      });
+
+      it("reads back what a cabinet holds of its own, for a copy of it and for its rules", async () => {
+        const { deps } = placeTwo(["R", "L"]);
+        await add(deps, "Sink-Cabinet", { Width: 35, Drawers: "2D", Series: "URSTD", LateralPanelSide: "L" });
+        const [sinkBase, , added] = product().productIds;
+
+        // The series alone decides the rules of a selected cabinet; a copy also takes the side.
+        expect(selectOwnCabinetValues(store.getState(), added)).toEqual({ Series: "URSTD" });
+        expect(selectOwnCabinetValues(store.getState(), added, { sentToOne: true })).toEqual({
+          Series: "URSTD",
+          LateralPanelSide: "L",
+        });
+        expect(selectOwnCabinetValues(store.getState(), sinkBase, { sentToOne: true })).toEqual({
+          Series: "URDPX",
+          LateralPanelSide: "R",
+        });
+        expect(selectOwnCabinetValues(store.getState(), "not-placed")).toEqual({});
       });
 
       it("gives a shelf that joins later the colours chosen for the configuration", async () => {

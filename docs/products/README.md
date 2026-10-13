@@ -107,7 +107,21 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
   змінюється лише вона; без виділення sidebar задає значення шафі, яку зараз додають. Binding такого
   attribute мусить мати `perProduct: true`, інакше колекція не завантажиться
   (`runtime.not-per-product`). Urban Duplex так показує сторону Lateral Panel; поле на кроці Color
-  і далі ставить її всім шафам.
+  і далі ставить її всім шафам. Елемент списку може мати умову:
+  `{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }` — значення пропонують лише шафі,
+  яка сама тримає ці значення (Urban Duplex: шафи інших серій панелі не мають).
+- Шафи, які колекції постачає інша серія, описує profile: `ruleData.seriesModules` — на кожну серію і тип
+  шафи свої `widthsCm` і `heightsByDrawers` (Urban Duplex: Side Cabinet серій `URSTD` і `URLH`). З них
+  каталог отримує варіант правила типу з полем `series`; глибини, handle і продукт сцени — від власного
+  типу. Cabinet Style показує стилі групами під назвами серій (label option attribute `Series`); тип
+  без варіантів лишається без заголовків. Вибір плитки кладе `Series` у config шафи: за ним binding
+  шле сцені вигляд, SKU бере `bySeries`, а правила — ширини й висоти серії. `Series` записується
+  в кожної шафи окремо (binding з target `product`), тому його ніколи не читають із сусідньої.
+  Картинки плиток — `optionImageVariants.Drawers` з умовою `when: { "Series": … }`. Композиція має одну
+  висоту: стиль, якого немає в цій висоті, перемикає всі шафи після підтвердження, а якщо поставлена
+  шафа іншої серії такої висоти не має — недоступний (`drawers.notWithSeriesCabinet`); selector Height
+  лишає тільки висоти, які мають усі поставлені шафи інших серій. Кожен SKU, який так можна зібрати,
+  мусить мати ціну на сервері: комбінацію без ціни прибирають із `seriesModules`.
 - Кожен core/UI attribute покритий binding зі статусом `bound`, `state-only` або `unbound`.
 - Cabinet table читається через mapping саме цього profile; не додавати USH fallback.
 - Висоту, яку користувач обирає сам (selector Height у right sidebar і Resize ▸ Height у меню шафи),

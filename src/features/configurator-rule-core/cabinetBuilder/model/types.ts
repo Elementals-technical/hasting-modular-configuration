@@ -10,6 +10,8 @@ export type Selection = {
   height: number;
   drawers?: string | null;
   handle?: string | null;
+  /** The series of the cabinet, where another series supplies a variant of its type. */
+  series?: string | null;
 };
 
 export type Intent = {

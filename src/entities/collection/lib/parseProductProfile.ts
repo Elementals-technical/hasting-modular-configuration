@@ -572,6 +572,35 @@ const parseCabinetModules = (raw: unknown, collect: Collector): ProfileRuleData[
   return raw as ProfileRuleData["cabinetModules"];
 };
 
+const parseSeriesModules = (raw: unknown, collect: Collector): ProfileRuleData["seriesModules"] => {
+  if (raw === undefined) return undefined;
+  const numberList = (value: unknown) =>
+    Array.isArray(value) && value.length > 0 && value.every((entry) => isFiniteNumber(entry) && entry > 0);
+  const isModule = (entry: unknown) =>
+    isRecord(entry) &&
+    isNonEmptyString(entry.series) &&
+    isNonEmptyString(entry.cabinetType) &&
+    numberList(entry.widthsCm) &&
+    isHeightListRecord(entry.heightsByDrawers) &&
+    Object.keys(entry.heightsByDrawers).length > 0;
+
+  if (
+    !Array.isArray(raw) ||
+    raw.length === 0 ||
+    !raw.every(isModule) ||
+    // One variant of a cabinet type per series.
+    new Set(raw.map((entry) => `${entry.series}/${entry.cabinetType}`)).size !== raw.length
+  ) {
+    collect.add(
+      "ruleData.invalid_section",
+      "/ruleData/seriesModules",
+      "seriesModules must list, once per series and cabinet type, positive widths and the heights of each drawer style",
+    );
+    return undefined;
+  }
+  return raw as ProfileRuleData["seriesModules"];
+};
+
 /** Optional rule sections of a profile, without the keys the collection does not declare. */
 const parseRuleSections = (
   ruleData: Record<string, unknown>,
@@ -592,6 +621,7 @@ const parseRuleSections = (
   const sections: Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> = {
     ...(validCompatibility ? { countertopCompatibility: { tableId: compatibility.tableId as number } } : {}),
     cabinetModules: parseCabinetModules(ruleData.cabinetModules, collect),
+    seriesModules: parseSeriesModules(ruleData.seriesModules, collect),
     drawerStyleGroups: parseDrawerStyleGroups(ruleData.drawerStyleGroups, collect),
     undeterminedRules: parseUndeterminedRules(ruleData.undeterminedRules, collect),
     fluting: parseRuleSection<FlutingRuleData>(ruleData, "fluting", collect),

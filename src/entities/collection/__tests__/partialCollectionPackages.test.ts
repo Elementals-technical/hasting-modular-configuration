@@ -560,13 +560,19 @@ describe("partial production collection packages", () => {
       "Open-Shelf",
       "Side-Shelf",
     ]);
+    // After them the side cabinets Urban Standard Height and Urban Low Height supply
+    // (ruleData.seriesModules), each a variant of the Side Cabinet the same scene product draws.
     expect(
-      data.catalog.cabinets?.typeCabinetRules.map(({ code, sceneProductType }) => [code, sceneProductType]),
+      data.catalog.cabinets?.typeCabinetRules.map(({ code, sceneProductType, series }) =>
+        series ? [code, sceneProductType, series] : [code, sceneProductType],
+      ),
     ).toEqual([
       ["Sink-Base", "UD-sink-cabinet"],
       ["Sink-Cabinet", "UD-side-cabinet"],
       ["Open-Shelf", "UD-open-shelves"],
       ["Side-Shelf", "UD-open-shelves-side"],
+      ["Sink-Cabinet", "UD-side-cabinet", "URSTD"],
+      ["Sink-Cabinet", "UD-side-cabinet", "URLH"],
     ]);
     if (!cabinetTable || !profile) return;
     const drawerCabinet = {
@@ -600,6 +606,32 @@ describe("partial production collection packages", () => {
       }),
       expect.objectContaining({ code: "Open-Shelf", widths: [25, 35, 50, 60, 70], ...openCabinet }),
       expect.objectContaining({ code: "Side-Shelf", widths: [15], ...openCabinet }),
+      // The side cabinets of the other two series, as their own tables 439 and 580 list them with the
+      // Upper Groove handle: from 25 cm wide, at the heights of their series, in the Duplex depths.
+      expect.objectContaining({
+        code: "Sink-Cabinet",
+        series: "URSTD",
+        widths: [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        depths: [50, 46],
+        heights: [56, 53],
+        supportsHeight: [56, 53],
+        drawers: ["2", "1", "1+inner"],
+        forcedHeightByDrawers: { "2": 56, "1": 53, "1+inner": 53 },
+        heightsByDrawers: {},
+        hasSink: false,
+        isOpen: false,
+        handlesAllowed: ["UG"],
+      }),
+      expect.objectContaining({
+        code: "Sink-Cabinet",
+        series: "URLH",
+        widths: [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        heights: [38, 28],
+        supportsHeight: [38, 28],
+        drawers: ["1"],
+        forcedHeightByDrawers: {},
+        heightsByDrawers: { "1": [38, 28] },
+      }),
     ]);
 
     // The countertops of the Master File as Urban Low Height's table 589 has them, at the cabinet depths:

@@ -169,11 +169,31 @@ describe("urban-duplex runtime bindings", () => {
   it("offer the side of the lateral panel for one cabinet alone, in the style sidebar and the cabinet's menu", () => {
     const ui = readCustomizationSchema(urbanDuplexUiDocument);
 
-    expect(ui.styleSidebar?.attributes).toEqual(["LateralPanelSide"]);
-    expect(ui.playerMenu?.attributes).toEqual(["LateralPanelSide"]);
+    // Only for the collection's own cabinets: one of another series has no lateral panel.
+    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", when: { Series: "URDPX" } }];
+    expect(ui.styleSidebar?.attributes).toEqual(ownCabinetsOnly);
+    expect(ui.playerMenu?.attributes).toEqual(ownCabinetsOnly);
     expect(collectPerCabinetAttributeIds(ui)).toEqual(["LateralPanelSide"]);
     // The collection loads: each is a cabinet value the scene keeps per product.
     expect(validatePerCabinetAttributes(urbanDuplexProfile(), urbanDuplexRuntimeBindings(), ui)).toEqual([]);
+  });
+
+  it("would not load with a condition on a value that is not the cabinet's", () => {
+    const ui = readCustomizationSchema(urbanDuplexUiDocument);
+    const conditioned = {
+      ...ui,
+      playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: { CountertopColor: "Pulpis Chiaro TKH" } }] },
+    };
+
+    expect(validatePerCabinetAttributes(urbanDuplexProfile(), urbanDuplexRuntimeBindings(), conditioned)).toEqual([
+      expect.objectContaining({ code: "runtime.unknown-condition-attribute", dataPath: "CountertopColor" }),
+    ]);
+  });
+
+  it("send the series to the one product it names, so every cabinet holds its own", () => {
+    const binding = urbanDuplexRuntimeBindings().bindings.find((entry) => entry.attributeId === "Series");
+
+    expect(binding).toMatchObject({ status: "bound", target: { kind: "product" } });
   });
 
   it("would not load with a value offered for one cabinet that the scene keeps once for them all", () => {
@@ -202,9 +222,26 @@ describe("urban-duplex runtime bindings", () => {
     expect(patchOf("Series", "URSTD")).toEqual({ HandleStyle: "Default" });
     expect(patchOf("Series", "URLH")).toEqual({ HandleStyle: "Default" });
 
-    // The series goes after the handle, so a model's own cabinet keeps its handles.
+    // The series alone says how the handles look: the handle itself is not sent.
     const placed = resolveProductConfig(urbanDuplexRuntimeBindings(), { Series: "URSTD", Handle: "UG" });
     expect(placed).toEqual({ HandleStyle: "Default" });
+    expect(resolveProductConfig(urbanDuplexRuntimeBindings(), { Series: "URDPX", Handle: "UG" })).toEqual({
+      HandleStyle: "Duplex",
+    });
+  });
+
+  it("keep the handle in the state: sent to every cabinet it would undo the series of some", () => {
+    // Upper Groove only. The scene draws a cabinet placed without HandleStyle as Duplex.
+    expect(resolve("Handle", "UG")).toEqual({ ok: true, attributeId: "Handle", stateOnly: true });
+    expect(resolveProductConfig(urbanDuplexRuntimeBindings(), { Width: 60, Handle: "UG" })).toEqual({ Width: 60 });
+    // No other value writes the scene key the series decides.
+    const writers = urbanDuplexRuntimeBindings().bindings.filter(
+      (binding) =>
+        binding.status === "bound" &&
+        binding.values.kind === "map" &&
+        Object.values(binding.values.patches).some((patch) => Object.hasOwn(patch, "HandleStyle")),
+    );
+    expect(writers.map(({ attributeId }) => attributeId)).toEqual(["Series"]);
   });
 
   it("send the sizes and the three drawer styles in the spellings the scene config keeps", () => {
@@ -213,8 +250,6 @@ describe("urban-duplex runtime bindings", () => {
     expect(patchOf("Depth", 46)).toEqual({ Depth: 46 });
     expect(patchOf("Depth", 50)).toEqual({ Depth: 50 });
     expect(patchOf("Width", 60)).toEqual({ Width: 60 });
-    // Upper Groove is the Duplex handle (RuleHandleCabinetUrbanDuplex reads HandleStyle).
-    expect(patchOf("Handle", "UG")).toEqual({ HandleStyle: "Duplex" });
     expect(patchOf("Drawers", "2")).toEqual({ Drawers: "2D" });
     expect(patchOf("Drawers", "1")).toEqual({ Drawers: "1D" });
     expect(patchOf("Drawers", "1+inner")).toEqual({ Drawers: "1DWID" });

@@ -63,7 +63,7 @@ export type BuildChangePlanArgs = {
 export type BuildChangePlanResult = { ok: true; plan: PlannedChange[] } | ({ ok: false } & ChangeBlockedReason);
 
 /** Fields of `Selection` that a change can address; anything else needs no rule re-run. */
-const SELECTION_FIELD_BY_ATTRIBUTE: Record<string, keyof Selection> = {
+const SELECTION_FIELD_BY_ATTRIBUTE: Record<string, "cabinetType" | "drawers" | "handle"> = {
   CabinetType: "cabinetType",
   Drawers: "drawers",
   Handle: "handle",

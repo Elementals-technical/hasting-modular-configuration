@@ -61,6 +61,7 @@ export { useFieldAutoSelect } from "./hooks/useFieldAutoSelect";
 export { useRuleDrivenHandleSync } from "./hooks/useRuleDrivenHandleSync";
 export { usePerCabinetAttributeFields } from "./hooks/usePerCabinetAttributeFields";
 export { selectPerCabinetAttributeFields } from "./lib/perCabinetAttributes";
+export { selectOwnCabinetValues } from "./lib/compositionValues";
 export type { PerCabinetAttributeField } from "./lib/perCabinetAttributes";
 export { resolveChangeRequest } from "./lib/resolveChangeRequest";
 export { resolveColorTraits, selectConfiguratorSection } from "./lib/resolveColorTraits";

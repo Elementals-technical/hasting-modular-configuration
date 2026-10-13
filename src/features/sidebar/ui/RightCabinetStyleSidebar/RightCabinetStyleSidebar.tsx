@@ -153,7 +153,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     const rule = findPlacedCabinetRule(getCabinetCatalog(state), runtimeId);
     return rule && !rule.isOpen ? getStableKeyForRuntimeId(state, runtimeId) : null;
   });
-  const cabinetAttributeFields = usePerCabinetAttributeFields(cabinetAttributeIds, selectedCabinetId);
+  const cabinetAttributeFields = usePerCabinetAttributeFields(
+    cabinetAttributeIds,
+    selectedCabinetId,
+    selectedProductConfig,
+  );
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);

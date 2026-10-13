@@ -1,5 +1,10 @@
 export type TypeCabinetRuleConfig = {
   code: string;
+  /**
+   * The series whose cabinet this is, for a variant of the type another series supplies (an Urban
+   * Standard Height side cabinet in an Urban Duplex composition). Absent on the collection's own.
+   */
+  series?: string;
   widths: number[];
   depths: number[];
   heights: number[];
@@ -32,6 +37,36 @@ export type TypeCabinetRuleConfig = {
 export type ConfiguratorCatalog = {
   typeCabinetRules: TypeCabinetRuleConfig[];
 };
+
+/** The cabinet attribute that names the series a cabinet is of, where a collection mixes series. */
+export const SERIES_ATTRIBUTE_ID = "Series";
+
+/** The series a cabinet config names, if any. */
+export const seriesOfConfig = (config: Readonly<Record<string, unknown>> | null | undefined): string | null => {
+  const series = config?.[SERIES_ATTRIBUTE_ID];
+  return typeof series === "string" && series !== "" ? series : null;
+};
+
+/**
+ * The rule of a cabinet type for a cabinet of `series`: the variant that series supplies, else
+ * the collection's own rule of the type. A lookup by `code` alone finds the collection's own,
+ * which comes first, so code that knows no series keeps reading what it read.
+ */
+export const findCabinetRule = (
+  catalog: ConfiguratorCatalog,
+  code: string | null | undefined,
+  series?: string | null,
+): TypeCabinetRuleConfig | null => {
+  if (!code) return null;
+
+  const ofType = catalog.typeCabinetRules.filter((rule) => rule.code === code);
+  const variant = series ? ofType.find((rule) => rule.series === series) : undefined;
+  return variant ?? ofType.find((rule) => !rule.series) ?? ofType[0] ?? null;
+};
+
+/** The variants other series supply of a cabinet type, in catalog order. */
+export const findSeriesVariants = (catalog: ConfiguratorCatalog, code: string | null | undefined) =>
+  code ? catalog.typeCabinetRules.filter((rule) => rule.code === code && rule.series !== undefined) : [];
 
 const typeCabinetRules: TypeCabinetRuleConfig[] = [];
 

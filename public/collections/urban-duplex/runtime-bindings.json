@@ -10,20 +10,8 @@
   "bindings": [
     {
       "attributeId": "Handle",
-      "status": "bound",
-      "target": {
-        "kind": "all"
-      },
-      "values": {
-        "kind": "map",
-        "patches": {
-          "UG": {
-            "HandleStyle": "Duplex"
-          }
-        }
-      },
-      "order": 20,
-      "note": "Upper Groove only. The Urban Duplex cabinets read HandleStyle (RuleHandleCabinetUrbanDuplex: Duplex shows the Base and Lateral Panel handles, Default the full ones); Upper Groove is Duplex."
+      "status": "state-only",
+      "reason": "Upper Groove only, so there is nothing to tell the scene. Its HandleStyle (RuleHandleCabinetUrbanDuplex: Duplex shows the Base and Lateral Panel handles, Default the full ones) says which series a cabinet is of, and the Series binding sends it to that cabinet alone: a handle sent to every cabinet would take the full handles off the ones Urban Standard Height and Urban Low Height supply. A cabinet placed without it is drawn as Duplex."
     },
     {
       "attributeId": "Height",
@@ -189,7 +177,7 @@
         }
       },
       "order": 25,
-      "note": "A cabinet of a hybrid model that is Urban Standard Height's or Urban Low Height's has no lateral panel: the scene shows it with the full handles (HandleStyle Default). After Handle, so a model's own cabinet keeps it. Only models carry the series; the builder places Urban Duplex cabinets."
+      "note": "A cabinet that is Urban Standard Height's or Urban Low Height's has no lateral panel: the scene shows it with the full handles (HandleStyle Default). Nothing else writes HandleStyle, so the cabinet keeps it whatever is sent to the composition. A product of a hybrid model carries the series, and so does a side cabinet the builder places as a style of another series."
     },
     {
       "attributeId": "CabinetColor",

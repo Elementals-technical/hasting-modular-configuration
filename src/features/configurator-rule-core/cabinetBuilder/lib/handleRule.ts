@@ -9,7 +9,7 @@ import {
   selectOptions,
   type ProductProfile,
 } from "@/entities/collection";
-import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { findCabinetRule, type ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { cmToInches } from "@/shared/lib/sku";
 
 import type { OptionState, RuleContext, RuleResult } from "../model/types";
@@ -67,7 +67,7 @@ export const handleRule = (
   profile: ProductProfile | null,
 ): RuleResult => {
   const { selection } = context;
-  const activeRule = catalog.typeCabinetRules.find((rule) => rule.code === selection.cabinetType);
+  const activeRule = findCabinetRule(catalog, selection.cabinetType, selection.series);
   const relations = toHandleRelations(activeRule);
 
   // Catalog of the active collection. No local list of handle ids.
