@@ -225,21 +225,33 @@ const withInherited = (
   ),
 });
 
-/** Records the composition's values at a cabinet that joined it, once it has its stable key. */
+/**
+ * Records the composition's values at a cabinet that joined it, once it has its stable key. A
+ * value the cabinet came with of its own (the side of its lateral panel, chosen for it alone) is
+ * recorded as it was placed, not as the composition holds it.
+ */
 const recordInherited = (
   deps: CompositionDeps,
   runtimeId: string,
   inherited: Readonly<Record<string, AttributeValue>>,
+  config: Readonly<Record<string, unknown>>,
 ): void => {
-  const cabinetId = resolveStableKey(getCabinetEntries(deps.getState()), runtimeId);
+  const state = deps.getState();
+  const cabinetId = resolveStableKey(getCabinetEntries(state), runtimeId);
   if (!cabinetId) return;
 
-  const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => ({
-    attributeId,
-    target: { scope: "cabinet", cabinetId },
-    value,
-    origin: "requested",
-  }));
+  const profile = getActiveProductProfile(state);
+  const placedWith = withInherited(config, inherited);
+  const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => {
+    const own = placedWith[attributeId];
+
+    return {
+      attributeId,
+      target: { scope: "cabinet", cabinetId },
+      value: isAttributeValue(own) ? (normalizeOptionValue(profile, attributeId, own) ?? own) : value,
+      origin: "requested",
+    };
+  });
   recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
 };
 
@@ -395,7 +407,7 @@ export const addCabinet = async (
     inSceneOrder(expected, result.scene),
     runtimeId && style ? { [runtimeId]: style } : {},
   );
-  if (runtimeId) recordInherited(deps, runtimeId, inherited);
+  if (runtimeId) recordInherited(deps, runtimeId, inherited, product.config);
 
   return settleValues(deps, recorded, { afterPlacement, record });
 };

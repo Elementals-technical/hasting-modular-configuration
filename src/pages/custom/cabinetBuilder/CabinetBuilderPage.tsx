@@ -77,6 +77,7 @@ import {
   selectEffectiveFallback,
   selectOption,
   selectOptionsByCapability,
+  useActiveCollection,
   useCollectionPresets,
 } from "@/entities/collection";
 import {
@@ -245,6 +246,10 @@ export const CabinetBuilderPage = () => {
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
   const presets = useCollectionPresets();
+  // Cabinet values the style sidebar offers per cabinet (`styleSidebar.attributes`).
+  const cabinetAttributeIds = useActiveCollection(
+    (collection) => collection.catalog.customization?.styleSidebar?.attributes,
+  );
 
   const { search, key: locationKey } = useLocation();
   const navigate = useCollectionNavigate();
@@ -1501,6 +1506,13 @@ export const CabinetBuilderPage = () => {
           Drawers: currentDrawers,
           Thickness: countertopThickness || undefined,
           CountertopStyle: countertopStyle || undefined,
+          // What the style sidebar holds for this cabinet alone, where the user chose it.
+          ...Object.fromEntries(
+            (cabinetAttributeIds ?? []).flatMap((attributeId) => {
+              const chosen = currentSelectedConfig[attributeId];
+              return typeof chosen === "string" && chosen ? [[attributeId, chosen]] : [];
+            }),
+          ),
         };
 
         if (selectedCabinetRule.hasSink && sinkType) {
@@ -1554,6 +1566,7 @@ export const CabinetBuilderPage = () => {
       activeCabinetType,
       activeStyleValue,
       composition,
+      cabinetAttributeIds,
       cabinetCatalog,
       cabinetColor,
       canvasReady,

@@ -199,9 +199,11 @@
     ]
   },
   "styleSidebar": {
-    "fields": ["Width", "Depth", "Height", "Handle"]
+    "fields": ["Width", "Depth", "Height", "Handle"],
+    "attributes": ["LateralPanelSide"]
   },
   "playerMenu": {
-    "resize": ["Width", "Depth", "Height"]
+    "resize": ["Width", "Depth", "Height"],
+    "attributes": ["LateralPanelSide"]
   }
 }

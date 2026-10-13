@@ -53,6 +53,11 @@ export type CustomizationPlayerMenu = {
   hidden?: PlayerMenuItemId[];
   /** The sizes Resize offers, in this order. Without it: Width and Depth. */
   resize?: PlayerMenuResizeId[];
+  /**
+   * Cabinet values the menu of a placed cabinet changes for that cabinet alone, each a submenu of
+   * its options (Urban Duplex: the side of the lateral panel). Each must be bound `perProduct`.
+   */
+  attributes?: string[];
 };
 
 /**
@@ -67,6 +72,11 @@ export type StyleSidebarFieldId = (typeof STYLE_SIDEBAR_FIELD_IDS)[number];
 export type CustomizationStyleSidebar = {
   /** The selectors the sidebar shows, in this order. Without it: Width, Depth and Handle. */
   fields?: StyleSidebarFieldId[];
+  /**
+   * Cabinet values the sidebar offers after its own selectors: for the cabinet selected in the
+   * scene, changed for it alone, else for the cabinet being added. Each must be bound `perProduct`.
+   */
+  attributes?: string[];
 };
 
 export type CustomizationFlowStepRef = {

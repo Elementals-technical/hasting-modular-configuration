@@ -454,12 +454,25 @@ const validateOrderedIds = (
   });
 };
 
+/** Attribute ids, each once. Whether the collection has them is its runtime contract's to say. */
+const validateAttributeIds = (ids: unknown, dataPath: string, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (ids === undefined) return;
+  if (!Array.isArray(ids) || !ids.every(isNonEmptyString) || new Set(ids).size !== ids.length) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath,
+      message: `${dataPath} must be an array of attribute ids, each listed once`,
+    });
+  }
+};
+
 const validateStyleSidebar = (styleSidebar: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
   if (styleSidebar === undefined) return;
   if (!isRecord(styleSidebar)) {
     diagnostics.push({ code: "invalid-schema", dataPath: "styleSidebar", message: "styleSidebar must be an object" });
     return;
   }
+  validateAttributeIds(styleSidebar.attributes, "styleSidebar.attributes", diagnostics);
   validateOrderedIds(
     styleSidebar.fields,
     "styleSidebar.fields",
@@ -482,6 +495,7 @@ const validatePlayerMenu = (playerMenu: unknown, diagnostics: CustomizationSchem
     { code: "unknown-menu-item", of: "a size the Resize item of the player menu changes" },
     diagnostics,
   );
+  validateAttributeIds(playerMenu.attributes, "playerMenu.attributes", diagnostics);
   const hidden = playerMenu.hidden;
   if (hidden === undefined) return;
   if (!Array.isArray(hidden)) {

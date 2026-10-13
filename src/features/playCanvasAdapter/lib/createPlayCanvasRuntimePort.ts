@@ -171,14 +171,17 @@ export const createPlayCanvasRuntimePort = ({
         return;
       }
 
-      const addressed = resolveSceneSelector(resolution.target, change, context);
+      // A value the scene keeps per product goes to the one cabinet a change asks for alone.
+      const target: RuntimeTarget =
+        change.onlyThisCabinet && resolution.perProduct ? { kind: "product" } : resolution.target;
+      const addressed = resolveSceneSelector(target, change, context);
 
       if (!addressed.ok) {
         unaddressable.push({ change, code: "unknown-target", message: addressed.message });
         return;
       }
 
-      const steps = toSteps(resolution.target.kind, addressed.selector, resolution.patch, resolution.resetBefore);
+      const steps = toSteps(target.kind, addressed.selector, resolution.patch, resolution.resetBefore);
 
       // The other places the binding sends the value to, after its own.
       for (const delivery of resolution.also ?? []) {

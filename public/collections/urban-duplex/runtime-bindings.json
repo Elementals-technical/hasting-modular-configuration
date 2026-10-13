@@ -164,8 +164,9 @@
           }
         }
       },
+      "perProduct": true,
       "order": 22,
-      "note": "The side the lateral panel stands on (RuleHandleSideCabinetUrbanDuplex). One field sets it for the composition, so the scene and the SKU of every cabinet agree (2DWL, 2DWR); the cabinets of a model start with their own sides, which their configs carry. The shelves do not read the key."
+      "note": "The side the lateral panel stands on (RuleHandleSideCabinetUrbanDuplex), which the scene keeps on each cabinet. The field of the Color step sets it for every cabinet; the style sidebar and the menu of a placed cabinet set it for that cabinet alone (perProduct), and the SKU reads each cabinet's own side (2DWL, 2DWR). The cabinets of a model start with their own sides, which their configs carry. The shelves do not read the key."
     },
     {
       "attributeId": "Series",

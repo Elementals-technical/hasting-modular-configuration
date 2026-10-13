@@ -26,6 +26,7 @@ import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
   getActiveCabinetRule,
+  getCabinetCatalog,
   getHeightChoices,
   getSelectedDimensions,
   getSelectedProducts,
@@ -45,6 +46,7 @@ import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
+import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
@@ -63,8 +65,9 @@ import {
   getActiveRuntimeBindings,
   getCabinetDimensionsByRuntimeId,
   getCabinetEntries,
+  getStableKeyForRuntimeId,
 } from "@/entities/configuration/model/store/selectors";
-import { useChangeAttribute } from "@/features/configurationCommands";
+import { useChangeAttribute, usePerCabinetAttributeFields } from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import {
   filterDepthValuesByCountertopRules,
@@ -74,6 +77,7 @@ import {
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import {
+  findPlacedCabinetRule,
   isLeavingSideShelfHandle,
   REASON_HANDLE_HEIGHT_LOCKED,
 } from "@/features/configurator-rule-core/cabinetBuilder";
@@ -136,6 +140,20 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const styleSidebarFields = resolveStyleSidebarFields(
     useActiveCollection((collection) => collection.catalog.customization ?? null),
   );
+  // Cabinet values the collection offers for one cabinet alone (`styleSidebar.attributes`).
+  const cabinetAttributeIds = useActiveCollection(
+    (collection) => collection.catalog.customization?.styleSidebar?.attributes,
+  );
+  // The drawer cabinet selected in the scene: the sidebar shows its own values and changes them
+  // for it alone. Without one the values are the choice for the cabinet being added.
+  const selectedCabinetId = useAppSelector((state) => {
+    const runtimeId = getSelectedSceneProduct(state);
+    if (!runtimeId) return null;
+
+    const rule = findPlacedCabinetRule(getCabinetCatalog(state), runtimeId);
+    return rule && !rule.isOpen ? getStableKeyForRuntimeId(state, runtimeId) : null;
+  });
+  const cabinetAttributeFields = usePerCabinetAttributeFields(cabinetAttributeIds, selectedCabinetId);
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
   const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
@@ -452,6 +470,55 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     }
   };
 
+  // An open shelf has none of these values; a selected drawer cabinet always has.
+  const showsCabinetAttributes =
+    selectedCabinetId !== null || (activeCabinetRule !== null && !activeCabinetRule.isOpen);
+  /** What a selector shows: the selected cabinet's own value, else the choice for the next cabinet. */
+  const shownCabinetAttributeValues = useMemo<Record<string, string>>(
+    () =>
+      showsCabinetAttributes
+        ? Object.fromEntries(
+            cabinetAttributeFields.flatMap(({ attributeId, value }) => {
+              const chosen = selectedProductConfig?.[attributeId];
+              const shown = selectedCabinetId === null && typeof chosen === "string" && chosen ? chosen : value;
+              return shown ? [[attributeId, shown]] : [];
+            }),
+          )
+        : {},
+    [cabinetAttributeFields, selectedCabinetId, selectedProductConfig, showsCabinetAttributes],
+  );
+
+  const handleChangeCabinetAttribute = async (attributeId: string, value?: string | number) => {
+    if (value === undefined) return;
+    const next = String(value);
+    if (shownCabinetAttributeValues[attributeId] === next) return;
+
+    // No cabinet is selected: the value goes with the cabinet being added.
+    if (selectedCabinetId === null) {
+      dispatch(setSelectedProductConfig({ ...selectedProductConfig, [attributeId]: next }));
+      return;
+    }
+
+    const runtimeId = getSelectedSceneProduct(getCommandState());
+
+    await saveSnapshot();
+    const result = await changeAttributeValue({
+      attributeId,
+      value: next,
+      scope: "cabinet",
+      cabinetId: selectedCabinetId,
+      onlyThisCabinet: true,
+    });
+    if (result.status !== "applied") {
+      console.warn(`[Sidebar] ${attributeId} was not changed`, result);
+      return;
+    }
+
+    // The scene drops its selection while it rebuilds the cabinet. The cabinet stays selected, so
+    // the selectors keep showing its values and not those of a cabinet still to add.
+    if (runtimeId) getSelectTool()?.setSelectedByName(runtimeId, { mode: "replace" });
+  };
+
   /** Shows what the command service answered; an applied change needs nothing more. */
   const showHandleChangeResult = (result: ChangeResult) => {
     switch (result.status) {
@@ -734,7 +801,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const added = await composition.addCabinet(
         buildAddedCabinetRequest({
           cabinetType: activeDrawerProduct,
-          config: productConfig,
+          // The cabinet takes the values its selectors show.
+          config: productConfig ? { ...productConfig, ...shownCabinetAttributeValues } : productConfig,
           width: widthForAddedCabinet,
           sinkType,
           countertopStyle,
@@ -766,6 +834,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     maxAddableCabinetWidth,
     onProductAdded,
     productConfig,
+    shownCabinetAttributeValues,
     saveSnapshot,
     sceneTotalWidth,
     selectedDimensions.width,
@@ -952,6 +1021,20 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         </div>
         <div className={s.content}>
           {styleSidebarFields.map((fieldId) => selectors[fieldId])}
+          {showsCabinetAttributes &&
+            cabinetAttributeFields.map(({ attributeId, label, options }) => (
+              <div className={s.contentItem} key={attributeId}>
+                <div>{label}</div>
+                <FilterSelection
+                  label={label}
+                  options={options.map((option) => ({ name: option.value, value: option.value, label: option.label }))}
+                  value={shownCabinetAttributeValues[attributeId] ?? ""}
+                  hintPlacement="left"
+                  showHints={false}
+                  onSelect={(value) => void handleChangeCabinetAttribute(attributeId, value)}
+                />
+              </div>
+            ))}
 
           <div className={`${s.bottomText} ${s.mobileBottomText}`}>
             Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet

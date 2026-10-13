@@ -651,6 +651,94 @@ describe("composition commands", () => {
         ]);
       });
 
+      /** Two placed drawer cabinets, each holding the side of its lateral panel. */
+      const placeTwo = (sides: [string, string] = ["R", "R"]) => {
+        const placed = setup(["UD-sink-cabinet-a1b2c3d4e", "UD-side-cabinet-f5g6h7i8j"]);
+        const cabinetIds = getCabinetEntries(store.getState()).map(({ stableKey }) => stableKey);
+        cabinetIds.forEach((cabinetId, index) =>
+          store.dispatch(
+            setAttributeValue({
+              attributeId: "LateralPanelSide",
+              target: { scope: "cabinet", cabinetId },
+              value: sides[index],
+            }),
+          ),
+        );
+        return { ...placed, cabinetIds };
+      };
+      const sides = () => {
+        const order = getCabinetEntries(store.getState()).map(({ stableKey }) => stableKey);
+        return order.map((cabinetId) =>
+          getAttributeValue(store.getState(), "LateralPanelSide", { scope: "cabinet", cabinetId }),
+        );
+      };
+
+      it("turns the lateral panel of one cabinet alone when the change asks for that cabinet", async () => {
+        const { runtime, deps, cabinetIds } = placeTwo();
+
+        const result = await changeAttribute(
+          {
+            attributeId: "LateralPanelSide",
+            value: "L",
+            scope: "cabinet",
+            cabinetId: cabinetIds[1],
+            onlyThisCabinet: true,
+          },
+          deps,
+        );
+
+        expect(result.status).toBe("applied");
+        // One change for the scene, marked for the cabinet it names; the other cabinet keeps its side.
+        expect(runtime.calls).toEqual([
+          [
+            expect.objectContaining({
+              attributeId: "LateralPanelSide",
+              target: { scope: "cabinet", cabinetId: cabinetIds[1] },
+              value: "L",
+              onlyThisCabinet: true,
+            }),
+          ],
+        ]);
+        expect(sides()).toEqual(["R", "L"]);
+      });
+
+      it("turns them all when a field sets the side, whatever cabinet it names", async () => {
+        const { deps, cabinetIds } = placeTwo(["R", "L"]);
+
+        await changeAttribute(
+          { attributeId: "LateralPanelSide", value: "L", scope: "cabinet", cabinetId: cabinetIds[0] },
+          deps,
+        );
+
+        expect(sides()).toEqual(["L", "L"]);
+      });
+
+      it("refuses one cabinet alone for a value the scene keeps once for them all", async () => {
+        const { runtime, deps, cabinetIds } = placeTwo();
+
+        const result = await changeAttribute(
+          { attributeId: "Handle", value: "UG", scope: "cabinet", cabinetId: cabinetIds[1], onlyThisCabinet: true },
+          deps,
+        );
+
+        expect(result).toMatchObject({ status: "error", code: "scope-mismatch" });
+        expect(runtime.calls).toEqual([]);
+      });
+
+      it("records a cabinet that joins with the side chosen for it, and with the composition's otherwise", async () => {
+        const { composition, deps } = placeTwo(["R", "R"]);
+
+        await add(deps, "Sink-Cabinet", { Width: 60, Drawers: "2D", LateralPanelSide: "L" });
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toMatchObject({ LateralPanelSide: "L" });
+        expect(sides()).toEqual(["R", "R", "L"]);
+
+        await add(deps, "Sink-Cabinet", { Width: 60, Drawers: "2D" });
+
+        expect(sides()).toEqual(["R", "R", "L", "R"]);
+      });
+
       it("gives a shelf that joins later the colours chosen for the configuration", async () => {
         const { composition, deps } = setup(["UD-sink-cabinet-a1b2c3d4e"]);
         store.dispatch(

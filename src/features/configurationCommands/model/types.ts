@@ -24,7 +24,12 @@ import type {
 export type AttributeChange = { attributeId: string; value: AttributeValue } & (
   | { scope: "global" | "countertop" }
   | { scope: "basin"; sinkBaseId?: StableCabinetKey }
-  | { scope: "cabinet"; cabinetId: StableCabinetKey }
+  /**
+   * `onlyThisCabinet`: the cabinet named is the only one that changes. Without it a value the
+   * scene gives every cabinet at once goes to them all, the named cabinet being where a field
+   * records it. Taken only for a value whose binding allows it (`perProduct`).
+   */
+  | { scope: "cabinet"; cabinetId: StableCabinetKey; onlyThisCabinet?: boolean }
   | { scope: "drawer"; cabinetId: StableCabinetKey; drawerType: DrawerType }
 );
 
@@ -47,6 +52,8 @@ export type PlannedChange = {
   origin: "requested" | "dependency";
   /** Stable code explaining a dependency; B resolves it to text. */
   reasonCode?: string;
+  /** The change is for the cabinet it names alone (`AttributeChange.onlyThisCabinet`). */
+  onlyThisCabinet?: boolean;
 };
 
 /** A change of the set the scene did not apply, with I's reason. */

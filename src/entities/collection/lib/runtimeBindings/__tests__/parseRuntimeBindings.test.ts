@@ -250,4 +250,26 @@ describe("parseRuntimeBindings", () => {
       ["bindings.invalid_field_type", "/bindings/0/placedWithNewProducts"],
     ]);
   });
+
+  it("reads a value the scene keeps per product, and rejects one that is not a yes or a no", () => {
+    const entry = (extra: Record<string, unknown>) =>
+      withBinding({
+        attributeId: "LateralPanelSide",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "map", patches: { L: { HandleSide: "Left" }, R: { HandleSide: "Right" } } },
+        ...extra,
+      });
+
+    const perProduct = parseRuntimeBindings(entry({ perProduct: true }));
+    expect(perProduct.ok && perProduct.bindings.bindings[0]).toMatchObject({ perProduct: true });
+
+    // Left out, and a "no", read the same: the value goes to every product.
+    for (const extra of [{}, { perProduct: false }]) {
+      const result = parseRuntimeBindings(entry(extra));
+      expect(result.ok && result.bindings.bindings[0]).not.toHaveProperty("perProduct");
+    }
+
+    expect(codesOf(entry({ perProduct: "yes" }))).toEqual([["bindings.invalid_field_type", "/bindings/0/perProduct"]]);
+  });
 });

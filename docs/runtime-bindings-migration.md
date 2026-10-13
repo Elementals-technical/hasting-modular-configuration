@@ -30,6 +30,7 @@ type BoundRuntimeBinding = {
   resetBefore?: ScenePatch;               // step sent before the value
   also?: { target: RuntimeTarget; sceneKey: string }[]; // more places the same value goes to (identity values)
   placedWithNewProducts?: boolean;        // a product placed later is given the value with its config
+  perProduct?: boolean;                   // a change for one cabinet alone reaches that product only
 };
 
 type UnboundRuntimeBinding = { attributeId: string; status: "unbound"; reason: string };
@@ -40,6 +41,8 @@ An attribute with no scene translation is declared `unbound` with its reason, so
 A value with more than one place in the scene names the others in `also`: each entry is a target and a scene key, and the value is sent there after the binding's own target, as steps of the same change. The Urban Duplex lateral panel colour is the scene's `CabinetColorLateral`, also its `HandleGrooveColor`, and the `CabinetColor` of an open side shelf. A product being placed takes an entry addressed to a product type only when it is of that type; the others go into its config with the value itself.
 
 The scene keeps a value per product and does not hand it to a product placed later. A binding with `placedWithNewProducts` asks for that: `addCabinet` places the product with the configuration's value, or the collection's starting value while none was chosen (`selectPlacedWithValues`). The value is not recorded again; the configuration holds it once. A cabinet value the scene broadcasts (target `all`, no typed projection) needs no flag: it is inherited and recorded at the new cabinet (`selectBroadcastValues`).
+
+A value bound to `all` reaches every product, whatever cabinet a change names: a field names the first cabinet only to have a place to record the value, and it is recorded at every cabinet. A binding with `perProduct` says the scene keeps the value on each product, so a change that asks for its cabinet alone (`onlyThisCabinet` of the change) is sent to that product and recorded at that cabinet only. The side of the Urban Duplex lateral panel is bound so: the field of the Color step turns every panel, the style sidebar and the menu of a placed cabinet turn one. A change that asks for one cabinet where the binding does not allow it is refused (`scope-mismatch`) rather than sent to them all. A cabinet that joins is recorded with the value it was placed with: its own where its config carries one, else the composition's.
 
 The pure functions are exported from `@/entities/collection`:
 

@@ -37,6 +37,8 @@ export type ResolvedRuntimeBinding = {
   resetBefore?: ScenePatch;
   /** The value once more, for the other places the binding names (`also`), in order. */
   also?: readonly ResolvedAlsoDelivery[];
+  /** The scene keeps the value per product: a change for one cabinet alone reaches that product. */
+  perProduct?: true;
 };
 
 export type ResolvedAlsoDelivery = { target: RuntimeTarget; patch: ScenePatch };
@@ -156,6 +158,7 @@ export const resolveRuntimeBinding = (
     ...(binding.order !== undefined ? { order: binding.order } : {}),
     ...(binding.resetBefore ? { resetBefore: { ...binding.resetBefore } } : {}),
     ...(also.length > 0 ? { also } : {}),
+    ...(binding.perProduct ? { perProduct: true as const } : {}),
   };
 };
 

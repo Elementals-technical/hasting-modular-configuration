@@ -2,6 +2,8 @@ import type { CustomizationSchema } from "../../model/customizationSchema";
 import type { CollectionDiagnostic } from "../../model/diagnostics";
 import type { RuntimeBindingSet } from "../../model/runtimeBindings";
 import type { ProductProfile } from "../../model/productProfile";
+import { selectAttribute } from "../productProfileSelectors";
+import { selectRuntimeBinding } from "./resolveRuntimeBinding";
 import { validateRuntimeBindings, type RuntimeBindingIssue } from "./validateRuntimeBindings";
 
 export const collectCustomizationAttributeIds = (schema?: CustomizationSchema): string[] =>
@@ -54,3 +56,35 @@ export const validateCollectionRuntimeContract = (
     dataPath: issuePath(issue, set),
     message: issueMessage(issue),
   }));
+
+/** The cabinet values the style sidebar and the player menu change for one cabinet alone. */
+export const collectPerCabinetAttributeIds = (schema?: CustomizationSchema): string[] => [
+  ...new Set([...(schema?.styleSidebar?.attributes ?? []), ...(schema?.playerMenu?.attributes ?? [])]),
+];
+
+/**
+ * A value offered for one cabinet alone must be a cabinet value of the profile that the scene
+ * keeps per product (`perProduct`): anything else would change every cabinet or none.
+ */
+export const validatePerCabinetAttributes = (
+  profile: ProductProfile,
+  set: RuntimeBindingSet,
+  schema?: CustomizationSchema,
+): CollectionDiagnostic[] =>
+  collectPerCabinetAttributeIds(schema).flatMap((attributeId): CollectionDiagnostic[] => {
+    const binding = selectRuntimeBinding(set, attributeId);
+    const isPerCabinet =
+      selectAttribute(profile, attributeId)?.scope === "cabinet" && binding?.status === "bound" && binding.perProduct;
+
+    return isPerCabinet
+      ? []
+      : [
+          {
+            code: "runtime.not-per-product",
+            severity: "error",
+            dataset: "customization",
+            dataPath: attributeId,
+            message: `"${attributeId}" is offered for one cabinet alone, but is not a cabinet value bound perProduct`,
+          },
+        ];
+  });

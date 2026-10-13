@@ -169,7 +169,7 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
-import { useChangeAttribute, useChangeDimension } from "@/features/configurationCommands";
+import { useChangeAttribute, useChangeDimension, usePerCabinetAttributeFields } from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
@@ -183,6 +183,7 @@ import {
 } from "@/features/inSceneQuickEditorNotification";
 import { useCollectionNavigate } from "@/features/collectionCustomization";
 import { applyPlayerMenuSupport } from "./lib/applyPlayerMenuSupport";
+import { buildCabinetAttributeMenuItems } from "./lib/buildCabinetAttributeMenuItems";
 import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
 import { resolvePlayerMenuSupport } from "./lib/playerMenuCatalog";
 import {
@@ -1929,6 +1930,40 @@ export const PlayCanvasIntegration = ({
     ],
   );
 
+  // The values the selected cabinet has of its own (`playerMenu.attributes` of the collection):
+  // the menu shows them and changes them for that cabinet alone.
+  const selectedCabinetKey = useAppSelector((state) =>
+    selectedSceneProduct ? getStableKeyForRuntimeId(state, selectedSceneProduct) : null,
+  );
+  const cabinetAttributeFields = usePerCabinetAttributeFields(
+    customizationSchema?.playerMenu?.attributes,
+    selectedCabinetKey,
+  );
+
+  const handleSetCabinetAttribute = useCallback(
+    async (attributeId: string, value: string) => {
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+      if (!selectedCabinetKey) return;
+
+      try {
+        await saveSnapshot();
+        const result = await changeAttributeValue({
+          attributeId,
+          value,
+          scope: "cabinet",
+          cabinetId: selectedCabinetKey,
+          onlyThisCabinet: true,
+        });
+        if (result.status !== "applied") {
+          console.warn(`[PlayCanvasIntegration] ${attributeId} was not changed`, result);
+        }
+      } catch (error) {
+        console.error(`[PlayCanvasIntegration] Failed to set ${attributeId}`, error);
+      }
+    },
+    [changeAttributeValue, saveSnapshot, selectedCabinetKey],
+  );
+
   /** The cabinets of a composition share one height, so this resizes them all, as Depth does. */
   const handleSetHeight = useCallback(
     async (height: number) => {
@@ -3178,6 +3213,16 @@ export const PlayCanvasIntegration = ({
     cabinetPlacementRef.current?.reposition(selectedSceneProduct);
   }, [repositionStatus.available, selectedSceneProduct, productIds]);
 
+  const cabinetAttributeMenuItems = useMemo(
+    () =>
+      buildCabinetAttributeMenuItems(
+        cabinetAttributeFields,
+        (attributeId, value) => void handleSetCabinetAttribute(attributeId, value),
+        <AppIcon icon={Check} size={12} />,
+      ),
+    [cabinetAttributeFields, handleSetCabinetAttribute],
+  );
+
   const rawDropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
     const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
@@ -3252,6 +3297,8 @@ export const PlayCanvasIntegration = ({
               trailing: <ArrowTopRight color={"#333"} />,
               onClick: handleCabinetStyleFromPrebuilt,
             },
+            // An open shelf has no value of a drawer cabinet's own to change.
+            ...(isDrawerCabinet ? cabinetAttributeMenuItems : []),
             {
               id: "accessories",
               label: "Accessories",
@@ -3430,6 +3477,7 @@ export const PlayCanvasIntegration = ({
                     onClick: () => handleSetHandleType(option.value),
                   })),
                 },
+                ...cabinetAttributeMenuItems,
                 {
                   id: "accessories",
                   label: "Accessories",
@@ -3498,6 +3546,7 @@ export const PlayCanvasIntegration = ({
     isTowelBarEntity,
     handleOptions,
     handleSetHandleType,
+    cabinetAttributeMenuItems,
     selectedProductConfig,
     selectedSceneProduct,
     sinkBaseCount,

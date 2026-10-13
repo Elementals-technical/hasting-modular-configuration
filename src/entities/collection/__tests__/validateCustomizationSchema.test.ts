@@ -414,6 +414,31 @@ describe("validateCustomizationSchema", () => {
     ).toBe(true);
   });
 
+  it("accepts the cabinet values the style sidebar and the menu change for one cabinet alone", () => {
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        styleSidebar: { fields: ["Width", "Depth"], attributes: ["LateralPanelSide"] },
+        playerMenu: { attributes: ["LateralPanelSide"] },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects such a list that is not attribute ids, each once", () => {
+    for (const [override, dataPath] of [
+      [{ styleSidebar: { attributes: "LateralPanelSide" } }, "styleSidebar.attributes"],
+      [{ styleSidebar: { attributes: ["LateralPanelSide", ""] } }, "styleSidebar.attributes"],
+      [{ playerMenu: { attributes: ["LateralPanelSide", "LateralPanelSide"] } }, "playerMenu.attributes"],
+      [{ playerMenu: { attributes: [1] } }, "playerMenu.attributes"],
+    ] as const) {
+      const result = validateCustomizationSchema({ ...uiJson, ...override });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-schema", dataPath }));
+    }
+  });
+
   it("names a size Resize does not change and a selector the style sidebar does not have", () => {
     const result = validateCustomizationSchema({
       ...uiJson,

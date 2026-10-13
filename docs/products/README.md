@@ -101,6 +101,13 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
   у розділі (рядок над вкладками) і `tab: { label, icon }` у кожному його полі. Urban Duplex так показує
   Panel Color: вкладки Base Panel / Lateral Panel, під ними сітка кольорів вибраної панелі. `icon` — файл
   пакета колекції 48×24 (`images/panel/*.svg`). Розділ без `fieldTabs` показує поля стопкою.
+- Значення шафи, яке можна змінити лише в одній шафі, перелічує `ui.json`: `styleSidebar.attributes`
+  (selector у right sidebar Cabinet Builder після власних Width / Depth / Height / Handle) і
+  `playerMenu.attributes` (підменю в Details меню поставленої шафи). Для шафи, виділеної на сцені,
+  змінюється лише вона; без виділення sidebar задає значення шафі, яку зараз додають. Binding такого
+  attribute мусить мати `perProduct: true`, інакше колекція не завантажиться
+  (`runtime.not-per-product`). Urban Duplex так показує сторону Lateral Panel; поле на кроці Color
+  і далі ставить її всім шафам.
 - Кожен core/UI attribute покритий binding зі статусом `bound`, `state-only` або `unbound`.
 - Cabinet table читається через mapping саме цього profile; не додавати USH fallback.
 - Висоту, яку користувач обирає сам (selector Height у right sidebar і Resize ▸ Height у меню шафи),

@@ -147,7 +147,9 @@ export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBi
 export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";
 export {
   collectCustomizationAttributeIds,
+  collectPerCabinetAttributeIds,
   validateCollectionRuntimeContract,
+  validatePerCabinetAttributes,
 } from "./lib/runtimeBindings/collectionRuntimeContract";
 
 // Customization schema — owned by B: the UI description of steps, sections and fields.

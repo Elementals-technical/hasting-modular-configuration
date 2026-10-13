@@ -401,3 +401,67 @@ describe("createPlayCanvasRuntimePort: a value sent to more places", () => {
     expect(scene.calls[1]).toEqual({ selector: { productType: "UD-open-shelves" }, patch: { CabinetColor: "white" } });
   });
 });
+
+/**
+ * A value bound to every product that the scene keeps on each (`perProduct`): a field sets it
+ * for all, a change for one cabinet alone reaches that cabinet only.
+ */
+describe("createPlayCanvasRuntimePort: a value for one cabinet alone", () => {
+  const side = { kind: "map", patches: { L: { HandleSide: "Left" }, R: { HandleSide: "Right" } } } as const;
+  const bindings: RuntimeBindingSet = {
+    schemaVersion: 1,
+    collectionId: "test",
+    productTypes: {},
+    bindings: [
+      { attributeId: "PanelSide", status: "bound", target: { kind: "all" }, values: side, perProduct: true },
+      { attributeId: "SharedSide", status: "bound", target: { kind: "all" }, values: side },
+    ],
+  };
+
+  const setUpSides = () => {
+    const scene = createFakeScene();
+    const port = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene });
+    return { scene, port, ctx: context({ collectionId: "test" }) };
+  };
+
+  const sideOf = (attributeId: string, extra: Partial<RuntimeChange> = {}): RuntimeChange => ({
+    attributeId,
+    target: { scope: "cabinet", cabinetId: "cab-2" },
+    value: "L",
+    ...extra,
+  });
+
+  it("goes to the named product only", async () => {
+    const { scene, port, ctx } = setUpSides();
+    const change = sideOf("PanelSide", { onlyThisCabinet: true });
+
+    expect(await port.apply([change], ctx)).toEqual({ status: "applied", applied: [change] });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-2"] }, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("stays a broadcast when the change does not ask for one cabinet", async () => {
+    const { scene, port, ctx } = setUpSides();
+
+    await port.apply([sideOf("PanelSide")], ctx);
+
+    expect(scene.calls).toEqual([{ selector: {}, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("stays a broadcast where the binding keeps one value for the composition", async () => {
+    const { scene, port, ctx } = setUpSides();
+
+    await port.apply([sideOf("SharedSide", { onlyThisCabinet: true })], ctx);
+
+    expect(scene.calls).toEqual([{ selector: {}, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("fails before any call when the cabinet has no product in the scene", async () => {
+    const { scene, port, ctx } = setUpSides();
+    const change = sideOf("PanelSide", { onlyThisCabinet: true, target: { scope: "cabinet", cabinetId: "gone" } });
+
+    const result = await port.apply([change], ctx);
+
+    expect(result.status).toBe("failed");
+    expect(scene.calls).toEqual([]);
+  });
+});

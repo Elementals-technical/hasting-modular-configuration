@@ -92,6 +92,13 @@ export type BoundRuntimeBinding = {
    */
   placedWithNewProducts?: boolean;
   /**
+   * The scene keeps the value on each product, so a change that names one cabinet and asks for
+   * that cabinet alone (`onlyThisCabinet`) reaches that product only: the side of the lateral
+   * panel of Urban Duplex, which a field sets for all cabinets and the cabinet's menu for one.
+   * Without it a value bound to "all" reaches every product, whatever cabinet a change names.
+   */
+  perProduct?: boolean;
+  /**
    * Phase the attribute is sent in: a set runs lowest first, e.g. drawers before the
    * handle and the handle before the height. Equal or missing orders keep C's order;
    * missing sorts after every declared order.

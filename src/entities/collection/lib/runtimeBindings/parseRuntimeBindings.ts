@@ -334,7 +334,13 @@ const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBi
     );
   }
 
-  if (!target || !values || !orderValid || resetBefore === null || also === null || !placedValid) return null;
+  const perProductValid = raw.perProduct === undefined || typeof raw.perProduct === "boolean";
+  if (!perProductValid) {
+    collect.add("bindings.invalid_field_type", `${path}/perProduct`, "perProduct must be a boolean");
+  }
+
+  if (!target || !values || !orderValid || resetBefore === null || also === null || !placedValid || !perProductValid)
+    return null;
 
   return {
     attributeId: raw.attributeId,
@@ -343,6 +349,7 @@ const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBi
     values,
     ...(also ? { also } : {}),
     ...(raw.placedWithNewProducts === true ? { placedWithNewProducts: true } : {}),
+    ...(raw.perProduct === true ? { perProduct: true } : {}),
     ...(typeof raw.order === "number" ? { order: raw.order } : {}),
     ...(resetBefore ? { resetBefore } : {}),
     ...(isNonEmptyString(raw.note) ? { note: raw.note } : {}),

@@ -5,7 +5,9 @@ import urbanDuplexRuntimeBindingsDocument from "../../../../../../public/collect
 import urbanDuplexUiDocument from "../../../../../../public/collections/urban-duplex/ui.json";
 import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 
+import { readCustomizationSchema } from "../../../__tests__/fixtures/readCustomizationSchema";
 import { parseProductProfile } from "../../parseProductProfile";
+import { collectPerCabinetAttributeIds, validatePerCabinetAttributes } from "../collectionRuntimeContract";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
 import { resolveCabinetTypeOfRuntimeId } from "../resolveCabinetType";
 import { resolveProductConfig } from "../resolveProductConfig";
@@ -164,10 +166,35 @@ describe("urban-duplex runtime bindings", () => {
     }
   });
 
+  it("offer the side of the lateral panel for one cabinet alone, in the style sidebar and the cabinet's menu", () => {
+    const ui = readCustomizationSchema(urbanDuplexUiDocument);
+
+    expect(ui.styleSidebar?.attributes).toEqual(["LateralPanelSide"]);
+    expect(ui.playerMenu?.attributes).toEqual(["LateralPanelSide"]);
+    expect(collectPerCabinetAttributeIds(ui)).toEqual(["LateralPanelSide"]);
+    // The collection loads: each is a cabinet value the scene keeps per product.
+    expect(validatePerCabinetAttributes(urbanDuplexProfile(), urbanDuplexRuntimeBindings(), ui)).toEqual([]);
+  });
+
+  it("would not load with a value offered for one cabinet that the scene keeps once for them all", () => {
+    const ui = readCustomizationSchema(urbanDuplexUiDocument);
+    const offered = (attributeId: string) => ({ ...ui, playerMenu: { attributes: [attributeId] }, styleSidebar: {} });
+
+    // The handle is one for the composition; a panel colour is no cabinet value; the last is unknown.
+    for (const attributeId of ["Handle", "BasePanelColor", "Missing"]) {
+      expect(
+        validatePerCabinetAttributes(urbanDuplexProfile(), urbanDuplexRuntimeBindings(), offered(attributeId)),
+      ).toEqual([
+        expect.objectContaining({ code: "runtime.not-per-product", severity: "error", dataPath: attributeId }),
+      ]);
+    }
+  });
+
   it("put the lateral panel on the side chosen for the composition", () => {
     expect(patchOf("LateralPanelSide", "L")).toEqual({ HandleSide: "Left" });
     expect(patchOf("LateralPanelSide", "R")).toEqual({ HandleSide: "Right" });
-    expect(resolve("LateralPanelSide", "L")).toMatchObject({ target: { kind: "all" } });
+    // One field sets every cabinet; the sidebar and the cabinet's menu one cabinet (perProduct).
+    expect(resolve("LateralPanelSide", "L")).toMatchObject({ target: { kind: "all" }, perProduct: true });
   });
 
   it("show a cabinet of another Urban series, which has no lateral panel, with the full handles", () => {
