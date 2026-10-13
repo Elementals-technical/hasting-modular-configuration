@@ -4,6 +4,8 @@ import classProfileDocument from "../../../../public/collections/class/product-p
 import classUi from "../../../../public/collections/class/ui.json";
 import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
+import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 import ushProfileDocument from "../../../../public/collections/urban-standard-height/product-profile.json";
 import ushUi from "../../../../public/collections/urban-standard-height/ui.json";
 import urbanLowHeightProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
@@ -12,12 +14,13 @@ import cabinetTable439 from "./fixtures/remote/datatable-439.json";
 import cabinetTable579 from "./fixtures/remote/datatable-579.json";
 import cabinetTable580 from "./fixtures/remote/datatable-580.json";
 import cabinetTable581 from "./fixtures/remote/datatable-581.json";
+import cabinetTable594 from "./fixtures/remote/datatable-594.json";
 
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import type { ProductDatatable } from "@/entities/product/api";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
-import { selectOptions, selectOptionValues } from "../lib/productProfileSelectors";
+import { selectBasinOptions, selectOptions, selectOptionValues } from "../lib/productProfileSelectors";
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 import type { ProductProfile } from "../model/productProfile";
 
@@ -53,6 +56,12 @@ const COLLECTIONS: { id: string; ui: unknown; profile: ProductProfile; table: un
   },
   { id: "class", ui: classUi, profile: profileOf("class", classProfileDocument), table: cabinetTable579 },
   { id: "mako", ui: makoUi, profile: profileOf("mako", makoProfileDocument), table: cabinetTable581 },
+  {
+    id: "urban-duplex",
+    ui: urbanDuplexUi,
+    profile: profileOf("urban-duplex", urbanDuplexProfileDocument),
+    table: cabinetTable594,
+  },
 ];
 
 /** Option values of an attribute, including the legacy spellings that normalize to them. */
@@ -132,5 +141,23 @@ describe("option pictures are files of the collection", () => {
     ];
 
     expect(references.filter((reference) => !COLLECTION_PICTURES.has(`${id}/${reference}`))).toEqual([]);
+  });
+});
+
+describe("urban-duplex basin pictures", () => {
+  it("pictures every integrated basin, as Urban Standard Height pictures the same thirteen", () => {
+    const duplex = validateCustomizationSchema(urbanDuplexUi);
+    const ush = validateCustomizationSchema(ushUi);
+    if (!duplex.ok || !ush.ok) throw new Error("ui.json failed validation");
+
+    const basins = selectBasinOptions(profileOf("urban-duplex", urbanDuplexProfileDocument), "integrated").map(
+      ({ value }) => value,
+    );
+    expect(basins).toHaveLength(13);
+
+    const pictures = duplex.schema.optionImages?.sinkType ?? {};
+    expect(Object.keys(pictures)).toEqual(basins);
+    // The Master File lists the Urban Standard Height basins (P1064): the same picture for each.
+    for (const basin of basins) expect(pictures[basin], basin).toBe(ush.schema.optionImages?.sinkType?.[basin]);
   });
 });
