@@ -97,6 +97,10 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 
 - Manifest id та всі локальні `collectionId` збігаються.
 - Поле з `ui.json` існує в profile або має свідомий runtime/status contract.
+- Розділ, який показує одне зі своїх полів за раз, описує `ui.json`, а не код сторінки: `fieldTabs: { label }`
+  у розділі (рядок над вкладками) і `tab: { label, icon }` у кожному його полі. Urban Duplex так показує
+  Panel Color: вкладки Base Panel / Lateral Panel, під ними сітка кольорів вибраної панелі. `icon` — файл
+  пакета колекції 48×24 (`images/panel/*.svg`). Розділ без `fieldTabs` показує поля стопкою.
 - Кожен core/UI attribute покритий binding зі статусом `bound`, `state-only` або `unbound`.
 - Cabinet table читається через mapping саме цього profile; не додавати USH fallback.
 - Висоту, яку користувач обирає сам (selector Height у right sidebar і Resize ▸ Height у меню шафи),

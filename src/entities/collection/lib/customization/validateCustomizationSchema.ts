@@ -173,6 +173,18 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
       });
     }
 
+    const fieldTabs = section.fieldTabs;
+    if (
+      fieldTabs !== undefined &&
+      !(isRecord(fieldTabs) && (fieldTabs.label === undefined || isNonEmptyString(fieldTabs.label)))
+    ) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `sections.${sectionId}.fieldTabs`,
+        message: "fieldTabs must be { label? } with a non-empty label",
+      });
+    }
+
     section.fields.forEach((field: unknown, index: number) => {
       const path = `sections.${sectionId}.fields[${index}]`;
       const control = isRecord(field) ? field.control : undefined;
@@ -225,6 +237,25 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
           code: "invalid-schema",
           dataPath: `${path}.autoSelect`,
           message: 'autoSelect must be "firstAllowed"',
+        });
+      }
+
+      const tab = field.tab;
+      if (
+        tab !== undefined &&
+        !(isRecord(tab) && isNonEmptyString(tab.label) && (tab.icon === undefined || isNonEmptyString(tab.icon)))
+      ) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.tab`,
+          message: "tab must be { label, icon? } with a non-empty label and icon",
+        });
+      } else if (tab === undefined && fieldTabs !== undefined) {
+        // A field without a tab could never be reached in a section that shows one field at a time.
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.tab`,
+          message: "a field of a section with fieldTabs must name its tab",
         });
       }
     });

@@ -35,7 +35,7 @@
     "cabinet": {
       "label": "Color",
       "kind": "fields",
-      "sectionIds": ["base-panel-color", "lateral-panel-color", "lateral-panel-side"]
+      "sectionIds": ["panel-color", "lateral-panel-side"]
     },
     "countertop": {
       "label": "Countertop & Basin",
@@ -56,14 +56,24 @@
       "label": "Cabinet Style",
       "fields": [{ "attributeId": "Drawers", "control": "options-grid" }]
     },
-    "base-panel-color": {
-      "label": "Base Panel Color",
+    "panel-color": {
+      "label": "Panel Color",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "BasePanelColor", "control": "colors", "optionsRef": "BasePanelColor" }]
-    },
-    "lateral-panel-color": {
-      "label": "Lateral Panel Color",
-      "fields": [{ "attributeId": "LateralPanelColor", "control": "colors", "optionsRef": "LateralPanelColor" }]
+      "fieldTabs": { "label": "Select Panel, Then Color" },
+      "fields": [
+        {
+          "attributeId": "BasePanelColor",
+          "control": "colors",
+          "optionsRef": "BasePanelColor",
+          "tab": { "label": "Base Panel", "icon": "images/panel/base-panel.svg" }
+        },
+        {
+          "attributeId": "LateralPanelColor",
+          "control": "colors",
+          "optionsRef": "LateralPanelColor",
+          "tab": { "label": "Lateral Panel", "icon": "images/panel/lateral-panel.svg" }
+        }
+      ]
     },
     "lateral-panel-side": {
       "label": "Lateral Panel",

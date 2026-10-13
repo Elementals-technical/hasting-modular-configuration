@@ -292,6 +292,48 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  /** The faucet section with these fields' tabs: a tabbed section when `fieldTabs` is given. */
+  const withFieldTabs = (fieldTabs: unknown, tabs: unknown[]) => ({
+    ...uiJson,
+    sections: {
+      ...uiJson.sections,
+      "faucet-holes-amount": {
+        ...uiJson.sections["faucet-holes-amount"],
+        ...(fieldTabs === undefined ? {} : { fieldTabs }),
+        fields: tabs.map((tab, index) => ({
+          attributeId: index === 0 ? "FaucetHolesAmount" : "Thickness",
+          control: "swatches",
+          ...(tab === undefined ? {} : { tab }),
+        })),
+      },
+    },
+  });
+
+  it("accepts a section that shows one field at a time, each field naming its tab", () => {
+    const panels = [{ label: "Base Panel", icon: "images/panel/base-panel.svg" }, { label: "Lateral Panel" }];
+
+    expect(validateCustomizationSchema(withFieldTabs({ label: "Select Panel, Then Color" }, panels)).ok).toBe(true);
+    // The line above the tabs is optional.
+    expect(validateCustomizationSchema(withFieldTabs({}, panels)).ok).toBe(true);
+  });
+
+  it.each([
+    ["fieldTabs that is not an object", "tabs", [{ label: "A" }, { label: "B" }], "fieldTabs"],
+    ["an empty line above the tabs", { label: " " }, [{ label: "A" }, { label: "B" }], "fieldTabs"],
+    ["a tab without its text", {}, [{ label: "" }, { label: "B" }], "fields[0].tab"],
+    ["a tab picture that is not a reference", {}, [{ label: "A", icon: 5 }, { label: "B" }], "fields[0].tab"],
+    // It could never be reached: the section shows the field of the chosen tab only.
+    ["a field without a tab in a tabbed section", {}, [{ label: "A" }, undefined], "fields[1].tab"],
+  ])("rejects %s", (_name, fieldTabs, tabs, where) => {
+    const result = validateCustomizationSchema(withFieldTabs(fieldTabs, tabs));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: `sections.faucet-holes-amount.${where}` }),
+    );
+  });
+
   it("accepts a field that keeps its value allowed, and no other autoSelect", () => {
     const withAutoSelect = (autoSelect: unknown) => ({
       ...uiJson,

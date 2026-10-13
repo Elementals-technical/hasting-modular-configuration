@@ -59,6 +59,8 @@ export type ResolvedCustomizationSection = {
   /** The countertop step's label for this section while the style is vessel; absent otherwise. */
   labelWhenVessel?: string;
   defaultOpen: boolean;
+  /** The section shows one of its fields at a time, chosen on tabs; `label` is the line above them. */
+  fieldTabs?: { label?: string };
   fields: ResolvedCustomizationField[];
 };
 
@@ -328,6 +330,7 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
             label: section.label,
             ...(section.labelWhenVessel ? { labelWhenVessel: section.labelWhenVessel } : {}),
             defaultOpen: section.defaultOpen ?? false,
+            ...(section.fieldTabs ? { fieldTabs: section.fieldTabs } : {}),
             fields: resolveSectionFields(schema, sectionId, profile, values, availabilityResults, configurator),
           },
         ];

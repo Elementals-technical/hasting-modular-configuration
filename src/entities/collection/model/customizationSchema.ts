@@ -116,12 +116,22 @@ export type CustomizationFieldDefinition = {
    * thickness, basin and vessel colour.
    */
   autoSelect?: "firstAllowed";
+  /**
+   * The field's tab in a section that shows one field at a time (`fieldTabs`): its text and,
+   * beside it, a picture of the collection (Urban Duplex: Base Panel, Lateral Panel).
+   */
+  tab?: { label: string; icon?: string };
 };
 
 export type CustomizationSectionDefinition = {
   label: string;
   defaultOpen?: boolean;
   fields: CustomizationFieldDefinition[];
+  /**
+   * The section shows one of its fields at a time, chosen on tabs each field names in `tab`;
+   * `label` is the line above them ("Select Panel, Then Color"). Without it the fields are stacked.
+   */
+  fieldTabs?: { label?: string };
   /** false drops the section from its step, without clearing the values of its fields. */
   enabled?: boolean;
   /**

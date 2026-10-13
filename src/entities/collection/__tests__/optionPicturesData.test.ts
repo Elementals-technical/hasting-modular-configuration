@@ -138,6 +138,10 @@ describe("option pictures are files of the collection", () => {
     const references = [
       ...Object.values(result.schema.optionImages ?? {}).flatMap((byValue) => Object.values(byValue)),
       ...Object.values(result.schema.optionImageVariants ?? {}).flatMap((rows) => rows.map(({ image }) => image)),
+      // The picture of a field's tab (Urban Duplex: Base Panel, Lateral Panel).
+      ...Object.values(result.schema.sections).flatMap(({ fields }) =>
+        fields.flatMap(({ tab }) => (tab?.icon ? [tab.icon] : [])),
+      ),
     ];
 
     expect(references.filter((reference) => !COLLECTION_PICTURES.has(`${id}/${reference}`))).toEqual([]);

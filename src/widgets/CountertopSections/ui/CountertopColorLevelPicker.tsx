@@ -1,8 +1,8 @@
-import { Tabs } from "@base-ui/react/tabs";
 import { useState, type ReactNode } from "react";
 
 import type { FieldRuntimeState } from "@/entities/collection";
 import { ColorField } from "@/features/collectionCustomization";
+import { SegmentedTabPanel, SegmentedTabs, type SegmentedTab } from "@/shared/ui/SegmentedTabs/SegmentedTabs";
 
 import LowerCountertopIcon from "../assets/lower-countertop.svg?react";
 import UpperCountertopIcon from "../assets/upper-countertop.svg?react";
@@ -23,27 +23,31 @@ type CountertopLevel = "upper" | "lower";
 const CountertopLevelTabs = ({ children, lowerField, processing, error, onLowerChange, onOrderSwatches }: Props) => {
   const [level, setLevel] = useState<CountertopLevel>("upper");
 
-  const changeLevel = (value: unknown) => {
+  const changeLevel = (value: string) => {
     if (value === "upper" || value === "lower") setLevel(value);
   };
 
+  const tabs: SegmentedTab[] = [
+    {
+      value: "upper",
+      label: "Upper",
+      disabled: processing,
+      icon: <UpperCountertopIcon aria-hidden="true" focusable="false" />,
+    },
+    {
+      value: "lower",
+      label: "Lower",
+      disabled: processing,
+      icon: <LowerCountertopIcon aria-hidden="true" focusable="false" />,
+    },
+  ];
+
   return (
-    <Tabs.Root className={s.levelTabs} value={level} onValueChange={changeLevel}>
-      <Tabs.List className={s.levelPicker} aria-label="Countertop level" activateOnFocus>
-        <Tabs.Tab className={s.levelTab} value="upper" disabled={processing}>
-          <span>Upper</span>
-          <UpperCountertopIcon className={s.levelIcon} aria-hidden="true" focusable="false" />
-        </Tabs.Tab>
-        <Tabs.Tab className={s.levelTab} value="lower" disabled={processing}>
-          <span>Lower</span>
-          <LowerCountertopIcon className={s.levelIcon} aria-hidden="true" focusable="false" />
-        </Tabs.Tab>
-        <Tabs.Indicator className={s.levelIndicator} />
-      </Tabs.List>
-      <Tabs.Panel className={s.levelPanel} value="upper" keepMounted>
+    <SegmentedTabs label="Countertop level" tabs={tabs} value={level} onValueChange={changeLevel}>
+      <SegmentedTabPanel value="upper" keepMounted>
         {children}
-      </Tabs.Panel>
-      <Tabs.Panel className={s.levelPanel} value="lower" keepMounted>
+      </SegmentedTabPanel>
+      <SegmentedTabPanel value="lower" keepMounted>
         <fieldset className={s.lowerColors} disabled={processing} aria-busy={processing}>
           <ColorField
             field={lowerField}
@@ -53,8 +57,8 @@ const CountertopLevelTabs = ({ children, lowerField, processing, error, onLowerC
           />
         </fieldset>
         {error && <p role="alert">{error}</p>}
-      </Tabs.Panel>
-    </Tabs.Root>
+      </SegmentedTabPanel>
+    </SegmentedTabs>
   );
 };
 
