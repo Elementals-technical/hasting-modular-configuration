@@ -65,11 +65,32 @@ export type MappedValues = {
   unboundValues?: Record<string, string>;
 };
 
+/**
+ * One more place a value goes to, after the binding's own: under another scene key, to other
+ * products, or both. The Urban Duplex lateral panel colour is also the colour of the handle
+ * grooves, and of an open side shelf, whose only colour key is the cabinet's.
+ */
+export type AlsoDelivery = {
+  target: RuntimeTarget;
+  sceneKey: string;
+};
+
 export type BoundRuntimeBinding = {
   attributeId: string;
   status: "bound";
   target: RuntimeTarget | FlowTargets;
   values: IdentityValues | MappedValues;
+  /**
+   * More places the same value goes to, in this order. Identity values only. A product being
+   * placed takes one addressed to a product type only when it is of that type.
+   */
+  also?: readonly AlsoDelivery[];
+  /**
+   * A product placed later is given the value with its config. The scene keeps a value per
+   * product, so without this a new product starts from the scene's own default: it is placed
+   * with the configuration's value, or the collection's starting value while none was chosen.
+   */
+  placedWithNewProducts?: boolean;
   /**
    * Phase the attribute is sent in: a set runs lowest first, e.g. drawers before the
    * handle and the handle before the height. Equal or missing orders keep C's order;

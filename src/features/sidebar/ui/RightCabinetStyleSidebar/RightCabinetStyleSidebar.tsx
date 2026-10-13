@@ -51,7 +51,6 @@ import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import {
-  hasCapability,
   resolveCabinetTypeOfRuntimeId,
   selectEffectiveFallback,
   selectOptions,
@@ -74,7 +73,10 @@ import {
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { REASON_HANDLE_HEIGHT_LOCKED } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  isLeavingSideShelfHandle,
+  REASON_HANDLE_HEIGHT_LOCKED,
+} from "@/features/configurator-rule-core/cabinetBuilder";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
@@ -526,9 +528,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const option = dimensionOptions.handles.find((item) => String(item.value) === handleType);
       if (option?.disabled && option.reasonCode === REASON_HANDLE_HEIGHT_LOCKED) {
         const ossIdsForLock = selectedProducts.filter(isSideShelf);
-        const leavingNonGroove =
-          !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
-          hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
+        const leavingNonGroove = isLeavingSideShelfHandle(activeProfile, previousHandle, handleType);
 
         if (ossIdsForLock.length > 0 && leavingNonGroove) {
           setPendingOssHandleChange({ next: handleType, ossIds: ossIdsForLock });
@@ -544,9 +544,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     if (previousHandle === handleType) return;
 
-    const isSwitchingAwayFromPto =
-      !hasCapability(activeProfile, "Handle", previousHandle ?? null, "supportsGrooveColor") &&
-      hasCapability(activeProfile, "Handle", handleType, "supportsGrooveColor");
+    const isSwitchingAwayFromPto = isLeavingSideShelfHandle(activeProfile, previousHandle, handleType);
     const ossIds = selectedProducts.filter(isSideShelf);
     if (isSwitchingAwayFromPto && ossIds.length > 0) {
       setPendingOssHandleChange({ next: handleType, ossIds });

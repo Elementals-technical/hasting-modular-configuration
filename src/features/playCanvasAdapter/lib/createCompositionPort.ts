@@ -101,7 +101,11 @@ export const createCompositionPort = ({
 
     return {
       sceneType,
-      config: { ...resolveProductConfig(bindings, config), ProductType: sceneType, productType: sceneType },
+      config: {
+        ...resolveProductConfig(bindings, config, undefined, sceneType),
+        ProductType: sceneType,
+        productType: sceneType,
+      },
     };
   };
 
@@ -150,7 +154,13 @@ export const createCompositionPort = ({
         continue;
       }
 
-      if (!isStateOnlyResolution(resolution)) Object.assign(globalConfig, resolution.patch);
+      if (isStateOnlyResolution(resolution)) continue;
+
+      Object.assign(globalConfig, resolution.patch);
+      // The value under its other keys; one for a single product type goes with that product's own config.
+      for (const delivery of resolution.also ?? []) {
+        if (delivery.target.kind !== "productType") Object.assign(globalConfig, delivery.patch);
+      }
     }
 
     if (issues.length > 0) return { status: "rejected", issues };

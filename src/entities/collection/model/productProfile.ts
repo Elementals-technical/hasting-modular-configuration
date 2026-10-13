@@ -110,6 +110,12 @@ export type CabinetMatrixLegacyAdapter = {
      */
     heightsByHandle?: Record<string, string>;
   };
+  /**
+   * drawers value -> the heights in cm a cabinet with these drawers comes in, for a table whose
+   * one forced height per drawers cannot say it (Urban Duplex: one drawer at 53 cm, and the Slim
+   * cabinets at 38 and 28). The user chooses among them; a change of drawers lands on the nearest.
+   */
+  heightsByDrawers?: Record<string, number[]>;
 };
 
 /**

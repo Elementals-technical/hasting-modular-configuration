@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { store } from "@/app/store";
+import { parseProductProfile, parseRuntimeBindings } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
@@ -578,6 +581,102 @@ describe("composition commands", () => {
         const call = lastCall(composition);
         expect(call.op === "add" && call.product.config).toEqual({ Width: 60, Drawers: "1" });
         expect(getValuesByAttributeId(store.getState())).toEqual({});
+      });
+    });
+
+    describe("a colour the scene keeps per product (Urban Duplex)", () => {
+      beforeEach(() => {
+        const profile = parseProductProfile(urbanDuplexProfileDocument);
+        const bindings = parseRuntimeBindings(urbanDuplexBindingsDocument);
+        if (!profile.ok || !bindings.ok) throw new Error("the packaged Urban Duplex data must parse");
+
+        store.dispatch(setActiveProfile(profile.profile));
+        store.dispatch(setActiveCollectionId("urban-duplex"));
+        store.dispatch(setActiveRuntimeBindings(bindings.bindings));
+      });
+
+      const add = (deps: CompositionDeps, productType: string, config: Record<string, unknown>) =>
+        addCabinet({ product: { productType, config }, placement: { kind: "end" } }, deps);
+
+      it("starts the first cabinet in the collection's panel colours, with its lateral panel on the right", async () => {
+        const { composition, deps } = setup();
+
+        await add(deps, "Sink-Base", { Width: 60, Drawers: "2D" });
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toEqual({
+          Width: 60,
+          Drawers: "2",
+          BasePanelColor: "Bianco Calce DA ST",
+          LateralPanelColor: "Pulpis Chiaro TKH",
+          LateralPanelSide: "R",
+        });
+        // The colours stay the configuration's own; only the side is held by each cabinet.
+        const values = getValuesByAttributeId(store.getState());
+        expect(values.BasePanelColor).toBeUndefined();
+        expect(values.LateralPanelColor).toBeUndefined();
+        expect(values.LateralPanelSide?.map(({ value }) => value)).toEqual(["R"]);
+      });
+
+      it("places a model picked after a colour was chosen in that colour, and in its own otherwise", async () => {
+        const model = [
+          {
+            productType: "Side-Shelf",
+            config: { Width: 15, BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" },
+          },
+          {
+            productType: "Sink-Base",
+            config: { Width: 70, BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" },
+          },
+        ];
+        const { composition, deps } = setup();
+
+        await applyPreset({ products: model }, deps);
+        expect(lastCall(composition)).toMatchObject({ op: "replace", request: { products: model } });
+
+        store.dispatch(
+          setAttributeValue({
+            attributeId: "BasePanelColor",
+            target: { scope: "global" },
+            value: "Castagno Scuro 1C3",
+          }),
+        );
+        await applyPreset({ products: model }, deps);
+
+        // The price reads the chosen base colour for every product, so the scene shows it too.
+        const call = lastCall(composition);
+        expect(call.op === "replace" && call.request.products.map(({ config }) => config)).toEqual([
+          { Width: 15, BasePanelColor: "Castagno Scuro 1C3", LateralPanelColor: "Pulpis Chiaro TKH" },
+          { Width: 70, BasePanelColor: "Castagno Scuro 1C3", LateralPanelColor: "Pulpis Chiaro TKH" },
+        ]);
+      });
+
+      it("gives a shelf that joins later the colours chosen for the configuration", async () => {
+        const { composition, deps } = setup(["UD-sink-cabinet-a1b2c3d4e"]);
+        store.dispatch(
+          setAttributeValue({
+            attributeId: "BasePanelColor",
+            target: { scope: "global" },
+            value: "Castagno Scuro 1C3",
+          }),
+        );
+        store.dispatch(
+          setAttributeValue({
+            attributeId: "LateralPanelColor",
+            target: { scope: "global" },
+            value: "Metal bronzo 2MD",
+          }),
+        );
+
+        await add(deps, "Side-Shelf", { Width: 15 });
+
+        expect(lastCall(composition)).toMatchObject({
+          op: "add",
+          product: {
+            productType: "Side-Shelf",
+            config: { Width: 15, BasePanelColor: "Castagno Scuro 1C3", LateralPanelColor: "Metal bronzo 2MD" },
+          },
+        });
       });
     });
 

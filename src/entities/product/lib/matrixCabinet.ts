@@ -81,6 +81,7 @@ export const buildCabinetCatalogFromMatrix = (
         forcedHeightByDrawers: relation?.forcedHeightByDrawers ?? {},
         requiresDrawersByHandle: relation?.requiresDrawersByHandle ?? {},
         heightsByHandle: relation?.heightsByHandle ?? {},
+        heightsByDrawers: relation?.heightsByDrawers ?? {},
         supportsHeight: supportsHeight.length ? supportsHeight : undefined,
         ...(adapter.columns.unavailableWithIntegrated
           ? {
@@ -121,6 +122,7 @@ export const buildCabinetCatalogFromProfile = (
     forcedHeightByDrawers: {},
     requiresDrawersByHandle: {},
     heightsByHandle: {},
+    heightsByDrawers: {},
     ...(bindings?.productTypes[module.cabinetType]
       ? { sceneProductType: bindings.productTypes[module.cabinetType] }
       : {}),

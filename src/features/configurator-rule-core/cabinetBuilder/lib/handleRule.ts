@@ -187,8 +187,20 @@ export const handleRule = (
   // A handle may allow several heights instead of forcing one (Urban Low Height: 38/28 or 35/25).
   const handleHeights = effectiveHandle ? (relations?.heightsByHandle[effectiveHandle] ?? []) : [];
   const offersHandleHeight = heightOptions.some((option) => option.enabled && handleHeights.includes(option.value));
+  // So may the drawers, whatever the handle (Urban Duplex: one drawer at 53 cm, Slim at 38 or 28).
+  const drawersHeights = selection.drawers ? (relations?.heightsByDrawers[selection.drawers] ?? []) : [];
+  const offersDrawersHeight =
+    handleForcedHeight === null &&
+    heightOptions.some((option) => option.enabled && drawersHeights.includes(option.value));
 
-  if (hasForcedHeight && !forcedHeightConflictsLock && handleAllowsDrawers) {
+  if (offersDrawersHeight) {
+    heightOptions = constrainHeightOptions(
+      heightOptions,
+      drawersHeights,
+      selectMessage(profile, REASON_DRAWERS_REQUIRED_HEIGHT),
+      REASON_DRAWERS_REQUIRED_HEIGHT,
+    );
+  } else if (hasForcedHeight && !forcedHeightConflictsLock && handleAllowsDrawers) {
     // The collection's fallback handle applies to every product, so its explanation
     // differs from an explicitly chosen handle; a height the drawers require names no
     // handle. The texts come from profile.messages.

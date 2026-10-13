@@ -28,12 +28,18 @@ type BoundRuntimeBinding = {
   values: IdentityValues | MappedValues;  // sent as is, or value -> full scene patch
   order?: number;                         // phase the attribute is sent in
   resetBefore?: ScenePatch;               // step sent before the value
+  also?: { target: RuntimeTarget; sceneKey: string }[]; // more places the same value goes to (identity values)
+  placedWithNewProducts?: boolean;        // a product placed later is given the value with its config
 };
 
 type UnboundRuntimeBinding = { attributeId: string; status: "unbound"; reason: string };
 ```
 
 An attribute with no scene translation is declared `unbound` with its reason, so a deliberate gap is never mistaken for a forgotten one. Identity values may declare an `emptyValue` (a cleared groove colour is sent as `"None"`) and `overrides` (values the scene knows under another name).
+
+A value with more than one place in the scene names the others in `also`: each entry is a target and a scene key, and the value is sent there after the binding's own target, as steps of the same change. The Urban Duplex lateral panel colour is the scene's `CabinetColorLateral`, also its `HandleGrooveColor`, and the `CabinetColor` of an open side shelf. A product being placed takes an entry addressed to a product type only when it is of that type; the others go into its config with the value itself.
+
+The scene keeps a value per product and does not hand it to a product placed later. A binding with `placedWithNewProducts` asks for that: `addCabinet` places the product with the configuration's value, or the collection's starting value while none was chosen (`selectPlacedWithValues`). The value is not recorded again; the configuration holds it once. A cabinet value the scene broadcasts (target `all`, no typed projection) needs no flag: it is inherited and recorded at the new cabinet (`selectBroadcastValues`).
 
 The pure functions are exported from `@/entities/collection`:
 
@@ -81,8 +87,9 @@ The types live in `entities/configuration/model/runtimePort.ts` so C depends on 
 1. Everything that can be known without the scene is checked first: readiness, bindings of the right collection, a translation for every change, a runtime id for every addressed cabinet. If any check fails, nothing is sent.
 2. The set runs phase by phase (`order`), keeping C's order within a phase. A binding without `order` runs after every declared one.
 3. A value may take steps (`resetBefore`, then the value). A change counts as applied only when every step is. An identical step is sent once per set.
-4. A broadcast must reach every placed cabinet: missing ids in the scene's `updatedIds` are a failure, not a success.
-5. The first failure stops the set; the remaining changes are reported as `not-attempted`.
+4. A broadcast must reach every placed cabinet: missing ids in the scene's `updatedIds` are a failure, not a success. The check is per step, so an `also` step for one product type is not asked to reach them all.
+5. The scene takes every product whose id contains the product type it is given. When a placed product of another type contains the name (`UD-open-shelves` in `UD-open-shelves-side-…`), a `productType` target is sent to the ids of its own type instead; otherwise it stays the broadcast the binding declares.
+6. The first failure stops the set; the remaining changes are reported as `not-attempted`.
 
 `getBindings` returns the active collection's table, `catalog.runtimeBindings` from `useActiveCollection()`. A loads it through the manifest (`local.runtimeBindings`) and validates it against the profile and the UI schema; a broken or foreign table blocks the collection with diagnostics. Until the collection is ready the callers pass `null`, so the port answers `unsupported` and nothing is sent. The temporary loader (`runtimeBindingsCache`, `RuntimeBindingsBridge`) was removed once A07 landed.
 

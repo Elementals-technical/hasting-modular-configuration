@@ -25,7 +25,7 @@ import type {
 import { recordComposition } from "@/entities/product/model/store/slice";
 
 import { recordCarriedChanges, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
-import { selectBroadcastValues } from "./compositionValues";
+import { selectBroadcastValues, selectPlacedWithValues } from "./compositionValues";
 import { recordValues, replayValues, type ReplayValues } from "./replayValues";
 import { toSceneValue } from "./sceneValue";
 import type { PlannedChange } from "../model/types";
@@ -337,8 +337,16 @@ export const applyPreset = async (
     ]),
   );
 
+  // A colour the configuration holds goes on the model too, as the price already reads it:
+  // the model's own colours stand only while nothing was chosen.
+  const chosen = selectPlacedWithValues(state, { chosenOnly: true });
+  const placedProducts =
+    Object.keys(chosen).length > 0
+      ? products.map((product) => ({ ...product, config: { ...product.config, ...chosen } }))
+      : products;
+
   const result = await deps.composition.replace({
-    products: toSceneProducts(profile, bindings, products),
+    products: toSceneProducts(profile, bindings, placedProducts),
     shared: sceneShared,
     flow: deps.flow,
   });
@@ -365,8 +373,10 @@ export const addCabinet = async (
   // A cabinet joins the composition with the values all its cabinets hold: without them the scene
   // would place it with its own defaults, and it would stand out from the rest.
   const inherited = selectBroadcastValues(state);
+  // The configuration's own values the scene keeps per product go with the config, unrecorded.
+  const placedWith = selectPlacedWithValues(state);
   const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [
-    { ...product, config: withInherited(product.config, inherited) },
+    { ...product, config: withInherited(product.config, { ...placedWith, ...inherited }) },
   ]);
   const result = await deps.composition.add(sceneProduct, placement);
   if (!isSceneChange(result)) return stoppedResult(result);

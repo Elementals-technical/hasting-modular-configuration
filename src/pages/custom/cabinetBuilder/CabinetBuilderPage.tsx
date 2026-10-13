@@ -71,7 +71,6 @@ import {
 } from "@/entities/product/model/store/derivedSelectors";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
-  hasCapability,
   isDrawerStyleMixingRestricted,
   resolveCabinetTypeOfRuntimeId,
   selectDefaultValue,
@@ -84,6 +83,7 @@ import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
   getCabinetEntries,
+  getDimensionsByCabinet,
 } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute } from "@/features/configurationCommands";
 import { ensureCabinetHeights, restoreCountertopConfigs } from "@/features/playCanvasAdapter";
@@ -92,7 +92,12 @@ import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
 } from "@/features/configurator-rule-core/countertop";
-import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  findPlacedCabinetRule,
+  getUniqueCatalogWidths,
+  isDrawerStyleHeightRestricted,
+  isSideShelfBlockedByHandle,
+} from "@/features/configurator-rule-core/cabinetBuilder";
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -303,6 +308,7 @@ export const CabinetBuilderPage = () => {
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
+  const placedDimensions = useAppSelector(getDimensionsByCabinet);
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
   // Pictures, labels and the values they depend on all come from the active collection.
   const optionImages = useOptionImages();
@@ -355,12 +361,18 @@ export const CabinetBuilderPage = () => {
       return a.localeCompare(b);
     });
     const placedDrawerValues = Object.values(placedCabinetStyles);
+    const placedHeights = Object.values(placedDimensions).flatMap(({ height }) =>
+      typeof height === "number" ? [height] : [],
+    );
 
     return activeDrawerValues.filter(Boolean).map((value) => {
       const ruleOption = drawerOptionMap.get(String(value));
 
-      // Drawer style groups of the collection decide which styles cannot be mixed.
-      const isMixingRestricted = isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, String(value));
+      // Drawer style groups of the collection decide which styles cannot be mixed, and so does a
+      // style that does not come in the height of the placed cabinets.
+      const isMixingRestricted =
+        isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, String(value)) ||
+        isDrawerStyleHeightRestricted(activeCabinetRule, String(value), placedHeights);
 
       return {
         title: selectOption(activeProfile, "Drawers", String(value))?.label ?? String(value),
@@ -394,7 +406,9 @@ export const CabinetBuilderPage = () => {
     optionImageVariants,
     optionImageContext,
     activeProfile,
+    activeCabinetRule,
     placedCabinetStyles,
+    placedDimensions,
     countertopCompositionConstraint.canAddCabinet,
     countertopCompositionConstraint.reason,
     hasAddableWidthForActiveType,
@@ -403,12 +417,10 @@ export const CabinetBuilderPage = () => {
   ]);
 
   const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
-  // Open/side shelves have no drawer front to cut a groove into, so only a handle without
-  // the groove capability works with them. Read from the profile instead of naming an id.
+  // A side shelf goes with a handle without a groove where the collection has one
+  // (sideShelfHandleRule). Read from the profile instead of naming an id.
   const nonGrooveHandle = selectOptionsByCapability(activeProfile, "Handle", "supportsGrooveColor", false)[0]?.value;
-  const isOssBlockedByHandle = Boolean(
-    selectedHandle && hasCapability(activeProfile, "Handle", selectedHandle, "supportsGrooveColor"),
-  );
+  const isOssBlockedByHandle = isSideShelfBlockedByHandle(activeProfile, selectedHandle);
 
   // The scene names a product after its scene type ("ULH-sink-cabinet-…"), which need not contain
   // the cabinet type; the collection's bindings map it back.
@@ -633,10 +645,12 @@ export const CabinetBuilderPage = () => {
 
     setPendingMixingStyle(null);
 
-    const isDrawerCabinetId = (productId: string) =>
-      cabinetCatalog.typeCabinetRules.some(
-        (rule) => !rule.isOpen && productId.toLowerCase().includes(rule.code.toLowerCase()),
-      );
+    // A placed cabinet is known by its scene product ("UD-side-cabinet-…"), which need not
+    // contain the cabinet type.
+    const isDrawerCabinetId = (productId: string) => {
+      const rule = findPlacedCabinetRule(cabinetCatalog, productId);
+      return rule !== null && !rule.isOpen;
+    };
 
     const cabinetIdsToUpdate = Array.from(
       new Set([...selectedProducts.filter(isDrawerCabinetId), ...Object.keys(placedCabinetStyles)]),

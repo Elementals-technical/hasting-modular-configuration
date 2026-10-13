@@ -96,6 +96,7 @@ export type { NormalizedMatrixRow, NormalizeHandleProfileArgs } from "./lib/norm
 
 // Runtime bindings — owned by I: how a semantic value reaches the PlayCanvas scene.
 export type {
+  AlsoDelivery,
   BoundRuntimeBinding,
   FlowTargets,
   IdentityValues,
@@ -127,6 +128,7 @@ export {
   semanticValueOf,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
 export type {
+  ResolvedAlsoDelivery,
   ResolvedRuntimeBinding,
   RuntimeBindingFailure,
   RuntimeBindingFailureReason,

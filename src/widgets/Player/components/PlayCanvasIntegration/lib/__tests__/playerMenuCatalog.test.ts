@@ -68,6 +68,8 @@ describe("resolvePlayerMenuSupport", () => {
       expect(supportOf("urban-standard-height", flowId).resize).toEqual(["Width", "Depth"]);
       // Urban Low Height lists Height too: its cabinets take two heights per handle.
       expect(supportOf("urban-low-height", flowId).resize).toEqual(["Width", "Depth", "Height"]);
+      // So does Urban Duplex: its one-drawer cabinet comes at 53 cm and as the Slim 38 and 28.
+      expect(supportOf("urban-duplex", flowId).resize).toEqual(["Width", "Depth", "Height"]);
     }
   });
 

@@ -7,12 +7,16 @@ import { CORE_ATTRIBUTE_IDS } from "@/entities/configuration/model/ownership";
 
 import { parseProductProfile } from "../../parseProductProfile";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
+import { resolveCabinetTypeOfRuntimeId } from "../resolveCabinetType";
+import { resolveProductConfig } from "../resolveProductConfig";
 import { isStateOnlyResolution, resolveRuntimeBinding } from "../resolveRuntimeBinding";
 import { validateRuntimeBindings } from "../validateRuntimeBindings";
 
 /**
- * The scene places the Urban Duplex drawer cabinets (UD-sink-cabinet, UD-side-cabinet) and lays out their
- * sizes, drawers, handles and basin; it has no panel colours, so those are recorded for the SKU only.
+ * The scene places the four Urban Duplex products: the drawer cabinets (UD-sink-cabinet,
+ * UD-side-cabinet) and the shelves (UD-open-shelves, UD-open-shelves-side). It lays out their sizes,
+ * drawers, handles and basin, paints the base and the lateral panel apart, and puts the lateral
+ * panel on either side.
  */
 
 const parsedProfile = parseProductProfile(urbanDuplexProfileDocument);
@@ -47,7 +51,12 @@ const SHARED_PRESET_VALUES = [
 ];
 
 /** A value of each attribute a mapped binding translates; any other attribute takes any value. */
-const MAPPED_VALUE: Record<string, string> = { Drawers: "2", Handle: "UG", TowelBarOption: "Left" };
+const MAPPED_VALUE: Record<string, string> = {
+  Drawers: "2",
+  Handle: "UG",
+  TowelBarOption: "Left",
+  LateralPanelSide: "L",
+};
 
 const resolve = (attributeId: string, value: string | number) =>
   resolveRuntimeBinding(urbanDuplexRuntimeBindings(), attributeId, value);
@@ -64,12 +73,24 @@ describe("urban-duplex runtime bindings", () => {
     );
   });
 
-  it("place the drawer cabinets as the scene's UD products; the shelves wait for products of their own", () => {
+  it("place every cabinet type as its UD scene product, the open shelves included", () => {
     expect(urbanDuplexRuntimeBindings().productTypes).toEqual({
       "Sink-Base": "UD-sink-cabinet",
       "Sink-Cabinet": "UD-side-cabinet",
+      "Open-Shelf": "UD-open-shelves",
+      "Side-Shelf": "UD-open-shelves-side",
     });
-    expect(Object.keys(urbanDuplexRuntimeBindings().unplacedProductTypes ?? {})).toEqual(["Open-Shelf", "Side-Shelf"]);
+    expect(urbanDuplexRuntimeBindings().unplacedProductTypes).toBeUndefined();
+  });
+
+  it("read a placed product back as its cabinet type, though one scene type starts the other", () => {
+    const cabinetTypeOf = (runtimeId: string) =>
+      resolveCabinetTypeOfRuntimeId(urbanDuplexProfile(), urbanDuplexRuntimeBindings(), runtimeId);
+
+    expect(cabinetTypeOf("UD-open-shelves-side-k3j4h5g6f")).toBe("Side-Shelf");
+    expect(cabinetTypeOf("UD-open-shelves-k3j4h5g6f")).toBe("Open-Shelf");
+    expect(cabinetTypeOf("UD-sink-cabinet-k3j4h5g6f")).toBe("Sink-Base");
+    expect(cabinetTypeOf("UD-side-cabinet-k3j4h5g6f")).toBe("Sink-Cabinet");
   });
 
   it("let every shared value of a model and every field but the cabinet type through", () => {
@@ -78,16 +99,85 @@ describe("urban-duplex runtime bindings", () => {
     }
   });
 
-  it("record the panel colours, the side of the lateral panel and the series without a scene call", () => {
+  it("record the colours that are not Urban Duplex options without a scene call", () => {
     for (const [attributeId, value] of [
-      ["BasePanelColor", "Bianco Calce DA ST"],
-      ["LateralPanelColor", "Pulpis Chiaro TKH"],
-      ["LateralPanelSide", "L"],
-      ["Series", "URSTD"],
+      ["CabinetColor", "Bianco Calce DA ST"],
+      ["HandleGrooveColor", "Pulpis Chiaro TKH"],
       ["VesselColor", "Bianco Gloss TAL"],
     ]) {
       expect(isStateOnlyResolution(resolve(attributeId, value)), attributeId).toBe(true);
     }
+  });
+
+  it("send the base panel colour as the cabinet colour of the drawer cabinets and the open shelf", () => {
+    expect(resolve("BasePanelColor", "Castagno Scuro 1C3")).toMatchObject({
+      target: { kind: "productType", productType: "UD-sink-cabinet" },
+      patch: { CabinetColor: "Castagno Scuro 1C3" },
+      also: [
+        {
+          target: { kind: "productType", productType: "UD-side-cabinet" },
+          patch: { CabinetColor: "Castagno Scuro 1C3" },
+        },
+        {
+          target: { kind: "productType", productType: "UD-open-shelves" },
+          patch: { CabinetColor: "Castagno Scuro 1C3" },
+        },
+      ],
+    });
+  });
+
+  it("send the lateral panel colour to the lateral part, the grooves and the open side shelf", () => {
+    expect(resolve("LateralPanelColor", "Metal bronzo 2MD")).toMatchObject({
+      target: { kind: "all" },
+      patch: { CabinetColorLateral: "Metal bronzo 2MD" },
+      also: [
+        { target: { kind: "all" }, patch: { HandleGrooveColor: "Metal bronzo 2MD" } },
+        {
+          target: { kind: "productType", productType: "UD-open-shelves-side" },
+          patch: { CabinetColor: "Metal bronzo 2MD" },
+        },
+      ],
+    });
+  });
+
+  it("place each product of a model with the colours of its own type", () => {
+    const colours = { BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" };
+    const placedAs = (sceneType: string) =>
+      resolveProductConfig(urbanDuplexRuntimeBindings(), colours, undefined, sceneType);
+
+    // A drawer cabinet: its body, its lateral part and its grooves.
+    expect(placedAs("UD-sink-cabinet")).toEqual({
+      CabinetColor: "Bianco Calce DA ST",
+      CabinetColorLateral: "Pulpis Chiaro TKH",
+      HandleGrooveColor: "Pulpis Chiaro TKH",
+    });
+    // The open shelf is the base panel colour; the open side shelf the lateral one, as its SKU spells it.
+    expect(placedAs("UD-open-shelves").CabinetColor).toBe("Bianco Calce DA ST");
+    expect(placedAs("UD-open-shelves-side").CabinetColor).toBe("Pulpis Chiaro TKH");
+  });
+
+  it("give both panel colours to a product placed later", () => {
+    for (const attributeId of ["BasePanelColor", "LateralPanelColor"]) {
+      const binding = urbanDuplexRuntimeBindings().bindings.find((entry) => entry.attributeId === attributeId);
+
+      expect(binding, attributeId).toMatchObject({ status: "bound", placedWithNewProducts: true });
+    }
+  });
+
+  it("put the lateral panel on the side chosen for the composition", () => {
+    expect(patchOf("LateralPanelSide", "L")).toEqual({ HandleSide: "Left" });
+    expect(patchOf("LateralPanelSide", "R")).toEqual({ HandleSide: "Right" });
+    expect(resolve("LateralPanelSide", "L")).toMatchObject({ target: { kind: "all" } });
+  });
+
+  it("show a cabinet of another Urban series, which has no lateral panel, with the full handles", () => {
+    expect(patchOf("Series", "URDPX")).toEqual({ HandleStyle: "Duplex" });
+    expect(patchOf("Series", "URSTD")).toEqual({ HandleStyle: "Default" });
+    expect(patchOf("Series", "URLH")).toEqual({ HandleStyle: "Default" });
+
+    // The series goes after the handle, so a model's own cabinet keeps its handles.
+    const placed = resolveProductConfig(urbanDuplexRuntimeBindings(), { Series: "URSTD", Handle: "UG" });
+    expect(placed).toEqual({ HandleStyle: "Default" });
   });
 
   it("send the sizes and the three drawer styles in the spellings the scene config keeps", () => {

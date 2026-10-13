@@ -37,15 +37,17 @@ const NO_HEIGHT_CHOICES: number[] = [];
 /**
  * Heights the user may choose between: those the chosen handle takes, when the handles of the
  * active cabinet type take several (Urban Low Height: upper groove 38/28 cm, push-to-open
- * 35/25 cm). The heights of another handle come with that handle. Empty when there is nothing to
- * choose: one height, or a type whose heights no handle decides.
+ * 35/25 cm), or those the chosen drawers come in (Urban Duplex: one drawer at 53, 38 or 28 cm).
+ * The heights of another handle come with that handle. Empty when there is nothing to choose:
+ * one height, or a type whose heights neither a handle nor the drawers decide.
  */
 export const getHeightChoices = createSelector(
   [getDimensionOptions, getActiveCabinetRule],
   (options, rule): number[] => {
-    if (Object.keys(rule?.heightsByHandle ?? {}).length === 0) return NO_HEIGHT_CHOICES;
+    const decidesHeights = (heights: Record<string, number[]> | undefined) => Object.keys(heights ?? {}).length > 0;
+    if (!decidesHeights(rule?.heightsByHandle) && !decidesHeights(rule?.heightsByDrawers)) return NO_HEIGHT_CHOICES;
 
-    // The rules leave enabled only the heights of the handle in use.
+    // The rules leave enabled only the heights of the handle and drawers in use.
     const choices = options.height.filter((option) => !option.disabled).map((option) => Number(option.value));
 
     return choices.length > 1 ? choices : NO_HEIGHT_CHOICES;

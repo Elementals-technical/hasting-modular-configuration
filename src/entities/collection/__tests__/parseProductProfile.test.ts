@@ -269,4 +269,28 @@ describe("parseProductProfile", () => {
       message: 'column mapping "forcedHeight" must be a column name',
     });
   });
+
+  it("reads the heights drawers come in and rejects an entry without heights", () => {
+    const raw = clone(ushProfile) as Record<string, unknown>;
+    const ruleData = raw.ruleData as Record<string, Record<string, unknown>>;
+    ruleData.cabinetMatrixLegacyAdapter.heightsByDrawers = { "1": [53, 38, 28] };
+
+    const result = parseProductProfile(raw);
+    expect(result.ok && result.profile.ruleData.cabinetMatrixLegacyAdapter.heightsByDrawers).toEqual({
+      "1": [53, 38, 28],
+    });
+    // Absent in a collection whose table says every height.
+    const plain = parseProductProfile(ushProfile);
+    expect(plain.ok && "heightsByDrawers" in plain.profile.ruleData.cabinetMatrixLegacyAdapter).toBe(false);
+
+    for (const broken of [{ "1": [] }, { "1": [53, 0] }, { "1": "53|38" }, [53, 38]]) {
+      ruleData.cabinetMatrixLegacyAdapter.heightsByDrawers = broken;
+      const rejected = parseProductProfile(raw);
+      expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+        code: "ruleData.invalid_section",
+        dataPath: "/ruleData/cabinetMatrixLegacyAdapter/heightsByDrawers",
+        message: "heightsByDrawers must map a drawers value to a non-empty list of heights in cm",
+      });
+    }
+  });
 });

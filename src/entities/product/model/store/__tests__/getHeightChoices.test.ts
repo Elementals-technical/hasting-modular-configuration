@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import urbanDuplexProfileDocument from "../../../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexBindingsDocument from "../../../../../../public/collections/urban-duplex/runtime-bindings.json";
 import ulhProfileDocument from "../../../../../../public/collections/urban-low-height/product-profile.json";
 import cabinetTable439 from "@/entities/collection/__tests__/fixtures/remote/datatable-439.json";
 import cabinetTable580 from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
+import cabinetTable594 from "@/entities/collection/__tests__/fixtures/remote/datatable-594.json";
 import { rootReducer } from "@/app/store/reducer";
-import { parseProductProfile, type ProductProfile } from "@/entities/collection";
+import { parseProductProfile, parseRuntimeBindings, type ProductProfile } from "@/entities/collection";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import type { ProductDatatable } from "@/entities/product/api";
@@ -24,6 +27,16 @@ const ulhProfile = parsedUlh.profile;
 // Built as the loader builds it, with the scene product of each cabinet type.
 const ulhCatalog = buildCabinetCatalogFromMatrix(cabinetTable580 as ProductDatatable, ulhProfile, ulhRuntimeBindings);
 const ushCatalog = buildCabinetCatalogFromMatrix(cabinetTable439 as ProductDatatable, ushProfile);
+
+const parsedDuplex = parseProductProfile(urbanDuplexProfileDocument);
+const parsedDuplexBindings = parseRuntimeBindings(urbanDuplexBindingsDocument);
+if (!parsedDuplex.ok || !parsedDuplexBindings.ok) throw new Error("Urban Duplex data must parse");
+const duplexProfile = parsedDuplex.profile;
+const duplexCatalog = buildCabinetCatalogFromMatrix(
+  cabinetTable594 as ProductDatatable,
+  duplexProfile,
+  parsedDuplexBindings.bindings,
+);
 
 const UPPER_GROOVE = "handle_urban_topcut";
 const PUSH_TO_OPEN = "handle_pto";
@@ -100,6 +113,31 @@ describe("getHeightChoices", () => {
     ).toEqual([]);
     expect(choicesFor(ushProfile, ushCatalog, { cabinetType: "Sink-Base" })).toEqual([]);
     expect(choicesFor(ushProfile, ushCatalog, { cabinetType: "Open-Shelf" })).toEqual([]);
+  });
+
+  it("offers an Urban Duplex one-drawer cabinet 53 cm and the Slim 38 and 28 cm", () => {
+    expect(choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Sink-Base", handle: "UG", drawers: "1D" })).toEqual(
+      [28, 38, 53],
+    );
+    expect(
+      choicesFor(duplexProfile, duplexCatalog, {
+        cabinetType: "Sink-Cabinet",
+        handle: "UG",
+        drawers: "1D",
+        placed: ["UD-sink-cabinet-test1", "UD-open-shelves-side-test2"],
+      }),
+    ).toEqual([28, 38, 53]);
+  });
+
+  it("offers nothing for the Urban Duplex styles with one height, nor for its shelves", () => {
+    expect(choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Sink-Base", handle: "UG", drawers: "2D" })).toEqual(
+      [],
+    );
+    expect(
+      choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Sink-Base", handle: "UG", drawers: "1DWID" }),
+    ).toEqual([]);
+    expect(choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Open-Shelf" })).toEqual([]);
+    expect(choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Side-Shelf" })).toEqual([]);
   });
 
   it("offers nothing until a cabinet type is active", () => {

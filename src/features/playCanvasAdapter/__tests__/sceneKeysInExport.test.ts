@@ -6,6 +6,7 @@ import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__
 import type { RuntimeBinding } from "@/entities/collection/model/runtimeBindings";
 
 import sceneCode from "../../../../public/HastingCabinetsParametrization/js/esm.mjs?raw";
+import urbanDuplexRuntimeBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import ufsRuntimeBindingsDocument from "../../../../public/collections/urban-freestanding/runtime-bindings.json";
 
 /**
@@ -92,5 +93,34 @@ describe("Urban Freestanding products in the scene code", () => {
 
       expect(registration).toContain("{rule:RuleMaterialsHandleUrbanFreestanding,priority:55}");
     }
+  });
+});
+
+describe("Urban Duplex products in the scene code", () => {
+  // A cabinet type stands in `productTypes` only once the scene registers its product: the scene
+  // answers an unknown type with an empty placeholder.
+  it("registers the scene product of every UD cabinet type the collection places", () => {
+    for (const sceneType of Object.values(urbanDuplexRuntimeBindingsDocument.productTypes)) {
+      expect(sceneCode, sceneType).toContain(`registry.registerProduct("${sceneType}",`);
+    }
+  });
+
+  it("reads the keys the panel colours, the lateral side and the series are sent under", () => {
+    const registrationOf = (sceneType: string) =>
+      sceneCode.match(new RegExp(`registerProduct\\("${sceneType}",.*?registerProduct\\(`))?.[0] ?? "";
+
+    for (const sceneType of ["UD-sink-cabinet", "UD-side-cabinet"]) {
+      const registration = registrationOf(sceneType);
+
+      // CabinetColor, CabinetColorLateral, HandleGrooveColor and HandleSide, each by its own rule.
+      expect(registration, sceneType).toContain("rule:RuleMaterialsCabinetUrbanDuplex,");
+      expect(registration, sceneType).toContain("rule:RuleMaterialsCabinetLateralUrbanDuplex,");
+      expect(registration, sceneType).toContain("rule:RuleMaterialsHandleGrooveUrbanDuplex,");
+      expect(registration, sceneType).toContain("rule:RuleHandleSideCabinetUrbanDuplex,");
+    }
+
+    expect(registrationOf("UD-open-shelves")).toContain("rule:RuleMaterialsUDOpenShelves,");
+    expect(registrationOf("UD-open-shelves-side")).toContain("rule:RuleMaterialsUDOpenShelvesSide,");
+    for (const key of ["CabinetColorLateral", "HandleSide"]) expect(isReadByScene(key), key).toBe(true);
   });
 });

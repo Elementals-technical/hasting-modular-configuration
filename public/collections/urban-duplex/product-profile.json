@@ -100,6 +100,17 @@
       ]
     },
     {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "defaultValue": "56",
+      "options": [
+        { "value": "56", "label": "56 cm", "order": 10 },
+        { "value": "53", "label": "53 cm", "order": 20 },
+        { "value": "38", "label": "38 cm", "order": 30 },
+        { "value": "28", "label": "28 cm", "order": 40 }
+      ]
+    },
+    {
       "attributeId": "LateralPanelSide",
       "scope": "cabinet",
       "options": [
@@ -373,7 +384,8 @@
         "forcedHeightByHandle": {},
         "requiresDrawersByHandle": {},
         "forcedHeight": "forced_height_cm"
-      }
+      },
+      "heightsByDrawers": { "1": [53, 38, 28] }
     },
     "drawerStyleGroups": [["1", "1+inner"], ["2"]],
     "materialNormalization": {
@@ -495,13 +507,13 @@
     "cabinetColor.grooveFollows": "The groove color changes with the cabinet color."
   },
   "excludedFromThisProfile": {
-    "scene": "The scene has no Urban Duplex product, so every cabinet type is unplaced (runtime-bindings.json): no model or builder cabinet is placed until it has one.",
-    "cabinetHeights": "The cabinet style sets the height (DUP-CAB-001): 2DW 56 cm, 1DW and 1DWID 53 cm, the 1DW Slim cabinets 38 or 28 cm. The cabinet table forces 2DW:56, 1DW:53 and 1DWID:53, so the builder offers the standard heights only until the Slim styles are added; the presets keep their Slim heights.",
+    "scene": "The scene places the four Urban Duplex products (runtime-bindings.json): the drawer cabinets, the open shelf and the open side shelf, with the panel colours and the side of the lateral panel. Still not laid out: a depth of 50 cm (the scene knows 46 and 50.5, so 50 is drawn at 46), an open side shelf at 38 or 28 cm (drawn 56 cm high), and two rows of cabinets (multiLevelModels).",
+    "cabinetHeights": "The cabinet style sets the height (DUP-CAB-001): 2DW 56 cm, 1DWID 53 cm, 1DW 53 cm or, as the Slim cabinets, 38 or 28 cm. The cabinet table forces 1DW:53, so the three heights of 1DW are listed here (cabinetMatrixLegacyAdapter.heightsByDrawers) and chosen in the Height field, as Urban Low Height chooses its heights. The five Cabinet Style tiles of the client's sketch, with the two Slim styles (IMG #118), wait for their labels (DUP-STY-01).",
     "heightPairing": "Which heights one composition may combine waits for DUP-CMP-01.",
-    "lateralPanel": "The lateral panel side is chosen per cabinet; its default R follows the renders (IMG #118, #122) until DUP-PNL-01. The handle groove is priced in the Lateral Panel colour until DUP-PNL-02.",
+    "lateralPanel": "Each cabinet of a model has its lateral panel on its own side; the field sets one side for the whole composition, and a cabinet added later takes it. The default R follows the renders (IMG #118, #122) until DUP-PNL-01. The handle groove is priced, and painted, in the Lateral Panel colour until DUP-PNL-02.",
     "priceColumn": "When the base and lateral panels are of different materials, the price server chooses the price column from the full SKU (DUP-SKU-01).",
-    "shelves": "Open Shelf 25-70 cm (UROS 2S at 56/53 cm, 1S at 38/28 cm) and Open Side Shelf 15 cm (UROSS) take the Urban Standard Height and Urban Low Height prices (Pricing!D397, D463); Urban Standard Height has no Open Side Shelf at 22.0H or 20.9H (DUP-SKU-02). The Open Shelf is priced in the Base Panel colour and the Open Side Shelf in the Lateral Panel colour, as the renders show them, until the client confirms.",
-    "hybridModels": "28 models use Urban Standard Height or Urban Low Height cabinets without a lateral panel (Pre-Render | Hybrid Models): each preset product names its Series, and those cabinets are spelled VAN-URSTD-... or VAN-URLH-... with CAB in the Base Panel colour and HDL in the Lateral Panel colour.",
+    "shelves": "Open Shelf 25-70 cm (UROS 2S at 56/53 cm, 1S at 38/28 cm) and Open Side Shelf 15 cm (UROSS) take the Urban Standard Height and Urban Low Height prices (Pricing!D397, D463); Urban Standard Height has no Open Side Shelf at 22.0H or 20.9H (DUP-SKU-02). The Open Shelf is priced and painted in the Base Panel colour and the Open Side Shelf in the Lateral Panel colour, as the renders show them, until the client confirms. The Open Side Shelf goes beside the Upper Groove cabinets, the only handle of the collection, as the models place it (DUP-CMP-05).",
+    "hybridModels": "28 models use Urban Standard Height or Urban Low Height cabinets without a lateral panel (Pre-Render | Hybrid Models): each preset product names its Series, and those cabinets are spelled VAN-URSTD-... or VAN-URLH-... with CAB in the Base Panel colour and HDL in the Lateral Panel colour. The scene shows them with the full handles (the Series binding).",
     "sideCabinetWidths": "Side cabinets are 60-120 cm wide as Pricing lists them. SKU Curation also lists 25, 35 and 50 cm; the models take those from Urban Standard Height and Urban Low Height.",
     "pricingGaps": "Pricing has the 2DW Side Cabinet at 50 cm deep only and the 1DW Side Cabinet at 15.0H and 46 cm deep only with the panel on the right; the cabinet table cannot express either.",
     "multiLevelModels": "The five Multi-Level models are compact presets of the collection DPLX; the scene imports compact presets of Urban Low Height only.",

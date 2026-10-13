@@ -18,6 +18,8 @@ export type TypeCabinetRuleConfig = {
   requiresDrawersByHandle?: Record<string, string[]>;
   /** handleId -> heights in cm the handle allows. Absent means any height of the type. */
   heightsByHandle?: Record<string, number[]>;
+  /** drawers value -> heights in cm these drawers come in, to choose from. Absent means the forced height. */
+  heightsByDrawers?: Record<string, number[]>;
   /**
    * The scene product that places this type ("ULH-sink-cabinet"), from the collection's runtime
    * bindings. A placed product's runtime id names it, not the cabinet type.

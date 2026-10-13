@@ -68,6 +68,13 @@ const isNumberArray = (value: unknown): value is number[] => Array.isArray(value
 const isStringArrayRecord = (value: unknown): value is Record<string, string[]> =>
   isRecord(value) && Object.values(value).every(isStringArray);
 
+/** A map whose every entry lists at least one height in cm. */
+const isHeightListRecord = (value: unknown): value is Record<string, number[]> =>
+  isRecord(value) &&
+  Object.values(value).every(
+    (heights) => isNumberArray(heights) && heights.length > 0 && heights.every((cm) => cm > 0),
+  );
+
 type ValueCheck = (value: unknown) => boolean;
 
 const optional =
@@ -329,6 +336,15 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
     return null;
   }
 
+  if (raw.heightsByDrawers !== undefined && !isHeightListRecord(raw.heightsByDrawers)) {
+    collect.add(
+      "ruleData.invalid_section",
+      `${path}/heightsByDrawers`,
+      "heightsByDrawers must map a drawers value to a non-empty list of heights in cm",
+    );
+    return null;
+  }
+
   return {
     tableId: raw.tableId,
     columns: {
@@ -345,6 +361,7 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
       ...(isNonEmptyString(columns.handleDrawerConfigs) ? { handleDrawerConfigs: columns.handleDrawerConfigs } : {}),
       ...(isStringRecord(columns.heightsByHandle) ? { heightsByHandle: columns.heightsByHandle } : {}),
     },
+    ...(raw.heightsByDrawers !== undefined ? { heightsByDrawers: raw.heightsByDrawers } : {}),
   };
 };
 

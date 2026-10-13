@@ -99,7 +99,18 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 - Поле з `ui.json` існує в profile або має свідомий runtime/status contract.
 - Кожен core/UI attribute покритий binding зі статусом `bound`, `state-only` або `unbound`.
 - Cabinet table читається через mapping саме цього profile; не додавати USH fallback.
-- Product type існує в `productTypes` або свідомо прихований у `unplacedProductTypes`.
+- Висоту, яку користувач обирає сам (selector Height у right sidebar і Resize ▸ Height у меню шафи),
+  дає profile: `cabinetMatrixLegacyAdapter.columns.heightsByHandle` — висоти кожного handle з колонок
+  таблиці (Urban Low Height), або `cabinetMatrixLegacyAdapter.heightsByDrawers` — висоти стилю шухляд,
+  коли таблиця форсує для нього одну (Urban Duplex: `"1": [53, 38, 28]`, бо table 594 каже `1DW:53`,
+  а 1DW продається ще й як Slim 38 і 28 cm). Обидва місця вмикає `ui.json` (`styleSidebar.fields`,
+  `playerMenu.resize`); висоту нової композиції задає `defaultValue` attribute `Height`. Стиль, якого
+  немає у висоті вже поставлених шаф (Urban Duplex: 1DWID поруч зі Slim), перемикає їх усі після
+  підтвердження — так само, як стиль іншої групи `drawerStyleGroups`.
+- Product type існує в `productTypes` або свідомо прихований у `unplacedProductTypes`. Тип переноситься
+  в `productTypes` лише після того, як сцена реєструє його продукт (`sceneKeysInExport.test.ts`
+  перевіряє це для Urban Freestanding і Urban Duplex): на невідомий тип сцена відповідає порожньою
+  заглушкою.
 - `optionsSource: configurator:<group>` точно збігається з `proxyName` remote configurator group;
   `configurator:<group>/<option>` бере лише одну option цієї групи (Urban Duplex:
   `Select Cabinet Colors/Base Panel` і `…/Lateral Panel`). Якщо attribute має ще й власні `options`

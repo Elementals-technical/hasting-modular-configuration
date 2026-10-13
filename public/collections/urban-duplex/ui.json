@@ -150,7 +150,9 @@
   "optionImages": {
     "CabinetType": {
       "Sink-Base": "images/cabinet/sink-base-56.png",
-      "Sink-Cabinet": "images/cabinet/side-cabinet-56.png"
+      "Sink-Cabinet": "images/cabinet/side-cabinet-56.png",
+      "Open-Shelf": "images/cabinet/open-shelf.png",
+      "Side-Shelf": "images/cabinet/open-side-shelf.png"
     },
     "Drawers": {
       "2": "images/cabinet-style/2-drawer.png",
@@ -170,5 +172,11 @@
       { "value": "Sink-Cabinet", "when": { "Height": "38" }, "image": "images/cabinet/side-cabinet-38.png" },
       { "value": "Sink-Cabinet", "when": { "Height": "28" }, "image": "images/cabinet/side-cabinet-28.png" }
     ]
+  },
+  "styleSidebar": {
+    "fields": ["Width", "Depth", "Height", "Handle"]
+  },
+  "playerMenu": {
+    "resize": ["Width", "Depth", "Height"]
   }
 }

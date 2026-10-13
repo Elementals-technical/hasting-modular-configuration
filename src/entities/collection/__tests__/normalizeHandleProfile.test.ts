@@ -115,6 +115,7 @@ describe("normalizeHandleProfile", () => {
       forcedHeightByDrawers: {},
       requiresDrawersByHandle: {},
       heightsByHandle: {},
+      heightsByDrawers: {},
     });
   });
 
@@ -140,6 +141,22 @@ describe("normalizeHandleProfile", () => {
     });
 
     expect(relations[0].heightsByHandle).toEqual({ handle_urban_topcut: [38, 28], handle_pto: [35, 25] });
+  });
+
+  it("gives the heights drawers come in to the cabinet types with those drawers (Urban Duplex)", () => {
+    const { relations } = normalizeHandleProfile({
+      rows: [
+        { cabinet_type: "Sink-Base", drawer_configs: "2D|1D|1DWID" },
+        { cabinet_type: "Open-Shelf", drawer_configs: "" },
+      ],
+      // Spelled as the table spells the drawers or as the option value: both name one option.
+      adapter: { columns: adapter.columns, heightsByDrawers: { "1D": [53, 38, 28] } },
+      normalizeDrawers,
+    });
+
+    expect(relations[0].heightsByDrawers).toEqual({ "1": [53, 38, 28] });
+    // An open shelf has no drawers to choose a height by.
+    expect(relations[1].heightsByDrawers).toEqual({});
   });
 });
 

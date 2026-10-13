@@ -16,6 +16,9 @@ import { isStateOnlyResolution, resolveRuntimeBinding, selectRuntimeBinding } fr
  *   placed without it.
  * - The translated patches go on top in binding order, so a later phase wins a shared scene key
  *   (the Mako drawer style over a height the builder catalog suggests).
+ * - A value the binding also sends elsewhere (`also`) goes with it under those keys; one addressed
+ *   to a product type only for a product of that type (the Urban Duplex lateral panel colour is
+ *   the cabinet colour of an open side shelf alone).
  */
 
 const isSemanticValue = (value: unknown): value is SemanticValue =>
@@ -71,6 +74,8 @@ export const resolveProductConfig = (
   set: RuntimeBindingSet,
   config: Readonly<Record<string, unknown>>,
   flow?: RuntimeFlow,
+  /** The scene type the product is placed as, for the values sent to one type only. */
+  sceneProductType?: string,
 ): Record<string, unknown> => {
   const passthrough: Record<string, unknown> = {};
   const translated: { order: number; index: number; patch: ScenePatch }[] = [];
@@ -93,7 +98,13 @@ export const resolveProductConfig = (
       return;
     }
 
-    translated.push({ order: resolution.order ?? Number.POSITIVE_INFINITY, index, patch: resolution.patch });
+    const order = resolution.order ?? Number.POSITIVE_INFINITY;
+    translated.push({ order, index, patch: resolution.patch });
+
+    for (const delivery of resolution.also ?? []) {
+      if (delivery.target.kind === "productType" && delivery.target.productType !== sceneProductType) continue;
+      translated.push({ order, index, patch: delivery.patch });
+    }
   });
 
   translated.sort((left, right) => left.order - right.order || left.index - right.index);

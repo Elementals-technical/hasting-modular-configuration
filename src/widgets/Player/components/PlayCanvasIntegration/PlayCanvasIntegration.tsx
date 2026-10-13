@@ -2135,19 +2135,13 @@ export const PlayCanvasIntegration = ({
   const handleDuplicateProduct = useCallback(() => {
     if (!selectedSceneProduct || !canDuplicateSelectedCabinet) return;
     setDuplicateSourceId(selectedSceneProduct);
-    const duplicateProductType = resolveProductTypeFromId(
-      selectedSceneProduct,
-      selectedProductConfig as Record<string, unknown> | undefined,
-    );
-    const options =
-      typeof duplicateProductType === "string" && duplicateProductType.toLowerCase().includes("side-shelf")
-        ? { productType: "Side-Shelf" }
-        : undefined;
+    // The cabinet type through the bindings: "UF-open-shelves-side" does not spell "Side-Shelf".
+    const options = cabinetTypeOf(selectedSceneProduct) === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
     setVisibleButtons(true, options);
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [canDuplicateSelectedCabinet, resolveProductTypeFromId, selectedProductConfig, selectedSceneProduct]);
+  }, [cabinetTypeOf, canDuplicateSelectedCabinet, selectedSceneProduct]);
 
   useEffect(() => {
     if (!duplicateSourceId) return;
@@ -2174,7 +2168,7 @@ export const PlayCanvasIntegration = ({
         console.log("mergedConfig", mergedConfig);
 
         const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
-        if (typeof productType === "string" && productType.toLowerCase().includes("side-shelf")) {
+        if (cabinetTypeOf(duplicateSourceId) === "Side-Shelf") {
           // A side shelf at the edge takes the place of that side's panel.
           await spAutoRemoveSide(dispatch, side, productIds.length);
         }
@@ -2206,6 +2200,7 @@ export const PlayCanvasIntegration = ({
       setVisibleButtons(false);
     };
   }, [
+    cabinetTypeOf,
     closeInPlayerActionSurface,
     composition,
     dispatch,

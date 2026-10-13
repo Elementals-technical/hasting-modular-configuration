@@ -49,13 +49,14 @@ export type PlayCanvasRuntimePortDeps = {
 type SceneStep = {
   selector: SceneSelector;
   patch: ScenePatch;
+  /** What the step addresses: a broadcast must reach every placed cabinet. */
+  targetKind: RuntimeTarget["kind"];
   /** Identity of the step, so the same command is not sent twice in one set. */
   key: string;
 };
 
 type SceneCommand<T extends RuntimeChange> = {
   change: T;
-  targetKind: RuntimeTarget["kind"];
   /** Empty when there is nothing to send, e.g. no cabinets placed. */
   steps: SceneStep[];
   order: number;
@@ -80,15 +81,20 @@ const sortedEntries = (record: object) => Object.entries(record).sort(([a], [b])
 const stepKey = (selector: SceneSelector, patch: ScenePatch): string =>
   JSON.stringify([sortedEntries(selector), sortedEntries(patch)]);
 
-const toSteps = (selector: SceneSelector | null, patch: ScenePatch, resetBefore?: ScenePatch): SceneStep[] => {
+const toSteps = (
+  targetKind: RuntimeTarget["kind"],
+  selector: SceneSelector | null,
+  patch: ScenePatch,
+  resetBefore?: ScenePatch,
+): SceneStep[] => {
   if (!selector) return [];
 
-  const valueStep = { selector, patch, key: stepKey(selector, patch) };
+  const valueStep = { selector, patch, targetKind, key: stepKey(selector, patch) };
 
   // Resetting to the value itself would only repeat the command.
   if (!resetBefore || stepKey(selector, resetBefore) === valueStep.key) return [valueStep];
 
-  return [{ selector, patch: resetBefore, key: stepKey(selector, resetBefore) }, valueStep];
+  return [{ selector, patch: resetBefore, targetKind, key: stepKey(selector, resetBefore) }, valueStep];
 };
 
 const byPhase = <T extends RuntimeChange>(a: SceneCommand<T>, b: SceneCommand<T>): number =>
@@ -172,10 +178,23 @@ export const createPlayCanvasRuntimePort = ({
         return;
       }
 
+      const steps = toSteps(resolution.target.kind, addressed.selector, resolution.patch, resolution.resetBefore);
+
+      // The other places the binding sends the value to, after its own.
+      for (const delivery of resolution.also ?? []) {
+        const alsoAddressed = resolveSceneSelector(delivery.target, change, context);
+
+        if (!alsoAddressed.ok) {
+          unaddressable.push({ change, code: "unknown-target", message: alsoAddressed.message });
+          return;
+        }
+
+        steps.push(...toSteps(delivery.target.kind, alsoAddressed.selector, delivery.patch));
+      }
+
       commands.push({
         change,
-        targetKind: resolution.target.kind,
-        steps: toSteps(addressed.selector, resolution.patch, resolution.resetBefore),
+        steps,
         order: resolution.order ?? Number.POSITIVE_INFINITY,
         index,
       });
@@ -224,7 +243,7 @@ export const createPlayCanvasRuntimePort = ({
 
         sceneChanged ||= result.updatedIds === null || result.updatedIds.length > 0;
 
-        const missing = missingCabinets(command.targetKind, result.updatedIds, context);
+        const missing = missingCabinets(step.targetKind, result.updatedIds, context);
 
         if (missing.length > 0) {
           failure = { code: "product-not-found", message: `The scene did not update ${missing.join(", ")}.` };
