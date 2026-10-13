@@ -1,11 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { RuntimeBindingSet } from "@/entities/collection";
-import type { ConfigurationSceneReader, SceneRestoreRequest } from "@/entities/configuration";
+import type { ConfigurationSceneReader, SceneLayout, SceneRestoreRequest } from "@/entities/configuration";
 import type { SceneOperationResult, ScenePresetResult } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createSceneRestorer } from "../lib/createSceneRestorer";
 import type { SceneRestoreBridge } from "../lib/createSceneRestorer";
+import type { SceneLayoutImport } from "../lib/sceneLayout";
 
 const bindings: RuntimeBindingSet = {
   schemaVersion: 1,
@@ -64,8 +65,12 @@ const setUp = (getBindings: () => RuntimeBindingSet | null = () => bindings) => 
       return { status: "ready", order: scene.reportedOrder ?? [...scene.placed], cabinets: [] };
     },
   };
+  // A request without a layout never reaches this; the layout tests answer it per case.
+  const importLayout = vi.fn(
+    async (): Promise<SceneLayoutImport> => ({ status: "unusable", code: "PRESET_INVALID_DOCUMENT" }),
+  );
 
-  return { scene, restorer: createSceneRestorer({ getBindings, scene, reader }) };
+  return { scene, importLayout, restorer: createSceneRestorer({ getBindings, scene, reader, importLayout }) };
 };
 
 const request = (...products: SceneRestoreRequest["products"]): SceneRestoreRequest => ({ products });
@@ -191,5 +196,88 @@ describe("createSceneRestorer restore", () => {
       failed: [{ code: "scene-error" }, { code: "scene-error" }],
     });
     expect(scene.calls).toEqual(["clear"]);
+  });
+});
+
+describe("createSceneRestorer restore with a layout", () => {
+  const LAYOUT: SceneLayout = {
+    version: 1,
+    document: { presetSchemaVersion: 2, collection: {}, presetProducts: [], presetLayout: {} },
+    cabinetIds: { cabinet0: "Sink-Base-old1", cabinet1: "Sink-Cabinet-old2" },
+  };
+  const TWO_ROWS: SceneRestoreRequest = { ...TWO_CABINETS, layout: LAYOUT };
+  const imported: SceneLayoutImport = {
+    status: "imported",
+    runtimeIds: { "Sink-Base-old1": "sink-new", "Sink-Cabinet-old2": "side-new" },
+  };
+
+  it("gives the layout to the scene instead of clearing and placing the products in one row", async () => {
+    const { scene, importLayout, restorer } = setUp();
+    importLayout.mockResolvedValue(imported);
+    scene.reportedOrder = ["sink-new", "side-new"];
+
+    const result = await restorer.restore(TWO_ROWS);
+
+    expect(importLayout).toHaveBeenCalledWith(LAYOUT, ["Sink-Base-old1", "Sink-Cabinet-old2"]);
+    expect(scene.calls).toEqual([]);
+    expect(result).toMatchObject({
+      status: "restored",
+      matches: [
+        { sourceId: "Sink-Base-old1", runtimeId: "sink-new" },
+        { sourceId: "Sink-Cabinet-old2", runtimeId: "side-new" },
+      ],
+    });
+  });
+
+  it("lists the products in the scene's own order, which rows may put differently", async () => {
+    const { scene, importLayout, restorer } = setUp();
+    importLayout.mockResolvedValue(imported);
+    scene.reportedOrder = ["side-new", "sink-new"];
+
+    const result = await restorer.restore(TWO_ROWS);
+
+    expect(result).toMatchObject({
+      status: "restored",
+      matches: [
+        { sourceId: "Sink-Cabinet-old2", runtimeId: "side-new" },
+        { sourceId: "Sink-Base-old1", runtimeId: "sink-new" },
+      ],
+    });
+  });
+
+  it("leaves the scene as it is while the scene is busy", async () => {
+    const { scene, importLayout, restorer } = setUp();
+    importLayout.mockResolvedValue({ status: "not-ready", code: "COMPOSITION_BUSY" });
+
+    expect(await restorer.restore(TWO_ROWS)).toEqual({ status: "not-ready" });
+    expect(scene.calls).toEqual([]);
+  });
+
+  it("rebuilds the products in one row when the scene cannot take the layout", async () => {
+    const { scene, importLayout, restorer } = setUp();
+    importLayout.mockResolvedValue({ status: "unusable", code: "PRESET_INVALID_DOCUMENT" });
+
+    const result = await restorer.restore(TWO_ROWS);
+
+    expect(scene.calls).toEqual(["clear", "preset:Sink-Base:60,Sink-Cabinet:80"]);
+    expect(result).toMatchObject({ status: "restored" });
+  });
+
+  it("checks the request before the layout reaches the scene", async () => {
+    const { scene, importLayout, restorer } = setUp();
+
+    const result = await restorer.restore({ products: [], layout: LAYOUT });
+
+    expect(result).toMatchObject({ status: "rejected", issues: [{ code: "empty-composition" }] });
+    expect(importLayout).not.toHaveBeenCalled();
+    expect(scene.calls).toEqual([]);
+  });
+
+  it("does not ask for a layout the request does not carry", async () => {
+    const { importLayout, restorer } = setUp();
+
+    await restorer.restore(TWO_CABINETS);
+
+    expect(importLayout).not.toHaveBeenCalled();
   });
 });

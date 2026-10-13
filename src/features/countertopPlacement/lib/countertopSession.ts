@@ -40,6 +40,18 @@ export const captureCountertopSnapshot = (state: CountertopState): CountertopSna
 
 const near = (left: number, right: number) => Math.abs(left - right) < 1e-6;
 
+/** The top stands where `original` was taken, at the same length: the edit changed nothing. */
+export const isSameCountertopPose = (state: CountertopState, original: CountertopSnapshot) => {
+  const length = state.customLength ?? null;
+  return (
+    near(state.offset?.x ?? 0, original.offset.x) &&
+    near(state.offset?.y ?? 0, original.offset.y) &&
+    (length === null || original.customLength === null
+      ? length === original.customLength
+      : near(length, original.customLength))
+  );
+};
+
 export type CountertopRestoreSteps = {
   /** Reads the state and throws when the target changed (the caller's guard). */
   read(): Promise<CountertopState>;

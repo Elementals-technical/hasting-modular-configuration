@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
+import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { getAttributeValue, resetConfiguration, syncCabinets } from "@/entities/configuration";
 import { reset, setActiveProfile, setSelectedProductConfig } from "@/entities/product/model/store/slice";
 
@@ -93,6 +95,51 @@ describe("commitPlan", () => {
     expect(store.getState().rootStateUI.product.productOptions.sinkType).toBe("");
     // The addressed value stays semantic: restore re-applies the cutout the scene needs.
     expect(getAttributeValue(store.getState(), "sinkType", { scope: "basin", sinkBaseId: "cab-1" })).toBe("Vessel");
+  });
+});
+
+describe("commitPlan: a value the scene gives every cabinet", () => {
+  const cabinetIds = ["cab-1", "cab-2"];
+  const valuesOf = (attributeId: string) =>
+    cabinetIds.map((cabinetId) => getAttributeValue(store.getState(), attributeId, { scope: "cabinet", cabinetId }));
+  const commitAt = (attributeId: string, value: string, context: Partial<Parameters<typeof commitPlan>[1]>) =>
+    commitPlan(
+      [{ attributeId, target: { scope: "cabinet", cabinetId: "cab-1" }, value, origin: "requested" as const }],
+      { selectedProductConfig: null, resolveRuntimeId: () => null, profile: makoProfile, ...context },
+    ).forEach((action) => store.dispatch(action));
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(makoProfile));
+    store.dispatch(syncCabinets(["Mako-sink-cabinet-a", "Mako-side-cabinet-b"]));
+  });
+
+  it("is recorded at every cabinet, as the scene holds it", () => {
+    commitAt("HandleColor", "Gold", { bindings: makoRuntimeBindings, cabinetIds });
+
+    expect(valuesOf("HandleColor")).toEqual(["Gold", "Gold"]);
+  });
+
+  it("replaces what a model put on the other cabinets", () => {
+    commitAt("LegColor", "None", { bindings: makoRuntimeBindings, cabinetIds });
+    commitAt("LegColor", "", { bindings: makoRuntimeBindings, cabinetIds });
+
+    expect(valuesOf("LegColor")).toEqual(["", ""]);
+  });
+
+  it("is recorded where the change names it when the cabinets or the bindings are not known", () => {
+    commitAt("HandleColor", "Gold", { bindings: makoRuntimeBindings });
+    expect(valuesOf("HandleColor")).toEqual(["Gold", undefined]);
+
+    commitAt("HandleColor", "Silver", { cabinetIds });
+    expect(valuesOf("HandleColor")).toEqual(["Silver", undefined]);
+  });
+
+  it("leaves a value with a typed projection at the cabinet the change names", () => {
+    commitAt("Handle", "G50", { bindings: makoRuntimeBindings, cabinetIds });
+
+    expect(valuesOf("Handle")).toEqual(["G50", undefined]);
   });
 });
 

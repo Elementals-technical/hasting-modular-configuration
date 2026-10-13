@@ -57,6 +57,8 @@ export const buildCommitContext = (
   profile: getActiveProductProfile(state),
   configurator: configurator ?? null,
   productsPresets: state.rootStateUI.product.productsPresets,
+  bindings: getActiveRuntimeBindings(state),
+  cabinetIds: getCabinetEntries(state).map(({ stableKey }) => stableKey),
 });
 
 export const applyPlan = async (

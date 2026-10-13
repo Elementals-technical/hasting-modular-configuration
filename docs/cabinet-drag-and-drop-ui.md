@@ -19,6 +19,24 @@ placement API of the configurator iframe (`cabinetPlacement.*`) and its draft ov
    overlay frames that PlayCanvas publishes whenever the camera, the drag or the status changes.
 4. Apply commits and syncs the composition (`onCompositionCommitted`); Cancel / x discards the draft.
 
+## History
+
+An applied draft (an added cabinet, or Reposition from the cabinet menu) is one undo step and drops
+redo, like any other change.
+
+- The state is read **before** the draft opens (`onBeforeCompositionChange`, awaited first in
+  `start()`): with an open draft the scene answers `COMPOSITION_BUSY` to an export, so the layout
+  could not be read later. The entry is written when the draft is applied.
+- A draft that is cancelled, cancelled by the runtime, or refused by `beginAdd` / `beginMove` writes
+  nothing (`onCompositionChangeAbandoned`), and redo stays as it was.
+- While a draft is open, Undo and Redo are disabled (`setHistoryBlocked`); while a snapshot is being
+  restored, a draft cannot be started.
+- `PlayCanvasIntegration` wires the three callbacks to `useDeferredHistorySnapshot`
+  (`src/entities/history/lib/`). The component itself knows nothing about the history.
+
+Not covered: a draft applied at the spot it started from still writes an entry, and a draft opened by
+anything other than this control (the scene API called directly) writes none.
+
 ## Overlay frames
 
 `client.onPlacementOverlay(callback)` subscribes to `ConfiguratorAPI.placementOverlay.on('change')`;
@@ -37,3 +55,5 @@ camera (`visible: false`), shows **Apply** next to **Cancel** in the corner.
 
 `?placementDebug` in the page URL adds the old test panel: Move selected cabinet, add side
 (left/right) and Save / Restore JSON. Reposition from the cabinet context menu works without it.
+Restore JSON and Import compact preset replace the composition, so they are announced to the history
+the same way as a draft.

@@ -90,8 +90,10 @@ import {
   DEFAULT_DROPDOWN_WIDTH,
   getDropdownPosition,
 } from "@/utils/functions/getDropdownPosition";
+import { useDeferredHistorySnapshot } from "@/entities/history/lib/useDeferredHistorySnapshot";
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
+import { setHistoryBlocked } from "@/entities/history/model/store/slice";
 import { useIsSinkBase } from "@/entities/configuration";
 import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import {
@@ -435,6 +437,12 @@ export const PlayCanvasIntegration = ({
     composition,
   } = useChangeAttribute();
   const store = useStore<RootState>();
+  // A dragged cabinet or countertop is written to the history when it is applied, not when it starts.
+  const deferredSnapshot = useDeferredHistorySnapshot();
+  const announceCabinetPlacement = useCallback(() => deferredSnapshot.capture("cabinet-placement"), [deferredSnapshot]);
+  const abandonCabinetPlacement = useCallback(() => deferredSnapshot.discard("cabinet-placement"), [deferredSnapshot]);
+  const announceCountertopEdit = useCallback(() => deferredSnapshot.capture("countertop"), [deferredSnapshot]);
+  const abandonCountertopEdit = useCallback(() => deferredSnapshot.discard("countertop"), [deferredSnapshot]);
 
   const navigation = useCollectionNavigation();
   const isCustomPage = navigation?.flowId === "custom";
@@ -512,6 +520,14 @@ export const PlayCanvasIntegration = ({
     setCountertopPlacementStatus({ supported: false, available: false, editing: false });
     setCabinetPlacementBusy(false);
   }, [cabinetPlacementDebugEnabled]);
+  // An open cabinet draft or countertop edit is not in the history yet: undo and redo wait for it.
+  const isSceneEditOpen = cabinetPlacementBusy || countertopDragStatus.busy || countertopPlacementStatus.editing;
+  useEffect(() => {
+    dispatch(setHistoryBlocked(isSceneEditOpen));
+    return () => {
+      dispatch(setHistoryBlocked(false));
+    };
+  }, [dispatch, isSceneEditOpen]);
   const placementHostRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (countertopPlacementStatus.editing && placementHostRef.current) {
@@ -657,12 +673,21 @@ export const PlayCanvasIntegration = ({
     },
     [composition, dispatch, runtimeBindings],
   );
+  const adoptCommittedCabinetPlacement = useCallback(
+    async (state: CabinetsState) => {
+      deferredSnapshot.commit("cabinet-placement");
+      await adoptCommittedCabinetComposition(state);
+    },
+    [adoptCommittedCabinetComposition, deferredSnapshot],
+  );
   // SB <-> SC sink move: every 'fits' landing commits cabinets.moveSink right away and syncs like a placement.
   const sinkLanding = useSinkLanding({
     // `supported`: CountertopDragMode discovered the countertop API, so `getApi()` is not null.
     ready: isPlayCanvasReady && cabinetPlacementDebugEnabled && countertopDragStatus.supported,
     getApi: getCountertopApi,
     onCommitted: async (state) => {
+      // The sink moved with the countertop: both are one entry, written by whichever is applied first.
+      deferredSnapshot.commit("countertop");
       await adoptCommittedCabinetComposition(state);
       // The sink move replaced the composition under an open Drag & Drop session: keep the result, close it.
       countertopDragRef.current?.apply();
@@ -959,6 +984,13 @@ export const PlayCanvasIntegration = ({
       publishCountertopSize(state);
     },
     [setCountertopDimensionData, publishCountertopSize],
+  );
+  const commitCountertopEdit = useCallback(
+    async (state: CountertopState) => {
+      deferredSnapshot.commit("countertop");
+      await syncCommittedCountertop(state);
+    },
+    [deferredSnapshot, syncCommittedCountertop],
   );
 
   const syncCountertopConfig = useCallback(async () => {
@@ -3743,11 +3775,13 @@ export const PlayCanvasIntegration = ({
           ref={cabinetPlacementRef}
           onRepositionAvailabilityChange={setRepositionStatus}
           onPlacementBusyChange={setCabinetPlacementBusy}
-          externalBusy={countertopPlacementStatus.editing || countertopDragStatus.busy}
+          externalBusy={countertopPlacementStatus.editing || countertopDragStatus.busy || isHistoryRestoring}
           ready={isPlayCanvasReady}
           selection={cabinetDebugSelection}
           selectedProductId={selectedSceneProduct}
-          onCompositionCommitted={adoptCommittedCabinetComposition}
+          onCompositionCommitted={adoptCommittedCabinetPlacement}
+          onBeforeCompositionChange={announceCabinetPlacement}
+          onCompositionChangeAbandoned={abandonCabinetPlacement}
           showDebugTools={cabinetPlacementDebugTools}
         />
       )}
@@ -3757,12 +3791,14 @@ export const PlayCanvasIntegration = ({
           key={playCanvasSrc}
           ref={countertopDragRef}
           ready={isPlayCanvasReady}
-          disabled={cabinetPlacementBusy || countertopPlacementStatus.editing}
+          disabled={cabinetPlacementBusy || countertopPlacementStatus.editing || isHistoryRestoring}
           getApi={getCountertopApi}
           lengthLimitsIn={countertopLengthLimitsIn}
           onStatusChange={setCountertopDragStatus}
           onSelect={selectCountertopForPlacement}
-          onCommitted={syncCommittedCountertop}
+          onCommitted={commitCountertopEdit}
+          onSessionStart={announceCountertopEdit}
+          onSessionDiscarded={abandonCountertopEdit}
         />
       )}
 

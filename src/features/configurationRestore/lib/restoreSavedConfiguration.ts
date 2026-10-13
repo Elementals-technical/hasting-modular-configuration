@@ -92,7 +92,10 @@ export const restoreSavedConfiguration = async (
     const built = buildRestorePlan(configId, record);
     if (!built.ok) return fail("invalid", joinMessages(built.issues));
 
-    const scene = await restorer.restore({ products: built.plan.products });
+    const scene = await restorer.restore({
+      products: built.plan.products,
+      ...(built.plan.sceneLayout ? { layout: built.plan.sceneLayout } : {}),
+    });
     if (scene.status === "not-ready") return fail("scene", "The scene is not ready.");
     if (scene.status === "rejected") return fail("scene", joinMessages(scene.issues));
 

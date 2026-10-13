@@ -21,6 +21,7 @@ import {
   captureCountertopSnapshot,
   countertopErrorMessage,
   describeCountertopValidation,
+  isSameCountertopPose,
   restoreCountertopSnapshot,
   sameCountertopTarget,
   type CountertopApi,
@@ -56,6 +57,10 @@ type Props = {
   createBridge?: () => CountertopOverlayBridge;
   onStatusChange?: (status: CountertopDragStatus) => void;
   onCommitted?: (state: CountertopState) => void | Promise<void>;
+  /** An edit is about to start. Awaited before the top can move, so the caller reads the state as it was. */
+  onSessionStart?: () => void | Promise<void>;
+  /** The edit announced by `onSessionStart` changed nothing: cancelled, not started, or applied as it stood. */
+  onSessionDiscarded?: () => void;
   onSelect?: (productId: string) => void;
 };
 
@@ -90,6 +95,8 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     createBridge = createConfiguratorBridge,
     onStatusChange,
     onCommitted,
+    onSessionStart,
+    onSessionDiscarded,
     onSelect,
   },
   ref,
@@ -203,6 +210,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       if (!api) throw new Error("The countertop API is not available");
       const snapshot = captureCountertopSnapshot(await api.getState());
       if (!snapshot) throw new Error("The countertop is not ready");
+      await onSessionStart?.();
       const session: Session = { api, snapshot, bridge: createBridge(), stopOverlay: null, overlay: false };
       sessionRef.current = session;
       setActive(true);
@@ -226,6 +234,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
           .then(() => api.setDragEnabled(snapshot.dragEnabled))
           .catch(() => undefined);
         await teardown(session);
+        onSessionDiscarded?.();
         throw failure;
       }
     });
@@ -259,6 +268,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       await session.api.setDragEnabled(false);
       const next = await settled(session);
       if (await commitHostedSinkLanding(session.api)) return teardown(session);
+      if (isSameCountertopPose(next, session.snapshot)) onSessionDiscarded?.();
       await onCommitted?.(next);
       await teardown(session);
     });
@@ -274,8 +284,10 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
         read: () => read(session),
         settled: () => settled(session),
       });
-      await commitHostedSinkLanding(session.api);
+      // A hosted sink that lands on the way back is a change of its own, reported when it commits.
+      const landed = await commitHostedSinkLanding(session.api);
       await teardown(session);
+      if (!landed) onSessionDiscarded?.();
     });
   };
 
@@ -285,6 +297,9 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     void run(async () => {
       const api = session?.api ?? getApi();
       if (!api) throw new Error("The countertop API is not available");
+      // Outside a session Standard is an edit of its own; inside one the session announced it.
+      const before = session ? session.snapshot : captureCountertopSnapshot(await api.getState());
+      if (!session) await onSessionStart?.();
       await api.setDragEnabled(false);
       await api.resetOffset();
       const next = await api.whenSettled();
@@ -292,6 +307,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
         if (session) await teardown(session);
         return;
       }
+      if (before && isSameCountertopPose(next, before)) onSessionDiscarded?.();
       await onCommitted?.(next);
       if (session) await teardown(session);
     });

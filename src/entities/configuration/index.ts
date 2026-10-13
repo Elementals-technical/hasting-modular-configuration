@@ -43,6 +43,7 @@ export type {
   RuntimeFailureCode,
   ConfigurationSceneRestorer,
   SceneCabinetState,
+  SceneLayout,
   SceneRestoreFailure,
   SceneRestoreIssue,
   SceneRestoreIssueCode,

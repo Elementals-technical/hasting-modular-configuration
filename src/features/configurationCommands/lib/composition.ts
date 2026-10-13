@@ -25,6 +25,7 @@ import type {
 import { recordComposition } from "@/entities/product/model/store/slice";
 
 import { recordCarriedChanges, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
+import { selectBroadcastValues } from "./compositionValues";
 import { recordValues, replayValues, type ReplayValues } from "./replayValues";
 import { toSceneValue } from "./sceneValue";
 import type { PlannedChange } from "../model/types";
@@ -210,6 +211,38 @@ const recordCarriedValues = (
   return composition;
 };
 
+/** The product's config with the composition's values it does not carry itself. */
+const withInherited = (
+  config: Record<string, unknown>,
+  inherited: Readonly<Record<string, AttributeValue>>,
+): Record<string, unknown> => ({
+  ...config,
+  ...Object.fromEntries(
+    Object.entries(inherited).filter(([attributeId]) => {
+      const own = config[attributeId];
+      return own === undefined || own === null || own === "";
+    }),
+  ),
+});
+
+/** Records the composition's values at a cabinet that joined it, once it has its stable key. */
+const recordInherited = (
+  deps: CompositionDeps,
+  runtimeId: string,
+  inherited: Readonly<Record<string, AttributeValue>>,
+): void => {
+  const cabinetId = resolveStableKey(getCabinetEntries(deps.getState()), runtimeId);
+  if (!cabinetId) return;
+
+  const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => ({
+    attributeId,
+    target: { scope: "cabinet", cabinetId },
+    value,
+    origin: "requested",
+  }));
+  recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
+};
+
 /** The expected products in the order the scene reports, when it reports them all. */
 const inSceneOrder = (expected: readonly string[], scene: SceneStateResult): string[] => {
   if (scene.status !== "ready") return [...expected];
@@ -329,7 +362,12 @@ export const addCabinet = async (
   deps: CompositionDeps,
 ): Promise<CompositionResult> => {
   const state = deps.getState();
-  const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [product]);
+  // A cabinet joins the composition with the values all its cabinets hold: without them the scene
+  // would place it with its own defaults, and it would stand out from the rest.
+  const inherited = selectBroadcastValues(state);
+  const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [
+    { ...product, config: withInherited(product.config, inherited) },
+  ]);
   const result = await deps.composition.add(sceneProduct, placement);
   if (!isSceneChange(result)) return stoppedResult(result);
 
@@ -347,6 +385,7 @@ export const addCabinet = async (
     inSceneOrder(expected, result.scene),
     runtimeId && style ? { [runtimeId]: style } : {},
   );
+  if (runtimeId) recordInherited(deps, runtimeId, inherited);
 
   return settleValues(deps, recorded, { afterPlacement, record });
 };

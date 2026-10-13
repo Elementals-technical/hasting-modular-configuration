@@ -17,6 +17,8 @@ export { createSceneRestorer, resolveSceneProductType } from "./lib/createSceneR
 export type { SceneRestoreBridge, SceneRestorerDeps } from "./lib/createSceneRestorer";
 export { createTestSceneRestorer } from "./lib/testSceneRestorer";
 export type { TestSceneRestorer } from "./lib/testSceneRestorer";
+export { captureSceneLayout, importSceneLayout, parseSceneLayout } from "./lib/sceneLayout";
+export type { SceneLayoutCaptureDeps, SceneLayoutClient, SceneLayoutDeps, SceneLayoutImport } from "./lib/sceneLayout";
 
 export { createCompositionPort } from "./lib/createCompositionPort";
 export type { CompositionPortDeps, SceneCompositionBridge } from "./lib/createCompositionPort";

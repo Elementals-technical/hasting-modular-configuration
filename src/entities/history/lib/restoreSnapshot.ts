@@ -78,12 +78,16 @@ export const buildSnapshotReplayValues = (snapshot: SceneSnapshot): Record<strin
   return values;
 };
 
-/** The products of a snapshot in composition order. A product without a config stays in, so preflight rejects it. */
+/**
+ * The products of a snapshot in composition order, with the layout they stood in when the
+ * snapshot has one. A product without a config stays in, so preflight rejects it.
+ */
 export const buildSnapshotRestoreRequest = (snapshot: SceneSnapshot): SceneRestoreRequest => ({
   products: snapshot.productIds.map((sourceId) => {
     const config = snapshot.productConfigs[sourceId] ?? null;
     return { sourceId, productType: resolveRuntimeProductType(sourceId, config ?? undefined), config };
   }),
+  ...(snapshot.sceneLayout ? { layout: snapshot.sceneLayout } : {}),
 });
 
 /**

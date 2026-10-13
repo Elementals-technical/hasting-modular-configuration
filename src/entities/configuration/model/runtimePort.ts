@@ -112,9 +112,26 @@ export type SceneRestoreProduct = {
   config: Record<string, unknown> | null;
 };
 
+/**
+ * Where every product of a composition stands, as the scene itself wrote it down: rows, the
+ * countertop's position and length, what the top carries. Only the adapter reads `document`.
+ */
+export type SceneLayout = {
+  version: 1;
+  /** The scene's own document, kept as it was exported. */
+  document: Record<string, unknown>;
+  /** The runtime id each cabinet had when the document was exported, by its key in the document. */
+  cabinetIds: Record<string, string>;
+};
+
 /** The composition to rebuild, in composition order. */
 export type SceneRestoreRequest = {
   products: readonly SceneRestoreProduct[];
+  /**
+   * The layout the products stood in. With it the scene puts them back where they were; without
+   * it, or when the scene cannot use it, the products are placed in one row, in request order.
+   */
+  layout?: SceneLayout;
 };
 
 export type SceneRestoreIssueCode =
