@@ -194,6 +194,7 @@ import {
 import { useCollectionNavigate } from "@/features/collectionCustomization";
 import { applyPlayerMenuSupport } from "./lib/applyPlayerMenuSupport";
 import { buildCabinetAttributeMenuItems } from "./lib/buildCabinetAttributeMenuItems";
+import { buildRepositionItems } from "./lib/buildRepositionItems";
 import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
 import { resolvePlayerMenuSupport } from "./lib/playerMenuCatalog";
 import {
@@ -2440,31 +2441,15 @@ export const PlayCanvasIntegration = ({
     [composition, enforceSidePanelEligibilityForEdgeCabinets, saveSnapshot],
   );
 
+  // Reposition ▸ Move Left / Move Right: the neighbour comes from the menu, which keeps side shelves at row ends.
   const handleMoveProduct = useCallback(
-    async (direction: "left" | "right") => {
+    async (neighborId: string) => {
       if (!selectedSceneProduct) return;
 
-      const orderedIds = getOrderedProductIds(productIds);
-      const currentIndex = orderedIds.indexOf(selectedSceneProduct);
-      if (currentIndex === -1) return;
-
-      const neighborIndex = direction === "left" ? currentIndex - 1 : currentIndex + 1;
-      if (neighborIndex < 0 || neighborIndex >= orderedIds.length) return;
-
-      // Block swap that would displace an edge Side-Shelf into interior
-      const neighbor = orderedIds[neighborIndex];
-      if (
-        cabinetTypeOf(neighbor) === "Side-Shelf" &&
-        (neighborIndex === 0 || neighborIndex === orderedIds.length - 1) &&
-        orderedIds.length > 2
-      ) {
-        return;
-      }
-
-      await handleSwapProducts(selectedSceneProduct, orderedIds[neighborIndex]);
+      await handleSwapProducts(selectedSceneProduct, neighborId);
       closeInPlayerActionSurface();
     },
-    [cabinetTypeOf, closeInPlayerActionSurface, handleSwapProducts, productIds, selectedSceneProduct],
+    [closeInPlayerActionSurface, handleSwapProducts, selectedSceneProduct],
   );
 
   useEffect(() => {
@@ -3317,16 +3302,6 @@ export const PlayCanvasIntegration = ({
     const orderedIds = getOrderedProductIds(productIds);
     const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
     const canRepositionSelectedCabinet = orderedIds.length > 1 && !hideMultiCabinetActionsForSyntesi;
-    const dragRepositionItem: DropdownItem = {
-      id: "reposition",
-      label: "Reposition",
-      trailing: <ArrowTopRight color={"#333"} />,
-      disabled: !repositionStatus.available || !productIds.includes(selectedSceneProduct),
-      disabledReason: !repositionStatus.available
-        ? "Finish the current placement before repositioning a cabinet."
-        : undefined,
-      onClick: handleDragReposition,
-    };
 
     if (isPrebuilt) {
       if (isTowelBarEntity) {
@@ -3343,18 +3318,17 @@ export const PlayCanvasIntegration = ({
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleResizeFromPrebuilt,
         },
-        ...(repositionStatus.supported
-          ? [dragRepositionItem]
-          : canRepositionSelectedCabinet
-            ? [
-                {
-                  id: "reposition",
-                  label: "Reposition",
-                  trailing: <ArrowTopRight color={"#333"} />,
-                  onClick: handleRepositionFromPrebuilt,
-                },
-              ]
-            : []),
+        // Moving a cabinet changes the composition: like Resize and Add, it asks to customize first.
+        ...(canRepositionSelectedCabinet
+          ? [
+              {
+                id: "reposition",
+                label: "Reposition",
+                trailing: <ArrowTopRight color={"#333"} />,
+                onClick: handleRepositionFromPrebuilt,
+              },
+            ]
+          : []),
         {
           id: "color",
           label: "Color",
@@ -3438,24 +3412,6 @@ export const PlayCanvasIntegration = ({
       return [{ id: "delete", label: "Delete", trailing: <DeleteMenuIcon />, onClick: handleRemoveProducts }];
     }
 
-    // Side-Shelf (OSS) must always remain at edges — block moves that would push it inward.
-    // Exception: a 2-item scene with exactly 1 cabinet + 1 OSS lets the OSS swap sides,
-    // since both positions are edges and the cabinet would just take the opposite edge.
-    const selectedIdx = selectedSceneProduct ? orderedIds.indexOf(selectedSceneProduct) : -1;
-    const isSelectedOss = cabinetTypeOf(selectedSceneProduct) === "Side-Shelf";
-    const nonOssIds = orderedIds.filter((id) => cabinetTypeOf(id) !== "Side-Shelf");
-    const isOneCabinetPlusOneOss = orderedIds.length === 2 && nonOssIds.length === 1;
-    const ossCannotMove = isSelectedOss && productIds.length > 1 && !isOneCabinetPlusOneOss;
-
-    const isOssAtEdge = (idx: number) =>
-      cabinetTypeOf(orderedIds[idx]) === "Side-Shelf" &&
-      (idx === 0 || idx === orderedIds.length - 1) &&
-      orderedIds.length > 2;
-
-    const canMoveLeft = selectedIdx > 0 && !ossCannotMove && !isOssAtEdge(selectedIdx - 1);
-    const canMoveRight =
-      selectedIdx >= 0 && selectedIdx < orderedIds.length - 1 && !ossCannotMove && !isOssAtEdge(selectedIdx + 1);
-
     const resizeItems: Record<PlayerMenuResizeId, DropdownItem> = {
       Width: {
         id: "resize-width",
@@ -3494,24 +3450,14 @@ export const PlayCanvasIntegration = ({
         // nothing to choose is dropped with its empty submenu.
         children: menuSupport.resize.map((sizeId) => resizeItems[sizeId]),
       },
-      ...(repositionStatus.supported
-        ? [dragRepositionItem]
-        : canMoveLeft || canMoveRight
-          ? [
-              {
-                id: "reposition",
-                label: "Reposition",
-                children: [
-                  ...(canMoveLeft
-                    ? [{ id: "reposition-left", label: "Move Left", onClick: () => handleMoveProduct("left") }]
-                    : []),
-                  ...(canMoveRight
-                    ? [{ id: "reposition-right", label: "Move Right", onClick: () => handleMoveProduct("right") }]
-                    : []),
-                ],
-              },
-            ]
-          : []),
+      ...buildRepositionItems({
+        order: orderedIds,
+        cabinetId: selectedSceneProduct,
+        isSideShelf: (runtimeId) => cabinetTypeOf(runtimeId) === "Side-Shelf",
+        dragDrop: repositionStatus,
+        onMove: handleMoveProduct,
+        onDragDrop: handleDragReposition,
+      }),
       {
         id: "color",
         label: "Color",
