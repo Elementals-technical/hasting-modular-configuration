@@ -38,6 +38,26 @@ describe("buildAddedCabinetRequest", () => {
     expect(request.placement).toEqual({ kind: "beside", anchorRuntimeId: "cab-a", side: "left" });
   });
 
+  it("places the cabinet where a '+' of a row with columns stands: the free place of a column, a row end", () => {
+    const bottom = buildAddedCabinetRequest({
+      cabinetType: "Sink-Cabinet",
+      config,
+      width: 70,
+      anchorRuntimeId: "UD-sink-cabinet-1",
+      side: "bottom",
+    });
+    const hangingEnd = buildAddedCabinetRequest({
+      cabinetType: "Sink-Cabinet",
+      config,
+      width: 70,
+      anchorRuntimeId: "UD-side-cabinet-1",
+      side: "left-top",
+    });
+
+    expect(bottom.placement).toEqual({ kind: "slot", anchorRuntimeId: "UD-sink-cabinet-1", slot: "bottom" });
+    expect(hangingEnd.placement).toEqual({ kind: "slot", anchorRuntimeId: "UD-side-cabinet-1", slot: "left" });
+  });
+
   it("gives a sink base the basin and countertop style of the configuration", () => {
     const request = buildAddedCabinetRequest({
       cabinetType: "Sink-Base",

@@ -391,3 +391,36 @@ export const swapSceneProducts = (runtimeIdA: string, runtimeIdB: string): Promi
       return toSceneError(error);
     }
   });
+
+/**
+ * The kinds of the scene's "+" buttons. A plain row has `left` and `right`; a row that holds
+ * columns (Urban Duplex) also has `left-top` and `right-top` (the hanging level of a row end), and
+ * `top` / `bottom` for the free place of a column.
+ */
+export type ScenePlusKind = "left" | "right" | "left-top" | "right-top" | "top" | "bottom";
+
+/** A "+" of a row that holds columns, as the scene describes it (`plus` of the click callback). */
+export type ScenePlus = {
+  id: string;
+  kind: ScenePlusKind;
+  /** The cabinet the "+" stands by: the end cabinet of a row end, the lone cabinet of a column. */
+  cabinetId: string;
+  rowId?: string;
+};
+
+/**
+ * Which "+" of a row that holds columns the scene shows; `null` shows them all. A row without
+ * columns has no such "+" and ignores the filter. False when the scene build has no filter.
+ */
+export const setScenePlusFilter = (filter: ((plus: ScenePlus) => boolean) | null): boolean => {
+  const api = getConfiguratorApi();
+  if (!api || typeof api.setPlusFilter !== "function") return false;
+
+  try {
+    api.setPlusFilter(filter);
+    return true;
+  } catch (error) {
+    console.error("[sceneBridge] setPlusFilter failed", error);
+    return false;
+  }
+};

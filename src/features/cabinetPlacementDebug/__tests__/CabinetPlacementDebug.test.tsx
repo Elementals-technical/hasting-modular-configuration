@@ -326,7 +326,11 @@ describe("Cabinet drag and drop test controls", () => {
       expect((screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement).disabled).toBe(false),
     );
     expect(screen.getByRole("status").textContent).toBe("Placement applied");
-    expect(committed).toHaveBeenCalledExactlyOnceWith(await client.getCabinetsState());
+    // The receipt goes with the state: it names the cabinet the Add placed.
+    expect(committed).toHaveBeenCalledExactlyOnceWith(
+      await client.getCabinetsState(),
+      expect.objectContaining({ requestId: "apply-1", addedProductIds: ["new-cabinet"] }),
+    );
     emit("cabinetPlacement.action", { status: "committed", sessionId: "draft-1", receipt: { requestId: "apply-1" } });
     expect(committed).toHaveBeenCalledOnce();
   });
@@ -812,9 +816,115 @@ describe("Cabinet drag and drop reports a change from its start to its end", () 
   });
 });
 
+describe("Cabinet drag and drop with a collection whose rows hold columns", () => {
+  const prepared = { definitionId: "UD-side-cabinet", selection: { Width: 35, HandleStyle: "Default" } };
+
+  it("starts an Add with the cabinet resolved when it starts", async () => {
+    const { client, createClient } = fixture();
+    const prepareSelection = vi.fn(() => prepared);
+    render(
+      <CabinetPlacementDebug
+        ready
+        selection={selection}
+        prepareSelection={prepareSelection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(prepareSelection).not.toHaveBeenCalled();
+
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+
+    expect(prepareSelection).toHaveBeenCalledOnce();
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(prepared.definitionId, prepared.selection);
+  });
+
+  it("leaves alone a session a command opened and applied (a cabinet placed in a column)", async () => {
+    const { createClient, emit } = fixture();
+    const committed = vi.fn();
+    const abandoned = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        onCompositionCommitted={committed}
+        onCompositionChangeAbandoned={abandoned}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+
+    emit("composition.change", { status: "ready", activeSessionId: "command-placement-1" });
+    emit("cabinetPlacement.change", { ...preview, sessionId: "command-placement-1" });
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+
+    emit("cabinetPlacement.action", {
+      status: "committed",
+      sessionId: "command-placement-1",
+      receipt: { requestId: "command-placement-2" },
+    });
+    await act(async () => undefined);
+
+    // The command records what it placed; these controls neither adopt it nor end an edit.
+    expect(committed).not.toHaveBeenCalled();
+    expect(abandoned).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Drag & Drop" })).toBeTruthy();
+  });
+
+  it("keeps a side shelf at an end of its row before Apply", async () => {
+    const { client, emit } = fixture();
+    const row = {
+      cabinets: [
+        { id: "a", definitionId: "UD-sink-cabinet", selection: { Width: 60 }, positionM: { x: 0.3, y: 0, z: 0 } },
+        { id: "b", definitionId: "UD-side-cabinet", selection: { Width: 60 }, positionM: { x: 0.9005, y: 0, z: 0 } },
+      ],
+      connections: [],
+      selectedCabinetId: null,
+    };
+    const rowClient = { ...client, getCabinetsState: vi.fn(async () => row) };
+    render(
+      <CabinetPlacementDebug
+        ready
+        selection={{ definitionId: "UD-open-shelves-side", selection: { Width: 15 } }}
+        selectedProductId={null}
+        createClient={() => rowClient as unknown as ConfiguratorClient}
+        isSideShelfType={(definitionId) => definitionId === "UD-open-shelves-side"}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+    const shelfAt = (x: number) => ({
+      ...preview,
+      candidate: {
+        definitionId: "UD-open-shelves-side",
+        selection: { Width: 15 },
+        productId: null,
+        effectivePlacement: { positionM: { x, y: 0, z: 0 } },
+      },
+    });
+
+    // Between the two cabinets: the scene allows it, the side shelf rule does not.
+    emit("cabinetPlacement.change", shelfAt(0.6));
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText("A side shelf stands at an end of the row. Move it to an end to apply.")).toBeTruthy();
+
+    // At the right end of the row.
+    emit("cabinetPlacement.change", shelfAt(1.2765));
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
 describe("Drag & Drop collections", () => {
-  it("enables cabinet/countertop Drag & Drop for ULH only", () => {
+  it("enables cabinet/countertop Drag & Drop for ULH and Urban Duplex only", () => {
     expect(isDragDropCollection("urban-low-height")).toBe(true);
+    expect(isDragDropCollection("urban-duplex")).toBe(true);
     for (const id of ["urban-standard-height", "class", "mako", "", null, undefined]) {
       expect(isDragDropCollection(id)).toBe(false);
     }

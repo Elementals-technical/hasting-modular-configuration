@@ -21,8 +21,10 @@ export {
   adoptComposition,
   applyPreset,
   clearComposition,
+  prepareCabinet,
   removeCabinets,
   swapCabinets,
+  toPresetSceneProduct,
 } from "./lib/composition";
 export type {
   AddCabinetRequest,
@@ -32,6 +34,8 @@ export type {
   CompositionDeps,
   CompositionErrorCode,
   CompositionResult,
+  PlacedCabinet,
+  PreparedCabinet,
 } from "./lib/composition";
 export { clearDividers } from "./lib/clearDividers";
 export type { ClearDividersChange, ClearDividersResult } from "./lib/clearDividers";

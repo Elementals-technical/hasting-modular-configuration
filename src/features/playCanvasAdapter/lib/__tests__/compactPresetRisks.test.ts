@@ -48,7 +48,8 @@ describe("compact preset review risks", () => {
     };
     const adopt = vi.fn().mockResolvedValue(undefined);
     await applyCompactPresetWithBridge(compactEntry, () => client, adopt);
-    expect(adopt).toHaveBeenCalledWith(state);
+    // With the receipt that names the product each cabinet of the document became.
+    expect(adopt).toHaveBeenCalledWith(state, { keyToProductId: { lower: "ULH-side-cabinet-lower" } });
     expect(client.importCompactPreset.mock.invocationCallOrder[0]).toBeLessThan(
       client.getCabinetsState.mock.invocationCallOrder[0],
     );

@@ -27,6 +27,7 @@ import { getSelectTool, type SelectionAction, type SelectionInfo } from "@/utils
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { setScenePlusFilter, type ScenePlusKind } from "@/utils/functions/playcanvas/sceneBridge";
 import {
   getDimensionOptions,
   getHeightChoices,
@@ -55,7 +56,9 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
+import { occupiedWidthCm, type PlacedWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
+import { placementForPlus, plusFilterFor, rowEndSideOf } from "@/features/sidebar/lib/plusPlacement";
 import {
   autoRemoveSide as spAutoRemoveSide,
   deleteSide as spDeleteSide,
@@ -104,6 +107,7 @@ import {
 import {
   CabinetPlacementDebug,
   type CabinetPlacementControls,
+  type CabinetPlacementSelection,
 } from "@/features/cabinetPlacementDebug/ui/CabinetPlacementDebug";
 import {
   CountertopPlacementControls,
@@ -115,7 +119,8 @@ import {
   isDragDropCollection,
   resolveCabinetDebugSelection,
 } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
-import { createConfiguratorBridge, type CabinetsState } from "@/features/configuratorApi";
+import { inCompositionOrder } from "@/features/cabinetPlacementDebug/lib/compositionOrder";
+import { createConfiguratorBridge, type CabinetsState, type ConfiguratorReceipt } from "@/features/configuratorApi";
 import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
 import { setCabinetCoverRuntime } from "@/shared/lib/cabinetCoverRuntime";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
@@ -175,7 +180,7 @@ import {
   useChangeDimension,
   usePerCabinetAttributeFields,
 } from "@/features/configurationCommands";
-import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
+import type { ChangePreview, ChangeResult, PlacedCabinet, PreparedCabinet } from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
   InSceneQuickEditorNotification,
@@ -446,7 +451,13 @@ export const PlayCanvasIntegration = ({
   // A dragged cabinet or countertop is written to the history when it is applied, not when it starts.
   const deferredSnapshot = useDeferredHistorySnapshot();
   const announceCabinetPlacement = useCallback(() => deferredSnapshot.capture("cabinet-placement"), [deferredSnapshot]);
-  const abandonCabinetPlacement = useCallback(() => deferredSnapshot.discard("cabinet-placement"), [deferredSnapshot]);
+  // The cabinet a Drag & Drop Add places, as the composition commands prepared it: once the scene
+  // placed it, its own values (the series of an Urban Duplex cabinet) are recorded at it.
+  const preparedCabinetRef = useRef<PreparedCabinet | null>(null);
+  const abandonCabinetPlacement = useCallback(() => {
+    preparedCabinetRef.current = null;
+    deferredSnapshot.discard("cabinet-placement");
+  }, [deferredSnapshot]);
   const announceCountertopEdit = useCallback(() => deferredSnapshot.capture("countertop"), [deferredSnapshot]);
   const abandonCountertopEdit = useCallback(() => deferredSnapshot.discard("countertop"), [deferredSnapshot]);
 
@@ -494,7 +505,7 @@ export const PlayCanvasIntegration = ({
     [activeProfile, runtimeBindings],
   );
   const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
-  // Cabinet & countertop Drag & Drop: ULH only; other collections keep the classic menus.
+  // Cabinet & countertop Drag & Drop: ULH and Urban Duplex; other collections keep the classic menus.
   const cabinetPlacementDebugEnabled = isDragDropCollection(activeCollectionId);
   // Engineering tools of the Drag & Drop (Move selected, add side, Save/Restore JSON): ?placementDebug
   const cabinetPlacementDebugTools = new URLSearchParams(location.search).has("placementDebug");
@@ -547,6 +558,24 @@ export const PlayCanvasIntegration = ({
     activeCabinetType,
     bindings: runtimeBindings,
   });
+  // Resolved when a Drag & Drop Add starts: the cabinet as the "+" would place it (with the
+  // composition's values, its config in the scene's keys), kept to record its own values once placed.
+  const prepareCabinetPlacement = useCallback((): CabinetPlacementSelection | null => {
+    preparedCabinetRef.current = null;
+    if (!cabinetDebugSelection || !cabinetBuilderProductConfig) return null;
+
+    const prepared = composition.prepare({
+      productType: cabinetDebugSelection.definitionId,
+      config: cabinetBuilderProductConfig,
+    });
+    preparedCabinetRef.current = prepared;
+    return prepared ? { definitionId: prepared.definitionId, selection: prepared.selection } : null;
+  }, [cabinetBuilderProductConfig, cabinetDebugSelection, composition]);
+  // The side shelf keeps to a row end in Drag & Drop as in the classic menus.
+  const isSideShelfSceneType = useCallback(
+    (definitionId: string) => definitionId === runtimeBindings?.productTypes["Side-Shelf"],
+    [runtimeBindings],
+  );
   const getCountertopApi = useCallback((): CountertopApi | null => {
     const runtimeWindow = containerRef.current?.contentWindow as
       | (Window & { ConfiguratorAPI?: { countertop?: Partial<CountertopApi> } })
@@ -659,31 +688,50 @@ export const PlayCanvasIntegration = ({
       disposed = true;
     };
   }, [countertopPlacementStatus.editing, getCountertopApi, isPlayCanvasReady, publishCountertopSize]);
+  /** The collection's product type of a scene cabinet type. */
+  const productTypeOfSceneType = useCallback(
+    (sceneType: string) =>
+      Object.entries(runtimeBindings?.productTypes ?? {}).find(([, definitionId]) => definitionId === sceneType)?.[0] ??
+      sceneType,
+    [runtimeBindings],
+  );
   const adoptCommittedCabinetComposition = useCallback(
-    async (state: CabinetsState) => {
+    async (state: CabinetsState, placed: readonly PlacedCabinet[] = []) => {
+      const cabinets = inCompositionOrder(state.cabinets, getOrderedProductIds());
       const result = await composition.adopt({
-        runtimeIds: state.cabinets.map((cabinet) => cabinet.id),
-        products: state.cabinets.map((cabinet) => ({
-          productType:
-            Object.entries(runtimeBindings?.productTypes ?? {}).find(
-              ([, definitionId]) => definitionId === cabinet.definitionId,
-            )?.[0] ?? cabinet.definitionId,
+        runtimeIds: cabinets.map((cabinet) => cabinet.id),
+        products: cabinets.map((cabinet) => ({
+          productType: productTypeOfSceneType(cabinet.definitionId),
           config: cabinet.selection,
         })),
+        placed,
       });
       if (result.status === "error" || result.status === "partial") {
         throw new Error(`Placement committed; UI synchronisation failed: ${result.message}`);
       }
       dispatch(setSelectedSceneProduct(state.selectedCabinetId ?? ""));
       const selected = state.cabinets.find((cabinet) => cabinet.id === state.selectedCabinetId);
-      if (selected) dispatch(setSelectedProductConfig(selected.selection));
+      // With what is the cabinet's alone and its scene config does not name, as a click on it reads it.
+      if (selected) {
+        dispatch(
+          setSelectedProductConfig({ ...selected.selection, ...selectOwnCabinetValues(store.getState(), selected.id) }),
+        );
+      }
     },
-    [composition, dispatch, runtimeBindings],
+    [composition, dispatch, productTypeOfSceneType, store],
   );
   const adoptCommittedCabinetPlacement = useCallback(
-    async (state: CabinetsState) => {
+    async (state: CabinetsState, receipt: ConfiguratorReceipt) => {
       deferredSnapshot.commit("cabinet-placement");
-      await adoptCommittedCabinetComposition(state);
+      const prepared = preparedCabinetRef.current;
+      preparedCabinetRef.current = null;
+      // An Add places one cabinet, under the id the receipt names.
+      const [addedId] = receipt.kind === "add" ? receipt.addedProductIds : [];
+      const placed: PlacedCabinet[] =
+        prepared && addedId && receipt.addedProductIds.length === 1
+          ? [{ runtimeId: addedId, product: prepared.product, inherited: prepared.inherited }]
+          : [];
+      await adoptCommittedCabinetComposition(state, placed);
     },
     [adoptCommittedCabinetComposition, deferredSnapshot],
   );
@@ -692,10 +740,21 @@ export const PlayCanvasIntegration = ({
     // `supported`: CountertopDragMode discovered the countertop API, so `getApi()` is not null.
     ready: isPlayCanvasReady && cabinetPlacementDebugEnabled && countertopDragStatus.supported,
     getApi: getCountertopApi,
-    onCommitted: async (state) => {
+    onCommitted: async (state, receipt) => {
       // The sink moved with the countertop: both are one entry, written by whichever is applied first.
       deferredSnapshot.commit("countertop");
-      await adoptCommittedCabinetComposition(state);
+      // The swap gives both cabinets new ids; each keeps what was its own (its series, the side of
+      // its lateral panel), which its scene config does not name.
+      const placed: PlacedCabinet[] = Object.entries(receipt.idMap).map(([previousId, runtimeId]) => {
+        const own = selectOwnCabinetValues(store.getState(), previousId, { sentToOne: true });
+        const definitionId = state.cabinets.find((cabinet) => cabinet.id === runtimeId)?.definitionId ?? "";
+        return {
+          runtimeId,
+          product: { productType: productTypeOfSceneType(definitionId), config: own },
+          inherited: own,
+        };
+      });
+      await adoptCommittedCabinetComposition(state, placed);
       // The sink move replaced the composition under an open Drag & Drop session: keep the result, close it.
       countertopDragRef.current?.apply();
     },
@@ -889,7 +948,7 @@ export const PlayCanvasIntegration = ({
     if (!allProducts) return null;
 
     let hasCabinets = false;
-    let summedWidth = 0;
+    const placedCabinets: PlacedWidth[] = [];
     let primaryCabinetHeight: number | null = null;
     let fallbackCabinetHeight: number | null = null;
     let maxCabinetDepth: number | null = null;
@@ -907,11 +966,15 @@ export const PlayCanvasIntegration = ({
 
       if (category === "cabinets") {
         hasCabinets = true;
-        if (normalizedType.includes("side-shelf")) {
-          summedWidth += SIDE_SHELF_WIDTH_CM;
-        } else if (typeof product.Width === "number" && Number.isFinite(product.Width)) {
-          summedWidth += product.Width;
-        }
+        const widthCm = normalizedType.includes("side-shelf")
+          ? SIDE_SHELF_WIDTH_CM
+          : typeof product.Width === "number" && Number.isFinite(product.Width)
+            ? product.Width
+            : null;
+        // Where the scene stands it along the wall: a column of two cabinets takes one place.
+        const centreXM =
+          typeof product.positionX === "number" && Number.isFinite(product.positionX) ? product.positionX : null;
+        if (widthCm !== null) placedCabinets.push({ widthCm, centreXM });
         if (typeof product.Height === "number" && Number.isFinite(product.Height)) {
           fallbackCabinetHeight = fallbackCabinetHeight === null ? product.Height : fallbackCabinetHeight;
           if (!normalizedType.includes("side-shelf")) {
@@ -941,7 +1004,7 @@ export const PlayCanvasIntegration = ({
       currentWidth: currentCountertopWidth,
       currentHeight: currentCountertopHeight,
       currentDepth: currentCountertopDepth,
-      targetWidth: Number((summedWidth + sidePanelOffset).toFixed(2)),
+      targetWidth: Number((occupiedWidthCm(placedCabinets) + sidePanelOffset).toFixed(2)),
       targetHeight: primaryCabinetHeight ?? fallbackCabinetHeight,
       targetDepth: maxCabinetDepth,
     };
@@ -2179,17 +2242,23 @@ export const PlayCanvasIntegration = ({
     // The cabinet type through the bindings: "UF-open-shelves-side" does not spell "Side-Shelf".
     const options = cabinetTypeOf(selectedSceneProduct) === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
     setVisibleButtons(true, options);
+    // A row that holds columns shows only the "+" that fit the copy (a shelf never goes in a column).
+    setScenePlusFilter(
+      plusFilterFor(cabinetTypeOf(selectedSceneProduct), cabinetTypeOf, { columns: cabinetPlacementDebugEnabled }),
+    );
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [cabinetTypeOf, canDuplicateSelectedCabinet, selectedSceneProduct]);
+  }, [cabinetPlacementDebugEnabled, cabinetTypeOf, canDuplicateSelectedCabinet, selectedSceneProduct]);
 
   useEffect(() => {
     if (!duplicateSourceId) return;
 
-    const onPlusClick = async (entityId: string, side: "left" | "right") => {
+    const onPlusClick = async (entityId: string, side: ScenePlusKind) => {
       try {
+        // A cabinet under a hanging one does not lengthen the countertop above it.
         if (
+          side !== "bottom" &&
           maxCountertopLength !== null &&
           sceneTotalWidth !== null &&
           typeof selectedDimensions.width === "number" &&
@@ -2217,7 +2286,9 @@ export const PlayCanvasIntegration = ({
         const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
         if (cabinetTypeOf(duplicateSourceId) === "Side-Shelf") {
           // A side shelf at the edge takes the place of that side's panel.
-          await spAutoRemoveSide(dispatch, side, productIds.length);
+          const rowSide = rowEndSideOf(side);
+          if (!rowSide) return;
+          await spAutoRemoveSide(dispatch, rowSide, productIds.length);
         }
 
         // The copy goes beside the clicked product and is recorded there with its drawer style; a
@@ -2225,7 +2296,7 @@ export const PlayCanvasIntegration = ({
         const isVessel = typeof mergedConfig.sinkType === "string" && mergedConfig.sinkType.startsWith("Vessel");
         const added = await composition.addCabinet({
           product: { productType, config: mergedConfig },
-          placement: { kind: "beside", anchorRuntimeId: entityId, side },
+          placement: placementForPlus(side, entityId),
           afterPlacement: vesselColorRef.current && isVessel ? { VesselColor: vesselColorRef.current } : undefined,
         });
         const productId = added.status === "error" ? null : added.placed[0];
@@ -2237,6 +2308,7 @@ export const PlayCanvasIntegration = ({
         console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
       } finally {
         setVisibleButtons(false);
+        setScenePlusFilter(null);
         setDuplicateSourceId(null);
       }
     };
@@ -2245,6 +2317,7 @@ export const PlayCanvasIntegration = ({
 
     return () => {
       setVisibleButtons(false);
+      setScenePlusFilter(null);
     };
   }, [
     cabinetTypeOf,
@@ -3839,11 +3912,13 @@ export const PlayCanvasIntegration = ({
           externalBusy={countertopPlacementStatus.editing || countertopDragStatus.busy || isHistoryRestoring}
           ready={isPlayCanvasReady}
           selection={cabinetDebugSelection}
+          prepareSelection={prepareCabinetPlacement}
           selectedProductId={selectedSceneProduct}
           onCompositionCommitted={adoptCommittedCabinetPlacement}
           onBeforeCompositionChange={announceCabinetPlacement}
           onCompositionChangeAbandoned={abandonCabinetPlacement}
           showDebugTools={cabinetPlacementDebugTools}
+          isSideShelfType={isSideShelfSceneType}
         />
       )}
 

@@ -1,4 +1,7 @@
 import type { AddCabinetRequest } from "@/features/configurationCommands";
+import type { ScenePlusKind } from "@/utils/functions/playcanvas/sceneBridge";
+
+import { placementForPlus } from "./plusPlacement";
 
 export type AddedCabinetInput = {
   /** The cabinet type as the collection names it; the port finds its scene product. */
@@ -12,7 +15,8 @@ export type AddedCabinetInput = {
   vesselColor?: string | null;
   /** The placed cabinet whose plus button was clicked. */
   anchorRuntimeId: string;
-  side: "left" | "right";
+  /** The kind of the plus button: a row end, or the free place of a column (`top`, `bottom`). */
+  side: ScenePlusKind;
 };
 
 /**
@@ -48,7 +52,7 @@ export const buildAddedCabinetRequest = ({
 
   return {
     product: { productType: cabinetType, config: productConfig },
-    placement: { kind: "beside", anchorRuntimeId, side },
+    placement: placementForPlus(side, anchorRuntimeId),
     afterPlacement: vesselColor && isVessel ? { VesselColor: vesselColor } : undefined,
   };
 };
