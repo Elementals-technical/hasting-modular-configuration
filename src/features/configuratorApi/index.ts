@@ -1,6 +1,11 @@
 export { createConfiguratorBridge } from "./bridge";
 export type { ConfiguratorBridge, ConfiguratorBridgeOptions } from "./bridge";
-export { createConfiguratorClient } from "./client";
+export {
+  COMMAND_PLACEMENT_SESSION_PREFIX,
+  createCommandPlacementId,
+  createConfiguratorClient,
+  isCommandPlacementSession,
+} from "./client";
 export type {
   ConfiguratorCapabilitiesOptions,
   ConfiguratorClient,
@@ -37,6 +42,8 @@ export type {
   CabinetPlacementOptionsInput,
   CabinetPositionM,
   ConfiguratorPreset,
+  ConfiguratorColumnsPresetRow,
+  ConfiguratorCompactColumn,
   ConfiguratorCompactPreset,
   ConfiguratorCompactPresetRow,
   ConfiguratorPresetProduct,

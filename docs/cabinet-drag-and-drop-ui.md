@@ -1,16 +1,20 @@
 # Cabinet Drag & Drop UI
 
-`CabinetPlacementDebug` (the name is historical; it is the production control now) renders the
-**Drag & Drop** button in the top-right corner of the canvas. It works on top of the cabinet
-placement API of the configurator iframe (`cabinetPlacement.*`) and its draft overlay
+`CabinetPlacementDebug` (the name is historical; it is the production control now) offers
+**Drag to Place** while the cabinet builder shows its "+" buttons, and opens the drafts the cabinet
+menu asks for (Reposition ▸ Drag & Drop). It has no button of its own otherwise. It works on top of
+the cabinet placement API of the configurator iframe (`cabinetPlacement.*`) and its draft overlay
 (`placementOverlay`, PlayCanvas `cabinet/create-new-logic`, 2026-09-29).
 
 ## Flow
 
-1. **Drag & Drop** (enabled once a cabinet configuration is selected) calls `beginAdd` with the
-   configured cabinet right away. There is no modal: the cabinet appears in the scene next to the
-   selected (or last) cabinet and can be dragged at once.
-2. While the draft is open the button is replaced by **Cancel**. PlayCanvas tints the cabinet
+1. **Drag to Place** shows above the composition (top centre of the canvas) while the style sidebar
+   shows the scene's "+" for the cabinet being added (`placementButtonsVisible` of the sidebar slice,
+   passed as `offerAdd`). A press calls `beginAdd` with the configured cabinet right away; like any
+   press outside the sidebar it also closes the sidebar, so its "+" go away for the drag. There is no
+   modal: the cabinet appears in the scene next to the selected (or last) cabinet and can be dragged
+   at once. On every other step a cabinet draft opens only from the cabinet menu.
+2. While the draft is open the toolbar in the top-right corner shows **Cancel**. PlayCanvas tints the cabinet
    **green** on a free spot and **red** when it overlaps another cabinet (and outlines the cabinets
    it overlaps). A red draft cannot be applied: `canApply` is false, the runtime would refuse with
    `PLACEMENT_COLLISION`; the UI disables Apply and shows a hint.
@@ -53,7 +57,7 @@ camera (`visible: false`), shows **Apply** next to **Cancel** in the corner.
 
 ## Engineering tools
 
-`?placementDebug` in the page URL adds the old test panel: Move selected cabinet, add side
-(left/right) and Save / Restore JSON. Reposition from the cabinet context menu works without it.
+`?placementDebug` in the page URL adds the old test panel: Move selected cabinet, the side Drag to
+Place adds on (left/right) and Save / Restore JSON. Reposition from the cabinet context menu works without it.
 Restore JSON and Import compact preset replace the composition, so they are announced to the history
 the same way as a draft.

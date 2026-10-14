@@ -152,16 +152,37 @@ export type ConfiguratorCompactPresetRow = {
   products: ConfiguratorPresetProduct[];
 };
 
-/** Compact preset (format "ulh-compact-v1"); all lengths in cm. See scratch CONTRACT / compact-preset.mjs. */
-export type ConfiguratorCompactPreset = {
-  format: "ulh-compact-v1";
+/**
+ * A place of a row that holds columns (format "urban-compact-v2"): a cabinet hanging from the
+ * countertop plane (`top`) over one standing on the floor (`bottom`); either may be missing. The
+ * bottom's `offsetX` (cm) is its left edge from the top's.
+ */
+export type ConfiguratorCompactColumn = {
+  top?: ConfiguratorPresetProduct;
+  bottom?: ConfiguratorPresetProduct & { offsetX?: number };
+  [key: string]: unknown;
+};
+
+export type ConfiguratorColumnsPresetRow = {
+  offsetX?: number;
+  products: (ConfiguratorPresetProduct | ConfiguratorCompactColumn)[];
+};
+
+type ConfiguratorCompactPresetFields = {
   collection: string;
   shared?: Record<string, unknown>;
-  rows: ConfiguratorCompactPresetRow[];
   top?: { productType: string; positionM?: CabinetPositionM; [key: string]: unknown };
   featureSettings?: Record<string, unknown>;
   [key: string]: unknown;
 };
+
+/**
+ * Compact preset; all lengths in cm. See scratch CONTRACT / compact-preset.mjs. "ulh-compact-v1"
+ * lays rows of cabinets; "urban-compact-v2" (Urban Duplex) lays a row of places, some of them columns.
+ */
+export type ConfiguratorCompactPreset =
+  | (ConfiguratorCompactPresetFields & { format: "ulh-compact-v1"; rows: ConfiguratorCompactPresetRow[] })
+  | (ConfiguratorCompactPresetFields & { format: "urban-compact-v2"; rows: ConfiguratorColumnsPresetRow[] });
 
 export type ConfiguratorImportReceipt = ConfiguratorReceipt & {
   keyToProductId: Record<string, string>;

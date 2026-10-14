@@ -146,7 +146,9 @@ export type SceneRestoreIssueCode =
   | "unknown-product-type"
   | "bindings-unavailable"
   /** A value shared by the placed products has no scene translation. */
-  | "unknown-value";
+  | "unknown-value"
+  /** The scene offers no free place of that kind there, or the cabinet does not fit it or its rules. */
+  | "placement-unavailable";
 
 /** A reason found before the scene is touched; any issue keeps the scene as it is. */
 export type SceneRestoreIssue = {
@@ -194,10 +196,27 @@ export type SceneCompositionProduct = {
   config: Record<string, unknown>;
 };
 
-/** Where one product goes: after the last one, or next to a placed one. */
+/**
+ * A place the scene offers by a placed cabinet, in a collection whose rows hold columns (Urban
+ * Duplex): a row end at the level the cabinet's height takes (`left`, `right`), or the free place
+ * of its column, over a cabinet that stands alone (`top`) or under one that hangs alone (`bottom`).
+ */
+export type ScenePlacementSlot = "left" | "right" | "top" | "bottom";
+
+/**
+ * Where one product goes: after the last one, next to a placed one, or at a place the scene
+ * offers by a placed one (`slot`).
+ */
 export type SceneCompositionPlacement =
   | { kind: "end" }
-  | { kind: "beside"; anchorRuntimeId: string; side: "left" | "right" };
+  | { kind: "beside"; anchorRuntimeId: string; side: "left" | "right" }
+  | { kind: "slot"; anchorRuntimeId: string; slot: ScenePlacementSlot };
+
+/** A product as the scene places it: its scene type, and its config in the scene's keys. */
+export type SceneProductDraft = {
+  sceneType: string;
+  config: Record<string, unknown>;
+};
 
 /**
  * Outcome of a change of the composition (C06):
@@ -229,6 +248,11 @@ export type SceneCompositionReplaceRequest = {
  */
 export type ConfigurationCompositionPort = {
   isReady(): boolean;
+  /**
+   * The product as `add` would place it, without a scene call: for a placement the scene's own
+   * tools start (Drag & Drop). Null when the collection has no scene type for it or no bindings.
+   */
+  toSceneProduct(product: SceneCompositionProduct): SceneProductDraft | null;
   /** Replaces the whole composition. */
   replace(request: SceneCompositionReplaceRequest): Promise<SceneCompositionResult>;
   /** Places one product. */

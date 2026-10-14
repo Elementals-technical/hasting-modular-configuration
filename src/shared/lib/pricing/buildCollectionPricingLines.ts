@@ -99,7 +99,7 @@ const UNPRICED_VESSEL: Record<"not-chosen" | "no-material", { owner: string; rea
 const UNPRICED_CABINET_COVER = {
   owner: "product",
   reason:
-    "The lower countertop cover has no price: its applied colour/material or supporting cabinet depth is unknown or unsupported.",
+    "The lower countertop cover has no price: its applied colour/material, the countertop style or the supporting cabinet depth is unknown or unsupported.",
 };
 
 /** Why a countertop priced as Urban Standard Height's has no top line. */
@@ -434,8 +434,9 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     }).forEach(add);
   }
 
-  // 7) Actual generated Lower panels, regardless of Upper offset/style. Their colour comes from
-  // the published scene slab, while D is the nominal depth of the supporting cabinet(s).
+  // 7) Actual generated Lower panels, regardless of Upper offset, spelled in the Upper's style (INTG,
+  // VES). Their colour comes from the published scene slab, while D is the nominal depth of the
+  // supporting cabinet(s).
   const cover = skuProfile.cabinetCover;
   if (cover && input.cabinetCovers?.length) {
     const covers = new Map<string, { quantity: number; totalWidthCm: number }>();
@@ -454,6 +455,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       const coverDepthCm = depths.length > 0 && depths.every((depth) => depth === depths[0]) ? depths[0] : null;
       const sku = buildCabinetCoverSku({
         prefix: cover.prefix,
+        style: countertopStyle,
         widthCm: coverWidthCm,
         depthCm: coverDepthCm,
         thicknessIn: cover.thicknessIn,
