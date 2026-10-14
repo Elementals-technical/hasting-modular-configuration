@@ -90,6 +90,17 @@ const hasKnownCountertopStyle = (value: string) => {
   );
 };
 
+/**
+ * The style token of a countertop SKU (`INTG`, `VES`, `UDMT`, `X`) for a countertop style, its value or
+ * label (`integrated`, `Integrated`); an unset style is plain. Null for a style it does not know.
+ */
+export const resolveCountertopStyleSku = (style: string | null): string | null => {
+  const styleValue = style?.trim() || "plain";
+  return hasKnownCountertopStyle(styleValue)
+    ? resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true, allowMappedValue: true })
+    : null;
+};
+
 const resolveCountertopSkuMaterial = (input: CountertopSkuInput): string | null => {
   const resolvedMaterial = resolve(countertopMaterialSkuMap, input.countertopMaterialSku, {
     caseInsensitiveKey: true,
@@ -128,11 +139,10 @@ export const canBuildCountertopSku = (input: CountertopSkuInput): boolean => {
  */
 export function buildCountertopSku(profile: Pick<SkuProfile, "series">, input: CountertopSkuInput): string[] {
   const styleValue = input.style?.trim() || "plain";
-  if (!hasKnownCountertopStyle(styleValue)) {
+  const styleSku = resolveCountertopStyleSku(input.style);
+  if (!styleSku) {
     throw new Error(INVALID_COUNTERTOP_STYLE_ERROR);
   }
-
-  const styleSku = resolve(countertopStyleSkuMap, styleValue, { caseInsensitiveKey: true, allowMappedValue: true });
 
   const isVessel = styleValue.toLowerCase() === "vessel";
 

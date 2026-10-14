@@ -191,8 +191,9 @@ Lower бере палітру Cabinet Color, але лише підтвердж�
 обмежує декоративний Lower.
 
 SKU Lower читає **фактично опублікований materialId кожного сегмента**, а не колір першої тумби:
-`CT-UR{material}-VES-{W}W-.5H-{D}D-{material}-{colour}`. Команда погодила постійний `VES` незалежно
-від стилю Upper, `.5H` і номінальну глибину тумб-підтримок: 46 см → `18.1D`, 50 см → `19.7D`.
+`CT-UR{material}-{style}-{W}W-.5H-{D}D-{material}-{colour}`. Стиль — той самий, що в Upper: Integrated →
+`INTG`, Vessel → `VES` (рішення 2026-10-14 замість постійного `VES` від 2026-10-12; GEN-SKU-03 до Ryan
+відкритий). Команда погодила `.5H` і номінальну глибину тумб-підтримок: 46 см → `18.1D`, 50 см → `19.7D`.
 W — довжина відкритого сегмента зі сцени. Невідомі/різноглибинні підтримки або непідтверджений
 матеріал не отримують SKU через fallback: gap блокує complete total.
 
@@ -206,9 +207,10 @@ Derived covers не включаються в список primary cabinets.
 Lower — окрема `cabinetCover` pricing line. CT resolver отримує точну довжину через `widthCm`;
 для однакових округлених SKU quantity і середня довжина зберігають сумарну довжину сегментів.
 **Backend price є лише для HPL** (read-only перевірка `/pricing-v2/resolve`, 2026-10-14):
-`CT-URHPL-VES-35.4W-.5H-18.1D-HPL-TKQ` → CT/price_per_unit, datatable 529 (HPL 0.5″ = 17.704/см, $1,594 за
-90 см). Приклади Ryan і фактичні SKU шести матеріалів корпусу (`CT-UR3D-VES-35.4W-.5H-18.1D-3D-10B`,
-`CT-URLACG-VES-35.4W-.5H-18.1D-LACG-A6`) повертають `price: null`, `No best match`: у 529 немає рядків 0.5″
+`CT-URHPL-INTG-35.4W-.5H-18.1D-HPL-TKQ` → CT/price_per_unit, datatable 529 (HPL 0.5″ = 17.704/см, $1,594 за
+90 см; `INTG` і `VES` мають однакову ціну). Приклади Ryan і фактичні SKU шести матеріалів корпусу
+(`CT-UR3D-VES-35.4W-.5H-18.1D-3D-10B`, `CT-URLACG-INTG-35.4W-.5H-18.1D-LACG-A6`) повертають `price: null`,
+`No best match`: у 529 немає рядків 0.5″
 для 3D/LACM/LACG/ST/BM/ESS, а color map 496 не має кодів 3D/LACG/ST/BM. Frontend позначає таку позицію як
 missing, а розрахунок — partial; ціна тумби/Upper не підставляється.
 

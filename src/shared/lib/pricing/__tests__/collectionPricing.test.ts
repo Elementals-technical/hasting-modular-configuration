@@ -874,7 +874,24 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(gaps).toEqual([]);
   });
 
-  it("orders actual Lower slabs in their own colour, with fixed VES and the supporting cabinet's depth", () => {
+  it("spells the Lower in the Upper's countertop style", () => {
+    const lowerOf = (style: string) =>
+      skusOf(
+        ulhOrder(
+          [sinkBase("ulh-sb")],
+          { CountertopStyle: [at(countertop, style)] },
+          {
+            cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Colortech Bianco 10B" }],
+          },
+        ).lines,
+        "cabinetCover",
+      );
+
+    expect(lowerOf("integrated")).toEqual([{ sku: "CT-UR3D-INTG-23.6W-.5H-18.1D-3D-10B", quantity: 1 }]);
+    expect(lowerOf("vessel")).toEqual([{ sku: "CT-UR3D-VES-23.6W-.5H-18.1D-3D-10B", quantity: 1 }]);
+  });
+
+  it("orders actual Lower slabs in their own colour and the Upper's style, at the supporting cabinet's depth", () => {
     const vessel = { CountertopStyle: [at(countertop, "vessel")] };
     const lifted = ulhOrder([sinkBase("ulh-sb")], vessel, {
       cabinetCovers: [{ widthCm: 85.09, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Colortech Bianco 10B" }],
@@ -900,8 +917,8 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
       },
     );
     expect(skusOf(twoRuns.lines, "cabinetCover")).toEqual([
-      { sku: "CT-UR3D-VES-23.6W-.5H-18.1D-3D-1C1", quantity: 1 },
-      { sku: "CT-UR3D-VES-23.6W-.5H-19.7D-3D-1C1", quantity: 2 },
+      { sku: "CT-UR3D-INTG-23.6W-.5H-18.1D-3D-1C1", quantity: 1 },
+      { sku: "CT-UR3D-INTG-23.6W-.5H-19.7D-3D-1C1", quantity: 2 },
     ]);
     expect(twoRuns.lines.filter(({ group }) => group === "cabinetCover").map(({ id }) => id)).toEqual([
       "cabinetCover",
@@ -920,7 +937,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
       },
     );
 
-    expect(skusOf(lines, "cabinetCover")).toEqual([{ sku: "CT-URHPL-VES-23.6W-.5H-18.1D-HPL-TKQ", quantity: 1 }]);
+    expect(skusOf(lines, "cabinetCover")).toEqual([{ sku: "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKQ", quantity: 1 }]);
     expect(gaps).toEqual([]);
   });
 
@@ -984,13 +1001,15 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     );
   });
 
-  it("changes only Lower's SKU when its scene material changes, even under an integrated Upper", () => {
+  it("changes only Lower's SKU when its scene material changes, under an integrated Upper", () => {
     const order = (materialId: string) => ulhOrder([sinkBase("ulh-sb")], {}, {
       cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId }],
     });
     const before = order("Colortech Bianco 10B");
     const after = order("Blu Pavone A6 GL");
-    expect(skusOf(after.lines, "cabinetCover")).toEqual([{ sku: "CT-URLACG-VES-23.6W-.5H-18.1D-LACG-A6", quantity: 1 }]);
+    expect(skusOf(after.lines, "cabinetCover")).toEqual([
+      { sku: "CT-URLACG-INTG-23.6W-.5H-18.1D-LACG-A6", quantity: 1 },
+    ]);
     expect(skusOf(after.lines, "countertop")).toEqual(skusOf(before.lines, "countertop"));
     expect(skusOf(after.lines, "cabinet")).toEqual(skusOf(before.lines, "cabinet"));
     expect(after.gaps).toEqual([]);
@@ -1262,6 +1281,7 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
             Drawers: [ofCabinet("sb", "1D"), ofCabinet("sc", "1D")],
             Handle: [ofCabinet("sb", "UG"), ofCabinet("sc", "UG")],
             LateralPanelSide: [ofCabinet("sb", "L"), ofCabinet("sc", "R")],
+            CountertopStyle: [at({ scope: "countertop" }, "integrated")],
           },
           { countertopRules, cabinetCovers: [{ widthCm: 90, cabinetIds: ["Sink-Cabinet-sc"], materialId }] },
         ),
@@ -1269,8 +1289,9 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
     const coverSkusOf = (lines: PricingLine[]) =>
       lines.filter(({ group }) => group === "cabinetCover").map(({ sku }) => sku);
 
-    // Soft-Touch is a cover material: 90 cm over a 50 cm deep cabinet, as Urban Low Height spells it.
-    expect(coverSkusOf(order("Bianco Calce DA ST").lines)).toEqual(["CT-URST-VES-35.4W-.5H-19.7D-ST-DA"]);
+    // Soft-Touch is a cover material: 90 cm over a 50 cm deep cabinet, in the integrated Upper's style,
+    // as Urban Low Height spells it.
+    expect(coverSkusOf(order("Bianco Calce DA ST").lines)).toEqual(["CT-URST-INTG-35.4W-.5H-19.7D-ST-DA"]);
 
     // HPL is a panel colour the decorative top does not come in: no SKU, and the total says so.
     const hpl = order("Pulpis Chiaro TKH");
