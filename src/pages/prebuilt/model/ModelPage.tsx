@@ -467,7 +467,9 @@ export const ModelPage = () => {
   }, [cabinetColor, handleGrooveColor]);
 
   // Compact import bypasses applyPreset: adopt its actual primary cabinets so their sizes and
-  // colours enter the same pricing pipeline as flat presets. Derived covers are never cabinets.
+  // colours enter the same pricing pipeline as flat presets, and keep them as the model's products,
+  // as a flat preset's are kept: Summary and Custom read the placed cabinets by them. Derived
+  // covers are never cabinets.
   const adoptCompactCabinets = useCallback(async (state: CabinetsState) => {
     if (!state.cabinets.length) throw new Error("The compact preset reported no cabinets.");
     const sharedCabinetValues = Object.fromEntries(
@@ -478,18 +480,30 @@ export const ModelPage = () => {
           : [];
       }),
     );
+    // In the composition's order, which the scene reports apart from its list of cabinets.
+    const sceneOrder = getOrderedProductIds();
+    const cabinets = [...state.cabinets].sort((a, b) => sceneOrder.indexOf(a.id) - sceneOrder.indexOf(b.id));
+    const products = cabinets.map(({ definitionId, selection }) => ({
+      productType: Object.entries(runtimeBindings?.productTypes ?? {}).find(([, type]) => type === definitionId)?.[0] ?? definitionId,
+      config: selection,
+    }));
     const adopted = await composition.adopt({
-      runtimeIds: state.cabinets.map(({ id }) => id),
-      products: state.cabinets.map(({ definitionId, selection }) => ({
-        productType: Object.entries(runtimeBindings?.productTypes ?? {}).find(([, type]) => type === definitionId)?.[0] ?? definitionId,
-        config: selection,
-      })),
+      runtimeIds: cabinets.map(({ id }) => id),
+      products,
       // adopt intentionally leaves typed composition values to its caller (saved restore uses its
       // own choices); a fresh compact model records the values its actual cabinets agree on.
       record: sharedCabinetValues,
     });
     if (adopted.status !== "applied") throw new Error("The imported compact cabinets could not be recorded for pricing.");
-  }, [composition, runtimeBindings]);
+    dispatch(
+      addProductPreset(
+        cabinets.map(({ id, selection }, index) => ({
+          ...buildPresetFromConfiguration({ [id]: selection })[0],
+          name: products[index].productType,
+        })),
+      ),
+    );
+  }, [composition, dispatch, runtimeBindings]);
 
   const applyAndAdoptCompactPreset = useCallback(async (preset: CompactPresetSource | null | undefined) => {
     const imported = await applyCompactPresetWithBridge(preset, undefined, adoptCompactCabinets);

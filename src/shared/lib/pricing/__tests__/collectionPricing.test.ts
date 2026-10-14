@@ -910,6 +910,20 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(twoRuns.gaps).toContainEqual(expect.objectContaining({ blocksTotal: true, reason: expect.stringContaining("cover") }));
   });
 
+  // Until another colour is chosen the Lower is the cabinet's, and Urban Low Height cabinets start in HPL.
+  it("orders a Lower in the cabinet's HPL colour as an HPL decorative top", () => {
+    const { lines, gaps } = ulhOrder(
+      [sinkBase("ulh-sb")],
+      {},
+      {
+        cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Rox Black TKQ" }],
+      },
+    );
+
+    expect(skusOf(lines, "cabinetCover")).toEqual([{ sku: "CT-URHPL-VES-23.6W-.5H-18.1D-HPL-TKQ", quantity: 1 }]);
+    expect(gaps).toEqual([]);
+  });
+
   // A lifted top takes the sink with it (`cabinets.liftSink`): the sink base becomes a side cabinet and
   // the countertop hosts the basin, which the order keeps, once.
   it("orders the basin a lifted top hosts when no sink base is left", () => {
@@ -954,7 +968,8 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(skusOf(ulhOrder([sinkBase("ulh-sb")], {}, { cabinetCovers: [] }).lines, "cabinetCover")).toEqual([]);
   });
 
-  it.each([null, "Not A Colour", "Pulpis Chiaro TKH"])("keeps an unsupported applied Lower colour %s unpriced", (materialId) => {
+  // Bianco Male TFA is an Upper finish, not a cabinet colour the Lower comes in.
+  it.each([null, "Not A Colour", "Bianco Male TFA"])("keeps an unsupported applied Lower colour %s unpriced", (materialId) => {
     const { lines, gaps } = ulhOrder(
       [sinkBase("ulh-sb")],
       {},

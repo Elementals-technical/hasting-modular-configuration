@@ -185,8 +185,10 @@ URSTD SKU лише тому, що ULH ділить configurator 4 з USH.
 Prebuilt Countertop Color має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`.
 Upper використовує наявний CountertopColor flow; Lower викликає native
 `ConfiguratorAPI.cabinetCover.configure({ materialId })`, без зміни кольору Upper або тумб.
-Lower бере палітру Cabinet Color, але лише підтверджені Ryan матеріали **3D, LACM, LACG, ST, BM, ESS**;
-allowlist міститься в `sku-profile.cabinetCover.materialSkus`. Matrix 589 для Upper не обмежує декоративний Lower.
+Lower бере палітру Cabinet Color, але лише підтверджені Ryan матеріали **3D, LACM, LACG, ST, BM, ESS** і
+**HPL** (команда, 2026-10-14: Lower за замовчуванням має колір тумби, а тумби ULH стартують у HPL; GEN-SKU-03
+до Ryan відкритий); allowlist міститься в `sku-profile.cabinetCover.materialSkus`. Matrix 589 для Upper не
+обмежує декоративний Lower.
 
 SKU Lower читає **фактично опублікований materialId кожного сегмента**, а не колір першої тумби:
 `CT-UR{material}-VES-{W}W-.5H-{D}D-{material}-{colour}`. Команда погодила постійний `VES` незалежно
@@ -203,10 +205,12 @@ Derived covers не включаються в список primary cabinets.
 
 Lower — окрема `cabinetCover` pricing line. CT resolver отримує точну довжину через `widthCm`;
 для однакових округлених SKU quantity і середня довжина зберігають сумарну довжину сегментів.
-**Backend price ще відсутній:** read-only перевірка `/pricing-v2/resolve` для прикладів Ryan і
-фактичних SKU `CT-UR3D-VES-35.4W-.5H-18.1D-3D-10B` / `CT-URLACG-VES-35.4W-.5H-18.1D-LACG-A6`
-повернула `price: null`, `No best match` (CT matrix 536 / pricePerUnit 529). Frontend позначає таку
-позицію як missing, а розрахунок — partial; ціна тумби/Upper не підставляється.
+**Backend price є лише для HPL** (read-only перевірка `/pricing-v2/resolve`, 2026-10-14):
+`CT-URHPL-VES-35.4W-.5H-18.1D-HPL-TKQ` → CT/price_per_unit, datatable 529 (HPL 0.5″ = 17.704/см, $1,594 за
+90 см). Приклади Ryan і фактичні SKU шести матеріалів корпусу (`CT-UR3D-VES-35.4W-.5H-18.1D-3D-10B`,
+`CT-URLACG-VES-35.4W-.5H-18.1D-LACG-A6`) повертають `price: null`, `No best match`: у 529 немає рядків 0.5″
+для 3D/LACM/LACG/ST/BM/ESS, а color map 496 не має кодів 3D/LACG/ST/BM. Frontend позначає таку позицію як
+missing, а розрахунок — partial; ціна тумби/Upper не підставляється.
 
 Перевірено в браузері на preset 28: Upper offset `{x:0,y:0}`, Lower mesh-material змінюється
 3D white → Lacquer Gloss blue; Upper лишається `Bianco Male TFA`, SKU Lower і pricing request
