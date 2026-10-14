@@ -57,7 +57,7 @@ import {
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { occupiedWidthCm, type PlacedWidth } from "@/shared/hooks/useSceneTotalWidth";
-import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
+import { getIsActiveStyleSidebar, getPlacementButtonsVisible } from "@/features/sidebar/model/store/selectors";
 import { placementForPlus, plusFilterFor, rowEndSideOf } from "@/features/sidebar/lib/plusPlacement";
 import {
   autoRemoveSide as spAutoRemoveSide,
@@ -814,6 +814,7 @@ export const PlayCanvasIntegration = ({
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const towelBarOption = useAppSelector(getTowelBarOption);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
+  const placementButtonsVisible = useAppSelector(getPlacementButtonsVisible);
   const lengthGuard = useCountertopLengthGuard(productIds, selectedDimensions.width ?? null);
   const sceneTotalWidth = lengthGuard.currentWithSp;
   const maxCountertopLength = lengthGuard.max;
@@ -3860,6 +3861,7 @@ export const PlayCanvasIntegration = ({
           selection={cabinetDebugSelection}
           prepareSelection={prepareCabinetPlacement}
           selectedProductId={selectedSceneProduct}
+          offerAdd={placementButtonsVisible}
           onCompositionCommitted={adoptCommittedCabinetPlacement}
           onBeforeCompositionChange={announceCabinetPlacement}
           onCompositionChangeAbandoned={abandonCabinetPlacement}

@@ -182,8 +182,16 @@ describe("Cabinet drag and drop test controls", () => {
         positionM: { x: 0.2, y: 0, z: 0 },
       },
     ]);
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Apply" });
@@ -205,10 +213,16 @@ describe("Cabinet drag and drop test controls", () => {
     let unmount!: () => void;
     await act(async () => {
       ({ unmount } = render(
-        <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />,
+        <CabinetPlacementDebug
+          offerAdd
+          ready
+          selection={selection}
+          selectedProductId={null}
+          createClient={createClient}
+        />,
       ));
     });
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     expect(add.disabled).toBe(true);
     expect(screen.getByRole("status").textContent).toBe("Cabinet runtime: unsupported");
     expect(client.connect).not.toHaveBeenCalled();
@@ -230,8 +244,16 @@ describe("Cabinet drag and drop test controls", () => {
 
   it("refreshes capabilities on composition changes, disabling stale controls while initializing", async () => {
     const { client, createClient, emit } = fixture();
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     client.getCapabilities.mockResolvedValueOnce({
       readiness: "initializing",
@@ -248,8 +270,16 @@ describe("Cabinet drag and drop test controls", () => {
 
   it("refreshes capabilities after commands and preserves draft controls when a method becomes unsupported", async () => {
     const { client, createClient } = fixture();
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     client.getCapabilities.mockResolvedValueOnce({
       readiness: "ready",
@@ -296,6 +326,7 @@ describe("Cabinet drag and drop test controls", () => {
     const committed = vi.fn();
     render(
       <CabinetPlacementDebug
+        offerAdd
         ready
         selection={selection}
         selectedProductId={null}
@@ -303,7 +334,7 @@ describe("Cabinet drag and drop test controls", () => {
         onCompositionCommitted={committed}
       />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     fireEvent.click(add);
@@ -312,8 +343,8 @@ describe("Cabinet drag and drop test controls", () => {
     expect(client.getPlacementOptions).not.toHaveBeenCalled();
     expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
     expect(
-      screen.queryByRole("button", { name: "Drag & Drop" }),
-      "Cancel replaces Drag & Drop in drag mode",
+      screen.queryByRole("button", { name: "Drag to Place" }),
+      "Cancel replaces Drag to Place in drag mode",
     ).toBeNull();
     expect(client.apply).not.toHaveBeenCalled();
     expect(committed).not.toHaveBeenCalled();
@@ -323,7 +354,7 @@ describe("Cabinet drag and drop test controls", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     await waitFor(() => expect(client.apply).toHaveBeenCalledExactlyOnceWith("draft-1"));
     await waitFor(() =>
-      expect((screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement).disabled).toBe(false),
+      expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false),
     );
     expect(screen.getByRole("status").textContent).toBe("Placement applied");
     // The receipt goes with the state: it names the cabinet the Add placed.
@@ -341,6 +372,7 @@ describe("Cabinet drag and drop test controls", () => {
     client.apply.mockRejectedValueOnce(Object.assign(new Error("Candidate is invalid"), { code: "APPLY_UNAVAILABLE" }));
     render(
       <CabinetPlacementDebug
+        offerAdd
         ready
         selection={selection}
         selectedProductId={null}
@@ -349,12 +381,12 @@ describe("Cabinet drag and drop test controls", () => {
       />,
     );
     await waitFor(() =>
-      expect((screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement).disabled).toBe(false),
+      expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false),
     );
-    fireEvent.click(screen.getByRole("button", { name: "Drag & Drop" }));
+    fireEvent.click(screen.getByRole("button", { name: "Drag to Place" }));
     fireEvent.click(await screen.findByRole("button", { name: "Apply" }));
     expect((await screen.findByRole("alert")).textContent).toContain("APPLY_UNAVAILABLE");
-    expect(screen.queryByRole("button", { name: "Drag & Drop" }), "the draft stays open").toBeNull();
+    expect(screen.queryByRole("button", { name: "Drag to Place" }), "the draft stays open").toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
     await waitFor(() => expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull());
@@ -382,8 +414,16 @@ describe("Cabinet drag and drop test controls", () => {
   it("does not clear a draft when Cancel returns a nonterminal lifecycle", async () => {
     const { client, createClient } = fixture();
     client.cancel.mockResolvedValueOnce({ ...preview, lifecycle: "preview" });
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
@@ -391,7 +431,7 @@ describe("Cabinet drag and drop test controls", () => {
     await waitFor(() =>
       expect((screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement).disabled).toBe(false),
     );
-    expect(screen.queryByRole("button", { name: "Drag & Drop" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
     expect(screen.getByRole("button", { name: "Apply" })).toBeTruthy();
   });
 
@@ -401,9 +441,16 @@ describe("Cabinet drag and drop test controls", () => {
       { id: "left-only", kind: "left", availability: "available", frameId: "wall", positionM: { x: 0, y: 0, z: 0 } },
     ]);
     render(
-      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} showDebugTools />,
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        showDebugTools
+      />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     expect((await screen.findByRole("alert")).textContent).toContain("No available placement");
@@ -413,9 +460,16 @@ describe("Cabinet drag and drop test controls", () => {
   it("uses the debug side selector's explicit option anchored at the runtime selection", async () => {
     const { client, createClient } = fixture();
     render(
-      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} showDebugTools />,
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        showDebugTools
+      />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Apply" });
@@ -439,6 +493,7 @@ describe("Cabinet drag and drop test controls", () => {
     const committed = vi.fn();
     render(
       <CabinetPlacementDebug
+        offerAdd
         ready
         showDebugTools
         selection={selection}
@@ -461,7 +516,7 @@ describe("Cabinet drag and drop test controls", () => {
     await waitFor(() => expect(client.importPreset).toHaveBeenCalledExactlyOnceWith(preset));
     await waitFor(() => expect(committed).toHaveBeenCalledOnce());
     expect(restore.disabled).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: "Drag & Drop" }));
+    fireEvent.click(screen.getByRole("button", { name: "Drag to Place" }));
     await screen.findByRole("button", { name: "Cancel" });
     expect((screen.getByRole("button", { name: "Save JSON" }) as HTMLButtonElement).disabled).toBe(true);
   });
@@ -469,44 +524,66 @@ describe("Cabinet drag and drop test controls", () => {
   it("honours unsupported capabilities and other active runtime sessions", async () => {
     const { createClient, emit } = fixture(["cabinetPlacement.beginAdd"]);
     const { unmount } = render(
-      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />,
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     expect(screen.queryByRole("button", { name: "Move selected cabinet" })).toBeNull();
     expect(screen.queryByText("Countertop test controls")).toBeNull();
     emit("composition.change", { activeSessionId: "external-draft" });
-    expect(add.disabled).toBe(true);
+    expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
     emit("composition.change", { activeSessionId: null });
-    await waitFor(() => expect(add.disabled).toBe(false));
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false),
+    );
     unmount();
   });
 
   it("responds to runtime Cancel and disposes subscriptions on unmount", async () => {
     const { client, createClient, emit } = fixture();
     const { unmount } = render(
-      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />,
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Cancel" });
     emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-1" });
-    expect(add.disabled).toBe(false);
+    expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false);
     unmount();
     expect(client.dispose).toHaveBeenCalledOnce();
   });
 
   it("clears draft controls when the placement stream publishes data: null", async () => {
     const { createClient, emit } = fixture();
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Cancel" });
     emit("cabinetPlacement.change", null);
     expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
-    expect(add.disabled).toBe(false);
+    expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("blocks cabinet commands while the countertop is being edited", async () => {
@@ -514,6 +591,7 @@ describe("Cabinet drag and drop test controls", () => {
     const controls = createRef<CabinetPlacementControls>();
     render(
       <CabinetPlacementDebug
+        offerAdd
         ref={controls}
         ready
         showDebugTools
@@ -524,7 +602,7 @@ describe("Cabinet drag and drop test controls", () => {
       />,
     );
     await screen.findByRole("button", { name: "Move selected cabinet" });
-    expect((screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByRole("button", { name: "Move selected cabinet" }) as HTMLButtonElement).disabled).toBe(true);
     act(() => controls.current?.reposition("runtime-selected"));
     expect(client.beginMove).not.toHaveBeenCalled();
@@ -574,12 +652,18 @@ describe("Cabinet drag and drop overlay", () => {
     return { ...base, client, emitFrame, stopOverlay };
   };
 
-  it("starts dragging straight from Drag & Drop and puts Apply / discard at the PlayCanvas anchors", async () => {
+  it("starts dragging straight from Drag to Place and puts Apply / discard at the PlayCanvas anchors", async () => {
     const { client, createClient, emit, emitFrame, stopOverlay } = overlayFixture();
     const { unmount } = render(
-      <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />,
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     expect(client.setPlacementOverlayPlaceholders).toHaveBeenCalledExactlyOnceWith(false);
     expect(screen.queryByTestId("cabinet-draft-overlay")).toBeNull();
@@ -623,7 +707,7 @@ describe("Cabinet drag and drop overlay", () => {
     emitFrame(frame());
     fireEvent.click(screen.getByRole("button", { name: "Discard cabinet placement" }));
     await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
-    await screen.findByRole("button", { name: "Drag & Drop" });
+    await screen.findByRole("button", { name: "Drag to Place" });
     unmount();
     expect(stopOverlay).toHaveBeenCalled();
     expect(client.setPlacementOverlayPlaceholders).toHaveBeenLastCalledWith(true);
@@ -631,8 +715,16 @@ describe("Cabinet drag and drop overlay", () => {
 
   it("ignores overlay frames of another session", async () => {
     const { createClient, emitFrame } = overlayFixture();
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Cancel" });
@@ -644,8 +736,16 @@ describe("Cabinet drag and drop overlay", () => {
   it("leaves PlayCanvas' placeholders on for a build without the overlay", async () => {
     const { client, createClient } = overlayFixture();
     client.onPlacementOverlay.mockResolvedValueOnce(null as never);
-    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     expect(client.onPlacementOverlay).toHaveBeenCalledOnce();
     expect(client.setPlacementOverlayPlaceholders).not.toHaveBeenCalled();
@@ -715,6 +815,7 @@ describe("Cabinet drag and drop reports a change from its start to its end", () 
     const committed = vi.fn();
     render(
       <CabinetPlacementDebug
+        offerAdd
         ready
         selection={selection}
         selectedProductId={null}
@@ -727,7 +828,7 @@ describe("Cabinet drag and drop reports a change from its start to its end", () 
     return { before, abandoned, committed };
   };
   const startDraft = async () => {
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Apply" });
@@ -749,7 +850,7 @@ describe("Cabinet drag and drop reports a change from its start to its end", () 
     let release: () => void = () => undefined;
     const { before } = setUp(f);
     before.mockImplementation(() => new Promise<void>((resolve) => (release = resolve)));
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
 
     fireEvent.click(add);
@@ -791,7 +892,7 @@ describe("Cabinet drag and drop reports a change from its start to its end", () 
     const f = fixture();
     f.client.beginAdd.mockRejectedValueOnce(new Error("COMPOSITION_BUSY"));
     const { before, abandoned } = setUp(f);
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
 
     fireEvent.click(add);
@@ -824,6 +925,7 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
     const prepareSelection = vi.fn(() => prepared);
     render(
       <CabinetPlacementDebug
+        offerAdd
         ready
         selection={selection}
         prepareSelection={prepareSelection}
@@ -831,7 +933,7 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
         createClient={createClient}
       />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     expect(prepareSelection).not.toHaveBeenCalled();
 
@@ -848,6 +950,7 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
     const abandoned = vi.fn();
     render(
       <CabinetPlacementDebug
+        offerAdd
         ready
         selection={selection}
         selectedProductId={null}
@@ -856,7 +959,7 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
         onCompositionChangeAbandoned={abandoned}
       />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
 
     emit("composition.change", { status: "ready", activeSessionId: "command-placement-1" });
@@ -873,7 +976,7 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
     // The command records what it placed; these controls neither adopt it nor end an edit.
     expect(committed).not.toHaveBeenCalled();
     expect(abandoned).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "Drag & Drop" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Drag to Place" })).toBeTruthy();
   });
 
   it("keeps a side shelf at an end of its row before Apply", async () => {
@@ -889,6 +992,7 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
     const rowClient = { ...client, getCabinetsState: vi.fn(async () => row) };
     render(
       <CabinetPlacementDebug
+        offerAdd
         ready
         selection={{ definitionId: "UD-open-shelves-side", selection: { Width: 15 } }}
         selectedProductId={null}
@@ -896,7 +1000,7 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
         isSideShelfType={(definitionId) => definitionId === "UD-open-shelves-side"}
       />,
     );
-    const add = screen.getByRole("button", { name: "Drag & Drop" }) as HTMLButtonElement;
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
     await waitFor(() => expect(add.disabled).toBe(false));
     fireEvent.click(add);
     await screen.findByRole("button", { name: "Apply" });
@@ -918,6 +1022,39 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
     // At the right end of the row.
     emit("cabinetPlacement.change", shelfAt(1.2765));
     expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
+describe("Drag to Place", () => {
+  it("is not offered while the builder shows no + buttons: Drag & Drop has no button of its own", async () => {
+    const { client, createClient } = fixture();
+    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
+    await waitFor(() => expect(client.connect).toHaveBeenCalled());
+
+    expect(screen.queryByRole("button", { name: /Drag/ })).toBeNull();
+  });
+
+  it("is offered beside the builder's + buttons and opens one draft on press", async () => {
+    const { client, createClient } = fixture();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const option = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(option.disabled).toBe(false));
+
+    // The press closes the builder's sidebar, and this option with it, before a click could land.
+    fireEvent.mouseDown(option);
+    fireEvent.click(option, { detail: 1 });
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
+    expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
   });
 });
 

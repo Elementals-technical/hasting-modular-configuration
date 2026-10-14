@@ -16,7 +16,7 @@ import image from "../../../../shared/assets/images/png/img_png.png";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
-import { setOpenStyleSidebar } from "../../model/store/slice";
+import { setOpenStyleSidebar, setPlacementButtonsVisible } from "../../model/store/slice";
 import {
   getDimensionOptions,
   getDrawerProduct,
@@ -722,15 +722,26 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         : null,
     );
     placementButtonsVisibleRef.current = shouldShowPlacementButtons;
-  }, [activeDrawerProduct, activeProfile, isOpenedStyleSidebar, placesInColumns, runtimeBindings, widthOptions.length]);
+    // The player offers Drag to Place beside them.
+    dispatch(setPlacementButtonsVisible(shouldShowPlacementButtons));
+  }, [
+    activeDrawerProduct,
+    activeProfile,
+    dispatch,
+    isOpenedStyleSidebar,
+    placesInColumns,
+    runtimeBindings,
+    widthOptions.length,
+  ]);
 
   useEffect(
     () => () => {
       if (!placementButtonsVisibleRef.current) return;
       setVisibleButtons(false);
       setScenePlusFilter(null);
+      dispatch(setPlacementButtonsVisible(false));
     },
-    [],
+    [dispatch],
   );
 
   // Close sidebar when clicking outside of it.

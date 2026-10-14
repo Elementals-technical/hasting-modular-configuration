@@ -29,6 +29,8 @@ type Props = {
    */
   prepareSelection?: () => CabinetPlacementSelection | null;
   selectedProductId: string | null;
+  /** The builder shows its "+" buttons for the cabinet being added: "Drag to Place" is offered with them. */
+  offerAdd?: boolean;
   createClient?: () => ConfiguratorClient;
   externalBusy?: boolean;
   onPlacementBusyChange?: (busy: boolean) => void;
@@ -70,10 +72,11 @@ const errorMessage = (error: unknown): string => {
 const isTerminal = (lifecycle: unknown) => ["committed", "cancelled", "error"].includes(String(lifecycle));
 
 /**
- * Cabinet Drag & Drop. "Drag & Drop" (top-right of the canvas) opens an Add draft of the configured
- * cabinet right away: PlayCanvas tints it green (free spot) or red (overlaps a cabinet; Apply blocked)
- * and publishes screen anchors, where this component puts the move icon, Apply and discard (x).
- * "Cancel" replaces the button while the draft is open. A PlayCanvas build without the overlay (or a
+ * Cabinet Drag & Drop. "Drag to Place", offered above the composition while the builder shows its "+"
+ * buttons, opens an Add draft of the configured cabinet right away; elsewhere a draft opens only from
+ * the cabinet menu (`reposition`). PlayCanvas tints the draft green (free spot) or red (overlaps a
+ * cabinet; Apply blocked) and publishes screen anchors, where this component puts the move icon, Apply
+ * and discard (x). "Cancel" shows while the draft is open. A PlayCanvas build without the overlay (or a
  * draft off screen) falls back to Apply next to Cancel.
  */
 export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>(function CabinetPlacementDebug(
@@ -82,6 +85,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     selection,
     prepareSelection,
     selectedProductId,
+    offerAdd = false,
     createClient = createConfiguratorClient,
     externalBusy = false,
     onPlacementBusyChange,
@@ -506,42 +510,29 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   return (
     <>
       <div className={s.toolbar}>
-        <div className={s.toolbarButtons}>
-          {sessionId ? (
-            <>
-              {!anchored && (
-                <button
-                  type="button"
-                  className={s.primaryPill}
-                  disabled={applyDisabled}
-                  title={collisionHint ?? undefined}
-                  onClick={() => finish("apply")}
-                >
-                  Apply
-                </button>
-              )}
+        {sessionId && (
+          <div className={s.toolbarButtons}>
+            {!anchored && (
               <button
                 type="button"
-                className={s.secondaryPill}
-                disabled={cancelDisabled}
-                onClick={() => finish("cancel")}
+                className={s.primaryPill}
+                disabled={applyDisabled}
+                title={collisionHint ?? undefined}
+                onClick={() => finish("apply")}
               >
-                Cancel
+                Apply
               </button>
-            </>
-          ) : (
+            )}
             <button
               type="button"
-              className={s.primaryPill}
-              disabled={busy || !canAdd || !selection}
-              title={!selection ? "Choose a cabinet configuration first" : undefined}
-              onClick={() => start("add")}
+              className={s.secondaryPill}
+              disabled={cancelDisabled}
+              onClick={() => finish("cancel")}
             >
-              <MoveIcon size={16} />
-              Drag &amp; Drop
+              Cancel
             </button>
-          )}
-        </div>
+          </div>
+        )}
         {sessionId && collisionHint && <p className={s.hint}>{collisionHint}</p>}
         {error && (
           <p role="alert" className={s.error}>
@@ -552,6 +543,23 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
           {status}
         </p>
       </div>
+      {offerAdd && !sessionId && (
+        <button
+          type="button"
+          className={s.dragToPlace}
+          disabled={busy || !canAdd || !selection}
+          title={!selection ? "Choose a cabinet configuration first" : undefined}
+          // On press, as the scene's "+" do: the press closes the builder's sidebar, and with it this
+          // option, before a click could land. A click with no press before it is Enter or Space.
+          onMouseDown={() => start("add")}
+          onClick={(event) => {
+            if (event.detail === 0) start("add");
+          }}
+        >
+          <MoveIcon size={16} />
+          Drag to Place
+        </button>
+      )}
       <CabinetDraftOverlay
         store={overlayStore}
         sessionId={sessionId}
