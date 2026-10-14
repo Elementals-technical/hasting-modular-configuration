@@ -18,7 +18,9 @@
   записує значення в кожної шафи, а додана шафа (plus, Add Cabinet, duplicate) успадковує його і в сцені,
   і в state. Стартовий HandleColor — `Antracite 400 MT` (`defaults`), як у 42 моделях; LegColor стартового
   значення не має. Правило читається з даних (`isBroadcastCabinetValue`), а не з назви attribute.
-- `LegColor` також керує `ShowLegs`; empty ховає legs, `None` показує їх у cabinet color.
+- `LegColor` також керує `ShowLegs`; empty ховає legs. Моделі на legs і перемикач «Enable Legs, Then Color»
+  дають власний колір `Antracite 400 MT` (`defaultValue` атрибута), тож зміна Cabinet Color legs не
+  перефарбовує. `None` показує legs у cabinet color і лишається тільки для збережених раніше конфігурацій.
 - CountertopStyle bound; basin і VesselColor state-only, бо Mako scene поки не має basin sub-product.
 - Drawer style groups забороняють змішувати 1- і 2-drawer cabinets.
 

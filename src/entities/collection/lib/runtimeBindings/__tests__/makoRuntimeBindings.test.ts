@@ -54,7 +54,7 @@ describe("mako runtime bindings", () => {
     // No colour hides the legs and clears their colour, so the scene config says "no legs" too.
     expect(patchOf("LegColor", "")).toEqual({ ShowLegs: "Disable", LegColor: "" });
     expect(patchOf("LegColor", "Gold")).toEqual({ ShowLegs: "Enable", LegColor: "Gold" });
-    // The models with legs show them in the cabinet colour.
+    // "None" shows them in the cabinet colour: a configuration saved earlier may still hold it.
     expect(patchOf("LegColor", "None")).toEqual({ ShowLegs: "Enable", LegColor: "None" });
 
     for (const value of selectOptionValues(makoProfile, "LegColor")) {

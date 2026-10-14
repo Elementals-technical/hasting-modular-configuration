@@ -5,8 +5,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { FieldToggle } from "../ui/FieldToggle";
 
-/** Mako's legs: On keeps them in the cabinet colour ("None"), Off takes them off (""). */
-const legs = (on: boolean) => ({ label: "Enable Legs, Then Color", on, onValue: "None", offValue: "" });
+/** Mako's legs: On puts them on in their starting colour, Off takes them off (""). */
+const legs = (on: boolean) => ({
+  label: "Enable Legs, Then Color",
+  on,
+  onValue: "Antracite 400 MT",
+  offValue: "",
+});
 
 const side = (name: "On" | "Off") => screen.getByRole("button", { name });
 
@@ -26,7 +31,7 @@ describe("FieldToggle", () => {
     const { rerender } = render(<FieldToggle toggle={legs(false)} onChange={onChange} />);
 
     fireEvent.click(side("On"));
-    expect(onChange).toHaveBeenLastCalledWith("None");
+    expect(onChange).toHaveBeenLastCalledWith("Antracite 400 MT");
 
     rerender(<FieldToggle toggle={legs(true)} onChange={onChange} />);
     fireEvent.click(side("Off"));

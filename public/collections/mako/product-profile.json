@@ -119,7 +119,7 @@
     {
       "attributeId": "LegColor",
       "scope": "cabinet",
-      "defaultValue": "None",
+      "defaultValue": "Antracite 400 MT",
       "resetValue": "",
       "optionsSource": "configurator:Select Leg Color"
     },

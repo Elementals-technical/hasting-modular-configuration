@@ -550,17 +550,26 @@ describe("Class and Mako order lines", () => {
     ]);
   });
 
-  it("stands a shipped Mako model on its pair of legs, in the cabinet's colour", () => {
+  it("stands a shipped Mako model on its pair of legs, in the leg colour the model names", () => {
     if (!modelWithLegs) throw new Error("No Mako model carries legs");
     const { lines, gaps } = buildCollectionPricingLines(makoModelInput(modelWithLegs));
 
-    // `LegColor: "None"` is not a colour of its own: the legs take the cabinet's.
+    // `Antracite 400 MT` of the leg palette: the colour the cabinets start in, named for the legs.
     expect(lines.find(({ group }) => group === "legs")).toMatchObject({
       id: "legs",
       sku: "VAN-MAKOV-LEG-LACM-400",
       quantity: 2,
     });
     expect(gaps).toEqual([]);
+  });
+
+  it("keeps the legs of a model in their own colour when the cabinet is repainted", () => {
+    if (!modelWithLegs) throw new Error("No Mako model carries legs");
+    // A gloss lacquer, which the cabinet comes in and the legs do not.
+    const { lines } = buildCollectionPricingLines(makoModelInput(modelWithLegs, "Nero 433 GL"));
+
+    expect(lines[0].sku).toContain("-CAB-LACG-433-");
+    expect(lines.find(({ group }) => group === "legs")?.sku).toBe("VAN-MAKOV-LEG-LACM-400");
   });
 
   it("prices the countertop of a Mako model before one is chosen, from the collection's defaults", () => {
@@ -627,7 +636,7 @@ describe("Class and Mako order lines", () => {
         {
           Drawers: [at(first, "2"), at(second, "2")],
           Handle: [at(first, "G57"), at(second, "G57")],
-          LegColor: [at(first, legColor), at(second, "None")],
+          LegColor: [at(first, legColor), at(second, "Antracite 400 MT")],
           CabinetColor: [at({ scope: "global" }, "Antracite 400 MT")],
         },
       );
@@ -639,12 +648,17 @@ describe("Class and Mako order lines", () => {
     expect(legsLine("Gold")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
   });
 
-  it("prices the cabinet and its legs in the colour the builder starts from until one is chosen", () => {
+  it("prices the cabinet and legs kept in its colour in the colour the builder starts from until one is chosen", () => {
     if (!modelWithLegs) throw new Error("No Mako model carries legs");
     const input = makoModelInput(modelWithLegs);
     const { lines } = buildCollectionPricingLines({
       ...input,
-      configurationValues: { ...input.configurationValues, CabinetColor: [] },
+      configurationValues: {
+        ...input.configurationValues,
+        CabinetColor: [],
+        // "None", the legs in the cabinet colour, as a configuration saved earlier may still hold it.
+        LegColor: [at({ scope: "cabinet", cabinetId: "mko-model" }, "None")],
+      },
       cabinetColor: MAKO.profile.defaults.CabinetColor,
     });
 

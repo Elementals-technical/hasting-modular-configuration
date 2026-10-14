@@ -131,7 +131,7 @@ describe("Mako cabinet cards", () => {
   it("takes the two-drawer style off its legs once they are switched off", () => {
     store.dispatch(setActiveCabinetType("Sink-Base"));
     // A model on legs records them at each cabinet; switching them off records no colour at the first.
-    placeWithLegColors("", "None");
+    placeWithLegColors("", "Antracite 400 MT");
     renderBuilder();
 
     expect(cardImage("2 Drawer")).toBe(`${IMAGES}/cabinet/drawers-2.png`);

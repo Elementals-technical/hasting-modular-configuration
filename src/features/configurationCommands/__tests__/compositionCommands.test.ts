@@ -274,15 +274,15 @@ describe("composition commands", () => {
     const makoModel = [
       {
         productType: "Sink-Cabinet",
-        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "Antracite 400 MT" },
       },
       {
         productType: "Sink-Base",
-        config: { Width: 60, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+        config: { Width: 60, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "Antracite 400 MT" },
       },
       {
         productType: "Sink-Cabinet",
-        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "Antracite 400 MT" },
       },
     ];
 
@@ -302,7 +302,7 @@ describe("composition commands", () => {
         expect(cabinets).toHaveLength(3);
         cabinets.forEach(({ stableKey }) => {
           expect(cabinetValue("HandleColor", stableKey)).toBe("Silver");
-          expect(cabinetValue("LegColor", stableKey)).toBe("None");
+          expect(cabinetValue("LegColor", stableKey)).toBe("Antracite 400 MT");
         });
         // The handle is one for the composition, as the scene and the handle command hold it.
         expect(product().selectedProductConfig?.Handle).toBe("G57");
@@ -491,13 +491,18 @@ describe("composition commands", () => {
           fixture.deps,
         );
 
-        // The model stands on legs in the cabinet colour, and so does the cabinet that joins it.
+        // The model stands on legs in their own colour, and so does the cabinet that joins it.
         expect(lastCall(fixture.composition)).toMatchObject({
           op: "add",
-          product: { config: { Width: 40, Drawers: "2", HandleColor: "Gold", LegColor: "None" } },
+          product: { config: { Width: 40, Drawers: "2", HandleColor: "Gold", LegColor: "Antracite 400 MT" } },
         });
         expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
-        expect(heldBy("LegColor")).toEqual(["None", "None", "None", "None"]);
+        expect(heldBy("LegColor")).toEqual([
+          "Antracite 400 MT",
+          "Antracite 400 MT",
+          "Antracite 400 MT",
+          "Antracite 400 MT",
+        ]);
         expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL", "HDL-MTL"]);
       });
 
@@ -536,7 +541,10 @@ describe("composition commands", () => {
         );
 
         const call = lastCall(fixture.composition);
-        expect(call.op === "add" && call.product.config).toMatchObject({ HandleColor: "Gold", LegColor: "None" });
+        expect(call.op === "add" && call.product.config).toMatchObject({
+          HandleColor: "Gold",
+          LegColor: "Antracite 400 MT",
+        });
         expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
       });
 

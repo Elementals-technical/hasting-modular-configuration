@@ -128,7 +128,7 @@ export type CustomizationFieldDefinition = {
   hints?: Record<string, string>;
   /**
    * An On / Off switch above the control, under its `label`: On sets the attribute's profile
-   * `defaultValue`, Off its `resetValue` (Mako legs: in the cabinet colour / none).
+   * `defaultValue`, Off its `resetValue` (Mako legs: their starting colour / none).
    */
   toggle?: { label: string };
   /**

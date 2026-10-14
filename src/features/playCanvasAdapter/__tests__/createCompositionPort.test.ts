@@ -288,11 +288,11 @@ describe("createCompositionPort", () => {
     expect(calls).toEqual([]);
   });
 
-  it("places a Mako preset, a side cabinet on legs in the cabinet colour", async () => {
+  it("places a Mako preset, a side cabinet on legs in the leg colour it names", async () => {
     const { port, calls } = createPort(undefined, makoRuntimeBindings);
 
     await port.replace({
-      products: [{ productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2", LegColor: "None" } }],
+      products: [{ productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2", LegColor: "Antracite 400 MT" } }],
       flow: "prebuilt",
     });
 
@@ -305,7 +305,8 @@ describe("createCompositionPort", () => {
             Drawers: "2D",
             Height: 52,
             ShowLegs: "Enable",
-            LegColor: "None",
+            // The scene material of the legs, so they do not take the cabinet's.
+            LegColor: "Antracite 400 Lacquered MT",
             ProductType: "Mako-side-cabinet",
             productType: "Mako-side-cabinet",
             name: "Mako-side-cabinet",
