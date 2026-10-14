@@ -3,18 +3,20 @@ import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import { resolveCabinetTypeOfRuntimeId } from "@/entities/collection";
 import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/configuration";
+import { findCabinetRule, seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
 import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
+import { selectPlacedSeriesHeights } from "./seriesCabinets";
 
 export const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.activeCabinetType;
 
 export const getCabinetCatalog = (state: RootState) => state.rootStateUI.product.cabinetCatalog;
 
+/** The rule of the active cabinet type, of the series the cabinet being configured is of. */
 export const getActiveCabinetRule = (state: RootState) => {
-  const activeCode = state.rootStateUI.product.activeCabinetType;
-  if (!activeCode) return null;
+  const { activeCabinetType, cabinetCatalog, selectedProductConfig } = state.rootStateUI.product;
 
-  return state.rootStateUI.product.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCode) ?? null;
+  return findCabinetRule(cabinetCatalog, activeCabinetType, seriesOfConfig(selectedProductConfig));
 };
 
 export const getDimensionOptions = (state: RootState) => state.rootStateUI.product.dimensionOptions;
@@ -37,16 +39,24 @@ const NO_HEIGHT_CHOICES: number[] = [];
 /**
  * Heights the user may choose between: those the chosen handle takes, when the handles of the
  * active cabinet type take several (Urban Low Height: upper groove 38/28 cm, push-to-open
- * 35/25 cm). The heights of another handle come with that handle. Empty when there is nothing to
- * choose: one height, or a type whose heights no handle decides.
+ * 35/25 cm), or those the chosen drawers come in (Urban Duplex: one drawer at 53, 38 or 28 cm).
+ * The heights of another handle come with that handle. Empty when there is nothing to choose:
+ * one height, or a type whose heights neither a handle nor the drawers decide.
+ *
+ * The cabinets of a composition share a height, so one that another series supplies leaves only
+ * the heights it comes in itself: an Urban Standard Height cabinet keeps Urban Duplex at 53 cm.
  */
 export const getHeightChoices = createSelector(
-  [getDimensionOptions, getActiveCabinetRule],
-  (options, rule): number[] => {
-    if (Object.keys(rule?.heightsByHandle ?? {}).length === 0) return NO_HEIGHT_CHOICES;
+  [getDimensionOptions, getActiveCabinetRule, selectPlacedSeriesHeights],
+  (options, rule, seriesHeights): number[] => {
+    const decidesHeights = (heights: Record<string, number[]> | undefined) => Object.keys(heights ?? {}).length > 0;
+    if (!decidesHeights(rule?.heightsByHandle) && !decidesHeights(rule?.heightsByDrawers)) return NO_HEIGHT_CHOICES;
 
-    // The rules leave enabled only the heights of the handle in use.
-    const choices = options.height.filter((option) => !option.disabled).map((option) => Number(option.value));
+    // The rules leave enabled only the heights of the handle and drawers in use.
+    const choices = options.height
+      .filter((option) => !option.disabled)
+      .map((option) => Number(option.value))
+      .filter((height) => seriesHeights === null || seriesHeights.includes(height));
 
     return choices.length > 1 ? choices : NO_HEIGHT_CHOICES;
   },

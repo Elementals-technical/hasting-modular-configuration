@@ -1,13 +1,15 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
-import { normalizeOptionValue, selectAttribute } from "@/entities/collection";
+import { normalizeOptionValue, selectAttribute, selectDefaultValue } from "@/entities/collection";
 import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
   getCabinetEntries,
+  getValuesByAttributeId,
+  isSameTarget,
   markRuntimeOutOfSync,
   requestSceneStateSync,
   resolveStableKey,
@@ -25,7 +27,12 @@ import type {
 import { recordComposition } from "@/entities/product/model/store/slice";
 
 import { recordCarriedChanges, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
-import { selectBroadcastValues } from "./compositionValues";
+import {
+  isOwnCabinetValue,
+  NOT_CARRIED_ATTRIBUTE_IDS,
+  selectBroadcastValues,
+  selectPlacedWithValues,
+} from "./compositionValues";
 import { recordValues, replayValues, type ReplayValues } from "./replayValues";
 import { toSceneValue } from "./sceneValue";
 import type { PlannedChange } from "../model/types";
@@ -143,9 +150,6 @@ const drawerStyles = (
         }),
       );
 
-/** Sizes are read from the scene and drawer styles go with the composition, so neither is carried. */
-const NOT_CARRIED_ATTRIBUTE_IDS = new Set(["Width", "Height", "Depth", "Drawers"]);
-
 type CarriedValues = {
   /** Values of a cabinet's own, e.g. a Mako handle colour: recorded at the cabinet that carries them. */
   perCabinet: PlannedChange[];
@@ -225,21 +229,69 @@ const withInherited = (
   ),
 });
 
-/** Records the composition's values at a cabinet that joined it, once it has its stable key. */
+/**
+ * Records the composition's values at a cabinet that joined it, once it has its stable key. A
+ * value the cabinet came with of its own (the side of its lateral panel, chosen for it alone) is
+ * recorded as it was placed, not as the composition holds it.
+ */
 const recordInherited = (
   deps: CompositionDeps,
   runtimeId: string,
   inherited: Readonly<Record<string, AttributeValue>>,
+  config: Readonly<Record<string, unknown>>,
 ): void => {
-  const cabinetId = resolveStableKey(getCabinetEntries(deps.getState()), runtimeId);
+  const state = deps.getState();
+  const cabinetId = resolveStableKey(getCabinetEntries(state), runtimeId);
   if (!cabinetId) return;
 
-  const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => ({
-    attributeId,
-    target: { scope: "cabinet", cabinetId },
-    value,
-    origin: "requested",
-  }));
+  const profile = getActiveProductProfile(state);
+  const placedWith = withInherited(config, inherited);
+  const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => {
+    const own = placedWith[attributeId];
+
+    return {
+      attributeId,
+      target: { scope: "cabinet", cabinetId },
+      value: isAttributeValue(own) ? (normalizeOptionValue(profile, attributeId, own) ?? own) : value,
+      origin: "requested",
+    };
+  });
+  recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
+};
+
+/**
+ * Records at a cabinet that joined the composition the values that are its own
+ * (`isOwnCabinetValue`): the series it was placed as, the collection's own where its config names
+ * none. The scene sent them to that product alone, so no other cabinet reads them.
+ *
+ * A cabinet that holds none yet (a shelf of a model, a cabinet placed before the state kept
+ * them) is recorded as the collection's own, so that it does not read the newcomer's.
+ */
+const recordOwnValues = (deps: CompositionDeps, runtimeId: string, config: Readonly<Record<string, unknown>>): void => {
+  const state = deps.getState();
+  const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
+  if (!profile || !bindings) return;
+
+  const cabinets = getCabinetEntries(state);
+  const recorded = getValuesByAttributeId(state);
+  const changes = profile.attributes.flatMap(({ attributeId }): PlannedChange[] => {
+    if (!isOwnCabinetValue(profile, bindings, attributeId)) return [];
+
+    return cabinets.flatMap((cabinet): PlannedChange[] => {
+      const target = { scope: "cabinet", cabinetId: cabinet.stableKey } as const;
+      const isNew = cabinet.runtimeId === runtimeId;
+      if (!isNew && recorded[attributeId]?.some((entry) => isSameTarget(entry.target, target))) return [];
+
+      const placedWith = isNew ? config[attributeId] : undefined;
+      const value =
+        isAttributeValue(placedWith) && placedWith !== null && placedWith !== ""
+          ? (normalizeOptionValue(profile, attributeId, placedWith) ?? placedWith)
+          : selectDefaultValue(profile, attributeId);
+
+      return value === "" ? [] : [{ attributeId, target, value, origin: "requested" }];
+    });
+  });
   recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
 };
 
@@ -337,8 +389,16 @@ export const applyPreset = async (
     ]),
   );
 
+  // A colour the configuration holds goes on the model too, as the price already reads it:
+  // the model's own colours stand only while nothing was chosen.
+  const chosen = selectPlacedWithValues(state, { chosenOnly: true });
+  const placedProducts =
+    Object.keys(chosen).length > 0
+      ? products.map((product) => ({ ...product, config: { ...product.config, ...chosen } }))
+      : products;
+
   const result = await deps.composition.replace({
-    products: toSceneProducts(profile, bindings, products),
+    products: toSceneProducts(profile, bindings, placedProducts),
     shared: sceneShared,
     flow: deps.flow,
   });
@@ -365,8 +425,10 @@ export const addCabinet = async (
   // A cabinet joins the composition with the values all its cabinets hold: without them the scene
   // would place it with its own defaults, and it would stand out from the rest.
   const inherited = selectBroadcastValues(state);
+  // The configuration's own values the scene keeps per product go with the config, unrecorded.
+  const placedWith = selectPlacedWithValues(state);
   const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [
-    { ...product, config: withInherited(product.config, inherited) },
+    { ...product, config: withInherited(product.config, { ...placedWith, ...inherited }) },
   ]);
   const result = await deps.composition.add(sceneProduct, placement);
   if (!isSceneChange(result)) return stoppedResult(result);
@@ -385,7 +447,10 @@ export const addCabinet = async (
     inSceneOrder(expected, result.scene),
     runtimeId && style ? { [runtimeId]: style } : {},
   );
-  if (runtimeId) recordInherited(deps, runtimeId, inherited);
+  if (runtimeId) {
+    recordInherited(deps, runtimeId, inherited, product.config);
+    recordOwnValues(deps, runtimeId, product.config);
+  }
 
   return settleValues(deps, recorded, { afterPlacement, record });
 };

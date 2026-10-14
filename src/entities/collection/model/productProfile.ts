@@ -110,6 +110,12 @@ export type CabinetMatrixLegacyAdapter = {
      */
     heightsByHandle?: Record<string, string>;
   };
+  /**
+   * drawers value -> the heights in cm a cabinet with these drawers comes in, for a table whose
+   * one forced height per drawers cannot say it (Urban Duplex: one drawer at 53 cm, and the Slim
+   * cabinets at 38 and 28). The user chooses among them; a change of drawers lands on the nearest.
+   */
+  heightsByDrawers?: Record<string, number[]>;
 };
 
 /**
@@ -259,6 +265,21 @@ export type CabinetColorTraitsRuleData = {
 };
 
 /**
+ * A cabinet of another series a collection places beside its own: a variant of one of its cabinet
+ * types with the widths and the heights that series sells it in (Urban Duplex: the Urban Standard
+ * Height and Urban Low Height side cabinets of its hybrid models). The rest of the type — its
+ * depths, its handle, its scene product — is the collection's.
+ */
+export type SeriesCabinetModule = {
+  /** Option value of the `Series` attribute the placed cabinet holds. */
+  series: string;
+  cabinetType: string;
+  widthsCm: number[];
+  /** drawers value -> the heights in cm it comes in; the keys are the drawer styles of the series. */
+  heightsByDrawers: Record<string, number[]>;
+};
+
+/**
  * Rule parameters: the algorithms stay in code, their lists, limits and exclusions live here.
  *
  * Every section except the cabinet matrix adapter is optional. An absent section means the
@@ -279,6 +300,8 @@ export type ProfileRuleData = {
     drawerValues: string[];
     hasSink: boolean;
   }[];
+  /** Cabinets of other series offered beside the collection's own, as variants of its types. */
+  seriesModules?: SeriesCabinetModule[];
   drawerStyleGroups?: DrawerStyleGroups;
   /** Changes the product has no rule for yet (CONTRACTS §8); the command holds them back. */
   undeterminedRules?: UndeterminedRule[];

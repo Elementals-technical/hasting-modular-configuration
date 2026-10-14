@@ -173,6 +173,18 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
       });
     }
 
+    const fieldTabs = section.fieldTabs;
+    if (
+      fieldTabs !== undefined &&
+      !(isRecord(fieldTabs) && (fieldTabs.label === undefined || isNonEmptyString(fieldTabs.label)))
+    ) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `sections.${sectionId}.fieldTabs`,
+        message: "fieldTabs must be { label? } with a non-empty label",
+      });
+    }
+
     section.fields.forEach((field: unknown, index: number) => {
       const path = `sections.${sectionId}.fields[${index}]`;
       const control = isRecord(field) ? field.control : undefined;
@@ -225,6 +237,25 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
           code: "invalid-schema",
           dataPath: `${path}.autoSelect`,
           message: 'autoSelect must be "firstAllowed"',
+        });
+      }
+
+      const tab = field.tab;
+      if (
+        tab !== undefined &&
+        !(isRecord(tab) && isNonEmptyString(tab.label) && (tab.icon === undefined || isNonEmptyString(tab.icon)))
+      ) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.tab`,
+          message: "tab must be { label, icon? } with a non-empty label and icon",
+        });
+      } else if (tab === undefined && fieldTabs !== undefined) {
+        // A field without a tab could never be reached in a section that shows one field at a time.
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.tab`,
+          message: "a field of a section with fieldTabs must name its tab",
         });
       }
     });
@@ -423,12 +454,36 @@ const validateOrderedIds = (
   });
 };
 
+/** Attribute ids, each once. Whether the collection has them is its runtime contract's to say. */
+/** An attribute id, or the id with the values the cabinet must hold (`PerCabinetAttribute`). */
+const perCabinetAttributeIdOf = (entry: unknown): string | null => {
+  if (isNonEmptyString(entry)) return entry;
+  if (!isRecord(entry) || !isNonEmptyString(entry.attributeId) || !isRecord(entry.when)) return null;
+
+  const conditions = Object.entries(entry.when);
+  return conditions.length > 0 && conditions.every(([, value]) => typeof value === "string") ? entry.attributeId : null;
+};
+
+const validateAttributeIds = (entries: unknown, dataPath: string, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (entries === undefined) return;
+
+  const ids = Array.isArray(entries) ? entries.map(perCabinetAttributeIdOf) : [null];
+  if (ids.includes(null) || new Set(ids).size !== ids.length) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath,
+      message: `${dataPath} must be an array of attribute ids, each listed once, alone or as { attributeId, when }`,
+    });
+  }
+};
+
 const validateStyleSidebar = (styleSidebar: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
   if (styleSidebar === undefined) return;
   if (!isRecord(styleSidebar)) {
     diagnostics.push({ code: "invalid-schema", dataPath: "styleSidebar", message: "styleSidebar must be an object" });
     return;
   }
+  validateAttributeIds(styleSidebar.attributes, "styleSidebar.attributes", diagnostics);
   validateOrderedIds(
     styleSidebar.fields,
     "styleSidebar.fields",
@@ -451,6 +506,7 @@ const validatePlayerMenu = (playerMenu: unknown, diagnostics: CustomizationSchem
     { code: "unknown-menu-item", of: "a size the Resize item of the player menu changes" },
     diagnostics,
   );
+  validateAttributeIds(playerMenu.attributes, "playerMenu.attributes", diagnostics);
   const hidden = playerMenu.hidden;
   if (hidden === undefined) return;
   if (!Array.isArray(hidden)) {

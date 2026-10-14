@@ -96,6 +96,7 @@ export type { NormalizedMatrixRow, NormalizeHandleProfileArgs } from "./lib/norm
 
 // Runtime bindings — owned by I: how a semantic value reaches the PlayCanvas scene.
 export type {
+  AlsoDelivery,
   BoundRuntimeBinding,
   FlowTargets,
   IdentityValues,
@@ -127,6 +128,7 @@ export {
   semanticValueOf,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
 export type {
+  ResolvedAlsoDelivery,
   ResolvedRuntimeBinding,
   RuntimeBindingFailure,
   RuntimeBindingFailureReason,
@@ -145,7 +147,9 @@ export { validateRuntimeBindings } from "./lib/runtimeBindings/validateRuntimeBi
 export type { RuntimeBindingIssue, RuntimeBindingIssueCode } from "./lib/runtimeBindings/validateRuntimeBindings";
 export {
   collectCustomizationAttributeIds,
+  collectPerCabinetAttributeIds,
   validateCollectionRuntimeContract,
+  validatePerCabinetAttributes,
 } from "./lib/runtimeBindings/collectionRuntimeContract";
 
 // Customization schema — owned by B: the UI description of steps, sections and fields.
@@ -172,6 +176,7 @@ export type {
   OptionImageVariants,
   CustomizationPlayerMenu,
   CustomizationStyleSidebar,
+  PerCabinetAttribute,
   PlayerMenuItemId,
   PlayerMenuResizeId,
   StyleSidebarFieldId,
@@ -183,6 +188,7 @@ export {
   PLAYER_MENU_ITEM_IDS,
   PLAYER_MENU_RESIZE_IDS,
   STYLE_SIDEBAR_FIELD_IDS,
+  perCabinetAttributeId,
 } from "./model/customizationSchema";
 export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
 

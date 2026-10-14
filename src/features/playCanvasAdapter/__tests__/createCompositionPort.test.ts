@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
+import { parseRuntimeBindings } from "@/entities/collection";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
@@ -66,6 +68,10 @@ const createFakeScene = (answers: Answers = {}) => {
     },
   };
 };
+
+const parsedUrbanDuplexBindings = parseRuntimeBindings(urbanDuplexBindingsDocument);
+if (!parsedUrbanDuplexBindings.ok) throw new Error("the packaged Urban Duplex bindings must parse");
+const urbanDuplexRuntimeBindings = parsedUrbanDuplexBindings.bindings;
 
 const createPort = (answers?: Answers, bindings: RuntimeBindingSet = ushRuntimeBindings) => {
   const fake = createFakeScene(answers);
@@ -282,11 +288,11 @@ describe("createCompositionPort", () => {
     expect(calls).toEqual([]);
   });
 
-  it("places a Mako preset, a side cabinet on legs in the cabinet colour", async () => {
+  it("places a Mako preset, a side cabinet on legs in the leg colour it names", async () => {
     const { port, calls } = createPort(undefined, makoRuntimeBindings);
 
     await port.replace({
-      products: [{ productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2", LegColor: "None" } }],
+      products: [{ productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2", LegColor: "Antracite 400 MT" } }],
       flow: "prebuilt",
     });
 
@@ -299,7 +305,8 @@ describe("createCompositionPort", () => {
             Drawers: "2D",
             Height: 52,
             ShowLegs: "Enable",
-            LegColor: "None",
+            // The scene material of the legs, so they do not take the cabinet's.
+            LegColor: "Antracite 400 Lacquered MT",
             ProductType: "Mako-side-cabinet",
             productType: "Mako-side-cabinet",
             name: "Mako-side-cabinet",
@@ -308,6 +315,76 @@ describe("createCompositionPort", () => {
         undefined,
       ],
     ]);
+  });
+
+  it("places an Urban Duplex model with its shelves, each product in the colours of its own type", async () => {
+    const { port, calls } = createPort(undefined, urbanDuplexRuntimeBindings);
+    const colours = { BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" };
+
+    const result = await port.replace({
+      products: [
+        { productType: "Side-Shelf", config: { Width: 15, Height: 56, OpenSideShelfSide: "L", ...colours } },
+        {
+          productType: "Sink-Base",
+          config: {
+            Width: 70,
+            Height: 56,
+            Drawers: "2",
+            Handle: "UG",
+            Series: "URDPX",
+            LateralPanelSide: "L",
+            ...colours,
+          },
+        },
+        { productType: "Open-Shelf", config: { Width: 35, Height: 56, ...colours } },
+        {
+          productType: "Sink-Cabinet",
+          config: { Width: 80, Height: 56, Drawers: "2", Handle: "UG", Series: "URSTD", ...colours },
+        },
+      ],
+      flow: "prebuilt",
+    });
+
+    expect(result).toMatchObject({ status: "applied" });
+    const [, products] = calls[0] as [string, Record<string, unknown>[]];
+    expect(products.map(({ name }) => name)).toEqual([
+      "UD-open-shelves-side",
+      "UD-sink-cabinet",
+      "UD-open-shelves",
+      "UD-side-cabinet",
+    ]);
+    // The open side shelf is the lateral panel colour, the open shelf the base panel colour.
+    expect(products[0]).toMatchObject({ CabinetColor: "Pulpis Chiaro TKH" });
+    expect(products[2]).toMatchObject({ CabinetColor: "Bianco Calce DA ST" });
+    // A drawer cabinet: body, lateral part and grooves, its lateral panel on its own side.
+    expect(products[1]).toMatchObject({
+      CabinetColor: "Bianco Calce DA ST",
+      CabinetColorLateral: "Pulpis Chiaro TKH",
+      HandleGrooveColor: "Pulpis Chiaro TKH",
+      HandleStyle: "Duplex",
+      HandleSide: "Left",
+      Drawers: "2D",
+    });
+    // A cabinet of another Urban series has no lateral panel: the full handles.
+    expect(products[3]).toMatchObject({ CabinetColor: "Bianco Calce DA ST", HandleStyle: "Default" });
+    // The attributes themselves are not scene keys.
+    for (const product of products) {
+      expect(product).not.toHaveProperty("BasePanelColor");
+      expect(product).not.toHaveProperty("LateralPanelColor");
+      expect(product).not.toHaveProperty("Series");
+    }
+  });
+
+  it("sends a shared value under its other keys too, but not the one meant for a single product type", async () => {
+    const { port, calls } = createPort(undefined, urbanDuplexRuntimeBindings);
+
+    await port.replace({
+      products: [{ productType: "Sink-Base", config: { Width: 60 } }],
+      shared: { LateralPanelColor: "Metal bronzo 2MD" },
+      flow: "prebuilt",
+    });
+
+    expect(calls[0]?.[2]).toEqual({ CabinetColorLateral: "Metal bronzo 2MD", HandleGrooveColor: "Metal bronzo 2MD" });
   });
 
   it("reports a cabinet placed without its config as partial", async () => {

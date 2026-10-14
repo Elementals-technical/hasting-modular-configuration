@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
-import type { ScenePatch } from "@/entities/collection";
+import type { RuntimeBindingSet, ScenePatch } from "@/entities/collection";
 import type { RuntimeChange, RuntimeContext } from "@/entities/configuration";
 import type { SceneCallResult, SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
 
@@ -294,5 +294,174 @@ describe("createPlayCanvasRuntimePort", () => {
       failed: [{ code: "unknown-target" }],
     });
     expect(scene.calls).toHaveLength(0);
+  });
+});
+
+/**
+ * A value with more than one place in the scene, and a product type whose name is a part of
+ * another's: the scene takes every product whose id contains the type it is given.
+ */
+describe("createPlayCanvasRuntimePort: a value sent to more places", () => {
+  const bindings: RuntimeBindingSet = {
+    schemaVersion: 1,
+    collectionId: "test",
+    productTypes: {},
+    bindings: [
+      {
+        attributeId: "Body",
+        status: "bound",
+        target: { kind: "productType", productType: "UD-sink-cabinet" },
+        values: { kind: "identity", sceneKey: "CabinetColor" },
+        also: [{ target: { kind: "productType", productType: "UD-open-shelves" }, sceneKey: "CabinetColor" }],
+      },
+      {
+        attributeId: "Trim",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "identity", sceneKey: "CabinetColorLateral" },
+        also: [
+          { target: { kind: "all" }, sceneKey: "HandleGrooveColor" },
+          { target: { kind: "productType", productType: "UD-open-shelves-side" }, sceneKey: "CabinetColor" },
+        ],
+      },
+    ],
+  };
+  const SINK = "UD-sink-cabinet-a1b2c3d4e";
+  const SHELF = "UD-open-shelves-f5g6h7i8j";
+  const SIDE_SHELF = "UD-open-shelves-side-k9l0m1n2o";
+
+  const setUpWith = (cabinetRuntimeIds: string[]) => {
+    const scene = createFakeScene();
+    // A type-addressed call updates the products of that type; a broadcast every cabinet.
+    scene.apply = async (selector, patch) => {
+      scene.calls.push({ selector, patch });
+      const updatedIds =
+        selector.productIds ??
+        (selector.productType
+          ? cabinetRuntimeIds.filter((id) => id.includes(selector.productType ?? ""))
+          : cabinetRuntimeIds);
+      return { status: "applied", updatedIds };
+    };
+    const port = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene });
+    const ctx = context({ collectionId: "test", cabinetRuntimeIds });
+    return { scene, port, ctx };
+  };
+
+  const change = (attributeId: string, value: string): RuntimeChange => ({
+    attributeId,
+    target: { scope: "global" },
+    value,
+  });
+
+  it("sends the value to each place in turn, as one applied change", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SIDE_SHELF]);
+
+    expect(await port.apply([change("Trim", "bronze")], ctx)).toEqual({
+      status: "applied",
+      applied: [change("Trim", "bronze")],
+    });
+    expect(scene.calls).toEqual([
+      { selector: {}, patch: { CabinetColorLateral: "bronze" } },
+      { selector: {}, patch: { HandleGrooveColor: "bronze" } },
+      { selector: { productType: "UD-open-shelves-side" }, patch: { CabinetColor: "bronze" } },
+    ]);
+  });
+
+  it("does not ask a delivery to one product type to reach every cabinet", async () => {
+    // Only the broadcast steps must update all of them; the last one updates the side shelf alone.
+    const { port, ctx } = setUpWith([SINK, SHELF, SIDE_SHELF]);
+
+    expect(await port.apply([change("Trim", "bronze")], ctx)).toMatchObject({ status: "applied" });
+  });
+
+  it("addresses a product type by id when another placed product's id contains its name", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SHELF, SIDE_SHELF]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls).toEqual([
+      { selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } },
+      // "UD-open-shelves" alone would also repaint the open side shelf.
+      { selector: { productIds: [SHELF] }, patch: { CabinetColor: "white" } },
+    ]);
+  });
+
+  it("sends nothing for a product type none of the placed products is of", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SIDE_SHELF]);
+
+    expect(await port.apply([change("Body", "white")], ctx)).toMatchObject({ status: "applied" });
+    expect(scene.calls).toEqual([{ selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } }]);
+  });
+
+  it("keeps the product type as the binding gives it while no other product's id contains it", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SHELF]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls[1]).toEqual({ selector: { productType: "UD-open-shelves" }, patch: { CabinetColor: "white" } });
+  });
+});
+
+/**
+ * A value bound to every product that the scene keeps on each (`perProduct`): a field sets it
+ * for all, a change for one cabinet alone reaches that cabinet only.
+ */
+describe("createPlayCanvasRuntimePort: a value for one cabinet alone", () => {
+  const side = { kind: "map", patches: { L: { HandleSide: "Left" }, R: { HandleSide: "Right" } } } as const;
+  const bindings: RuntimeBindingSet = {
+    schemaVersion: 1,
+    collectionId: "test",
+    productTypes: {},
+    bindings: [
+      { attributeId: "PanelSide", status: "bound", target: { kind: "all" }, values: side, perProduct: true },
+      { attributeId: "SharedSide", status: "bound", target: { kind: "all" }, values: side },
+    ],
+  };
+
+  const setUpSides = () => {
+    const scene = createFakeScene();
+    const port = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene });
+    return { scene, port, ctx: context({ collectionId: "test" }) };
+  };
+
+  const sideOf = (attributeId: string, extra: Partial<RuntimeChange> = {}): RuntimeChange => ({
+    attributeId,
+    target: { scope: "cabinet", cabinetId: "cab-2" },
+    value: "L",
+    ...extra,
+  });
+
+  it("goes to the named product only", async () => {
+    const { scene, port, ctx } = setUpSides();
+    const change = sideOf("PanelSide", { onlyThisCabinet: true });
+
+    expect(await port.apply([change], ctx)).toEqual({ status: "applied", applied: [change] });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-2"] }, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("stays a broadcast when the change does not ask for one cabinet", async () => {
+    const { scene, port, ctx } = setUpSides();
+
+    await port.apply([sideOf("PanelSide")], ctx);
+
+    expect(scene.calls).toEqual([{ selector: {}, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("stays a broadcast where the binding keeps one value for the composition", async () => {
+    const { scene, port, ctx } = setUpSides();
+
+    await port.apply([sideOf("SharedSide", { onlyThisCabinet: true })], ctx);
+
+    expect(scene.calls).toEqual([{ selector: {}, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("fails before any call when the cabinet has no product in the scene", async () => {
+    const { scene, port, ctx } = setUpSides();
+    const change = sideOf("PanelSide", { onlyThisCabinet: true, target: { scope: "cabinet", cabinetId: "gone" } });
+
+    const result = await port.apply([change], ctx);
+
+    expect(result.status).toBe("failed");
+    expect(scene.calls).toEqual([]);
   });
 });

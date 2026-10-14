@@ -16,6 +16,11 @@ export type RuntimeChange = {
   attributeId: string;
   target: ValueTarget;
   value: AttributeValue;
+  /**
+   * The change is for the cabinet it names alone, although the value is bound to every product:
+   * the binding must allow it (`perProduct`).
+   */
+  onlyThisCabinet?: boolean;
 };
 
 /** What the adapter needs to address the scene. Supplied by C with each set. */

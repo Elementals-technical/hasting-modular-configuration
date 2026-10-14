@@ -2,8 +2,37 @@ import { describe, expect, it } from "vitest";
 
 import { resolveProductConfig } from "../resolveProductConfig";
 
+import type { RuntimeBindingSet } from "../../../model/runtimeBindings";
+
 import { makoRuntimeBindings } from "./makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "./ushRuntimeBindingsFixture";
+
+/** A value that goes to two more places: every product under another key, and one product type. */
+const alsoBindings: RuntimeBindingSet = {
+  schemaVersion: 1,
+  collectionId: "test",
+  productTypes: {},
+  bindings: [
+    {
+      attributeId: "Body",
+      status: "bound",
+      target: { kind: "all" },
+      values: { kind: "identity", sceneKey: "CabinetColor" },
+      order: 50,
+    },
+    {
+      attributeId: "Trim",
+      status: "bound",
+      target: { kind: "all" },
+      values: { kind: "identity", sceneKey: "TrimColor" },
+      also: [
+        { target: { kind: "all" }, sceneKey: "GrooveColor" },
+        { target: { kind: "productType", productType: "shelf-side" }, sceneKey: "CabinetColor" },
+      ],
+      order: 55,
+    },
+  ],
+};
 
 describe("resolveProductConfig", () => {
   it("places an Urban cabinet with the config it carries", () => {
@@ -95,5 +124,24 @@ describe("resolveProductConfig", () => {
     expect(resolveProductConfig(makoRuntimeBindings, { Handle: "handle_urban_topcut" })).toEqual({
       Handle: "handle_urban_topcut",
     });
+  });
+
+  it("sends a value under the other keys its binding names", () => {
+    expect(resolveProductConfig(alsoBindings, { Body: "white", Trim: "bronze" }, undefined, "cabinet")).toEqual({
+      CabinetColor: "white",
+      TrimColor: "bronze",
+      GrooveColor: "bronze",
+    });
+  });
+
+  it("gives a delivery for one product type to a product of that type alone, after the earlier phase", () => {
+    expect(resolveProductConfig(alsoBindings, { Body: "white", Trim: "bronze" }, undefined, "shelf-side")).toEqual({
+      // The trim colour is this product's cabinet colour, and it wins over the body colour.
+      CabinetColor: "bronze",
+      TrimColor: "bronze",
+      GrooveColor: "bronze",
+    });
+    // Without the type of the product nothing addressed to a type is taken.
+    expect(resolveProductConfig(alsoBindings, { Body: "white", Trim: "bronze" }).CabinetColor).toBe("white");
   });
 });

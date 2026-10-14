@@ -7,7 +7,9 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 import { collectionSkuProfileSchema, parseProductProfile, ReadyCollectionContext } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
+import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
+import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import { resetConfiguration } from "@/entities/configuration";
@@ -18,6 +20,10 @@ import manifest from "../../../../public/collections/urban-low-height/manifest.j
 import profileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import ui from "../../../../public/collections/urban-low-height/ui.json";
 import skuDocument from "../../../../public/collections/urban-low-height/sku-profile.json";
+import duplexManifest from "../../../../public/collections/urban-duplex/manifest.json";
+import duplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import duplexSkuDocument from "../../../../public/collections/urban-duplex/sku-profile.json";
+import duplexUi from "../../../../public/collections/urban-duplex/ui.json";
 import { FieldsStepPage } from "../FieldsStepPage";
 
 const mocks = vi.hoisted(() => ({ read: vi.fn(), lower: vi.fn(), upper: vi.fn() }));
@@ -147,4 +153,65 @@ it("connects Upper and Lower on the actual ULH schema-driven countertop page", a
   });
   expect(mocks.upper).toHaveBeenCalledWith("CountertopColor", "Rox Black TKQ");
   expect(mocks.lower).toHaveBeenCalledOnce();
+});
+
+// Urban Duplex offers Lower by the same contract: the cover block of its SKU profile, not its id.
+const duplexParsed = parseProductProfile(duplexProfileDocument);
+if (!duplexParsed.ok) throw new Error("Invalid Urban Duplex profile");
+const duplexGroups = configurator13.availableOptions as unknown as ConfiguratorAvailableOption[];
+const duplexBase = buildReadyCollection("urban-duplex", duplexManifest, duplexUi);
+const duplexSkuProfile = collectionSkuProfileSchema.parse(duplexSkuDocument);
+const duplexCollection = {
+  ...duplexBase,
+  catalog: {
+    ...duplexBase.catalog,
+    configurator: {
+      groups: duplexGroups,
+      groupsByName: Object.fromEntries(duplexGroups.map((item) => [item.proxyName, item])),
+    },
+    skuProfile: duplexSkuProfile,
+    countertops: parseCountertopMatrix(datatable595 as unknown as CountertopDatatable),
+  },
+};
+
+const renderDuplexCountertopStep = (value: typeof duplexCollection) => {
+  store.dispatch(setActiveProfile(duplexParsed.profile));
+  return render(
+    <Provider store={store}>
+      <MemoryRouter initialEntries={["/prebuilt/countertop?collectionId=urban-duplex"]}>
+        <ReadyCollectionContext.Provider value={value}>
+          <FieldsStepPage stepId="countertop" />
+        </ReadyCollectionContext.Provider>
+      </MemoryRouter>
+    </Provider>,
+  );
+};
+
+it("offers Upper and Lower on Urban Duplex once the scene publishes a cover, in the Base Panel palette", async () => {
+  renderDuplexCountertopStep(duplexCollection);
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  await act(async () => {
+    // HPL is a panel colour and a countertop colour, but not a material of the decorative top.
+    expect(colors.queryByRole("button", { name: "Pulpis Chiaro TKH" })).toBeNull();
+    fireEvent.click(colors.getByRole("button", { name: "Bianco Calce DA ST" }));
+  });
+
+  expect(mocks.lower).toHaveBeenCalledWith("Bianco Calce DA ST");
+  expect(mocks.upper).not.toHaveBeenCalled();
+  expect(colors.getByRole("button", { name: "Bianco Calce DA ST" }).getAttribute("aria-pressed")).toBe("true");
+});
+
+it("shows no Lower for a collection without the cover contract, whatever the scene publishes", async () => {
+  renderDuplexCountertopStep({
+    ...duplexCollection,
+    catalog: { ...duplexCollection.catalog, skuProfile: { ...duplexSkuProfile, cabinetCover: undefined } },
+  });
+
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  await waitFor(() => expect(colors.getByRole("button", { name: "Pulpis Chiaro TKH" })).toBeTruthy());
+  expect(screen.queryByRole("tab", { name: "Lower" })).toBeNull();
+  expect(mocks.read).not.toHaveBeenCalled();
 });

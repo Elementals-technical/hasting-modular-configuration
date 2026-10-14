@@ -169,7 +169,12 @@ import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
-import { useChangeAttribute, useChangeDimension } from "@/features/configurationCommands";
+import {
+  selectOwnCabinetValues,
+  useChangeAttribute,
+  useChangeDimension,
+  usePerCabinetAttributeFields,
+} from "@/features/configurationCommands";
 import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
@@ -183,6 +188,7 @@ import {
 } from "@/features/inSceneQuickEditorNotification";
 import { useCollectionNavigate } from "@/features/collectionCustomization";
 import { applyPlayerMenuSupport } from "./lib/applyPlayerMenuSupport";
+import { buildCabinetAttributeMenuItems } from "./lib/buildCabinetAttributeMenuItems";
 import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
 import { resolvePlayerMenuSupport } from "./lib/playerMenuCatalog";
 import {
@@ -559,7 +565,8 @@ export const PlayCanvasIntegration = ({
     setCountertopPopoverState((current) => ({ ...current, visible: false }));
     getSelectTool()?.setSelectedByName(productId, { mode: "replace" });
   }, []);
-  // Actual Lower covers (ULH), independent of the Upper's offset and finish.
+  // Actual Lower covers, independent of the Upper's offset and finish; a collection offers them by its SKU profile.
+  const offersCabinetCovers = useActiveCollection((collection) => Boolean(collection.catalog.skuProfile?.cabinetCover));
   const [publishCabinetCovers] = useState(() => {
     const bridge = createConfiguratorBridge();
     return createCabinetCoverPublisher({
@@ -610,7 +617,7 @@ export const PlayCanvasIntegration = ({
     const stop = api.on("change", ({ state }) => update(state), { emitCurrent: true });
     // cabinetCover has no public change event. Read settled covers while the player is mounted,
     // so material-only changes and restored multi-level presets also refresh Summary/pricing.
-    const coverPoll = activeCollectionId === "urban-low-height"
+    const coverPoll = offersCabinetCovers
       ? window.setInterval(() => {
           if (!disposed && !countertopEditingRef.current) {
             void Promise.resolve(api.getState())
@@ -634,7 +641,7 @@ export const PlayCanvasIntegration = ({
       setCabinetCoverRuntime(null);
       setCountertopRuntimeState(null);
     };
-  }, [activeCollectionId, countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, publishCabinetCovers, publishCountertopSize]);
+  }, [activeCollectionId, countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, offersCabinetCovers, publishCabinetCovers, publishCountertopSize]);
   const countertopMovement = useCountertopMovementMode(getCountertopApi, isPlayCanvasReady);
   const countertopMovementMode = countertopMovement.mode;
   useEffect(() => {
@@ -1929,6 +1936,40 @@ export const PlayCanvasIntegration = ({
     ],
   );
 
+  // The values the selected cabinet has of its own (`playerMenu.attributes` of the collection):
+  // the menu shows them and changes them for that cabinet alone.
+  const selectedCabinetKey = useAppSelector((state) =>
+    selectedSceneProduct ? getStableKeyForRuntimeId(state, selectedSceneProduct) : null,
+  );
+  const cabinetAttributeFields = usePerCabinetAttributeFields(
+    customizationSchema?.playerMenu?.attributes,
+    selectedCabinetKey,
+  );
+
+  const handleSetCabinetAttribute = useCallback(
+    async (attributeId: string, value: string) => {
+      setDropdownState((prev) => ({ ...prev, visible: false }));
+      if (!selectedCabinetKey) return;
+
+      try {
+        await saveSnapshot();
+        const result = await changeAttributeValue({
+          attributeId,
+          value,
+          scope: "cabinet",
+          cabinetId: selectedCabinetKey,
+          onlyThisCabinet: true,
+        });
+        if (result.status !== "applied") {
+          console.warn(`[PlayCanvasIntegration] ${attributeId} was not changed`, result);
+        }
+      } catch (error) {
+        console.error(`[PlayCanvasIntegration] Failed to set ${attributeId}`, error);
+      }
+    },
+    [changeAttributeValue, saveSnapshot, selectedCabinetKey],
+  );
+
   /** The cabinets of a composition share one height, so this resizes them all, as Depth does. */
   const handleSetHeight = useCallback(
     async (height: number) => {
@@ -2135,19 +2176,13 @@ export const PlayCanvasIntegration = ({
   const handleDuplicateProduct = useCallback(() => {
     if (!selectedSceneProduct || !canDuplicateSelectedCabinet) return;
     setDuplicateSourceId(selectedSceneProduct);
-    const duplicateProductType = resolveProductTypeFromId(
-      selectedSceneProduct,
-      selectedProductConfig as Record<string, unknown> | undefined,
-    );
-    const options =
-      typeof duplicateProductType === "string" && duplicateProductType.toLowerCase().includes("side-shelf")
-        ? { productType: "Side-Shelf" }
-        : undefined;
+    // The cabinet type through the bindings: "UF-open-shelves-side" does not spell "Side-Shelf".
+    const options = cabinetTypeOf(selectedSceneProduct) === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
     setVisibleButtons(true, options);
 
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [canDuplicateSelectedCabinet, resolveProductTypeFromId, selectedProductConfig, selectedSceneProduct]);
+  }, [cabinetTypeOf, canDuplicateSelectedCabinet, selectedSceneProduct]);
 
   useEffect(() => {
     if (!duplicateSourceId) return;
@@ -2169,12 +2204,18 @@ export const PlayCanvasIntegration = ({
         // Live scene is authoritative for dimensions/colors — it reflects the
         // current resized state. selectedProductConfig may be stale for
         // Width/Depth (it is not refreshed on resize, only on cabinet click).
-        const mergedConfig = { ...selectedProductConfig, ...config };
+        // The scene config does not name what the state holds for the cabinet alone (its series,
+        // the side of its lateral panel): the copy takes those of the cabinet it is a copy of.
+        const mergedConfig = {
+          ...selectedProductConfig,
+          ...config,
+          ...selectOwnCabinetValues(store.getState(), duplicateSourceId, { sentToOne: true }),
+        };
 
         console.log("mergedConfig", mergedConfig);
 
         const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
-        if (typeof productType === "string" && productType.toLowerCase().includes("side-shelf")) {
+        if (cabinetTypeOf(duplicateSourceId) === "Side-Shelf") {
           // A side shelf at the edge takes the place of that side's panel.
           await spAutoRemoveSide(dispatch, side, productIds.length);
         }
@@ -2206,6 +2247,7 @@ export const PlayCanvasIntegration = ({
       setVisibleButtons(false);
     };
   }, [
+    cabinetTypeOf,
     closeInPlayerActionSurface,
     composition,
     dispatch,
@@ -2217,6 +2259,7 @@ export const PlayCanvasIntegration = ({
     selectedDimensions.width,
     selectedProductConfig,
     productIds.length,
+    store,
   ]);
 
   // Navigate to the Cabinet builder page with the enabled Right sidebar.
@@ -3107,7 +3150,11 @@ export const PlayCanvasIntegration = ({
         dispatch(setActiveCabinetType(resolvedCabinetTypeId));
       }
 
-      dispatch(setSelectedProductConfig(config));
+      // With what is the cabinet's alone and the scene config does not name: its series, which
+      // decides the widths and heights it comes in.
+      dispatch(
+        setSelectedProductConfig({ ...config, ...selectOwnCabinetValues(store.getState(), selectedSceneProduct) }),
+      );
 
       const nextDimensions: { width?: number; height?: number; depth?: number } = {};
 
@@ -3121,7 +3168,7 @@ export const PlayCanvasIntegration = ({
     };
 
     loadConfig();
-  }, [dispatch, resolveCabinetTypeId, selectedSceneProduct]);
+  }, [dispatch, resolveCabinetTypeId, selectedSceneProduct, store]);
 
   useEffect(() => {
     if (!selectedSceneProduct) return;
@@ -3182,6 +3229,16 @@ export const PlayCanvasIntegration = ({
     setDropdownState((current) => ({ ...current, visible: false }));
     cabinetPlacementRef.current?.reposition(selectedSceneProduct);
   }, [repositionStatus.available, selectedSceneProduct, productIds]);
+
+  const cabinetAttributeMenuItems = useMemo(
+    () =>
+      buildCabinetAttributeMenuItems(
+        cabinetAttributeFields,
+        (attributeId, value) => void handleSetCabinetAttribute(attributeId, value),
+        <AppIcon icon={Check} size={12} />,
+      ),
+    [cabinetAttributeFields, handleSetCabinetAttribute],
+  );
 
   const rawDropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
@@ -3257,6 +3314,8 @@ export const PlayCanvasIntegration = ({
               trailing: <ArrowTopRight color={"#333"} />,
               onClick: handleCabinetStyleFromPrebuilt,
             },
+            // An open shelf has no value of a drawer cabinet's own to change.
+            ...(isDrawerCabinet ? cabinetAttributeMenuItems : []),
             {
               id: "accessories",
               label: "Accessories",
@@ -3435,6 +3494,7 @@ export const PlayCanvasIntegration = ({
                     onClick: () => handleSetHandleType(option.value),
                   })),
                 },
+                ...cabinetAttributeMenuItems,
                 {
                   id: "accessories",
                   label: "Accessories",
@@ -3503,6 +3563,7 @@ export const PlayCanvasIntegration = ({
     isTowelBarEntity,
     handleOptions,
     handleSetHandleType,
+    cabinetAttributeMenuItems,
     selectedProductConfig,
     selectedSceneProduct,
     sinkBaseCount,

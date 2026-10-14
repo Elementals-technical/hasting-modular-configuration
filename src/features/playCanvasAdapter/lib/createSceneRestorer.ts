@@ -196,7 +196,9 @@ export const createSceneRestorer = ({
     const presetProducts = request.products.flatMap(({ productType, config }) => {
       const sceneType = resolveSceneProductType(bindings, productType);
       const resolvedConfig =
-        bindings.strictProductConfig && isRecord(config) ? resolveProductConfig(bindings, config) : config;
+        bindings.strictProductConfig && isRecord(config)
+          ? resolveProductConfig(bindings, config, undefined, sceneType ?? undefined)
+          : config;
       return sceneType && isRecord(resolvedConfig)
         ? [{ ...withRuntimeProductType(resolvedConfig, sceneType), name: sceneType }]
         : [];

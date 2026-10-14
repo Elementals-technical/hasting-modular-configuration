@@ -81,6 +81,7 @@ export const buildCabinetCatalogFromMatrix = (
         forcedHeightByDrawers: relation?.forcedHeightByDrawers ?? {},
         requiresDrawersByHandle: relation?.requiresDrawersByHandle ?? {},
         heightsByHandle: relation?.heightsByHandle ?? {},
+        heightsByDrawers: relation?.heightsByDrawers ?? {},
         supportsHeight: supportsHeight.length ? supportsHeight : undefined,
         ...(adapter.columns.unavailableWithIntegrated
           ? {
@@ -100,8 +101,56 @@ export const buildCabinetCatalogFromMatrix = (
     ];
   });
 
-  return { typeCabinetRules };
+  return {
+    typeCabinetRules: [...typeCabinetRules, ...buildSeriesVariants(typeCabinetRules, profile, normalizeDrawers)],
+  };
 };
+
+/**
+ * The cabinets other series supply (`ruleData.seriesModules`), each as a variant of the cabinet
+ * type it stands in for: its own widths, drawer styles and heights; the depths, the handle and
+ * the scene product of the collection's type. Listed after the collection's own rules, so a
+ * lookup by type alone still finds those.
+ */
+const buildSeriesVariants = (
+  ownRules: readonly TypeCabinetRuleConfig[],
+  profile: ProductProfile,
+  normalizeDrawers: (value: string) => string,
+): TypeCabinetRuleConfig[] =>
+  (profile.ruleData.seriesModules ?? []).flatMap((module) => {
+    const own = ownRules.find(({ code }) => code === module.cabinetType);
+    if (!own) return [];
+
+    const styles = Object.entries(module.heightsByDrawers).map(
+      ([drawers, heights]) => [normalizeDrawers(drawers), heights] as const,
+    );
+    // In the order of the collection's own styles and heights, whatever order the module names them in.
+    const orderOf = (drawers: string) =>
+      own.drawers.includes(drawers) ? own.drawers.indexOf(drawers) : own.drawers.length;
+    const heightsByStyle = [...styles].sort(([a], [b]) => orderOf(a) - orderOf(b));
+    const heights = [...new Set(heightsByStyle.flatMap(([, styleHeights]) => styleHeights))].sort((a, b) => b - a);
+
+    return [
+      {
+        ...own,
+        series: module.series,
+        widths: module.widthsCm,
+        heights,
+        supportsHeight: heights,
+        drawers: heightsByStyle.map(([drawers]) => drawers),
+        // One height is forced with the style; several are left to choose from.
+        forcedHeightByDrawers: Object.fromEntries(
+          heightsByStyle.flatMap(([drawers, styleHeights]) =>
+            styleHeights.length === 1 ? [[drawers, styleHeights[0]]] : [],
+          ),
+        ),
+        heightsByDrawers: Object.fromEntries(heightsByStyle.filter(([, styleHeights]) => styleHeights.length > 1)),
+        forcedHeightByHandle: {},
+        requiresDrawersByHandle: {},
+        heightsByHandle: {},
+      },
+    ];
+  });
 
 /** Uses approved local module facts without inventing a remote datatable identity. */
 export const buildCabinetCatalogFromProfile = (
@@ -121,6 +170,7 @@ export const buildCabinetCatalogFromProfile = (
     forcedHeightByDrawers: {},
     requiresDrawersByHandle: {},
     heightsByHandle: {},
+    heightsByDrawers: {},
     ...(bindings?.productTypes[module.cabinetType]
       ? { sceneProductType: bindings.productTypes[module.cabinetType] }
       : {}),

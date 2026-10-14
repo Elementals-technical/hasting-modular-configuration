@@ -2,17 +2,24 @@ import { describe, expect, it } from "vitest";
 
 import ushProfile from "../../../../../public/collections/urban-standard-height/product-profile.json";
 import classProfileDocument from "../../../../../public/collections/class/product-profile.json";
+import urbanDuplexProfileDocument from "../../../../../public/collections/urban-duplex/product-profile.json";
 import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 import ulhCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
 import makoCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
+import urbanDuplexCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-594.json";
 import { parseProductProfile } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import type { ProductDatatable } from "@/entities/product/api";
-import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import {
+  findCabinetRule,
+  findSeriesVariants,
+  type ConfiguratorCatalog,
+} from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { applyConfiguratorRules } from "..";
+import { isDrawerStyleHeightRestricted, resolveDrawerStyleSwitch } from "../lib/drawerStyleHeightRule";
 import { buildHandleStyleConfigPatch } from "../lib/handleStyleConfig";
 import { resolveHandleAfterRules } from "../lib/resolveHandleAfterRules";
 
@@ -292,6 +299,220 @@ describe("a table whose handles each allow several heights (Urban Low Height)", 
     expect(runUlh("handle_pto", 28).nextSelection.height).toBe(25);
     expect(runUlh("handle_urban_topcut", 35).nextSelection.height).toBe(38);
     expect(runUlh("handle_urban_topcut", 25).nextSelection.height).toBe(28);
+  });
+});
+
+describe("drawers that come in several heights (Urban Duplex)", () => {
+  const parsedDuplex = parseProductProfile(urbanDuplexProfileDocument);
+  if (!parsedDuplex.ok) throw new Error("Urban Duplex profile must parse");
+  const duplexProfile = parsedDuplex.profile;
+  // The Urban Duplex cabinet table the collection loads (594): it forces 2DW:56, 1DW:53, 1DWID:53.
+  const duplexCatalog = buildCabinetCatalogFromMatrix(urbanDuplexCabinetTable as ProductDatatable, duplexProfile);
+  const ruleOf = (cabinetType: string) => duplexCatalog.typeCabinetRules.find(({ code }) => code === cabinetType);
+
+  const runDuplex = (drawers: string | null, height: number, cabinetType = "Sink-Base") =>
+    applyConfiguratorRules(
+      { cabinetType, width: 60, depth: 50, height, drawers, handle: "UG" },
+      undefined,
+      { selectedProductIds: [] },
+      duplexCatalog,
+      duplexProfile,
+    );
+  const enabledHeights = (result: ReturnType<typeof runDuplex>) =>
+    result.availableOptions.height.filter(({ enabled }) => enabled).map(({ value }) => value);
+
+  it.each(["Sink-Base", "Sink-Cabinet"])("offers a one-drawer %s 53 cm and the Slim 38 and 28 cm", (cabinetType) => {
+    const oneDrawer = runDuplex("1", 53, cabinetType);
+
+    expect(enabledHeights(oneDrawer)).toEqual([28, 38, 53]);
+    expect(oneDrawer.availableOptions.height.find(({ value }) => value === 56)).toMatchObject({
+      enabled: false,
+      reasonCode: "drawers.requiredHeight",
+      reason: "Required for selected drawers",
+    });
+  });
+
+  it("keeps a Slim height the user chose, and the one a model comes with", () => {
+    expect(runDuplex("1", 38).nextSelection.height).toBe(38);
+    expect(runDuplex("1", 28).nextSelection.height).toBe(28);
+  });
+
+  it("gives the standard 53 cm to a cabinet that leaves two drawers", () => {
+    expect(runDuplex("1", 56).nextSelection.height).toBe(53);
+  });
+
+  it("still forces two drawers to 56 cm and an inner drawer to 53 cm", () => {
+    for (const height of [56, 53, 38, 28]) {
+      expect(enabledHeights(runDuplex("2", height))).toEqual([56]);
+      expect(runDuplex("2", height).nextSelection.height).toBe(56);
+
+      expect(enabledHeights(runDuplex("1+inner", height))).toEqual([53]);
+      expect(runDuplex("1+inner", height).nextSelection.height).toBe(53);
+    }
+  });
+
+  it("leaves an open shelf every height: it takes the height of the cabinets", () => {
+    expect(enabledHeights(runDuplex(null, 38, "Open-Shelf"))).toEqual([28, 38, 53, 56]);
+    expect(ruleOf("Open-Shelf")?.heightsByDrawers).toEqual({});
+  });
+
+  it("does not mix in a style that does not come in the height of the placed cabinets", () => {
+    const sinkBase = ruleOf("Sink-Base");
+
+    // Beside Slim cabinets: one drawer stays, an inner drawer (53 cm only) switches them all.
+    expect(isDrawerStyleHeightRestricted(sinkBase, "1", [38, 38])).toBe(false);
+    expect(isDrawerStyleHeightRestricted(sinkBase, "1+inner", [38, 38])).toBe(true);
+    expect(isDrawerStyleHeightRestricted(sinkBase, "2", [28])).toBe(true);
+    // Beside the standard one-drawer cabinets both go.
+    expect(isDrawerStyleHeightRestricted(sinkBase, "1", [53])).toBe(false);
+    expect(isDrawerStyleHeightRestricted(sinkBase, "1+inner", [53])).toBe(false);
+    // Nothing placed, nothing to differ from.
+    expect(isDrawerStyleHeightRestricted(sinkBase, "1+inner", [])).toBe(false);
+    expect(isDrawerStyleHeightRestricted(undefined, "1", [38])).toBe(false);
+  });
+
+  it("leaves the styles of a collection whose drawers have one height each to its style groups", () => {
+    const makoSinkBase = buildCabinetCatalogFromMatrix(makoCabinetTable, makoProfile).typeCabinetRules.find(
+      ({ code }) => code === "Sink-Base",
+    );
+
+    expect(makoSinkBase?.forcedHeightByDrawers).toMatchObject({ "1": 26, "2": 52 });
+    expect(isDrawerStyleHeightRestricted(makoSinkBase, "2", [26])).toBe(false);
+  });
+});
+
+describe("side cabinets other series supply (Urban Duplex)", () => {
+  const parsedDuplex = parseProductProfile(urbanDuplexProfileDocument);
+  if (!parsedDuplex.ok) throw new Error("Urban Duplex profile must parse");
+  const duplexProfile = parsedDuplex.profile;
+  const duplexCatalog = buildCabinetCatalogFromMatrix(urbanDuplexCabinetTable as ProductDatatable, duplexProfile);
+  const own = (cabinetType: string) => findCabinetRule(duplexCatalog, cabinetType);
+  const urbanStandard = findCabinetRule(duplexCatalog, "Sink-Cabinet", "URSTD");
+  const urbanLowHeight = findCabinetRule(duplexCatalog, "Sink-Cabinet", "URLH");
+
+  const runSideCabinet = (series: string | null, drawers: string, height: number, width = 60) =>
+    applyConfiguratorRules(
+      { cabinetType: "Sink-Cabinet", width, depth: 50, height, drawers, handle: "UG", series },
+      undefined,
+      { selectedProductIds: [] },
+      duplexCatalog,
+      duplexProfile,
+    );
+  const enabled = <T>(options: { value: T; enabled: boolean }[]) =>
+    options.filter((option) => option.enabled).map(({ value }) => value);
+
+  it("finds the cabinet of a series, and the collection's own without one", () => {
+    expect(urbanStandard).toMatchObject({ code: "Sink-Cabinet", series: "URSTD" });
+    expect(urbanLowHeight).toMatchObject({ code: "Sink-Cabinet", series: "URLH" });
+    expect(findSeriesVariants(duplexCatalog, "Sink-Cabinet").map(({ series }) => series)).toEqual(["URSTD", "URLH"]);
+
+    // A lookup that names no series, or the collection's own, reads what it always read.
+    expect(own("Sink-Cabinet")?.series).toBeUndefined();
+    expect(findCabinetRule(duplexCatalog, "Sink-Cabinet", "URDPX")).toBe(own("Sink-Cabinet"));
+    expect(duplexCatalog.typeCabinetRules.find(({ code }) => code === "Sink-Cabinet")).toBe(own("Sink-Cabinet"));
+    // Only the side cabinet comes from other series.
+    expect(findCabinetRule(duplexCatalog, "Sink-Base", "URSTD")).toBe(own("Sink-Base"));
+    expect(findSeriesVariants(duplexCatalog, "Sink-Base")).toEqual([]);
+    expect(findCabinetRule(duplexCatalog, null, "URSTD")).toBeNull();
+  });
+
+  it("offers the widths of the series: from 25 cm, where the collection's own start at 60", () => {
+    expect(enabled(runSideCabinet(null, "2", 56).availableOptions.width)).toEqual([60, 70, 80, 90, 105, 120]);
+    for (const series of ["URSTD", "URLH"]) {
+      expect(enabled(runSideCabinet(series, "1", 53).availableOptions.width)).toEqual([
+        25, 35, 50, 60, 70, 80, 90, 105, 120,
+      ]);
+    }
+    // A narrow width stays chosen for the cabinet that has it, and gives way for one that has not.
+    expect(runSideCabinet("URSTD", "2", 56, 35).nextSelection.width).toBe(35);
+    expect(runSideCabinet(null, "2", 56, 35).nextSelection.width).not.toBe(35);
+  });
+
+  it("gives an Urban Standard Height cabinet 56 cm with two drawers and 53 cm with one", () => {
+    expect(enabled(runSideCabinet("URSTD", "2", 53).availableOptions.drawers)).toEqual(["2", "1", "1+inner"]);
+    for (const height of [56, 53, 38, 28]) {
+      expect(runSideCabinet("URSTD", "2", height).nextSelection.height).toBe(56);
+      expect(runSideCabinet("URSTD", "1", height).nextSelection.height).toBe(53);
+      expect(runSideCabinet("URSTD", "1+inner", height).nextSelection.height).toBe(53);
+    }
+    // No Slim heights, unlike the collection's own one-drawer cabinet.
+    expect(enabled(runSideCabinet("URSTD", "1", 53).availableOptions.height)).toEqual([53]);
+  });
+
+  it("gives an Urban Low Height cabinet one drawer at 38 or 28 cm", () => {
+    const result = runSideCabinet("URLH", "1", 53);
+
+    expect(enabled(result.availableOptions.drawers)).toEqual(["1"]);
+    expect(enabled(result.availableOptions.height)).toEqual([28, 38]);
+    // From the standard heights it takes the nearer one; a Slim height stays.
+    expect(result.nextSelection.height).toBe(38);
+    expect(runSideCabinet("URLH", "1", 28).nextSelection.height).toBe(28);
+  });
+
+  it("asks before a style of another series that does not come in the height of the placed cabinets", () => {
+    expect(isDrawerStyleHeightRestricted(urbanStandard, "2", [56])).toBe(false);
+    expect(isDrawerStyleHeightRestricted(urbanStandard, "1", [53, 53])).toBe(false);
+    expect(isDrawerStyleHeightRestricted(urbanStandard, "1", [38])).toBe(true);
+    expect(isDrawerStyleHeightRestricted(urbanLowHeight, "1", [53])).toBe(true);
+    expect(isDrawerStyleHeightRestricted(urbanLowHeight, "1", [28, 28])).toBe(false);
+  });
+
+  it("names the height the composition takes once every drawer cabinet switches to a style", () => {
+    const switchTo = (
+      rule: typeof urbanStandard,
+      drawers: string,
+      placedHeight: number | null,
+      placedSeriesRules: NonNullable<typeof urbanStandard>[] = [],
+    ) => resolveDrawerStyleSwitch({ rule, drawers, placedHeight, placedSeriesRules });
+
+    // The collection's own cabinets follow any style.
+    expect(switchTo(own("Sink-Base"), "2", 53)).toEqual({ possible: true, height: 56 });
+    expect(switchTo(own("Sink-Base"), "1", 56)).toEqual({ possible: true, height: 53 });
+    expect(switchTo(urbanLowHeight, "1", 53)).toEqual({ possible: true, height: 38 });
+    expect(switchTo(urbanLowHeight, "1", 28)).toEqual({ possible: true, height: 28 });
+    expect(switchTo(urbanStandard, "1", 38)).toEqual({ possible: true, height: 53 });
+    // Nothing placed yet: the style brings its own height.
+    expect(switchTo(urbanLowHeight, "1", null)).toEqual({ possible: true, height: null });
+  });
+
+  it("does not switch a composition where a cabinet of another series cannot follow", () => {
+    if (!urbanStandard || !urbanLowHeight) throw new Error("the catalog must hold both series");
+    const switchTo = (
+      rule: typeof urbanStandard,
+      drawers: string,
+      placedHeight: number,
+      placed: (typeof urbanStandard)[],
+    ) => resolveDrawerStyleSwitch({ rule, drawers, placedHeight, placedSeriesRules: placed });
+
+    // Beside Urban Standard Height the collection's one drawer stays at 53 cm, not the Slim heights.
+    expect(switchTo(own("Sink-Cabinet") ?? urbanStandard, "1", 56, [urbanStandard])).toEqual({
+      possible: true,
+      height: 53,
+    });
+    expect(switchTo(own("Sink-Base") ?? urbanStandard, "2", 53, [urbanStandard])).toEqual({
+      possible: true,
+      height: 56,
+    });
+    // Urban Low Height has no two drawers and no 53 cm; the two series share no height.
+    expect(switchTo(own("Sink-Base") ?? urbanStandard, "2", 38, [urbanLowHeight])).toEqual({ possible: false });
+    expect(switchTo(own("Sink-Base") ?? urbanStandard, "1+inner", 38, [urbanLowHeight])).toEqual({ possible: false });
+    expect(switchTo(urbanStandard, "1", 38, [urbanLowHeight])).toEqual({ possible: false });
+    expect(switchTo(urbanLowHeight, "1", 53, [urbanStandard])).toEqual({ possible: false });
+  });
+
+  it("leaves the height to the rules where the styles of a collection decide none here", () => {
+    const makoSinkBase = buildCabinetCatalogFromMatrix(makoCabinetTable, makoProfile).typeCabinetRules.find(
+      ({ code }) => code === "Sink-Base",
+    );
+    const ushSinkBase = catalog.typeCabinetRules.find(({ code }) => code === "Sink-Base");
+
+    // Mako forces a height with the drawers; Urban Standard Height with the handle.
+    expect(
+      resolveDrawerStyleSwitch({ rule: makoSinkBase, drawers: "2", placedHeight: 26, placedSeriesRules: [] }),
+    ).toEqual({ possible: true, height: 52 });
+    expect(
+      resolveDrawerStyleSwitch({ rule: ushSinkBase, drawers: "2", placedHeight: 53, placedSeriesRules: [] }),
+    ).toEqual({ possible: true, height: null });
   });
 });
 

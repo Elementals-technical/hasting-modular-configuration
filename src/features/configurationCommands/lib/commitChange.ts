@@ -206,6 +206,8 @@ const recordedTargets = (change: PlannedChange, context: CommitContext): Planned
   const cabinetIds = context.cabinetIds ?? [];
 
   return change.target.scope === "cabinet" &&
+    // A change for one cabinet alone went to that cabinet only.
+    !change.onlyThisCabinet &&
     cabinetIds.length > 0 &&
     isBroadcastCabinetValue(context.profile, context.bindings, change.attributeId)
     ? cabinetIds.map((cabinetId) => ({ scope: "cabinet", cabinetId }))

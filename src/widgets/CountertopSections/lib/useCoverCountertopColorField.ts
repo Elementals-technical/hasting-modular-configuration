@@ -4,6 +4,7 @@ import { useActiveCollection, type FieldRuntimeState } from "@/entities/collecti
 import { getActiveProductProfile } from "@/entities/configuration";
 import { resolveConfiguratorOptions } from "@/features/collectionCustomization/lib/resolveSectionState";
 import { useAppSelector } from "@/shared/hooks/store/redux";
+import { resolveCabinetCoverColorAttributeId } from "@/shared/lib/sku";
 
 import { buildCoverColorOptions } from "./coverColorOptions";
 import { useCabinetCoverColor } from "./useCabinetCoverColor";
@@ -13,10 +14,18 @@ export const useCoverCountertopColorField = (enabled: boolean) => {
   const profile = useAppSelector(getActiveProductProfile);
   const configurator = useActiveCollection((collection) => collection.catalog.configurator);
   const skuProfile = useActiveCollection((collection) => collection.catalog.skuProfile ?? null);
-  const color = useCabinetCoverColor(enabled && profile?.collectionId === "urban-low-height");
+  const cover = skuProfile?.cabinetCover;
+  // A collection offers Lower when its SKU profile carries the cover contract.
+  const color = useCabinetCoverColor(enabled && Boolean(cover));
   const options = useMemo(
-    () => buildCoverColorOptions(resolveConfiguratorOptions(profile, "CabinetColor", configurator), skuProfile),
-    [configurator, profile, skuProfile],
+    () =>
+      cover
+        ? buildCoverColorOptions(
+            resolveConfiguratorOptions(profile, resolveCabinetCoverColorAttributeId(cover), configurator),
+            skuProfile,
+          )
+        : [],
+    [configurator, cover, profile, skuProfile],
   );
   const field: FieldRuntimeState = {
     attributeId: "CoverCountertopColor",

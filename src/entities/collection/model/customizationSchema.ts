@@ -48,11 +48,27 @@ export const PLAYER_MENU_RESIZE_IDS = ["Width", "Depth", "Height"] as const;
 
 export type PlayerMenuResizeId = (typeof PLAYER_MENU_RESIZE_IDS)[number];
 
+/**
+ * A cabinet value offered for one cabinet alone: its attribute id, or the id with what the
+ * cabinet must hold to be offered it. `when` is read as an `OptionImageVariant`'s, against the
+ * cabinet's own values: Urban Duplex offers the side of the lateral panel to its own cabinets,
+ * not to the ones Urban Standard Height and Urban Low Height supply, which have no panel.
+ */
+export type PerCabinetAttribute = string | { attributeId: string; when: Record<string, string> };
+
+export const perCabinetAttributeId = (entry: PerCabinetAttribute): string =>
+  typeof entry === "string" ? entry : entry.attributeId;
+
 /** The collection's choices for the menu of the 3D player; every field is optional. */
 export type CustomizationPlayerMenu = {
   hidden?: PlayerMenuItemId[];
   /** The sizes Resize offers, in this order. Without it: Width and Depth. */
   resize?: PlayerMenuResizeId[];
+  /**
+   * Cabinet values the menu of a placed cabinet changes for that cabinet alone, each a submenu of
+   * its options (Urban Duplex: the side of the lateral panel). Each must be bound `perProduct`.
+   */
+  attributes?: PerCabinetAttribute[];
 };
 
 /**
@@ -67,6 +83,11 @@ export type StyleSidebarFieldId = (typeof STYLE_SIDEBAR_FIELD_IDS)[number];
 export type CustomizationStyleSidebar = {
   /** The selectors the sidebar shows, in this order. Without it: Width, Depth and Handle. */
   fields?: StyleSidebarFieldId[];
+  /**
+   * Cabinet values the sidebar offers after its own selectors: for the cabinet selected in the
+   * scene, changed for it alone, else for the cabinet being added. Each must be bound `perProduct`.
+   */
+  attributes?: PerCabinetAttribute[];
 };
 
 export type CustomizationFlowStepRef = {
@@ -107,7 +128,7 @@ export type CustomizationFieldDefinition = {
   hints?: Record<string, string>;
   /**
    * An On / Off switch above the control, under its `label`: On sets the attribute's profile
-   * `defaultValue`, Off its `resetValue` (Mako legs: in the cabinet colour / none).
+   * `defaultValue`, Off its `resetValue` (Mako legs: their starting colour / none).
    */
   toggle?: { label: string };
   /**
@@ -116,12 +137,22 @@ export type CustomizationFieldDefinition = {
    * thickness, basin and vessel colour.
    */
   autoSelect?: "firstAllowed";
+  /**
+   * The field's tab in a section that shows one field at a time (`fieldTabs`): its text and,
+   * beside it, a picture of the collection (Urban Duplex: Base Panel, Lateral Panel).
+   */
+  tab?: { label: string; icon?: string };
 };
 
 export type CustomizationSectionDefinition = {
   label: string;
   defaultOpen?: boolean;
   fields: CustomizationFieldDefinition[];
+  /**
+   * The section shows one of its fields at a time, chosen on tabs each field names in `tab`;
+   * `label` is the line above them ("Select Panel, Then Color"). Without it the fields are stacked.
+   */
+  fieldTabs?: { label?: string };
   /** false drops the section from its step, without clearing the values of its fields. */
   enabled?: boolean;
   /**

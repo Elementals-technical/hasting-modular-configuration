@@ -63,6 +63,15 @@ export class LatestPriceRequestCache {
     this.keyBySku.set(sku, priceRequestCacheKey(sku, widthCm));
   }
 
+  /**
+   * A new request for the SKU starts, so no result backs it until that request ends. Without
+   * this a request cancelled halfway would leave the SKU loading in the store while the cache
+   * still vouched for its earlier result, and nothing would ask for the price again.
+   */
+  forget(sku: string): void {
+    this.keyBySku.delete(sku);
+  }
+
   clear(): void {
     this.keyBySku.clear();
   }

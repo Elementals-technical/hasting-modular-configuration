@@ -120,6 +120,9 @@ export function usePriceCalculation() {
     }
     dispatch(setPriceLoading(true));
     dispatch(setSkusLoading(pending));
+    // These SKUs now read "loading": if this run is cancelled before its request ends, the next
+    // one must ask again, even for a width an earlier request already answered.
+    pending.forEach((sku) => fetchedRef.current.forget(sku));
 
     let cancelled = false;
     const timer = setTimeout(() => {

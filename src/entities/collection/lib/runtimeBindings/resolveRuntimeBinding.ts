@@ -35,7 +35,13 @@ export type ResolvedRuntimeBinding = {
   order?: number;
   /** Patch to send before `patch`, e.g. clearing the towel bar before another side. */
   resetBefore?: ScenePatch;
+  /** The value once more, for the other places the binding names (`also`), in order. */
+  also?: readonly ResolvedAlsoDelivery[];
+  /** The scene keeps the value per product: a change for one cabinet alone reaches that product. */
+  perProduct?: true;
 };
+
+export type ResolvedAlsoDelivery = { target: RuntimeTarget; patch: ScenePatch };
 
 /** A value the collection records without a scene call. Nothing is sent for it. */
 export type StateOnlyRuntimeResolution = {
@@ -91,6 +97,14 @@ const toPatch = (binding: BoundRuntimeBinding, value: SemanticValue): ScenePatch
   return Object.hasOwn(values.patches, key) ? { ...values.patches[key] } : null;
 };
 
+/** The scene value of an identity patch under each other key the binding names. */
+const toAlso = (binding: BoundRuntimeBinding, patch: ScenePatch): ResolvedAlsoDelivery[] => {
+  if (binding.values.kind !== "identity" || !binding.also?.length) return [];
+
+  const sceneValue = patch[binding.values.sceneKey];
+  return binding.also.map(({ target, sceneKey }) => ({ target, patch: { [sceneKey]: sceneValue } }));
+};
+
 const toTarget = (binding: BoundRuntimeBinding, flow: RuntimeFlow | undefined): RuntimeTarget | null => {
   if (binding.target.kind !== "byFlow") return binding.target;
 
@@ -134,6 +148,8 @@ export const resolveRuntimeBinding = (
     return { ok: false, attributeId, value, reason: "flow-required" };
   }
 
+  const also = toAlso(binding, patch);
+
   return {
     ok: true,
     attributeId,
@@ -141,6 +157,8 @@ export const resolveRuntimeBinding = (
     patch,
     ...(binding.order !== undefined ? { order: binding.order } : {}),
     ...(binding.resetBefore ? { resetBefore: { ...binding.resetBefore } } : {}),
+    ...(also.length > 0 ? { also } : {}),
+    ...(binding.perProduct ? { perProduct: true as const } : {}),
   };
 };
 

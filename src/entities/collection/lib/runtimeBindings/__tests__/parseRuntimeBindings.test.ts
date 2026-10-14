@@ -188,4 +188,88 @@ describe("parseRuntimeBindings", () => {
       ),
     ).toEqual([["binding.invalid_values", "/bindings/0/values/patches"]]);
   });
+
+  it("reads the other places a value goes to and that a product placed later takes it", () => {
+    const result = parseRuntimeBindings(
+      withBinding({
+        attributeId: "LateralPanelColor",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "identity", sceneKey: "CabinetColorLateral" },
+        also: [
+          { target: { kind: "all" }, sceneKey: "HandleGrooveColor" },
+          { target: { kind: "productType", productType: "UD-open-shelves-side" }, sceneKey: "CabinetColor" },
+        ],
+        placedWithNewProducts: true,
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.bindings.bindings[0]).toMatchObject({
+      also: [
+        { target: { kind: "all" }, sceneKey: "HandleGrooveColor" },
+        { target: { kind: "productType", productType: "UD-open-shelves-side" }, sceneKey: "CabinetColor" },
+      ],
+      placedWithNewProducts: true,
+    });
+  });
+
+  it("leaves both out of an entry that does not name them", () => {
+    const result = parseRuntimeBindings(
+      withBinding({
+        attributeId: "Height",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "identity", sceneKey: "Height" },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.bindings.bindings[0]).not.toHaveProperty("also");
+    expect(result.bindings.bindings[0]).not.toHaveProperty("placedWithNewProducts");
+  });
+
+  it("points at a broken extra delivery", () => {
+    const entry = (extra: Record<string, unknown>, values: unknown = { kind: "identity", sceneKey: "A" }) =>
+      withBinding({ attributeId: "A", status: "bound", target: { kind: "all" }, values, ...extra });
+
+    expect(codesOf(entry({ also: [] }))).toEqual([["bindings.invalid_field_type", "/bindings/0/also"]]);
+    expect(codesOf(entry({ also: [{ target: { kind: "all" } }] }))).toEqual([
+      ["binding.invalid_values", "/bindings/0/also/0/sceneKey"],
+    ]);
+    expect(codesOf(entry({ also: [{ target: { kind: "byFlow" }, sceneKey: "B" }] }))).toEqual([
+      ["binding.invalid_target", "/bindings/0/also/0/target/kind"],
+    ]);
+    // The same value is sent again, which a value map has no single one of.
+    expect(
+      codesOf(entry({ also: [{ target: { kind: "all" }, sceneKey: "B" }] }, { kind: "map", patches: { x: { A: 1 } } })),
+    ).toEqual([["binding.invalid_values", "/bindings/0/also"]]);
+    expect(codesOf(entry({ placedWithNewProducts: "yes" }))).toEqual([
+      ["bindings.invalid_field_type", "/bindings/0/placedWithNewProducts"],
+    ]);
+  });
+
+  it("reads a value the scene keeps per product, and rejects one that is not a yes or a no", () => {
+    const entry = (extra: Record<string, unknown>) =>
+      withBinding({
+        attributeId: "LateralPanelSide",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "map", patches: { L: { HandleSide: "Left" }, R: { HandleSide: "Right" } } },
+        ...extra,
+      });
+
+    const perProduct = parseRuntimeBindings(entry({ perProduct: true }));
+    expect(perProduct.ok && perProduct.bindings.bindings[0]).toMatchObject({ perProduct: true });
+
+    // Left out, and a "no", read the same: the value goes to every product.
+    for (const extra of [{}, { perProduct: false }]) {
+      const result = parseRuntimeBindings(entry(extra));
+      expect(result.ok && result.bindings.bindings[0]).not.toHaveProperty("perProduct");
+    }
+
+    expect(codesOf(entry({ perProduct: "yes" }))).toEqual([["bindings.invalid_field_type", "/bindings/0/perProduct"]]);
+  });
 });

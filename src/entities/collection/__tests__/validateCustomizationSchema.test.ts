@@ -292,6 +292,48 @@ describe("validateCustomizationSchema", () => {
     );
   });
 
+  /** The faucet section with these fields' tabs: a tabbed section when `fieldTabs` is given. */
+  const withFieldTabs = (fieldTabs: unknown, tabs: unknown[]) => ({
+    ...uiJson,
+    sections: {
+      ...uiJson.sections,
+      "faucet-holes-amount": {
+        ...uiJson.sections["faucet-holes-amount"],
+        ...(fieldTabs === undefined ? {} : { fieldTabs }),
+        fields: tabs.map((tab, index) => ({
+          attributeId: index === 0 ? "FaucetHolesAmount" : "Thickness",
+          control: "swatches",
+          ...(tab === undefined ? {} : { tab }),
+        })),
+      },
+    },
+  });
+
+  it("accepts a section that shows one field at a time, each field naming its tab", () => {
+    const panels = [{ label: "Base Panel", icon: "images/panel/base-panel.svg" }, { label: "Lateral Panel" }];
+
+    expect(validateCustomizationSchema(withFieldTabs({ label: "Select Panel, Then Color" }, panels)).ok).toBe(true);
+    // The line above the tabs is optional.
+    expect(validateCustomizationSchema(withFieldTabs({}, panels)).ok).toBe(true);
+  });
+
+  it.each([
+    ["fieldTabs that is not an object", "tabs", [{ label: "A" }, { label: "B" }], "fieldTabs"],
+    ["an empty line above the tabs", { label: " " }, [{ label: "A" }, { label: "B" }], "fieldTabs"],
+    ["a tab without its text", {}, [{ label: "" }, { label: "B" }], "fields[0].tab"],
+    ["a tab picture that is not a reference", {}, [{ label: "A", icon: 5 }, { label: "B" }], "fields[0].tab"],
+    // It could never be reached: the section shows the field of the chosen tab only.
+    ["a field without a tab in a tabbed section", {}, [{ label: "A" }, undefined], "fields[1].tab"],
+  ])("rejects %s", (_name, fieldTabs, tabs, where) => {
+    const result = validateCustomizationSchema(withFieldTabs(fieldTabs, tabs));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "invalid-schema", dataPath: `sections.faucet-holes-amount.${where}` }),
+    );
+  });
+
   it("accepts a field that keeps its value allowed, and no other autoSelect", () => {
     const withAutoSelect = (autoSelect: unknown) => ({
       ...uiJson,
@@ -370,6 +412,58 @@ describe("validateCustomizationSchema", () => {
     expect(
       validateCustomizationSchema({ ...uiJson, styleSidebar: { fields: ["Height", "Width", "Depth", "Handle"] } }).ok,
     ).toBe(true);
+  });
+
+  it("accepts the cabinet values the style sidebar and the menu change for one cabinet alone", () => {
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        styleSidebar: { fields: ["Width", "Depth"], attributes: ["LateralPanelSide"] },
+        playerMenu: { attributes: ["LateralPanelSide"] },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("accepts such a value with what the cabinet must hold to be offered it", () => {
+    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", when: { Series: "URDPX" } }];
+
+    expect(
+      validateCustomizationSchema({
+        ...uiJson,
+        styleSidebar: { attributes: ownCabinetsOnly },
+        playerMenu: { attributes: [...ownCabinetsOnly, "Other"] },
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects such a list that is not attribute ids, each once", () => {
+    for (const [override, dataPath] of [
+      [{ styleSidebar: { attributes: "LateralPanelSide" } }, "styleSidebar.attributes"],
+      [{ styleSidebar: { attributes: ["LateralPanelSide", ""] } }, "styleSidebar.attributes"],
+      [{ playerMenu: { attributes: ["LateralPanelSide", "LateralPanelSide"] } }, "playerMenu.attributes"],
+      [{ playerMenu: { attributes: [1] } }, "playerMenu.attributes"],
+      // A condition names values; one without any is no condition, and an id still stands once.
+      [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide" }] } }, "playerMenu.attributes"],
+      [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: {} }] } }, "playerMenu.attributes"],
+      [
+        { playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: { Series: 1 } }] } },
+        "playerMenu.attributes",
+      ],
+      [
+        {
+          styleSidebar: {
+            attributes: ["LateralPanelSide", { attributeId: "LateralPanelSide", when: { Series: "URDPX" } }],
+          },
+        },
+        "styleSidebar.attributes",
+      ],
+    ] as const) {
+      const result = validateCustomizationSchema({ ...uiJson, ...override });
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-schema", dataPath }));
+    }
   });
 
   it("names a size Resize does not change and a selector the style sidebar does not have", () => {

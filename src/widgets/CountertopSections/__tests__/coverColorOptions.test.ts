@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { collectionSkuProfileSchema } from "@/entities/collection/model/schemas";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
-import { URBAN_LOW_HEIGHT } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
+import { URBAN_DUPLEX, URBAN_LOW_HEIGHT } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
+import { resolveCabinetCoverColorAttributeId } from "@/shared/lib/sku";
 import { resolveConfiguratorOptions } from "@/features/collectionCustomization/lib/resolveSectionState";
 
 import profileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
@@ -41,6 +42,26 @@ describe("Lower countertop colors", () => {
     expect(
       result.every(({ traits }) => traits?.sku && skuProfile.cabinetCover?.materialSkus.includes(traits.sku)),
     ).toBe(true);
+  });
+
+  it("reads the Base Panel catalog Urban Duplex names for its covers", () => {
+    const cover = URBAN_DUPLEX.skuProfile.cabinetCover;
+    if (!cover) throw new Error("Urban Duplex has no cover contract");
+    const attributeId = resolveCabinetCoverColorAttributeId(cover);
+    const result = buildCoverColorOptions(
+      resolveConfiguratorOptions(URBAN_DUPLEX.profile, attributeId, URBAN_DUPLEX.configurator),
+      URBAN_DUPLEX.skuProfile,
+    );
+
+    expect(attributeId).toBe("BasePanelColor");
+    // Soft-Touch is a cover material; HPL is a panel colour the decorative top does not come in.
+    expect(result.some(({ value }) => value === "Bianco Calce DA ST")).toBe(true);
+    expect(result.some(({ value }) => value === "Pulpis Chiaro TKH")).toBe(false);
+    expect(result.every(({ traits }) => traits?.sku && cover.materialSkus.includes(traits.sku))).toBe(true);
+  });
+
+  it("keeps Cabinet Color for a collection that names no attribute", () => {
+    expect(skuProfile.cabinetCover && resolveCabinetCoverColorAttributeId(skuProfile.cabinetCover)).toBe("CabinetColor");
   });
 
   it("does not invent a palette when the collection has no cover contract", () => {

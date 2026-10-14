@@ -1,5 +1,5 @@
 import { selectMessageOr, type ProductProfile } from "@/entities/collection";
-import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { findCabinetRule, type ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import type { RuleContext, RuleResult } from "../model/types";
 import type { OptionState, Violation } from "../model/types";
@@ -110,7 +110,7 @@ export const typeCabinetRule = (
   profile: ProductProfile | null = null,
 ): RuleResult => {
   const { selection } = context;
-  const ruleForType = catalog.typeCabinetRules.find((rule) => rule.code === selection.cabinetType);
+  const ruleForType = findCabinetRule(catalog, selection.cabinetType, selection.series);
   const hasActiveRule = Boolean(ruleForType);
 
   const dimensionUniverse = buildDimensionUniverse(catalog);
