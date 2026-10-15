@@ -1,4 +1,5 @@
 import { installConfiguratorApiLogger } from "@/utils/functions/playcanvas/apiLogger";
+import { restoreSteppedSceneHeights, touchesSteppedHeight } from "@/utils/functions/playcanvas/steppedSceneProducts";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 
 type ConfigBatchFilter = (productId: string, config: Record<string, unknown>) => boolean;
@@ -56,6 +57,13 @@ export async function setConfigBatch(ids: ConfigBatchIds, config: any) {
       const idsToUpdate = Array.isArray(result) ? result : productIds;
 
       idsToUpdate.forEach((productId) => updateDimensionDataForProduct(productId, config ?? {}));
+
+      // A product with a height of its own does not keep the composition's (steppedSceneProducts).
+      if (touchesSteppedHeight(config)) {
+        const updatedIds = (result as { updatedIds?: unknown } | null)?.updatedIds;
+        const reached = Array.isArray(updatedIds) ? updatedIds.filter((id) => typeof id === "string") : idsToUpdate;
+        await restoreSteppedSceneHeights(canvasIframe?.ConfiguratorAPI, reached);
+      }
 
       return result;
     } catch (error) {

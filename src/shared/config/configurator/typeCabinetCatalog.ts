@@ -32,6 +32,19 @@ export type TypeCabinetRuleConfig = {
   sceneProductType?: string;
   supportsHeight?: number[];
   unavailableWithIntegrated?: { widthCm: number; drawers: string }[];
+  /**
+   * Drawer styles of the type that stand at a height of their own beside the taller cabinets
+   * (`ruleData.steppedModules`: the Urban Freestanding 1 Drawer Short). They force no height (their
+   * table heights are left out of `forcedHeightByHandle`) and no height is judged for them: the
+   * composition keeps the height of its other cabinets.
+   */
+  steppedDrawers?: string[];
+  /**
+   * drawers value of a stepped style -> handleId -> its own height in cm, from the table's forced
+   * heights (UF table 590: `UG/1DW:56|PTO/1DW:53|CG/1DW:56` → `{ "1": { UG: 56, PTO: 53, CG: 56 } }`).
+   * Read by buildSteppedSceneProducts for the scene bridge; never the composition's height.
+   */
+  steppedHeightByHandle?: Record<string, Record<string, number>>;
 };
 
 export type ConfiguratorCatalog = {
@@ -67,6 +80,16 @@ export const findCabinetRule = (
 /** The variants other series supply of a cabinet type, in catalog order. */
 export const findSeriesVariants = (catalog: ConfiguratorCatalog, code: string | null | undefined) =>
   code ? catalog.typeCabinetRules.filter((rule) => rule.code === code && rule.series !== undefined) : [];
+
+/** Whether `drawers` is a style of the rule that stands at a height of its own (a short cabinet). */
+export const isSteppedDrawers = (
+  rule: Pick<TypeCabinetRuleConfig, "steppedDrawers"> | null | undefined,
+  drawers: string | null | undefined,
+): boolean => Boolean(drawers && rule?.steppedDrawers?.includes(drawers));
+
+/** The type's first drawer style that is not stepped: the one the composition's height follows. */
+export const firstOwnDrawers = (rule: TypeCabinetRuleConfig | null | undefined): string | null =>
+  rule?.drawers.find((drawers) => !isSteppedDrawers(rule, drawers)) ?? null;
 
 const typeCabinetRules: TypeCabinetRuleConfig[] = [];
 

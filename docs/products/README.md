@@ -122,6 +122,15 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
   шафа іншої серії такої висоти не має — недоступний (`drawers.notWithSeriesCabinet`); selector Height
   лишає тільки висоти, які мають усі поставлені шафи інших серій. Кожен SKU, який так можна зібрати,
   мусить мати ціну на сервері: комбінацію без ціни прибирають із `seriesModules`.
+- Стиль шафи, що стоїть нижче за сусідні й має власну висоту (Urban Freestanding: Side Cabinet ▸ 1 Drawer
+  Short), описують: таблиця шаф (`drawer_configs` 1DW і його `forced_height_cm` — розмір і висота
+  для SKU), profile `ruleData.steppedModules` (тип, стиль, `placement: composition-end`, категорія шафи, яка
+  потрібна першою). Висоти stepped-стилю каталог не форсує, а переносить у `steppedHeightByHandle`
+  (`matrixCabinet` `withSteppedModules`); з них `buildSteppedSceneProducts` складає для `sceneBridge` scene
+  type, значення, за якими сцена впізнає коротку шафу (через bindings), і висоту за handle. Композиція
+  лишається на висоті інших шаф, а `sceneBridge` ставить і після кожної команди з `Height`/`Handle` повертає
+  короткій шафі власну висоту. Висоти в JSON колекції не дублюються. Деталі —
+  [`../urban-freestanding-short-cabinet.md`](../urban-freestanding-short-cabinet.md).
 - Кожен core/UI attribute покритий binding зі статусом `bound`, `state-only` або `unbound`.
 - Cabinet table читається через mapping саме цього profile; не додавати USH fallback.
 - Висоту, яку користувач обирає сам (selector Height у right sidebar і Resize ▸ Height у меню шафи),

@@ -26,7 +26,7 @@ import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool, type SelectionAction, type SelectionInfo } from "@/utils/functions/playcanvas/getSelectTool";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
-import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { setVisibleButtons, type VisibleButtonsOptions } from "@/utils/functions/playcanvas/setVisibleButtons";
 import { setScenePlusFilter, type ScenePlusKind } from "@/utils/functions/playcanvas/sceneBridge";
 import {
   getDimensionOptions,
@@ -66,6 +66,7 @@ import {
 } from "@/features/sidePanel";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneProducts";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { fitCountertop } from "@/features/playCanvasAdapter";
 import { clearDividerZones } from "@/features/dividers";
@@ -136,6 +137,7 @@ import {
 } from "@/features/countertopPlacement/ui/CountertopDragMode";
 import { useSinkLanding } from "@/features/countertopPlacement/lib/useSinkLanding";
 import { CountertopModeNotice } from "@/features/countertopPlacement/ui/CountertopModeNotice";
+import { reportSceneRefusal, SceneRefusalNotice } from "@/features/sceneRefusalNotice";
 import { SinkLandingMessage } from "@/features/countertopPlacement/ui/SinkLandingMessage";
 import {
   buildCountertopPositionItems,
@@ -174,7 +176,14 @@ import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/e
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
-import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  findPlacedCabinetRule,
+  getUniqueCatalogWidths,
+  resolveMoveSwaps,
+  resolveSteppedEndPlacement,
+  type CabinetSwap,
+} from "@/features/configurator-rule-core/cabinetBuilder";
+import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
 import {
   selectOwnCabinetValues,
   useChangeAttribute,
@@ -2273,19 +2282,24 @@ export const PlayCanvasIntegration = ({
     return resolveRuntimeProductType(productId, config);
   }, []);
 
-  const handleDuplicateProduct = useCallback(() => {
+  const handleDuplicateProduct = useCallback(async () => {
     if (!selectedSceneProduct || !canDuplicateSelectedCabinet) return;
-    setDuplicateSourceId(selectedSceneProduct);
-    // The cabinet type through the bindings: "UF-open-shelves-side" does not spell "Side-Shelf".
-    const options = cabinetTypeOf(selectedSceneProduct) === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
-    setVisibleButtons(true, options);
-    // A row that holds columns shows only the "+" that fit the copy (a shelf never goes in a column).
-    setScenePlusFilter(
-      plusFilterFor(cabinetTypeOf(selectedSceneProduct), cabinetTypeOf, { columns: cabinetPlacementDebugEnabled }),
-    );
-
+    const sourceId = selectedSceneProduct;
+    setDuplicateSourceId(sourceId);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+
+    // The copy is placed with the source's scene config (onPlusClick below), so the "+" are shown
+    // for its Height and Handle: the scene keeps only those the copy may use (UF row rule).
+    const sourceConfig = await getConfig(sourceId);
+    const options: VisibleButtonsOptions = {
+      // The cabinet type through the bindings: "UF-open-shelves-side" does not spell "Side-Shelf".
+      ...(cabinetTypeOf(sourceId) === "Side-Shelf" ? { productType: "Side-Shelf" } : {}),
+      config: { Height: sourceConfig?.Height, Handle: sourceConfig?.Handle },
+    };
+    setVisibleButtons(true, options);
+    // A row that holds columns shows only the "+" that fit the copy (a shelf never goes in a column).
+    setScenePlusFilter(plusFilterFor(cabinetTypeOf(sourceId), cabinetTypeOf, { columns: cabinetPlacementDebugEnabled }));
   }, [cabinetPlacementDebugEnabled, cabinetTypeOf, canDuplicateSelectedCabinet, selectedSceneProduct]);
 
   useEffect(() => {
@@ -2370,7 +2384,7 @@ export const PlayCanvasIntegration = ({
     sceneTotalWidth,
     selectedDimensions.width,
     selectedProductConfig,
-    productIds.length,
+    productIds,
     store,
   ]);
 
@@ -2466,6 +2480,7 @@ export const PlayCanvasIntegration = ({
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
+  /** Swaps cabinets in order, as one step of the history; stops at the first swap the scene refuses. */
   const handleSwapProducts = useCallback(
     async (idA: string, idB: string) =>
       runStep(async () => {
@@ -2484,10 +2499,22 @@ export const PlayCanvasIntegration = ({
     async (neighborId: string) => {
       if (!selectedSceneProduct) return;
 
-      await handleSwapProducts(selectedSceneProduct, neighborId);
+      const orderedIds = getOrderedProductIds(productIds);
+      const currentIndex = orderedIds.indexOf(selectedSceneProduct);
+      const neighborIndex = orderedIds.indexOf(neighborId);
+      if (currentIndex === -1 || neighborIndex === -1) return;
+
+      // A short cabinet moved towards the tall ones jumps their block (resolveMoveSwaps).
+      const swaps = resolveMoveSwaps({
+        runtimeId: selectedSceneProduct,
+        direction: neighborIndex < currentIndex ? "left" : "right",
+        orderedRuntimeIds: orderedIds,
+        steppedRuntimeIds: selectSteppedCabinetIds(store.getState()),
+      });
+      await handleSwapProducts(swaps);
       closeInPlayerActionSurface();
     },
-    [closeInPlayerActionSurface, handleSwapProducts, selectedSceneProduct],
+    [closeInPlayerActionSurface, handleSwapProducts, productIds, selectedSceneProduct, store],
   );
 
   useEffect(() => {
@@ -3255,7 +3282,8 @@ export const PlayCanvasIntegration = ({
       const nextDimensions: { width?: number; height?: number; depth?: number } = {};
 
       if (typeof config.Width === "number") nextDimensions.width = config.Width;
-      if (typeof config.Height === "number") nextDimensions.height = config.Height;
+      // The selection's height is the composition's: a short cabinet keeps one of its own.
+      if (typeof config.Height === "number" && !isSteppedSceneConfig(config)) nextDimensions.height = config.Height;
       if (typeof config.Depth === "number") nextDimensions.depth = config.Depth;
 
       if (Object.keys(nextDimensions).length) {
@@ -3277,7 +3305,8 @@ export const PlayCanvasIntegration = ({
       if (!config || cancelled) return;
 
       const width = toFiniteNumber(config.Width);
-      const height = toFiniteNumber(config.Height);
+      // The selection's height is the composition's: a short cabinet keeps one of its own.
+      const height = isSteppedSceneConfig(config) ? null : toFiniteNumber(config.Height);
       const depth = toFiniteNumber(config.Depth);
 
       const nextDimensions: { width?: number; height?: number; depth?: number } = {};
@@ -3923,6 +3952,11 @@ export const PlayCanvasIntegration = ({
           onSessionDiscarded={abandonCountertopEdit}
         />
       )}
+
+      {/* Why the scene refused the last add / duplicate / swap (UF height run). */}
+      <SceneRefusalNotice
+        style={{ position: "absolute", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 26 }}
+      />
 
       {/* Movement mode by thickness: a short notice on every switch (and its auto-correction). */}
       {cabinetPlacementDebugEnabled && (

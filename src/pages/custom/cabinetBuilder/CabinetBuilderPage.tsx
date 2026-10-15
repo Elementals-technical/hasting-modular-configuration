@@ -70,6 +70,7 @@ import {
   selectOptionImageContext,
 } from "@/entities/product/model/store/derivedSelectors";
 import { selectPlacedSeriesCabinets } from "@/entities/product/model/store/seriesCabinets";
+import { selectHasPlacedCabinetOfCategory } from "@/entities/product/model/store/steppedCabinets";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   isDrawerStyleMixingRestricted,
@@ -117,6 +118,7 @@ import s from "./CabinetBuilderPage.module.scss";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneProducts";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
@@ -254,6 +256,9 @@ type PendingMixingStyle = {
 };
 
 const REASON_STYLE_NOT_WITH_SERIES = "drawers.notWithSeriesCabinet";
+const REASON_STEPPED_NEEDS_CABINET = "drawers.steppedNeedsTallCabinet";
+const STEPPED_NEEDS_CABINET_TEXT =
+  "Add a Sink Base or a 2 Drawer Side Cabinet first: the short cabinet stands beside a taller one.";
 const STYLE_NOT_WITH_SERIES_TEXT = "Not available with the cabinets of another series in this design.";
 
 const readConfigDrawerValue = (config: unknown): string | null => {
@@ -354,6 +359,14 @@ export const CabinetBuilderPage = () => {
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const placedDimensions = useAppSelector(getDimensionsByCabinet);
   const placedSeriesCabinets = useAppSelector(selectPlacedSeriesCabinets);
+  // A short cabinet (`ruleData.steppedModules`) stands beside a taller one: the categories of
+  // cabinet it needs placed first, and those that are.
+  const steppedModules = useMemo(() => activeProfile?.ruleData.steppedModules ?? [], [activeProfile]);
+  const placedSteppedCategories = useAppSelector((state) =>
+    [...new Set(steppedModules.map(({ requiresPlacedCategory }) => requiresPlacedCategory))]
+      .filter((category) => selectHasPlacedCabinetOfCategory(state, category))
+      .join("|"),
+  );
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
   // Pictures, labels and the values they depend on all come from the active collection.
   const optionImages = useOptionImages();
@@ -458,6 +471,15 @@ export const CabinetBuilderPage = () => {
               ? compositionExceededReason
               : undefined;
         const isHeldBySeries = compositionReason === undefined && !canSwitch;
+        // A short cabinet stands at an end, beside a taller cabinet: it is not the first one.
+        const steppedModule = steppedModules.find(
+          (module) => module.cabinetType === rule?.code && module.drawers === value,
+        );
+        const needsTallerCabinet =
+          compositionReason === undefined &&
+          !isHeldBySeries &&
+          steppedModule !== undefined &&
+          !placedSteppedCategories.split("|").includes(steppedModule.requiresPlacedCategory);
 
         return {
           title: selectOption(activeProfile, "Drawers", value)?.label ?? value,
@@ -468,18 +490,27 @@ export const CabinetBuilderPage = () => {
           detailsQuery: series ? { style: value, series } : undefined,
           placedHeight,
           switchHeight: styleSwitch?.possible ? styleSwitch.height : null,
-          isAvailable: countertopCompositionConstraint.canAddCabinet && isOffered && hasAddableWidth && canSwitch,
+          isAvailable:
+            countertopCompositionConstraint.canAddCabinet &&
+            isOffered &&
+            hasAddableWidth &&
+            canSwitch &&
+            !needsTallerCabinet,
           disabledReason:
             compositionReason ??
             (isHeldBySeries
               ? selectMessageOr(activeProfile, REASON_STYLE_NOT_WITH_SERIES, STYLE_NOT_WITH_SERIES_TEXT, {
                   series: placedSeriesLabels,
                 })
-              : ruleOption?.reason),
+              : needsTallerCabinet
+                ? selectMessageOr(activeProfile, REASON_STEPPED_NEEDS_CABINET, STEPPED_NEEDS_CABINET_TEXT)
+                : ruleOption?.reason),
           // Named by its code, so the hint reads the collection's text for it.
           ...(isHeldBySeries
             ? { disabledReasonCode: REASON_STYLE_NOT_WITH_SERIES, disabledReasonParams: { series: placedSeriesLabels } }
-            : {}),
+            : needsTallerCabinet
+              ? { disabledReasonCode: REASON_STEPPED_NEEDS_CABINET }
+              : {}),
           isMixingRestricted,
           isShortDesc: false,
           metadata: {
@@ -507,6 +538,8 @@ export const CabinetBuilderPage = () => {
     placedCabinetStyles,
     placedDimensions,
     placedSeriesCabinets,
+    placedSteppedCategories,
+    steppedModules,
     countertopCompositionConstraint.canAddCabinet,
     countertopCompositionConstraint.reason,
     hasAddableWidthForActiveType,
@@ -1297,7 +1330,9 @@ export const CabinetBuilderPage = () => {
 
           const nextDimensions: { width?: number; height?: number; depth?: number } = {};
           if (typeof nextConfig.Width === "number") nextDimensions.width = nextConfig.Width;
-          if (typeof nextConfig.Height === "number") nextDimensions.height = nextConfig.Height;
+          // The selection's height is the composition's: a short cabinet keeps one of its own.
+          if (typeof nextConfig.Height === "number" && !isSteppedSceneConfig(nextConfig))
+            nextDimensions.height = nextConfig.Height;
           if (typeof nextConfig.Depth === "number") nextDimensions.depth = nextConfig.Depth;
           if (Object.keys(nextDimensions).length) {
             dispatch(setSelectedDimensions(nextDimensions));

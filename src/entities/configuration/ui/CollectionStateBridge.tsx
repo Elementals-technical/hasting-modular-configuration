@@ -4,6 +4,8 @@ import { useActiveCollectionState } from "@/entities/collection";
 import { setActiveCollectionId, setActiveRuntimeBindings } from "@/entities/configuration/model/store/slice";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { setSteppedSceneProducts } from "@/utils/functions/playcanvas/steppedSceneProducts";
+import { buildSteppedSceneProducts } from "@/entities/product/lib/buildSteppedSceneProducts";
 
 /**
  * Copies the active collection into the store.
@@ -33,6 +35,9 @@ export const CollectionStateBridge = () => {
   );
 
   useEffect(() => {
+    // The scene bridge keeps the collection's short cabinets at their own height (table heights).
+    setSteppedSceneProducts(buildSteppedSceneProducts(data?.catalog.cabinets, data?.catalog.runtimeBindings));
+
     if (!data) {
       dispatch(setActiveCollectionId(null));
       dispatch(setActiveRuntimeBindings(null));

@@ -44,8 +44,10 @@ import {
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { setVisibleButtons, type VisibleButtonsOptions } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { reportSceneRefusal } from "@/features/sceneRefusalNotice";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
+import { showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { setScenePlusFilter, type ScenePlusKind } from "@/utils/functions/playcanvas/sceneBridge";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
@@ -53,7 +55,10 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
+import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
+import { isSteppedDrawers } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
+  normalizeOptionValue,
   resolveCabinetTypeOfRuntimeId,
   selectEffectiveFallback,
   selectOptions,
@@ -81,7 +86,9 @@ import {
   findPlacedCabinetRule,
   isLeavingSideShelfHandle,
   REASON_HANDLE_HEIGHT_LOCKED,
+  resolveSteppedEndPlacement,
 } from "@/features/configurator-rule-core/cabinetBuilder";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
@@ -127,6 +134,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const productConfig = useAppSelector(getCabinetBuilderProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
+  const steppedCabinetIds = useAppSelector(selectSteppedCabinetIds);
+  // The style being added stands at a height of its own (the Urban Freestanding 1 Drawer Short).
+  const selectedDrawers =
+    typeof selectedProductConfig?.Drawers === "string"
+      ? (normalizeOptionValue(activeProfile, "Drawers", selectedProductConfig.Drawers) ?? null)
+      : null;
+  const isSteppedStyle = isSteppedDrawers(activeCabinetRule, selectedDrawers);
   const heightLocked = useAppSelector(getHeightLocked);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
@@ -678,7 +692,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (hasSize(getCabinetDimensionsByRuntimeId(state, getSelectedSceneProduct(state)))) return;
 
     // Opening the sidebar re-runs this effect; when every cabinet already has this size there is nothing to send.
-    const placedCabinets = getCabinetEntries(state);
+    // A short cabinet keeps a height of its own (steppedSceneProducts), so it is not asked to have this one.
+    const placedCabinets = getCabinetEntries(state).filter(({ runtimeId }) => !steppedCabinetIds.includes(runtimeId));
     if (
       placedCabinets.length > 0 &&
       placedCabinets.every(({ runtimeId }) => hasSize(getCabinetDimensionsByRuntimeId(state, runtimeId)))
@@ -686,11 +701,28 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    const dimConfig = { Height: selectedDimensions.height, Depth: selectedDimensions.depth };
+    // Send only the size that changed: an unchanged Height sent with a new Depth resizes every
+    // cabinet again, and a short cabinet was grown to it for a few frames (visible blinking).
+    const differsFromPlaced = (dimension: "height" | "depth") =>
+      placedCabinets.some(
+        ({ runtimeId }) => getCabinetDimensionsByRuntimeId(state, runtimeId)?.[dimension] !== selectedDimensions[dimension],
+      );
+    const depthConfig = differsFromPlaced("depth") ? { Depth: selectedDimensions.depth } : {};
+    const dimConfig = {
+      ...(differsFromPlaced("height") ? { Height: selectedDimensions.height } : {}),
+      ...depthConfig,
+    };
+
+    // Only short cabinets differ (they keep a height of their own): nothing to send.
+    if (Object.keys(dimConfig).length === 0) return;
+
     setConfigBatch({}, dimConfig);
 
-    selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
-  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState]);
+    // A short cabinet's label keeps its own height (steppedSceneProducts).
+    selectedProducts.forEach((id) =>
+      updateDimensionDataForProduct(id, steppedCabinetIds.includes(id) ? depthConfig : dimConfig),
+    );
+  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState, steppedCabinetIds]);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
@@ -712,11 +744,24 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
     const hasAddableWidth = widthOptions.length > 0;
-    const options =
-      isOpenedStyleSidebar && activeDrawerProduct === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
+    // A side shelf and a short cabinet (`ruleData.steppedModules`, placement "composition-end") go
+    // at an end of the composition: the scene's "Side-Shelf" button mode shows the end buttons only.
+    const placesAtEnd = activeDrawerProduct === "Side-Shelf" || isSteppedStyle;
     const shouldShowPlacementButtons = isOpenedStyleSidebar && hasAddableWidth;
 
-    setVisibleButtons(shouldShowPlacementButtons, options);
+    // The cabinet the "+" would add: the scene keeps only the "+" it may use (UF: a short one never
+    // between tall ones) at its height. A short cabinet stands at its own height (table 590).
+    const handle = shownCabinetAttributeValues.Handle;
+    const steppedHeight =
+      isSteppedStyle && selectedDrawers && handle
+        ? activeCabinetRule?.steppedHeightByHandle?.[selectedDrawers]?.[handle]
+        : undefined;
+    const options: VisibleButtonsOptions = {
+      ...(placesAtEnd ? { productType: "Side-Shelf" } : {}),
+      config: { Height: steppedHeight ?? selectedDimensions.height ?? undefined, Handle: handle },
+    };
+
+    setVisibleButtons(shouldShowPlacementButtons, isOpenedStyleSidebar ? options : undefined);
     // A row that holds columns shows only the "+" that fit this cabinet (a shelf never goes in a column).
     setScenePlusFilter(
       shouldShowPlacementButtons
@@ -728,15 +773,28 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         : null,
     );
     placementButtonsVisibleRef.current = shouldShowPlacementButtons;
+
+    // On an empty scene, setVisibleButtons rebuilds the scene's buttons and leaves the "+" of the
+    // first cabinet hidden (SceneManager.updateButtonsPositions → plusManager.showEmptyState).
+    // CabinetBuilderPage shows that "+" once when the sidebar opens; this effect re-runs on every
+    // change of the cabinet being added, so it shows it again, on the same condition as the page.
+    const isEmptyComposition = selectedProducts.length === 0;
+    if (isOpenedStyleSidebar && isEmptyComposition) showEmptyButton();
     // The player offers Drag to Place beside them.
     dispatch(setPlacementButtonsVisible(shouldShowPlacementButtons));
   }, [
+    activeCabinetRule,
     activeDrawerProduct,
     activeProfile,
     dispatch,
     isOpenedStyleSidebar,
+    isSteppedStyle,
     placesInColumns,
     runtimeBindings,
+    selectedDimensions.height,
+    selectedDrawers,
+    selectedProducts.length,
+    shownCabinetAttributeValues,
     widthOptions.length,
   ]);
 
@@ -883,7 +941,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     runStep,
     sceneTotalWidth,
     selectedDimensions.width,
-    selectedProducts.length,
+    selectedProducts,
+    steppedCabinetIds,
+    isSteppedStyle,
     activeCabinetRule?.code,
     activeCabinetRule?.isOpen,
     activeMaterialTokens,

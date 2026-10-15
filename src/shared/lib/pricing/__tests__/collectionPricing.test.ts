@@ -1125,6 +1125,43 @@ describe("Urban Freestanding open shelves, spelled as its price list spells them
   });
 });
 
+describe("Urban Freestanding Lower countertop, offered before it has a SKU", () => {
+  const tall = { stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 88, depth: 50 } };
+  const short = { stableKey: "sc", runtimeId: "Sink-Cabinet-sc", size: { width: 60, height: 53, depth: 50 } };
+  const order = (overrides: Partial<PricingInput> = {}) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        URBAN_FREESTANDING,
+        [tall, short],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2"), at({ scope: "cabinet", cabinetId: "sc" }, "1")],
+          Handle: [at({ scope: "global" }, "UG")],
+        },
+        { cabinetColor: "Castagno chiaro 1C1", ...overrides },
+      ),
+    );
+  const coverGap = expect.objectContaining({
+    group: "input",
+    blocksTotal: true,
+    reason: expect.stringContaining("no confirmed SKU"),
+  });
+
+  it("keeps the cover over the short cabinet unpriced: no SKU, never zero, never Urban Low Height's", () => {
+    const { lines, gaps } = order({
+      cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Cabinet-sc"], materialId: "Castagno chiaro 1C1" }],
+    });
+
+    expect(lines.filter(({ group }) => group === "cabinetCover")).toEqual([]);
+    expect(lines.some(({ sku }) => sku.startsWith("CT-UR3D-VES"))).toBe(false);
+    expect(gaps).toContainEqual(coverGap);
+  });
+
+  it("asks nothing of a composition the scene lays no cover on", () => {
+    expect(order({ cabinetCovers: [] }).gaps).not.toContainEqual(coverGap);
+    expect(order({ cabinetCovers: null }).gaps).not.toContainEqual(coverGap);
+  });
+});
+
 describe("Urban Freestanding side panels, priced as Urban Standard Height's", () => {
   const sinkBase = (height: number) => ({
     stableKey: "sb",

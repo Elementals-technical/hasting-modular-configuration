@@ -8,7 +8,21 @@ domain: copy `Scripts/dev-panel/` into another configurator and mount it.
   (here: `bridge/global-bridge.mjs`, next to the cabinet debug panel). `destroy()` removes it.
 - **Sections** (`sections/*.mjs`): `{ id, title, mount({ api, ui, log, refresh, root }) → { refresh?, dispose? } }`.
   `api()` returns the live API; `ui` are the components (`components.mjs`); `log(label, value)` writes to the panel log.
-  - `presets` — base compositions (`presetProducts` payloads, editable JSON) + Remove all.
+  - `presets` — collection → preset → editable JSON → Load (replaces the scene) + Remove all. Presets for every
+    collection live in `data/collection-presets.mjs`; each names its loader: `products` = `presetProducts` (one row,
+    every collection) or `compact` = `composition.importCompactPreset` (several rows / columns with positions, ULH and UD only).
+    ULH multi-row cases: two groups with a gap, three groups, a flush stack, a stack with a longer lower row (titles say
+    how many panels "both" should give).
+  - `side-panels` — the global side choice: type (NoG / UpperG / CenterG / DoubleG), On left / right / both, Off left / right / all,
+    Left only / Right only (`setConfigBatch({}, { SidePanel, SidePanelSide })`). The State readout lists the saved selection,
+    every panel product (side, type, H × D, anchor cabinet, group, X) and each row's edges with or without a panel; Measure edges
+    (ULH) shows the plan: exposed / covered / partial per edge and why a selected edge has no panel. Reading goes through the
+    debug escape hatch `ConfiguratorAPI.config.compositionManager` (no public read API for panels yet).
+    Handle: the scene collection's handle fields (`data/side-panel-guide.mjs` HANDLE_CONTROLS: ULH `Handle`, UD `HandleSide` /
+    `HandleStyle` / `Drawers` / `Height`, UF `Height`, Mako `HandleStyle`) on all / left-edge / right-edge / selected cabinets
+    (`setConfigBatch({ productIds }, { field: value })`). Every panel line shows the cabinet it follows, its handle fields and the
+    type the client's config guide expects (✓ / ✗; UD / UF rules are guide-only, not in code yet). Guide test cases: a select of
+    short manual cases (preset → steps → expected) with Load preset.
   - `cabinets` — collection → type → JSON config (`CATALOG`, project data); the scene locks the collection
     (read from `getEdgeCabinets` + `getConfig(id).productType`). Add via `addProduct` / `addProductByLeft` / `addProductByRight`,
     via the scene "+" (`setHandleButtonClick` → `setProductByParams`; the panel takes over the "+" callback while on),
@@ -35,7 +49,7 @@ domain: copy `Scripts/dev-panel/` into another configurator and mount it.
     length limits, thickness (`setConfigBatch({}, { Thickness })`), material (`setConfigBatch({}, { CountertopColor })`),
     sink (`setConfig(<sink cabinet>, { sinkType })`) and a generic method caller for `countertop.*` / `countertopOverlay.*`.
     Test values (thicknesses, material names, sink types) are in `COUNTERTOP_TEST_VALUES` — edit them per project.
-- **Add a section** for cabinets / side panels: create `sections/<name>.mjs` with the contract above and add it to
+- **Add a section** for a new feature: create `sections/<name>.mjs` with the contract above and add it to
   `DEFAULT_SECTIONS` in `test-ui.mjs` (or pass `sections` to `mountTestUI`). The `ui.methods(label, getNamespace)`
   component exposes every function of an API namespace with JSON args, so new API methods are testable at once.
 - **Errors** are logged as slugs only: `CODE · REASON_CODE…` (the message only when there is no code).

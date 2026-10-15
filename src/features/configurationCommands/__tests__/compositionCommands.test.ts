@@ -1015,6 +1015,21 @@ describe("composition commands", () => {
     );
   });
 
+  it("keeps the order when the scene refuses a swap, with the scene's code for the interface", async () => {
+    const { composition, deps } = setup(["cab-a", "cab-b"]);
+    composition.answerNext({ status: "failed", message: "tall run split", sceneCode: "UF_HEIGHT_RUN_VIOLATION" });
+
+    const result = await swapCabinets("cab-a", "cab-b", deps);
+
+    expect(result).toEqual({
+      status: "error",
+      code: "runtime-failed",
+      message: "tall run split",
+      sceneCode: "UF_HEIGHT_RUN_VIOLATION",
+    });
+    expect(product().productIds).toEqual(["cab-a", "cab-b"]);
+  });
+
   describe("clearComposition", () => {
     it("takes the towel bar and the side panels off before the products", async () => {
       const { composition, runtime, sidePanels, deps } = setup(["cab-a"]);

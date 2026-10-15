@@ -651,10 +651,11 @@
     "change.valueNotInCatalog": "This option is not available in this collection.",
     "change.notAvailable": "This option is not available for the current selection.",
     "handle.grooveColorCleared": "The groove color is cleared because the selected handle has no groove.",
-    "cabinetColor.grooveFollows": "The groove color changes with the cabinet color."
+    "cabinetColor.grooveFollows": "The groove color changes with the cabinet color.",
+    "drawers.steppedNeedsTallCabinet": "Add a 2 Drawer Sink Base or Side Cabinet first: the short cabinet stands beside a taller one."
   },
   "excludedFromThisProfile": {
-    "shortFloorCabinet": "New 1DW Floor-Mount Short Cabinet (docx P1097, P1110): offered as the 1 Drawer style since the cabinet table (590) lists 1DW with forced heights of 56 cm for Upper and Central Groove and 53 cm for Push-to-Open, but those heights are not in its heights_cm or supports_height, so the cabinet keeps 91 or 88 cm. The price list has no 1DW cabinet, and the UF scene draws one drawer only at 50 and 53 cm. Waits for UFS-SIZ-01.",
+    "shortFloorCabinet": "New 1DW Floor-Mount Short Cabinet: offered as the 1 Drawer style since the cabinet table (590) lists 1DW with forced heights of 56 cm for Upper and Central Groove and 53 cm for Push-to-Open, but those heights are not in its heights_cm or supports_height, so the cabinet keeps 91 or 88 cm. The price list has no 1DW cabinet, and the UF scene draws one drawer only at 50 and 53 cm.",
     "lowerTop": "Countertop of the short cabinet (P1113 -> P0861) and the decorative top of an uncovered lower cabinet: UFS-SIZ-01, UFS-TOP-01, GEN-SKU-03.",
     "handleGrooveColor": "Not in the Master File, although the price list SKU carries HDL-{material}-{colour}. Offered as Urban Standard Height offers it (team, 2026-10-07): the groove of an Upper or Central Groove handle takes the cabinet colours, and stays in the cabinet colour until one is chosen. The client has yet to confirm it.",
     "grainDirectionAndBookMatching": "Not offered until the client answers GEN-STY-01.",

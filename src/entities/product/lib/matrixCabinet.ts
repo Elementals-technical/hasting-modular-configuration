@@ -101,10 +101,57 @@ export const buildCabinetCatalogFromMatrix = (
     ];
   });
 
+  const ownRules = withSteppedModules(typeCabinetRules, profile, normalizeDrawers);
+
   return {
-    typeCabinetRules: [...typeCabinetRules, ...buildSeriesVariants(typeCabinetRules, profile, normalizeDrawers)],
+    typeCabinetRules: [...ownRules, ...buildSeriesVariants(ownRules, profile, normalizeDrawers)],
   };
 };
+
+/**
+ * The drawer styles that stand at a height of their own (`ruleData.steppedModules`): the Urban
+ * Freestanding 1 Drawer Short Side Cabinet. Table 590 lists the style (1DW) with the
+ * type's others; the profile marks it stepped.
+ *
+ * Table 590 gives the short style its own forced heights (`UG/1DW:56|PTO/1DW:53|CG/1DW:56`), but a
+ * forced height is the one height of the whole composition: choosing the style or a handle would
+ * bring every cabinet down to it. So the stepped styles' heights move out of the rule's forced
+ * heights into `steppedHeightByHandle`, from which the scene bridge places the short cabinet
+ * (buildSteppedSceneProducts). The widths, depths and handles are the type's.
+ */
+const withSteppedModules = (
+  rules: readonly TypeCabinetRuleConfig[],
+  profile: ProductProfile,
+  normalizeDrawers: (value: string) => string,
+): TypeCabinetRuleConfig[] =>
+  rules.map((rule) => {
+    // 1. The stepped styles of this type, as the Drawers catalog names them ("1DW" → "1").
+    const stepped = (profile.ruleData.steppedModules ?? [])
+      .filter(({ cabinetType }) => cabinetType === rule.code)
+      .map(({ drawers }) => normalizeDrawers(drawers));
+    if (stepped.length === 0) return rule;
+
+    // 2. Split the forced heights: the composition's stay, the stepped styles' become their own.
+    const forcedHeightByHandle: Record<string, Record<string, number>> = {};
+    const steppedHeightByHandle: Record<string, Record<string, number>> = {};
+    for (const [handle, heightByDrawers] of Object.entries(rule.forcedHeightByHandle ?? {})) {
+      for (const [drawers, heightCm] of Object.entries(heightByDrawers)) {
+        if (stepped.includes(drawers)) (steppedHeightByHandle[drawers] ??= {})[handle] = heightCm;
+        else (forcedHeightByHandle[handle] ??= {})[drawers] = heightCm;
+      }
+    }
+    const forcedHeightByDrawers = Object.fromEntries(
+      Object.entries(rule.forcedHeightByDrawers ?? {}).filter(([drawers]) => !stepped.includes(drawers)),
+    );
+
+    return {
+      ...rule,
+      forcedHeightByHandle,
+      forcedHeightByDrawers,
+      steppedDrawers: stepped,
+      steppedHeightByHandle,
+    };
+  });
 
 /**
  * The cabinets other series supply (`ruleData.seriesModules`), each as a variant of the cabinet

@@ -231,7 +231,8 @@ export const createCompositionPort = ({
     if (placement.kind === "end") {
       const created = await scene.addProduct(placed.sceneType, placed.config);
       if (created.status === "not-ready") return { status: "not-ready" };
-      if (created.status === "failed") return { status: "failed", message: created.message };
+      if (created.status === "failed")
+        return { status: "failed", message: created.message, sceneCode: created.sceneCode };
 
       return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
     }
@@ -257,7 +258,8 @@ export const createCompositionPort = ({
       placed.config,
     );
     if (created.status === "not-ready") return { status: "not-ready" };
-    if (created.status === "failed") return { status: "failed", message: created.message };
+    if (created.status === "failed")
+      return { status: "failed", message: created.message, sceneCode: created.sceneCode };
 
     if (created.configApplied) {
       return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
@@ -311,7 +313,7 @@ export const createCompositionPort = ({
 
     const result = await scene.swapProducts(runtimeIdA, runtimeIdB);
     if (result.status === "not-ready") return { status: "not-ready" };
-    if (result.status === "failed") return { status: "failed", message: result.message };
+    if (result.status === "failed") return { status: "failed", message: result.message, sceneCode: result.sceneCode };
 
     return { status: "applied", placed: [], scene: await readAfter([]) };
   };

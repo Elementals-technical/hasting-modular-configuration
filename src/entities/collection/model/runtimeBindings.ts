@@ -131,6 +131,22 @@ export type StateOnlyRuntimeBinding = {
 
 export type RuntimeBinding = BoundRuntimeBinding | UnboundRuntimeBinding | StateOnlyRuntimeBinding;
 
+/**
+ * A scene product that keeps a height of its own beside the taller products of the composition
+ * (Urban Freestanding: the 1 Drawer Short Side Cabinet, sent `Drawers: "1D"`).
+ * Whatever height the composition is sent, the scene gets this product's own, by its handle: the
+ * scene bridge corrects it after every command that carries a height or a handle, and places it
+ * with it. Built from the cabinet catalog (buildSteppedSceneProducts), so the heights are the table's.
+ */
+export type SteppedSceneProduct = {
+  /** Scene product type, as `productTypes` names it. */
+  productType: string;
+  /** Scene config values that make the product stepped. */
+  match: ScenePatch;
+  /** Handle value (as the scene holds it) -> the scene height the product takes with it. */
+  heightByHandle: Record<string, number>;
+};
+
 export type RuntimeBindingSet = {
   schemaVersion: number;
   collectionId: string;

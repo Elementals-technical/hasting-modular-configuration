@@ -443,7 +443,11 @@ export const collectionSkuProfileSchema = z
      */
     cabinetCover: z
       .object({
-        prefix: z.string().trim().min(1),
+        /**
+         * SKU series and thickness, given together once the collection confirms them. Without them
+         * the cover is still offered, but its price stays an explicit gap (never zero, never borrowed).
+         */
+        prefix: z.string().trim().min(1).optional(),
         /** Inches, as the SKU spells it (0.5 → `.5H`). */
         thicknessIn: z.number().positive(),
         /** The materials the cover comes in, as the material SKUs of its palette name them. */
@@ -460,6 +464,9 @@ export const collectionSkuProfileSchema = z
         defaultColorAttributeId: z.string().trim().min(1).optional(),
       })
       .strict()
+      .refine(({ prefix, thicknessIn }) => (prefix === undefined) === (thicknessIn === undefined), {
+        message: "cabinetCover.prefix and cabinetCover.thicknessIn are given together",
+      })
       .optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,

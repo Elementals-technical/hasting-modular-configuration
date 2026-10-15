@@ -601,6 +601,33 @@ const parseSeriesModules = (raw: unknown, collect: Collector): ProfileRuleData["
   return raw as ProfileRuleData["seriesModules"];
 };
 
+const parseSteppedModules = (raw: unknown, collect: Collector): ProfileRuleData["steppedModules"] => {
+  if (raw === undefined) return undefined;
+  const isModule = (entry: unknown) =>
+    isRecord(entry) &&
+    isNonEmptyString(entry.cabinetType) &&
+    isNonEmptyString(entry.drawers) &&
+    entry.placement === "composition-end" &&
+    isNonEmptyString(entry.requiresPlacedCategory) &&
+    (entry.note === undefined || typeof entry.note === "string");
+
+  if (
+    !Array.isArray(raw) ||
+    raw.length === 0 ||
+    !raw.every(isModule) ||
+    // One stepped module per drawer style of a cabinet type.
+    new Set(raw.map((entry) => `${entry.cabinetType}/${entry.drawers}`)).size !== raw.length
+  ) {
+    collect.add(
+      "ruleData.invalid_section",
+      "/ruleData/steppedModules",
+      "steppedModules must list, once per cabinet type and drawer style, the placement and the category required first",
+    );
+    return undefined;
+  }
+  return raw as ProfileRuleData["steppedModules"];
+};
+
 /** Optional rule sections of a profile, without the keys the collection does not declare. */
 const parseRuleSections = (
   ruleData: Record<string, unknown>,
@@ -622,6 +649,7 @@ const parseRuleSections = (
     ...(validCompatibility ? { countertopCompatibility: { tableId: compatibility.tableId as number } } : {}),
     cabinetModules: parseCabinetModules(ruleData.cabinetModules, collect),
     seriesModules: parseSeriesModules(ruleData.seriesModules, collect),
+    steppedModules: parseSteppedModules(ruleData.steppedModules, collect),
     drawerStyleGroups: parseDrawerStyleGroups(ruleData.drawerStyleGroups, collect),
     undeterminedRules: parseUndeterminedRules(ruleData.undeterminedRules, collect),
     fluting: parseRuleSection<FlutingRuleData>(ruleData, "fluting", collect),
