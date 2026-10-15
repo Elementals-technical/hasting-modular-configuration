@@ -26,6 +26,7 @@ beforeEach(() => {
         materialId: "Rox Black TKQ",
       },
     ],
+    requestedMaterialId: null,
   };
   api.read.mockReset().mockImplementation(async () => state);
   api.change.mockReset().mockImplementation(async (materialId: string): Promise<CabinetCoverConfigureResult> => {

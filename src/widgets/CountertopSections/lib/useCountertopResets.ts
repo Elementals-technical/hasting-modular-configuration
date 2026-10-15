@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 
+import { getRestoreState } from "@/entities/configuration";
+import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { setActiveBasinStyle } from "@/entities/product/model/store/slice";
-import { useAppDispatch } from "@/shared/hooks/store/redux";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getCountertopMaterialTokensFromBasinType, resolveDefaultBasinForCountertopSelection } from "@/shared/lib/sku";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
@@ -14,32 +16,42 @@ type CountertopResetsArgs = {
   availableBasinOptions: ProductOptionData[];
   hasSinkBase: boolean;
   isActiveStyleAvailable: boolean;
-  changeThickness: (thickness: string) => Promise<void>;
+  /** Sets the thickness the rules allow; the reset is the rules', not the user's, so it takes no undo step. */
+  resetThickness: (thickness: string) => Promise<unknown>;
   applyBasin: (basinStyle: string) => Promise<void>;
 };
 
-/** Three resets that pick a value the rules allow; they move to C's reset owner once a basin command exists. */
+/**
+ * Three resets that pick a value the rules allow; they move to C's reset owner once a basin command exists.
+ * A restore or an undo sets these values in several steps, so nothing is reset until it ends, as
+ * `useAvailabilityResets` waits; the effects run again once it has.
+ */
 export const useCountertopResets = ({
   context,
   allowedThicknessValues,
   availableBasinOptions,
   hasSinkBase,
   isActiveStyleAvailable,
-  changeThickness,
+  resetThickness,
   applyBasin,
 }: CountertopResetsArgs) => {
   const dispatch = useAppDispatch();
   const { activeBasinStyle, activeCountertopColor, activeMaterialTokens, activeThickness, isVesselStyle, ruleState } =
     context;
+  const isRestoring = useAppSelector(
+    (state) => getRestoreState(state).status === "restoring" || getIsHistoryRestoring(state),
+  );
 
   // Thickness: the first allowed one when the current is not.
   useEffect(() => {
+    if (isRestoring) return;
     if (!allowedThicknessValues.size || (activeThickness && allowedThicknessValues.has(activeThickness))) return;
-    void changeThickness([...allowedThicknessValues][0]);
-  }, [activeThickness, allowedThicknessValues, changeThickness]);
+    void resetThickness([...allowedThicknessValues][0]);
+  }, [activeThickness, allowedThicknessValues, isRestoring, resetThickness]);
 
   // Integrated basin: the default of the material, or the first offered one when the current is not offered.
   useEffect(() => {
+    if (isRestoring) return;
     if (!activeCountertopColor || !activeThickness || !hasSinkBase || isVesselStyle) return;
     if (!isActiveStyleAvailable || !availableBasinOptions.length) return;
 
@@ -74,14 +86,16 @@ export const useCountertopResets = ({
     availableBasinOptions,
     hasSinkBase,
     isActiveStyleAvailable,
+    isRestoring,
     isVesselStyle,
   ]);
 
   // Vessel: back to the empty cutout when the rules stop allowing a vessel.
   useEffect(() => {
+    if (isRestoring) return;
     if (!isVesselStyle || ruleState.vesselSinkAvailability.isAvailable) return;
     if (!activeBasinStyle.startsWith("Vessel_")) return;
     void setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
     dispatch(setActiveBasinStyle(""));
-  }, [activeBasinStyle, dispatch, isVesselStyle, ruleState.vesselSinkAvailability.isAvailable]);
+  }, [activeBasinStyle, dispatch, isRestoring, isVesselStyle, ruleState.vesselSinkAvailability.isAvailable]);
 };

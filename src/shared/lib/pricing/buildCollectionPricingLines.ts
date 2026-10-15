@@ -21,6 +21,7 @@ import {
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
   createConfiguratorColorReader,
+  extractColorCode,
   isChosenColor,
   OPEN_SIDE_SHELF_SIDE,
   resolveCabinetCoverColorAttributeId,
@@ -28,6 +29,7 @@ import {
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
+  resolveCountertopColorSkuFromCandidates,
   resolveOpenSideShelfSide,
   SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
@@ -186,7 +188,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       const own = valueAt(values, attributeId, cabinetTarget) ?? globalValue(attributeId);
       if (own) return own;
       if (attributeId === "Drawers") return placedCabinetStyles[entry.runtimeId] ?? null;
-      if (attributeId === "Handle") return asText(input.selectedProductConfig?.Handle as string | undefined);
+      // The handle chosen, else the composition's, recorded at the first cabinet: a restored
+      // configuration has no choice yet, and its cabinets after the first must not lose the handle.
+      if (attributeId === "Handle") {
+        return (
+          asText(input.selectedProductConfig?.Handle as string | undefined) ??
+          asText(compositionValueOf(values.Handle, cabinets[0]?.stableKey))
+        );
+      }
       if (attributeId === "HandleGrooveColor") return asText(input.handleGrooveColor);
       if (attributeId === "CabinetColor") return startingCabinetColor;
       return (
@@ -441,13 +450,32 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   if (cover && input.cabinetCovers?.length) {
     const covers = new Map<string, { quantity: number; totalWidthCm: number }>();
     const colorAttributeId = resolveCabinetCoverColorAttributeId(cover);
+    // A cover in the colours of a countertop priced as Urban Standard Height's (Urban Duplex) is spelled
+    // as that top spells them: the material of the colour's swatch, the code its name ends in.
+    const spelledAsCountertop = colorAttributeId === "CountertopColor" && "pricedAs" in skuProfile.countertop;
+    const spell = (color: string) =>
+      spelledAsCountertop
+        ? {
+            materialSku: resolveCountertopColorSkuFromCandidates({
+              value: color,
+              candidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
+            }),
+            colorCode: extractColorCode(color),
+          }
+        : {
+            materialSku: resolveCollectionColorMaterial(
+              skuProfile,
+              profile,
+              colorAttributeId,
+              color,
+              readConfiguratorColor,
+            ),
+            colorCode: resolveCollectionColorCode(skuProfile, color),
+          };
     let unpriced = false;
     input.cabinetCovers.forEach(({ widthCm: coverWidthCm, cabinetIds, materialId }) => {
       const color = materialId ? (normalizeOptionValue(profile, colorAttributeId, materialId) ?? materialId) : null;
-      const materialSku = color
-        ? resolveCollectionColorMaterial(skuProfile, profile, colorAttributeId, color, readConfiguratorColor)
-        : null;
-      const colorCode = color ? resolveCollectionColorCode(skuProfile, color) : null;
+      const { materialSku, colorCode } = color ? spell(color) : { materialSku: null, colorCode: null };
       const depths = cabinetIds.map((id) => {
         const under = cabinets.find(({ runtimeId }) => runtimeId === id);
         return under ? (dimensionsByCabinet[under.stableKey]?.depth ?? null) : null;

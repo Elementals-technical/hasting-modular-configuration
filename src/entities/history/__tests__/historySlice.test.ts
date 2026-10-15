@@ -96,6 +96,41 @@ describe("history: entries", () => {
     expect(history().past.map(({ productIds }) => productIds)).toEqual([["a"]]);
   });
 
+  it("starts over from an empty composition, which cannot be restored, so the first cabinet cannot be undone", () => {
+    const { store, state, snapshotOf, history } = setUp();
+    store.dispatch(pushSnapshot(snapshotOf("a")));
+    store.dispatch(undo(snapshotOf("a", "b")));
+
+    store.dispatch(pushSnapshot(snapshotOf()));
+
+    expect(history().past).toEqual([]);
+    expect(history().future).toEqual([]);
+    expect([getCanUndo(state()), getCanRedo(state())]).toEqual([false, false]);
+  });
+
+  it("keeps an empty composition out of redo when the last cabinet's removal is undone", () => {
+    const { store, state, snapshotOf, history } = setUp();
+    store.dispatch(pushSnapshot(snapshotOf("a")));
+
+    // The current state is the scene emptied by the removal.
+    store.dispatch(undo(snapshotOf()));
+
+    expect(history().past).toEqual([]);
+    expect(history().future).toEqual([]);
+    expect(getCanRedo(state())).toBe(false);
+  });
+
+  it("keeps an empty composition out of undo when a redo leaves it", () => {
+    const { store, snapshotOf, history } = setUp();
+    store.dispatch(pushSnapshot(snapshotOf("a")));
+    store.dispatch(undo(snapshotOf("a", "b")));
+
+    store.dispatch(redo(snapshotOf()));
+
+    expect(history().past).toEqual([]);
+    expect(history().future).toEqual([]);
+  });
+
   it("writes no entry while a snapshot is being restored", () => {
     const { store, snapshotOf, history } = setUp();
     store.dispatch(setHistoryRestoring(true));

@@ -11,6 +11,7 @@ import {
   dropValuesForCabinet,
   markRuntimeOutOfSync,
   recordSceneState,
+  requestSceneStateSync,
   restoreCabinets,
   restoreConfigurationFragment,
 } from "@/entities/configuration/model/store/slice";
@@ -42,9 +43,9 @@ export type RestoreSnapshotDeps = {
   /**
    * Shows the snapshot's configuration values on the rebuilt products. The command service
    * sends them through the runtime port (C06); the state already holds them, so they are
-   * not recorded again.
+   * not recorded again. Its outcome says whether the scene took them all.
    */
-  replay: (values: Readonly<Record<string, AttributeValue>>) => Promise<unknown>;
+  replay: (values: Readonly<Record<string, AttributeValue>>) => Promise<{ status: "applied" | "partial" | "error" }>;
 };
 
 /** Configuration values a product's own config may not carry, so the scene is given them again. */
@@ -201,13 +202,16 @@ export async function restoreSnapshot(
   );
   if (boundPanels) replayed.SidePanels = snapshot.productOptions.SidePanels;
   const replayResult = await replay(replayed);
-  if (
-    replayResult &&
-    typeof replayResult === "object" &&
-    "status" in replayResult &&
-    (replayResult.status === "error" || replayResult.status === "partial")
-  ) {
+
+  // Re-apply SidePanel state to PlayCanvas (per-side): the panels do not depend on the values above.
+  const { SidePanels, SidePanelLeft, SidePanelRight } = snapshot.productOptions;
+  if (!boundPanels)
+    await restoreSidePanelState(dispatch, SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
+
+  if (replayResult.status === "error" || replayResult.status === "partial") {
+    // As after a partial command: the state and the scene may differ until the next reader pass.
     dispatch(markRuntimeOutOfSync());
+    dispatch(requestSceneStateSync());
     return {
       ...result,
       status: "partial",
@@ -221,11 +225,6 @@ export async function restoreSnapshot(
       ],
     };
   }
-
-  // Re-apply SidePanel state to PlayCanvas (per-side).
-  const { SidePanels, SidePanelLeft, SidePanelRight } = snapshot.productOptions;
-  if (!boundPanels)
-    await restoreSidePanelState(dispatch, SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
 
   return result;
 }

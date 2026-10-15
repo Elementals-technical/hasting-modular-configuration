@@ -29,6 +29,7 @@ import {
   semanticValueOf,
   useActiveCollection,
   useCollectionPresets,
+  type ProductProfile,
 } from "@/entities/collection";
 import {
   useCollectionNavigation,
@@ -183,6 +184,31 @@ const readSavedBasin = (fragment: RestorePlan["fragment"]): string | undefined =
     .map(({ stableKey }) => readFragmentValue(fragment, "sinkType", { scope: "basin", sinkBaseId: stableKey }))
     .concat(readFragmentValue(fragment, "sinkType", { scope: "basin" }))
     .find((value): value is string => typeof value === "string");
+
+/**
+ * The handle a configuration was saved with, as placing a model records it: the one value its cabinets
+ * hold, else the one every saved product agrees on (a save made before the fragment carried it).
+ * Undefined where they differ, as Mako cabinets with handles of their own may: those stay per cabinet.
+ */
+const readSavedHandle = (
+  fragment: RestorePlan["fragment"],
+  products: readonly PresetProduct[],
+  profile: ProductProfile | null,
+): string | undefined => {
+  const agreed = (values: readonly unknown[]) => {
+    const handles = new Set(
+      values.flatMap((value) =>
+        typeof value === "string" && value ? [normalizeOptionValue(profile, "Handle", value) ?? value] : [],
+      ),
+    );
+    return handles.size === 1 ? [...handles][0] : undefined;
+  };
+  const saved = fragment.cabinets
+    .map(({ stableKey }) => readFragmentValue(fragment, "Handle", { scope: "cabinet", cabinetId: stableKey }))
+    .concat(readFragmentValue(fragment, "Handle", { scope: "global" }));
+
+  return agreed(saved) ?? agreed(products.map(({ Handle }) => Handle));
+};
 
 const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
   const totalWidthValues = presetProducts.map((preset) =>
@@ -1041,6 +1067,11 @@ export const ModelPage = () => {
             : undefined;
         const restoredThickness =
           typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
+        // The handle is chosen once for the composition, as placing the model chooses it: the price of the
+        // cabinets after the first, the rules and the handle menus read that choice.
+        const restoredHandle = selectAttribute(activeProfileRef.current, "Handle")
+          ? readSavedHandle(plan.fragment, presetProducts, activeProfileRef.current)
+          : undefined;
         record({
           ...toConfigurationValues({
             CountertopColor: globalConfig.CountertopColor,
@@ -1057,6 +1088,7 @@ export const ModelPage = () => {
           ...(restoredCabinetColor ? { CabinetColor: restoredCabinetColor } : {}),
           ...(restoredHandleGrooveColor ? { HandleGrooveColor: restoredHandleGrooveColor } : {}),
           ...(restoredThickness ? { Thickness: restoredThickness } : {}),
+          ...(restoredHandle ? { Handle: restoredHandle } : {}),
         });
         if (globalConfig.CountertopColor) {
           if (restoredCountertopColorSku) {

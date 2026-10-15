@@ -35,10 +35,12 @@ import { useAvailabilityResets } from "../hooks/useAvailabilityResets";
 import { resolveChangeRequest } from "../lib/resolveChangeRequest";
 import { readyCollectionFixture } from "./readyCollectionFixture";
 
-const saveSnapshotMock = vi.fn(async () => undefined);
+// Each undo step the handler takes runs its change; the step's own rules are useHistoryStep's tests.
+const runStepMock = vi.fn(<T,>(change: () => Promise<T>) => change());
 
-vi.mock("@/entities/history/lib/useHistorySnapshot", () => ({
-  useHistorySnapshot: () => saveSnapshotMock,
+vi.mock("@/entities/history/lib/useHistoryStep", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/history/lib/useHistoryStep")>()),
+  useHistoryStep: () => ({ run: runStepMock }),
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => true }));
@@ -84,7 +86,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 beforeEach(() => {
-  saveSnapshotMock.mockClear();
+  runStepMock.mockClear();
   store.dispatch(reset());
   store.dispatch(resetConfiguration());
   store.dispatch(setActiveProfile(ushProfile));
@@ -147,7 +149,7 @@ describe("useAttributeChangeHandler", () => {
     });
 
     expect(status).toBe("applied");
-    expect(saveSnapshotMock).toHaveBeenCalledTimes(1);
+    expect(runStepMock).toHaveBeenCalledTimes(1);
     expect(runtime.calls[0][0]).toMatchObject({
       attributeId: "DrawerPanelFluting",
       value: "FlutingVerticalA",
@@ -167,7 +169,7 @@ describe("useAttributeChangeHandler", () => {
     });
 
     expect(result.current.notice).toBe("Fluting is available only for Lacquer Matte (LACM).");
-    expect(saveSnapshotMock).not.toHaveBeenCalled();
+    expect(runStepMock).not.toHaveBeenCalled();
     expect(runtime.calls).toHaveLength(0);
   });
 

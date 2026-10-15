@@ -47,12 +47,16 @@ import { RightCabinetStyleSidebar } from "../RightCabinetStyleSidebar";
 
 const scene = vi.hoisted(() => ({
   runtime: null as TestRuntimePort | null,
-  saveSnapshot: vi.fn(async () => {}),
+  // Each undo step the sidebar takes runs its change; the step's own rules are useHistoryStep's tests.
+  runStep: vi.fn(<T,>(change: () => Promise<T>) => change()),
   select: vi.fn(),
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => false }));
-vi.mock("@/entities/history/lib/useHistorySnapshot", () => ({ useHistorySnapshot: () => scene.saveSnapshot }));
+vi.mock("@/entities/history/lib/useHistoryStep", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/history/lib/useHistoryStep")>()),
+  useHistoryStep: () => ({ run: scene.runStep }),
+}));
 vi.mock("@/utils/functions/playcanvas/setConfigBatch", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/utils/functions/playcanvas/setConfigBatch")>()),
   setConfigBatch: vi.fn(),
@@ -138,7 +142,7 @@ const sides = () =>
 
 beforeEach(() => {
   scene.runtime = null;
-  scene.saveSnapshot.mockClear();
+  scene.runStep.mockClear();
   scene.select.mockClear();
 
   store.dispatch(reset());
@@ -174,7 +178,7 @@ describe("the side of the lateral panel in the style sidebar", () => {
     expect(sideSelector().textContent).toContain("Left");
     expect(getCabinetBuilderProductConfig(store.getState())).toMatchObject({ LateralPanelSide: "L" });
     expect(scene.runtime?.calls ?? []).toEqual([]);
-    expect(scene.saveSnapshot).not.toHaveBeenCalled();
+    expect(scene.runStep).not.toHaveBeenCalled();
     expect(sides()).toEqual(["R", "R"]);
   });
 
@@ -194,7 +198,7 @@ describe("the side of the lateral panel in the style sidebar", () => {
     chooseSide("Left");
 
     await waitFor(() => expect(sides()).toEqual(["R", "L"]));
-    expect(scene.saveSnapshot).toHaveBeenCalledTimes(1);
+    expect(scene.runStep).toHaveBeenCalledTimes(1);
     expect(scene.runtime?.calls).toEqual([
       [
         expect.objectContaining({

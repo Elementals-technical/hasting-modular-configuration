@@ -51,12 +51,16 @@ import { CabinetBuilderPage } from "../CabinetBuilderPage";
 
 const scene = vi.hoisted(() => ({
   runtime: null as TestRuntimePort | null,
-  saveSnapshot: vi.fn(async () => {}),
+  // Each undo step the page takes runs its change; the step's own rules are useHistoryStep's tests.
+  runStep: vi.fn(<T,>(change: () => Promise<T>) => change()),
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => false }));
 vi.mock("@/utils/functions/playcanvas/emptyButton", () => ({ showEmptyButton: vi.fn(), hideEmptyButton: vi.fn() }));
-vi.mock("@/entities/history/lib/useHistorySnapshot", () => ({ useHistorySnapshot: () => scene.saveSnapshot }));
+vi.mock("@/entities/history/lib/useHistoryStep", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/history/lib/useHistoryStep")>()),
+  useHistoryStep: () => ({ run: scene.runStep }),
+}));
 vi.mock("@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar", () => ({
   RightCabinetStyleSidebar: () => null,
 }));
@@ -162,7 +166,7 @@ const sceneChanges = () => (scene.runtime?.calls ?? []).flat();
 
 beforeEach(() => {
   scene.runtime = null;
-  scene.saveSnapshot.mockClear();
+  scene.runStep.mockClear();
 
   store.dispatch(reset());
   store.dispatch(resetConfiguration());
@@ -210,7 +214,7 @@ describe("Urban Duplex cabinet styles beside placed cabinets", () => {
     );
     expect(product().selectedDimensions.height).toBe(53);
     // One set for the scene: the drawers of each cabinet and the height they require.
-    expect(scene.saveSnapshot).toHaveBeenCalledTimes(1);
+    expect(scene.runStep).toHaveBeenCalledTimes(1);
     expect(scene.runtime?.calls).toHaveLength(1);
     expect(scene.runtime?.calls[0]).toEqual(
       expect.arrayContaining([
@@ -318,7 +322,7 @@ describe("Urban Duplex side cabinets of other series", () => {
 
     await waitFor(() => expect(product().selectedDimensions.height).toBe(38));
     // One step back, and one change for the scene: the height, the nearer of the two.
-    expect(scene.saveSnapshot).toHaveBeenCalledTimes(1);
+    expect(scene.runStep).toHaveBeenCalledTimes(1);
     expect(sceneChanges().map(({ attributeId, value }) => [attributeId, value])).toEqual([["Height", 38]]);
     expect(product().placedCabinetStyles).toEqual({ [SINK_BASE]: "1", [SIDE_CABINET]: "1" });
     // The cabinet being added is the Urban Low Height one.
@@ -335,7 +339,7 @@ describe("Urban Duplex side cabinets of other series", () => {
 
     await waitFor(() => expect(product().selectedDimensions.height).toBe(38));
     expect(product().placedCabinetStyles).toEqual({ [SINK_BASE]: "1", [SIDE_CABINET]: "1" });
-    expect(scene.saveSnapshot).toHaveBeenCalledTimes(1);
+    expect(scene.runStep).toHaveBeenCalledTimes(1);
     const changes = sceneChanges().map(({ attributeId, value }) => [attributeId, value]);
     expect(changes.filter(([attributeId]) => attributeId === "Drawers")).toEqual([
       ["Drawers", "1"],

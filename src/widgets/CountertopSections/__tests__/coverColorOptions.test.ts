@@ -47,20 +47,21 @@ describe("Lower countertop colors", () => {
     ).toBe(true);
   });
 
-  it("reads the Base Panel catalog Urban Duplex names for its covers", () => {
+  it("reads the Countertop Color catalog Urban Duplex names for its covers, in the countertop's materials", () => {
     const cover = URBAN_DUPLEX.skuProfile.cabinetCover;
     if (!cover) throw new Error("Urban Duplex has no cover contract");
     const attributeId = resolveCabinetCoverColorAttributeId(cover);
-    const result = buildCoverColorOptions(
-      resolveConfiguratorOptions(URBAN_DUPLEX.profile, attributeId, URBAN_DUPLEX.configurator),
-      URBAN_DUPLEX.skuProfile,
-    );
+    const countertopColors = resolveConfiguratorOptions(URBAN_DUPLEX.profile, attributeId, URBAN_DUPLEX.configurator);
+    const result = buildCoverColorOptions(countertopColors, URBAN_DUPLEX.skuProfile);
 
-    expect(attributeId).toBe("BasePanelColor");
-    // Soft-Touch is a cover material, and so is HPL, as Urban Low Height's Lower comes in it.
-    expect(result.some(({ value }) => value === "Bianco Calce DA ST")).toBe(true);
-    expect(result.some(({ value }) => value === "Pulpis Chiaro TKH")).toBe(true);
-    expect(result.every(({ traits }) => traits?.sku && cover.materialSkus.includes(traits.sku))).toBe(true);
+    expect(attributeId).toBe("CountertopColor");
+    // The Upper's colours of every material an SKU names: Fenix, HPL, Porcelain and Solid Surface.
+    expect([...new Set(result.map(({ traits }) => traits?.sku))].sort()).toEqual(["FX", "HPL", "POR", "SSTL"]);
+    expect(result.map(({ value }) => value)).toEqual(
+      countertopColors.filter(({ traits }) => traits?.sku).map(({ value }) => value),
+    );
+    // A cabinet colour is not one of them.
+    expect(result.some(({ value }) => value === "Bianco Calce DA ST")).toBe(false);
   });
 
   it("keeps Cabinet Color for a collection that names no attribute", () => {

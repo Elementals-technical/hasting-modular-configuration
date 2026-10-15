@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { selectSidePanelAvailability } from "@/entities/product/model/store/derivedSelectors";
 import {
   getCompositionVersion,
@@ -81,7 +81,7 @@ const useEdgeCabinets = (selectedProducts: string[]) => {
 /** Side panel groove options judged for the selected edge cabinet, and the groove change with its confirmation. */
 export const useSidePanelState = (field: FieldRuntimeState | undefined) => {
   const dispatch = useAppDispatch();
-  const saveSnapshot = useHistorySnapshot();
+  const { run: runStep } = useHistoryStep();
   const activeProfile = useAppSelector(getActiveProductProfile);
   const activeGroove = useAppSelector(getSidePanelsOption);
   const selectedSceneProduct = useAppSelector(getSelectedSceneProduct);
@@ -201,13 +201,14 @@ export const useSidePanelState = (field: FieldRuntimeState | undefined) => {
 
   const applyGrooveChange = useCallback(
     async (groove: GrooveType, side: SidePanelApplySide) => {
-      await saveSnapshot();
-      await applyGroove(dispatch, groove, side, cabinetCount, {
-        currentLeftStatus: leftStatus,
-        currentRightStatus: rightStatus,
-      });
+      await runStep(() =>
+        applyGroove(dispatch, groove, side, cabinetCount, {
+          currentLeftStatus: leftStatus,
+          currentRightStatus: rightStatus,
+        }),
+      );
     },
-    [cabinetCount, dispatch, leftStatus, rightStatus, saveSnapshot],
+    [cabinetCount, dispatch, leftStatus, rightStatus, runStep],
   );
 
   const changeGroove = async (value: string) => {
