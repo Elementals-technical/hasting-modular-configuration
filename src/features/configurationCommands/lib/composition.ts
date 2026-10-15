@@ -72,7 +72,8 @@ export type CompositionErrorCode =
 export type CompositionResult =
   | { status: "applied"; productIds: string[]; placed: string[] }
   | { status: "partial"; productIds: string[]; placed: string[]; message: string; needsSync: true }
-  | { status: "error"; code: CompositionErrorCode; message: string };
+  /** `sceneCode`: the scene's own refusal code (e.g. "UF_HEIGHT_RUN_VIOLATION") for the interface to explain. */
+  | { status: "error"; code: CompositionErrorCode; message: string; sceneCode?: string };
 
 export type ApplyPresetRequest = {
   /** The preset's products, in order. */
@@ -324,7 +325,7 @@ const stoppedResult = (result: Exclude<SceneCompositionResult, SceneChange>): Co
       };
 
     case "failed":
-      return { status: "error", code: "runtime-failed", message: result.message };
+      return { status: "error", code: "runtime-failed", message: result.message, sceneCode: result.sceneCode };
   }
 };
 

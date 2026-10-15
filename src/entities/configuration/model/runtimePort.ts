@@ -211,7 +211,8 @@ export type SceneCompositionResult =
   | { status: "applied"; placed: string[]; scene: SceneStateResult }
   | { status: "not-ready" }
   | { status: "rejected"; issues: SceneRestoreIssue[] }
-  | { status: "failed"; message: string }
+  /** `sceneCode`: the scene's own refusal code, e.g. "UF_HEIGHT_RUN_VIOLATION"; the scene is unchanged. */
+  | { status: "failed"; message: string; sceneCode?: string }
   | { status: "partial"; placed: string[]; message: string; scene: SceneStateResult };
 
 export type SceneCompositionReplaceRequest = {

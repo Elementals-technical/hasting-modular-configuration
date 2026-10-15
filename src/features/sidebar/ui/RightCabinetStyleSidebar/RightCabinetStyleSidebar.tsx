@@ -44,8 +44,10 @@ import {
 
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
-import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { setVisibleButtons, type VisibleButtonsOptions } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { reportSceneRefusal } from "@/features/sceneRefusalNotice";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
+import { showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
@@ -717,12 +719,40 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     // A side shelf and a short cabinet (`ruleData.steppedModules`, placement "composition-end") go
     // at an end of the composition: the scene's "Side-Shelf" button mode shows the end buttons only.
     const placesAtEnd = activeDrawerProduct === "Side-Shelf" || isSteppedStyle;
-    const options = isOpenedStyleSidebar && placesAtEnd ? { productType: "Side-Shelf" } : undefined;
     const shouldShowPlacementButtons = isOpenedStyleSidebar && hasAddableWidth;
 
-    setVisibleButtons(shouldShowPlacementButtons, options);
+    // The cabinet the "+" would add: the scene keeps only the "+" it may use (UF: a short one never
+    // between tall ones) at its height. A short cabinet stands at its own height (table 590).
+    const handle = shownCabinetAttributeValues.Handle;
+    const steppedHeight =
+      isSteppedStyle && selectedDrawers && handle
+        ? activeCabinetRule?.steppedHeightByHandle?.[selectedDrawers]?.[handle]
+        : undefined;
+    const options: VisibleButtonsOptions = {
+      ...(placesAtEnd ? { productType: "Side-Shelf" } : {}),
+      config: { Height: steppedHeight ?? selectedDimensions.height ?? undefined, Handle: handle },
+    };
+
+    setVisibleButtons(shouldShowPlacementButtons, isOpenedStyleSidebar ? options : undefined);
     placementButtonsVisibleRef.current = shouldShowPlacementButtons;
-  }, [activeDrawerProduct, isOpenedStyleSidebar, isSteppedStyle, widthOptions.length]);
+
+    // On an empty scene, setVisibleButtons rebuilds the scene's buttons and leaves the "+" of the
+    // first cabinet hidden (SceneManager.updateButtonsPositions → plusManager.showEmptyState).
+    // CabinetBuilderPage shows that "+" once when the sidebar opens; this effect re-runs on every
+    // change of the cabinet being added, so it shows it again, on the same condition as the page.
+    const isEmptyComposition = selectedProducts.length === 0;
+    if (isOpenedStyleSidebar && isEmptyComposition) showEmptyButton();
+  }, [
+    activeCabinetRule,
+    activeDrawerProduct,
+    isOpenedStyleSidebar,
+    isSteppedStyle,
+    selectedDimensions.height,
+    selectedDrawers,
+    selectedProducts.length,
+    shownCabinetAttributeValues,
+    widthOptions.length,
+  ]);
 
   useEffect(
     () => () => {
@@ -839,6 +869,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           side: placement.side,
         }),
       );
+      // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.
+      reportSceneRefusal(added);
       const productId = added.status === "error" ? null : added.placed[0];
       if (!productId) return;
 

@@ -10,6 +10,7 @@ import { buildSteppedSceneProducts } from "@/entities/product/lib/buildSteppedSc
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import {
   applyConfiguratorRules,
+  resolveMoveSwaps,
   resolveSteppedEndPlacement,
   type Selection,
 } from "@/features/configurator-rule-core/cabinetBuilder";
@@ -179,5 +180,52 @@ describe("Urban Freestanding short cabinet placement", () => {
       anchorRuntimeId: "UF-side-cabinet-short1",
       side: "left",
     });
+  });
+});
+
+describe("Urban Freestanding short cabinet move", () => {
+  /** The row after the swaps, as the scene applies them one by one. */
+  const rowAfter = (row: readonly string[], swaps: readonly (readonly [string, string])[]) =>
+    swaps.reduce<string[]>(
+      (current, [idA, idB]) => {
+        const next = [...current];
+        next[current.indexOf(idA)] = idB;
+        next[current.indexOf(idB)] = idA;
+        return next;
+      },
+      [...row],
+    );
+  const move = (row: string[], runtimeId: string, direction: "left" | "right") => {
+    const swaps = resolveMoveSwaps({
+      runtimeId,
+      direction,
+      orderedRuntimeIds: row,
+      steppedRuntimeIds: row.filter((id) => id.startsWith("S")),
+    });
+    return { swaps, row: rowAfter(row, swaps) };
+  };
+  /** Whether the tall cabinets stand together, as the scene requires after every swap. */
+  const tallTogether = (row: readonly string[]) => {
+    const tall = row.map((id, index) => (id.startsWith("T") ? index : -1)).filter((index) => index >= 0);
+    return tall.length === 0 || tall[tall.length - 1] - tall[0] === tall.length - 1;
+  };
+
+  it("jumps the tall block to its other end, the tall cabinets keeping their order", () => {
+    expect(move(["S", "T1", "T2"], "S", "right").row).toEqual(["T1", "T2", "S"]);
+    expect(move(["T1", "T2", "S"], "S", "left").row).toEqual(["S", "T1", "T2"]);
+    expect(move(["S1", "T1", "T2", "T3", "S2"], "S1", "right").row).toEqual(["T1", "T2", "T3", "S1", "S2"]);
+  });
+
+  it("keeps the tall cabinets together after every swap, so the scene takes each one", () => {
+    const row = ["S", "T1", "T2", "T3"];
+    const { swaps } = move(row, "S", "right");
+
+    swaps.forEach((_, count) => expect(tallTogether(rowAfter(row, swaps.slice(0, count + 1)))).toBe(true));
+  });
+
+  it("swaps with the neighbour otherwise, and does nothing at the end of the row", () => {
+    expect(move(["S1", "S2", "T1"], "S1", "right").swaps).toEqual([["S1", "S2"]]);
+    expect(move(["T1", "T2", "S"], "T1", "right").swaps).toEqual([["T1", "T2"]]);
+    expect(move(["T1", "T2", "S"], "S", "right").swaps).toEqual([]);
   });
 });

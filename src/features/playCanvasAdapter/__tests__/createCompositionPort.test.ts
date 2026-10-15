@@ -21,6 +21,7 @@ type Answers = {
   insert?: SceneAddProductResult;
   setConfig?: SceneOperationResult;
   remove?: SceneOperationResult[];
+  swap?: SceneOperationResult;
 };
 
 const createFakeScene = (answers: Answers = {}) => {
@@ -56,7 +57,7 @@ const createFakeScene = (answers: Answers = {}) => {
     },
     async swapProducts(runtimeIdA, runtimeIdB) {
       calls.push(["swap", runtimeIdA, runtimeIdB]);
-      return { status: "applied" };
+      return answers.swap ?? { status: "applied" };
     },
   };
 
@@ -418,6 +419,30 @@ describe("createCompositionPort", () => {
 
     const second = createPort({ remove: [{ status: "applied" }, failed] });
     expect(await second.port.remove(["cab-a", "cab-b"])).toMatchObject({ status: "partial" });
+  });
+
+  it("keeps the scene's refusal code of an insert or a swap (UF height run)", async () => {
+    const refusal: SceneOperationResult = {
+      status: "failed",
+      code: "scene-error",
+      message: "short between tall",
+      sceneCode: "UF_HEIGHT_RUN_VIOLATION",
+    };
+
+    const inserting = createPort({ insert: refusal });
+    expect(
+      await inserting.port.add(
+        { productType: "Side-Cabinet", config: { Width: 40 } },
+        { kind: "beside", anchorRuntimeId: "cab-a", side: "right" },
+      ),
+    ).toEqual({ status: "failed", message: "short between tall", sceneCode: "UF_HEIGHT_RUN_VIOLATION" });
+
+    const swapping = createPort({ swap: refusal });
+    expect(await swapping.port.swap("cab-a", "cab-b")).toEqual({
+      status: "failed",
+      message: "short between tall",
+      sceneCode: "UF_HEIGHT_RUN_VIOLATION",
+    });
   });
 
   it("sends nothing while the scene is not ready", async () => {

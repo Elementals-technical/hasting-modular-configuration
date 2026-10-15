@@ -144,6 +144,32 @@ describe("insertSceneProduct", () => {
     expect(api).toHaveBeenCalledWith("Sink-Base", null, "right");
   });
 
+  it("keeps the scene's refusal code (UF height run), so the interface can explain it", async () => {
+    const refusal = Object.assign(new Error("A short cabinet cannot stand between tall ones"), {
+      code: "UF_HEIGHT_RUN_VIOLATION",
+      operation: "insert",
+      draftClass: "short",
+      insertIndex: 1,
+    });
+    installInsert(vi.fn(async () => Promise.reject(refusal)));
+
+    expect(await insertSceneProduct("UF-side-cabinet", "rt-a", "right", { Height: 56, Handle: "UG" })).toEqual({
+      status: "failed",
+      code: "scene-error",
+      message: "A short cabinet cannot stand between tall ones",
+      sceneCode: "UF_HEIGHT_RUN_VIOLATION",
+    });
+  });
+
+  it("reports an error without a code as a plain scene error", async () => {
+    installInsert(vi.fn(async () => Promise.reject(new Error("boom"))));
+
+    expect(await insertSceneProduct("Sink-Base", "rt-a", "left")).toEqual({
+      status: "failed",
+      code: "scene-error",
+      message: "boom",
+    });
+  });
 });
 
 describe("stepped products through the bridge", () => {

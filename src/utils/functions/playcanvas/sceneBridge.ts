@@ -214,11 +214,14 @@ export const readSceneProducts = (productIds: readonly string[]): Promise<SceneP
     return { status: "ready", order, configs };
   });
 
-/** Answer of one scene operation used to rebuild a composition. */
+/**
+ * Answer of one scene operation used to rebuild a composition. `sceneCode`: the scene's own code of a
+ * refusal, e.g. "UF_HEIGHT_RUN_VIOLATION" (the change would split the block of tall UF cabinets).
+ */
 export type SceneOperationResult =
   | { status: "applied" }
   | { status: "not-ready" }
-  | { status: "failed"; code: SceneCallFailureCode; message: string };
+  | { status: "failed"; code: SceneCallFailureCode; message: string; sceneCode?: string };
 
 export type SceneAddProductResult =
   | {
@@ -228,7 +231,7 @@ export type SceneAddProductResult =
       configApplied?: boolean;
     }
   | { status: "not-ready" }
-  | { status: "failed"; code: SceneCallFailureCode; message: string };
+  | { status: "failed"; code: SceneCallFailureCode; message: string; sceneCode?: string };
 
 export type ScenePresetProduct = {
   name: string;
@@ -246,6 +249,8 @@ const toSceneError = (error: unknown) => ({
   status: "failed" as const,
   code: "scene-error" as const,
   message: error instanceof Error ? error.message : String(error),
+  // The scene throws its refusals with a code of their own, e.g. UF_HEIGHT_RUN_VIOLATION.
+  sceneCode: isRecord(error) && typeof error.code === "string" ? error.code : undefined,
 });
 
 /**

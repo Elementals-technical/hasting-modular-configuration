@@ -26,7 +26,7 @@ import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight.tsx";
 import { getSelectTool, type SelectionAction, type SelectionInfo } from "@/utils/functions/playcanvas/getSelectTool";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
-import { setVisibleButtons } from "@/utils/functions/playcanvas/setVisibleButtons";
+import { setVisibleButtons, type VisibleButtonsOptions } from "@/utils/functions/playcanvas/setVisibleButtons";
 import {
   getDimensionOptions,
   getHeightChoices,
@@ -131,6 +131,7 @@ import {
 } from "@/features/countertopPlacement/ui/CountertopDragMode";
 import { useSinkLanding } from "@/features/countertopPlacement/lib/useSinkLanding";
 import { CountertopModeNotice } from "@/features/countertopPlacement/ui/CountertopModeNotice";
+import { reportSceneRefusal, SceneRefusalNotice } from "@/features/sceneRefusalNotice";
 import { SinkLandingMessage } from "@/features/countertopPlacement/ui/SinkLandingMessage";
 import {
   buildCountertopPositionItems,
@@ -172,7 +173,9 @@ import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntime
 import {
   findPlacedCabinetRule,
   getUniqueCatalogWidths,
+  resolveMoveSwaps,
   resolveSteppedEndPlacement,
+  type CabinetSwap,
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
 import {
@@ -2179,15 +2182,22 @@ export const PlayCanvasIntegration = ({
     return resolveRuntimeProductType(productId, config);
   }, []);
 
-  const handleDuplicateProduct = useCallback(() => {
+  const handleDuplicateProduct = useCallback(async () => {
     if (!selectedSceneProduct || !canDuplicateSelectedCabinet) return;
-    setDuplicateSourceId(selectedSceneProduct);
-    // The cabinet type through the bindings: "UF-open-shelves-side" does not spell "Side-Shelf".
-    const options = cabinetTypeOf(selectedSceneProduct) === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
-    setVisibleButtons(true, options);
-
+    const sourceId = selectedSceneProduct;
+    setDuplicateSourceId(sourceId);
     setDropdownState((prev) => ({ ...prev, visible: false }));
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+
+    // The copy is placed with the source's scene config (onPlusClick below), so the "+" are shown
+    // for its Height and Handle: the scene keeps only those the copy may use (UF row rule).
+    const sourceConfig = await getConfig(sourceId);
+    const options: VisibleButtonsOptions = {
+      // The cabinet type through the bindings: "UF-open-shelves-side" does not spell "Side-Shelf".
+      ...(cabinetTypeOf(sourceId) === "Side-Shelf" ? { productType: "Side-Shelf" } : {}),
+      config: { Height: sourceConfig?.Height, Handle: sourceConfig?.Handle },
+    };
+    setVisibleButtons(true, options);
   }, [cabinetTypeOf, canDuplicateSelectedCabinet, selectedSceneProduct]);
 
   useEffect(() => {
@@ -2242,6 +2252,8 @@ export const PlayCanvasIntegration = ({
           placement: { kind: "beside", anchorRuntimeId: placement.anchorRuntimeId, side: placement.side },
           afterPlacement: vesselColorRef.current && isVessel ? { VesselColor: vesselColorRef.current } : undefined,
         });
+        // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.
+        reportSceneRefusal(added);
         const productId = added.status === "error" ? null : added.placed[0];
         if (!productId) return;
 
@@ -2368,13 +2380,20 @@ export const PlayCanvasIntegration = ({
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
+  /** Swaps cabinets in order, as one step of the history; stops at the first swap the scene refuses. */
   const handleSwapProducts = useCallback(
-    async (idA: string, idB: string) => {
+    async (swaps: readonly CabinetSwap[]) => {
+      if (swaps.length === 0) return;
+
       await saveSnapshot();
-      const swapped = await composition.swapCabinets(idA, idB);
-      if (swapped.status === "error") {
-        console.warn("[PlayCanvasIntegration] The cabinets were not swapped", swapped);
-        return;
+      for (const [idA, idB] of swaps) {
+        const swapped = await composition.swapCabinets(idA, idB);
+        if (swapped.status === "error") {
+          // A refusal of the scene (UF: the swap would split the tall cabinets) is explained to the user.
+          reportSceneRefusal(swapped);
+          console.warn("[PlayCanvasIntegration] The cabinets were not swapped", swapped);
+          return;
+        }
       }
       await enforceSidePanelEligibilityForEdgeCabinets();
     },
@@ -2402,10 +2421,17 @@ export const PlayCanvasIntegration = ({
         return;
       }
 
-      await handleSwapProducts(selectedSceneProduct, orderedIds[neighborIndex]);
+      // A short cabinet moved towards the tall ones jumps their block (resolveMoveSwaps).
+      const swaps = resolveMoveSwaps({
+        runtimeId: selectedSceneProduct,
+        direction,
+        orderedRuntimeIds: orderedIds,
+        steppedRuntimeIds: selectSteppedCabinetIds(store.getState()),
+      });
+      await handleSwapProducts(swaps);
       closeInPlayerActionSurface();
     },
-    [cabinetTypeOf, closeInPlayerActionSurface, handleSwapProducts, productIds, selectedSceneProduct],
+    [cabinetTypeOf, closeInPlayerActionSurface, handleSwapProducts, productIds, selectedSceneProduct, store],
   );
 
   useEffect(() => {
@@ -3878,6 +3904,11 @@ export const PlayCanvasIntegration = ({
           onSessionDiscarded={abandonCountertopEdit}
         />
       )}
+
+      {/* Why the scene refused the last add / duplicate / swap (UF height run). */}
+      <SceneRefusalNotice
+        style={{ position: "absolute", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 26 }}
+      />
 
       {/* Movement mode by thickness: a short notice on every switch (and its auto-correction). */}
       {cabinetPlacementDebugEnabled && (
