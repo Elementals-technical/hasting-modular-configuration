@@ -193,9 +193,11 @@ it("offers Upper and Lower on Urban Duplex once the scene publishes a cover, in 
   await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
   fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  // The scene's HPL slab reads as chosen: HPL is a material of the decorative top, as in Urban Low Height.
+  await waitFor(() =>
+    expect(colors.getByRole("button", { name: "Rox Black TKQ" }).getAttribute("aria-pressed")).toBe("true"),
+  );
   await act(async () => {
-    // HPL is a panel colour and a countertop colour, but not a material of the decorative top.
-    expect(colors.queryByRole("button", { name: "Pulpis Chiaro TKH" })).toBeNull();
     fireEvent.click(colors.getByRole("button", { name: "Bianco Calce DA ST" }));
   });
 

@@ -1293,10 +1293,15 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
     // as Urban Low Height spells it.
     expect(coverSkusOf(order("Bianco Calce DA ST").lines)).toEqual(["CT-URST-INTG-35.4W-.5H-19.7D-ST-DA"]);
 
-    // HPL is a panel colour the decorative top does not come in: no SKU, and the total says so.
+    // HPL is one too, as Urban Low Height's Lower comes in it.
     const hpl = order("Pulpis Chiaro TKH");
-    expect(coverSkusOf(hpl.lines)).toEqual([]);
-    expect(hpl.gaps).toContainEqual(
+    expect(coverSkusOf(hpl.lines)).toEqual(["CT-URHPL-INTG-35.4W-.5H-19.7D-HPL-TKH"]);
+    expect(hpl.gaps).not.toContainEqual(expect.objectContaining({ reason: expect.stringContaining("cover") }));
+
+    // An Upper finish is no Base Panel colour: no SKU, and the total says so.
+    const upperFinish = order("Bianco Male TFA");
+    expect(coverSkusOf(upperFinish.lines)).toEqual([]);
+    expect(upperFinish.gaps).toContainEqual(
       expect.objectContaining({ blocksTotal: true, reason: expect.stringContaining("cover") }),
     );
   });

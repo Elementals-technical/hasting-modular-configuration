@@ -57,9 +57,9 @@ describe("Lower countertop colors", () => {
     );
 
     expect(attributeId).toBe("BasePanelColor");
-    // Soft-Touch is a cover material; HPL is a panel colour the decorative top does not come in.
+    // Soft-Touch is a cover material, and so is HPL, as Urban Low Height's Lower comes in it.
     expect(result.some(({ value }) => value === "Bianco Calce DA ST")).toBe(true);
-    expect(result.some(({ value }) => value === "Pulpis Chiaro TKH")).toBe(false);
+    expect(result.some(({ value }) => value === "Pulpis Chiaro TKH")).toBe(true);
     expect(result.every(({ traits }) => traits?.sku && cover.materialSkus.includes(traits.sku))).toBe(true);
   });
 
