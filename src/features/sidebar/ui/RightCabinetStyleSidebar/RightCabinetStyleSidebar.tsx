@@ -690,10 +690,27 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       return;
     }
 
-    const dimConfig = { Height: selectedDimensions.height, Depth: selectedDimensions.depth };
+    // Send only the size that changed: an unchanged Height sent with a new Depth resizes every
+    // cabinet again, and a short cabinet was grown to it for a few frames (visible blinking).
+    const differsFromPlaced = (dimension: "height" | "depth") =>
+      placedCabinets.some(
+        ({ runtimeId }) => getCabinetDimensionsByRuntimeId(state, runtimeId)?.[dimension] !== selectedDimensions[dimension],
+      );
+    const depthConfig = differsFromPlaced("depth") ? { Depth: selectedDimensions.depth } : {};
+    const dimConfig = {
+      ...(differsFromPlaced("height") ? { Height: selectedDimensions.height } : {}),
+      ...depthConfig,
+    };
+
+    // Only short cabinets differ (they keep a height of their own): nothing to send.
+    if (Object.keys(dimConfig).length === 0) return;
+
     setConfigBatch({}, dimConfig);
 
-    selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
+    // A short cabinet's label keeps its own height (steppedSceneProducts).
+    selectedProducts.forEach((id) =>
+      updateDimensionDataForProduct(id, steppedCabinetIds.includes(id) ? depthConfig : dimConfig),
+    );
   }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState, steppedCabinetIds]);
 
   useEffect(() => {
