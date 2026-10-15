@@ -114,6 +114,7 @@ describe("a collection that judges vessel colours says why a colour is unavailab
       "class",
       "lame",
       "mako",
+      "tricot",
       "urban-duplex",
       "urban-freestanding",
       "urban-low-height",

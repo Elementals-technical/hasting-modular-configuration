@@ -294,8 +294,34 @@
           "label": "VA005",
           "order": 9,
           "category": "integrated"
+        },
+        {
+          "value": "None",
+          "label": "None",
+          "order": 10,
+          "category": "vessel",
+          "legacyDescription": "A vessel countertop with its cutout and no vessel chosen, as the USH countertop step offers it"
+        },
+        {
+          "value": "Iris",
+          "label": "Iris",
+          "order": 11,
+          "category": "vessel"
+        },
+        {
+          "value": "Frame",
+          "label": "Frame",
+          "order": 12,
+          "category": "vessel"
+        },
+        {
+          "value": "Plaza",
+          "label": "Plaza",
+          "order": 13,
+          "category": "vessel"
         }
       ],
+      "noneValue": "None",
       "initialValue": "LB440",
       "defaultValue": "LB440"
     },
@@ -307,15 +333,41 @@
           "value": "integrated",
           "label": "Integrated",
           "order": 0,
-          "aliases": ["Integrated"]
+          "aliases": ["Integrated", "INTG"]
+        },
+        {
+          "value": "vessel",
+          "label": "Vessel",
+          "order": 1,
+          "aliases": ["Vessel", "VES"]
         }
       ],
       "initialValue": "integrated",
       "defaultValue": "integrated"
+    },
+    {
+      "attributeId": "VesselColor",
+      "scope": "basin",
+      "optionsSource": "configurator:Select Vessel Color"
     }
   ],
   "ruleData": {
     "countertopCompatibility": { "tableId": 593 },
+    "vesselCompatibility": {
+      "hiddenStyles": [],
+      "allowedMaterialsByStyle": {
+        "Iris": ["lacqueredmt"],
+        "Frame": ["lacqueredmt"],
+        "Plaza": ["lacqueredmt", "lacqueredgl"]
+      },
+      "allowedColorCodesByStyle": {},
+      "unavailableColorCodesByStyle": {},
+      "defaultFinishByStyle": {
+        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
+        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
+        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+      }
+    },
     "fluting": {
       "eligibleMaterialAliases": ["LACM", "WDV", "Lacquered MT", "Wood Veneer"],
       "forbiddenTargetParts": ["SIDE_PANEL"],
@@ -403,6 +455,11 @@
     "change.notAvailable": "This option is not available for the current selection.",
     "change.valueNotInCatalog": "This option does not belong to Tricot.",
     "product.missingData": "Approved Tricot product data is required.",
-    "drawer.mixedGroups": "One-drawer and two-drawer modules cannot be mixed in this composition."
+    "drawer.mixedGroups": "One-drawer and two-drawer modules cannot be mixed in this composition.",
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
+    "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
+    "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
+    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene"
   }
 }

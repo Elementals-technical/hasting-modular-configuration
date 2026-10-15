@@ -850,6 +850,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
             sinkType,
             countertopStyle,
             vesselColor,
+            profile: activeProfile,
             anchorRuntimeId: entityId,
             side,
           }),

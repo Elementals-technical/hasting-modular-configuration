@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { tricotConfigurator, tricotProfile, tricotSkuProfile } from "@/entities/collection/__tests__/tricotFixtures";
 import { hasOwnCountertop } from "@/entities/collection";
 
-import { buildCollectionCountertopSkus, type CollectionCountertopSkuInput } from "../buildCollectionSkus";
+import {
+  buildCollectionCountertopSkus,
+  resolveCollectionVessel,
+  type CollectionCountertopSkuInput,
+} from "../buildCollectionSkus";
 import { createConfiguratorColorReader } from "../configuratorColors";
 
 /**
@@ -82,5 +86,30 @@ describe("Tricot countertop SKUs", () => {
     expect(countertop({ color: "Matte White", thickness: "4.75", basins: ["LB856"] }).basins).toEqual([
       "CT-GBSSTL-LB856-4.7H",
     ]);
+  });
+});
+
+describe("Tricot vessel SKUs", () => {
+  it("cuts a vessel top per sink base and has no basin SKU, as Class", () => {
+    const skus = countertop({ style: "vessel", color: "Matte White", basins: ["Plaza"] });
+
+    expect(skus.top).toBe("CT-GBSSTL-VES-23.6W-.5H-20.7D");
+    expect(skus.basins).toEqual([null]);
+    expect(skus.holeCut).toBe("CT-GBSSTL-HCUT");
+  });
+
+  // The Class vessels in the lacquers of configurator 12, which gives each its material SKU.
+  it.each([
+    ["Iris", "Latte 417 MT", "VES-IRIS-X-16.5W-4.3H-16.5D-LACM-417"],
+    ["Frame", "Antracite 400 MT", "VES-FRM-X-19.7W-4.3H-13.8D-LACM-400"],
+    ["Plaza", "Zaffiro 411 GL", "VES-PLZ-X-23.6W-4.7H-18.9D-LACG-411"],
+  ])("spells %s in %s", (basin, color, sku) => {
+    expect(resolveCollectionVessel(skuProfile, tricotProfile, { basin, color, readConfiguratorColor })?.sku).toBe(sku);
+  });
+
+  it("orders no vessel for the bare cutout", () => {
+    expect(
+      resolveCollectionVessel(skuProfile, tricotProfile, { basin: "None", color: null, readConfiguratorColor }),
+    ).toBe(null);
   });
 });
