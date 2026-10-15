@@ -52,7 +52,10 @@ import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/upda
 import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
 import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
+import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
+import { isSteppedDrawers } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
+  normalizeOptionValue,
   resolveCabinetTypeOfRuntimeId,
   selectEffectiveFallback,
   selectOptions,
@@ -80,7 +83,9 @@ import {
   findPlacedCabinetRule,
   isLeavingSideShelfHandle,
   REASON_HANDLE_HEIGHT_LOCKED,
+  resolveSteppedEndPlacement,
 } from "@/features/configurator-rule-core/cabinetBuilder";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
@@ -124,6 +129,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const productConfig = useAppSelector(getCabinetBuilderProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
+  const steppedCabinetIds = useAppSelector(selectSteppedCabinetIds);
+  // The style being added stands at a height of its own (the Urban Freestanding 1 Drawer Short).
+  const selectedDrawers =
+    typeof selectedProductConfig?.Drawers === "string"
+      ? (normalizeOptionValue(activeProfile, "Drawers", selectedProductConfig.Drawers) ?? null)
+      : null;
+  const isSteppedStyle = isSteppedDrawers(activeCabinetRule, selectedDrawers);
   const heightLocked = useAppSelector(getHeightLocked);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
@@ -667,7 +679,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     if (hasSize(getCabinetDimensionsByRuntimeId(state, getSelectedSceneProduct(state)))) return;
 
     // Opening the sidebar re-runs this effect; when every cabinet already has this size there is nothing to send.
-    const placedCabinets = getCabinetEntries(state);
+    // A short cabinet keeps a height of its own (steppedSceneProducts), so it is not asked to have this one.
+    const placedCabinets = getCabinetEntries(state).filter(({ runtimeId }) => !steppedCabinetIds.includes(runtimeId));
     if (
       placedCabinets.length > 0 &&
       placedCabinets.every(({ runtimeId }) => hasSize(getCabinetDimensionsByRuntimeId(state, runtimeId)))
@@ -679,7 +692,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     setConfigBatch({}, dimConfig);
 
     selectedProducts.forEach((id) => updateDimensionDataForProduct(id, dimConfig));
-  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState]);
+  }, [selectedDimensions, selectedProducts, isOpenedStyleSidebar, getCommandState, steppedCabinetIds]);
 
   useEffect(() => {
     // Only set default Handle if it's completely missing (first time, no previous selection)
@@ -701,13 +714,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   // Show plus buttons when the sidebar is opened.
   useEffect(() => {
     const hasAddableWidth = widthOptions.length > 0;
-    const options =
-      isOpenedStyleSidebar && activeDrawerProduct === "Side-Shelf" ? { productType: "Side-Shelf" } : undefined;
+    // A side shelf and a short cabinet (`ruleData.steppedModules`, placement "composition-end") go
+    // at an end of the composition: the scene's "Side-Shelf" button mode shows the end buttons only.
+    const placesAtEnd = activeDrawerProduct === "Side-Shelf" || isSteppedStyle;
+    const options = isOpenedStyleSidebar && placesAtEnd ? { productType: "Side-Shelf" } : undefined;
     const shouldShowPlacementButtons = isOpenedStyleSidebar && hasAddableWidth;
 
     setVisibleButtons(shouldShowPlacementButtons, options);
     placementButtonsVisibleRef.current = shouldShowPlacementButtons;
-  }, [activeDrawerProduct, isOpenedStyleSidebar, widthOptions.length]);
+  }, [activeDrawerProduct, isOpenedStyleSidebar, isSteppedStyle, widthOptions.length]);
 
   useEffect(
     () => () => {
@@ -800,6 +815,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
       await saveSnapshot();
 
+      // A short cabinet stays at its end of the composition: a taller one asked for outside it goes inside it.
+      const placement = resolveSteppedEndPlacement({
+        anchorRuntimeId: entityId,
+        side,
+        orderedRuntimeIds: getOrderedProductIds(selectedProducts).filter((id) => selectedProducts.includes(id)),
+        steppedRuntimeIds: steppedCabinetIds,
+        addsEndCabinet: isSteppedStyle || activeDrawerProduct === "Side-Shelf",
+      });
+
       // The collection's scene product goes beside the clicked one and is recorded there with its
       // drawer style, as a duplicated cabinet is.
       const added = await composition.addCabinet(
@@ -811,8 +835,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           sinkType,
           countertopStyle,
           vesselColor,
-          anchorRuntimeId: entityId,
-          side,
+          anchorRuntimeId: placement.anchorRuntimeId,
+          side: placement.side,
         }),
       );
       const productId = added.status === "error" ? null : added.placed[0];
@@ -842,7 +866,9 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     saveSnapshot,
     sceneTotalWidth,
     selectedDimensions.width,
-    selectedProducts.length,
+    selectedProducts,
+    steppedCabinetIds,
+    isSteppedStyle,
     activeCabinetRule?.code,
     activeCabinetRule?.isOpen,
     activeMaterialTokens,

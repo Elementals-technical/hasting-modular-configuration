@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { applySceneConfig, insertSceneProduct, isSceneReady, normalizeSceneBatchResult } from "../sceneBridge";
 import { setConfigBatch } from "../setConfigBatch";
+import { setSteppedSceneProducts } from "../steppedSceneProducts";
 import { updateDimensionDataForProduct } from "../updateDimensionData";
 
 vi.mock("../apiLogger", () => ({ installConfiguratorApiLogger: vi.fn() }));
@@ -141,5 +142,48 @@ describe("insertSceneProduct", () => {
 
     expect(await insertSceneProduct("Sink-Base", null, "right")).toEqual({ status: "applied", runtimeId: "rt-new" });
     expect(api).toHaveBeenCalledWith("Sink-Base", null, "right");
+  });
+
+});
+
+describe("stepped products through the bridge", () => {
+  const stepped = [{ productType: "UF-side-cabinet", match: { Drawers: "1D" }, heightByHandle: { PTO: 50, UG: 53 } }];
+
+  afterEach(() => {
+    setSteppedSceneProducts(null);
+    delete host.containerRef;
+    delete host.playCanvasReady;
+  });
+
+  it("gives a short cabinet its own height back after the composition's height reached every product", async () => {
+    setSteppedSceneProducts(stepped);
+    const configs: Record<string, Record<string, unknown>> = {
+      short: { productType: "UF-side-cabinet", Drawers: "1D", Handle: "UG", Height: 53 },
+      tall: { productType: "UF-side-cabinet", Drawers: "2D", Handle: "UG", Height: 91 },
+    };
+    const setConfigBatchApi = vi.fn(async (_selector: unknown, patch: Record<string, unknown>) => {
+      Object.values(configs).forEach((config) => Object.assign(config, patch));
+      return { updatedIds: Object.keys(configs) };
+    });
+    const setConfig = vi.fn(async (id: string, patch: Record<string, unknown>) => Object.assign(configs[id], patch));
+    host.containerRef = {
+      current: {
+        contentWindow: {
+          ConfiguratorAPI: {
+            setConfigBatch: setConfigBatchApi,
+            getConfig: async (id: string) => configs[id],
+            setConfig,
+          },
+        },
+      },
+    };
+    host.playCanvasReady = true;
+
+    expect(await applySceneConfig({}, { Handle: "PTO" })).toMatchObject({ status: "applied" });
+    expect(await applySceneConfig({}, { Height: 88 })).toMatchObject({ status: "applied" });
+
+    expect(configs.short).toMatchObject({ Handle: "PTO", Height: 50 });
+    expect(configs.tall).toMatchObject({ Handle: "PTO", Height: 88 });
+    expect(setConfig).toHaveBeenCalledWith("short", { Height: 50 });
   });
 });

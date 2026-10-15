@@ -1,5 +1,6 @@
 import { installConfiguratorApiLogger } from "./apiLogger";
 import { runInBatchQueue } from "./setConfigBatch";
+import { restoreSteppedSceneHeights, touchesSteppedHeight, withSteppedSceneHeight } from "./steppedSceneProducts";
 import { updateDimensionDataForProduct } from "./updateDimensionData";
 
 /**
@@ -128,6 +129,10 @@ export const applySceneConfig = (selector: SceneSelector, patch: SceneConfigPatc
 
       if (result.status === "applied") {
         result.updatedIds?.forEach((productId) => updateDimensionDataForProduct(productId, patch));
+        // A product with a height of its own does not keep the composition's (steppedSceneProducts).
+        if (touchesSteppedHeight(patch) && result.updatedIds) {
+          await restoreSteppedSceneHeights(getConfiguratorApi(), result.updatedIds);
+        }
       }
 
       return result;
@@ -276,7 +281,8 @@ export const clearSceneProducts = (): Promise<SceneOperationResult> =>
 export const addSceneProduct = (productType: string, config: Record<string, unknown>): Promise<SceneAddProductResult> =>
   runSceneOperation("addProduct", async (call): Promise<SceneAddProductResult> => {
     try {
-      const runtimeId = await call(productType, config);
+      // A product with a height of its own is placed with it (steppedSceneProducts).
+      const runtimeId = await call(productType, withSteppedSceneHeight(config, productType));
 
       if (typeof runtimeId !== "string" || !runtimeId) {
         return { status: "failed", code: "scene-rejected", message: `The scene did not create ${productType}.` };
@@ -304,7 +310,13 @@ export const presetSceneProducts = (
 ): Promise<ScenePresetResult> =>
   runSceneOperation("presetProducts", async (call): Promise<ScenePresetResult> => {
     try {
-      const result = await (globalConfig ? call(products, globalConfig) : call(products));
+      // A product with a height of its own is placed with it, whatever the shared config says.
+      const placed = products.map((product) => {
+        const merged = { ...globalConfig, ...product };
+        const stepped = withSteppedSceneHeight(merged, product.name);
+        return stepped === merged ? product : { ...product, Height: stepped.Height };
+      });
+      const result = await (globalConfig ? call(placed, globalConfig) : call(placed));
       const runtimeIds = Array.isArray(result)
         ? result.filter((entry): entry is string => typeof entry === "string")
         : [];
@@ -329,6 +341,8 @@ export const setSceneProductConfig = (
       }
 
       updateDimensionDataForProduct(runtimeId, config);
+      // A product with a height of its own does not keep another one (steppedSceneProducts).
+      if (touchesSteppedHeight(config)) await restoreSteppedSceneHeights(getConfiguratorApi(), [runtimeId]);
       return { status: "applied" };
     } catch (error) {
       return toSceneError(error);
@@ -348,17 +362,19 @@ export const insertSceneProduct = (
 ): Promise<SceneAddProductResult> =>
   runSceneOperation("setProductByParams", async (call): Promise<SceneAddProductResult> => {
     try {
-      const runtimeId = config
-        ? await call(productType, anchorRuntimeId, side, config)
+      // A product with a height of its own is placed with it (steppedSceneProducts).
+      const placedConfig = config ? withSteppedSceneHeight(config, productType) : undefined;
+      const runtimeId = placedConfig
+        ? await call(productType, anchorRuntimeId, side, placedConfig)
         : await call(productType, anchorRuntimeId, side);
 
       if (typeof runtimeId !== "string" || !runtimeId) {
         return { status: "failed", code: "scene-rejected", message: `The scene did not create ${productType}.` };
       }
 
-      if (!config) return { status: "applied", runtimeId };
+      if (!placedConfig) return { status: "applied", runtimeId };
 
-      updateDimensionDataForProduct(runtimeId, config);
+      updateDimensionDataForProduct(runtimeId, placedConfig);
       return { status: "applied", runtimeId, configApplied: true };
     } catch (error) {
       return toSceneError(error);

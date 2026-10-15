@@ -17,7 +17,12 @@ import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabin
 import { flutingRule } from "@/features/configurator-rule-core/options/rules/flutingRule";
 import { resolveColorTraits } from "./resolveColorTraits";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
-import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import {
+  findCabinetRule,
+  firstOwnDrawers,
+  isSteppedDrawers,
+  type ConfiguratorCatalog,
+} from "@/shared/config/configurator/typeCabinetCatalog";
 
 import type { ChangeBlockedReason, PlannedChange } from "../model/types";
 
@@ -152,6 +157,20 @@ export const buildChangePlan = ({
   configurator = null,
 }: BuildChangePlanArgs): BuildChangePlanResult => {
   const isDrawers = attributeId === "Drawers";
+  const addressedCabinetRule =
+    target.scope === "cabinet"
+      ? findPlacedCabinetRule(
+          catalog,
+          cabinets.find(({ stableKey }) => stableKey === target.cabinetId)?.runtimeId ?? "",
+        )
+      : null;
+
+  // A drawer style that stands at a height of its own (the Urban Freestanding 1 Drawer Short) is
+  // the addressed cabinet's alone: it switches no other cabinet and brings no height or handle.
+  if (isDrawers && target.scope === "cabinet" && isSteppedDrawers(addressedCabinetRule, value)) {
+    return { ok: true, plan: [{ attributeId, target, value, origin: "requested" }] };
+  }
+
   const requestedTargets = isDrawers
     ? resolveDrawersTargets(target, cabinets, catalog)
     : resolveBasinTargets(target, basin?.sinkBaseIds);
@@ -254,12 +273,17 @@ export const buildChangePlan = ({
   // Drawers are judged for the cabinet they are set on, not for the builder's current pick,
   // and every drawer cabinet switches at once, so cabinets still on the old drawers must not
   // block the height.
+  const judgedCabinetType =
+    isDrawers && addressedCabinet
+      ? (findPlacedCabinetRule(catalog, addressedCabinet.runtimeId)?.code ?? selection.cabinetType)
+      : selection.cabinetType;
+  // A short cabinet selected on the scene has a height of its own; the handle and the height of the
+  // composition are judged for the style its height follows, the type's first one that is not stepped.
+  const judgedRule = findCabinetRule(catalog, judgedCabinetType, selection.series);
   const ruleSelection: Selection = {
     ...selection,
-    cabinetType:
-      isDrawers && addressedCabinet
-        ? (findPlacedCabinetRule(catalog, addressedCabinet.runtimeId)?.code ?? selection.cabinetType)
-        : selection.cabinetType,
+    cabinetType: judgedCabinetType,
+    ...(!isDrawers && isSteppedDrawers(judgedRule, selection.drawers) ? { drawers: firstOwnDrawers(judgedRule) } : {}),
   };
   const ruleProductIds = isDrawers ? [] : selectedProductIds;
 

@@ -45,6 +45,7 @@ export type {
   ProfileSourceRefs,
   SidePanelAvailabilityRow,
   SidePanelsRuleData,
+  SteppedCabinetModule,
   SyntesiFinishTransform,
   SyntesiRuleData,
   VesselCompatibilityRuleData,
@@ -109,6 +110,7 @@ export type {
   ScenePatch,
   SemanticValue,
   StateOnlyRuntimeBinding,
+  SteppedSceneProduct,
   UnboundRuntimeBinding,
 } from "./model/runtimeBindings";
 

@@ -410,7 +410,32 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   // 6) Side panels: a collection that reuses Urban Standard Height's orders them as USH does, at the
   // size and in the colours of the first cabinet. A groove without a colour of its own is the cabinet's.
   if (skuProfile.sidePanel && "pricedAs" in skuProfile.sidePanel && cabinets.length > 0) {
-    const [first] = cabinets;
+    // A short cabinet (`ruleData.steppedModules`: the Urban Freestanding 1 Drawer Short) stands lower
+    // than the others, and the panel at its end has no confirmed height (P1125: a second panel
+    // height, UFS-SP-01). That panel is left out and named a gap; the others take the size of the
+    // first cabinet that is not short.
+    const steppedModules = profile?.ruleData.steppedModules ?? [];
+    const isShortCabinet = (entry: CabinetEntry | undefined) => {
+      if (entry === undefined || steppedModules.length === 0) return false;
+      const read = readerOf(entry);
+      const drawersRaw = placedCabinetStyles[entry.runtimeId] ?? read("Drawers");
+      const drawers = drawersRaw ? (normalizeOptionValue(profile, "Drawers", drawersRaw) ?? drawersRaw) : null;
+      const typeRaw = read("CabinetType");
+      const cabinetType = typeRaw ? (normalizeOptionValue(profile, "CabinetType", typeRaw) ?? typeRaw) : null;
+      return steppedModules.some((module) => module.cabinetType === cabinetType && module.drawers === drawers);
+    };
+    const first = cabinets.find((entry) => !isShortCabinet(entry)) ?? cabinets[0];
+    const shortLeft = input.sidePanelLeft === "active" && isShortCabinet(cabinets[0]);
+    const shortRight = input.sidePanelRight === "active" && isShortCabinet(cabinets[cabinets.length - 1]);
+    if (shortLeft || shortRight) {
+      gaps.push({
+        group: "sidePanel",
+        blocksTotal: true,
+        owner: "product",
+        reason:
+          "A side panel beside the 1 Drawer Short has no height or SKU: the lower panel height is not given (P1125, UFS-SP-01). It is not priced.",
+      });
+    }
     const read = readerOf(first);
     const colorSku = (attributeId: string, value: string) => ({
       materialSku: resolveCollectionColorMaterial(skuProfile, profile, attributeId, value, readConfiguratorColor),
@@ -423,8 +448,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     buildUshSidePanelLines({
       series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
       panelType: input.sidePanelsOption,
-      sidePanelLeft: input.sidePanelLeft,
-      sidePanelRight: input.sidePanelRight,
+      sidePanelLeft: shortLeft ? "none" : input.sidePanelLeft,
+      sidePanelRight: shortRight ? "none" : input.sidePanelRight,
       heightCm: size?.height ?? null,
       depthCm: size?.depth ?? null,
       cabinet: cabinetColor ? colorSku("CabinetColor", cabinetColor) : { materialSku: null, colorCode: null },

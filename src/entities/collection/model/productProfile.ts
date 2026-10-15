@@ -280,6 +280,24 @@ export type SeriesCabinetModule = {
 };
 
 /**
+ * A drawer style of a cabinet type that stands at a height of its own beside the taller cabinets
+ * of the composition (Urban Freestanding: the 1 Drawer Short Side Cabinet). The one-height rule of
+ * the composition does not reach it: the composition keeps the height of its other cabinets, and
+ * the scene bridge places this one at the table's height of its style (buildSteppedSceneProducts). Its widths,
+ * depths and handle are those of its cabinet type.
+ */
+export type SteppedCabinetModule = {
+  cabinetType: string;
+  /** Drawers option value of the style. */
+  drawers: string;
+  /** Where the cabinet may stand: at either end of the composition. */
+  placement: "composition-end";
+  /** A placed cabinet of this CabinetType category (one that is not stepped) is required first. */
+  requiresPlacedCategory: string;
+  note?: string;
+};
+
+/**
  * Rule parameters: the algorithms stay in code, their lists, limits and exclusions live here.
  *
  * Every section except the cabinet matrix adapter is optional. An absent section means the
@@ -302,6 +320,8 @@ export type ProfileRuleData = {
   }[];
   /** Cabinets of other series offered beside the collection's own, as variants of its types. */
   seriesModules?: SeriesCabinetModule[];
+  /** Drawer styles that stand at a height of their own, out of the composition's one-height rule. */
+  steppedModules?: SteppedCabinetModule[];
   drawerStyleGroups?: DrawerStyleGroups;
   /** Changes the product has no rule for yet (CONTRACTS §8); the command holds them back. */
   undeterminedRules?: UndeterminedRule[];

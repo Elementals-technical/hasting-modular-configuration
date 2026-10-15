@@ -420,6 +420,10 @@ describe("partial production collection packages", () => {
         hasSink: false,
         sceneProductType: "UF-side-cabinet",
         ...common,
+        // The 1 Drawer Short (table 590 1DW, ruleData.steppedModules): its own heights stay out of
+        // the forced ones, so the composition keeps the height of its two-drawer cabinets.
+        drawers: ["2", "1"],
+        steppedDrawers: ["1"],
       }),
       expect.objectContaining({
         code: "Open-Shelf",

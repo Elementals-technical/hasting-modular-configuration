@@ -63,6 +63,7 @@ import {
 } from "@/features/sidePanel";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneProducts";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { fitCountertop } from "@/features/playCanvasAdapter";
 import { clearDividerZones } from "@/features/dividers";
@@ -168,7 +169,12 @@ import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/e
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
-import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  findPlacedCabinetRule,
+  getUniqueCatalogWidths,
+  resolveSteppedEndPlacement,
+} from "@/features/configurator-rule-core/cabinetBuilder";
+import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
 import {
   selectOwnCabinetValues,
   useChangeAttribute,
@@ -2223,9 +2229,17 @@ export const PlayCanvasIntegration = ({
         // The copy goes beside the clicked product and is recorded there with its drawer style; a
         // duplicated vessel sink base shows the vessel colour again.
         const isVessel = typeof mergedConfig.sinkType === "string" && mergedConfig.sinkType.startsWith("Vessel");
+        // A short cabinet stays at its end of the composition: a taller copy asked for outside it goes inside it.
+        const placement = resolveSteppedEndPlacement({
+          anchorRuntimeId: entityId,
+          side,
+          orderedRuntimeIds: getOrderedProductIds(productIds).filter((id) => productIds.includes(id)),
+          steppedRuntimeIds: selectSteppedCabinetIds(store.getState()),
+          addsEndCabinet: isSteppedSceneConfig(mergedConfig) || cabinetTypeOf(duplicateSourceId) === "Side-Shelf",
+        });
         const added = await composition.addCabinet({
           product: { productType, config: mergedConfig },
-          placement: { kind: "beside", anchorRuntimeId: entityId, side },
+          placement: { kind: "beside", anchorRuntimeId: placement.anchorRuntimeId, side: placement.side },
           afterPlacement: vesselColorRef.current && isVessel ? { VesselColor: vesselColorRef.current } : undefined,
         });
         const productId = added.status === "error" ? null : added.placed[0];
@@ -2258,7 +2272,7 @@ export const PlayCanvasIntegration = ({
     sceneTotalWidth,
     selectedDimensions.width,
     selectedProductConfig,
-    productIds.length,
+    productIds,
     store,
   ]);
 
@@ -3159,7 +3173,8 @@ export const PlayCanvasIntegration = ({
       const nextDimensions: { width?: number; height?: number; depth?: number } = {};
 
       if (typeof config.Width === "number") nextDimensions.width = config.Width;
-      if (typeof config.Height === "number") nextDimensions.height = config.Height;
+      // The selection's height is the composition's: a short cabinet keeps one of its own.
+      if (typeof config.Height === "number" && !isSteppedSceneConfig(config)) nextDimensions.height = config.Height;
       if (typeof config.Depth === "number") nextDimensions.depth = config.Depth;
 
       if (Object.keys(nextDimensions).length) {
@@ -3181,7 +3196,8 @@ export const PlayCanvasIntegration = ({
       if (!config || cancelled) return;
 
       const width = toFiniteNumber(config.Width);
-      const height = toFiniteNumber(config.Height);
+      // The selection's height is the composition's: a short cabinet keeps one of its own.
+      const height = isSteppedSceneConfig(config) ? null : toFiniteNumber(config.Height);
       const depth = toFiniteNumber(config.Depth);
 
       const nextDimensions: { width?: number; height?: number; depth?: number } = {};
