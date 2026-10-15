@@ -27,6 +27,9 @@
       "1": "images/cabinet/drawers-1.png",
       "2": "images/cabinet/drawers-2.png",
       "1+inner": "images/cabinet/drawers-1-inner.png"
+    },
+    "Handle": {
+      "UG": "images/handle/UpperGHandle.png"
     }
   },
   "optionImageVariants": {

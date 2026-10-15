@@ -546,8 +546,8 @@
     },
     {
       "attributeId": "Handle",
-      "status": "unbound",
-      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+      "status": "state-only",
+      "reason": "Upper Groove only: the groove is part of every Tricot drawer and takes its colour from HandleGrooveColor. No Tricot scene rule reads a Handle key (export v53); recorded for the style sidebar, the summary and saved configurations."
     },
     {
       "attributeId": "GrainDirection",

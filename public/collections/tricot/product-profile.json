@@ -120,6 +120,24 @@
       ]
     },
     {
+      "attributeId": "Handle",
+      "scope": "cabinet",
+      "initialValue": "UG",
+      "defaultValue": "UG",
+      "effectiveFallbackValue": "UG",
+      "options": [
+        {
+          "value": "UG",
+          "label": "Upper Groove",
+          "order": 0,
+          "legacyDescription": "The one Tricot handle: the groove along the top of each drawer, painted in the Handle Groove Color; a style the configurator does not let the user choose",
+          "capabilities": {
+            "supportsGrooveColor": true
+          }
+        }
+      ]
+    },
+    {
       "attributeId": "CabinetColor",
       "scope": "global",
       "optionsSource": "configurator:Select Cabinet Color",
