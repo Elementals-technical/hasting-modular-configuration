@@ -2,10 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
+import lameProfileDocument from "../../../../public/collections/lame/product-profile.json";
+import lameUi from "../../../../public/collections/lame/ui.json";
 import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
+import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
+import tricotUi from "../../../../public/collections/tricot/ui.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
+import urbanFreestandingProfileDocument from "../../../../public/collections/urban-freestanding/product-profile.json";
+import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 import ushProfileDocument from "../../../../public/collections/urban-standard-height/product-profile.json";
 import ushUi from "../../../../public/collections/urban-standard-height/ui.json";
 import urbanLowHeightProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
@@ -14,7 +20,10 @@ import cabinetTable439 from "./fixtures/remote/datatable-439.json";
 import cabinetTable579 from "./fixtures/remote/datatable-579.json";
 import cabinetTable580 from "./fixtures/remote/datatable-580.json";
 import cabinetTable581 from "./fixtures/remote/datatable-581.json";
+import cabinetTable590 from "./fixtures/remote/datatable-590.json";
+import cabinetTable592 from "./fixtures/remote/datatable-592.json";
 import cabinetTable594 from "./fixtures/remote/datatable-594.json";
+import cabinetTable596 from "./fixtures/remote/datatable-596.json";
 
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import type { ProductDatatable } from "@/entities/product/api";
@@ -61,6 +70,14 @@ const COLLECTIONS: { id: string; ui: unknown; profile: ProductProfile; table: un
     ui: urbanDuplexUi,
     profile: profileOf("urban-duplex", urbanDuplexProfileDocument),
     table: cabinetTable594,
+  },
+  { id: "lame", ui: lameUi, profile: profileOf("lame", lameProfileDocument), table: cabinetTable596 },
+  { id: "tricot", ui: tricotUi, profile: profileOf("tricot", tricotProfileDocument), table: cabinetTable592 },
+  {
+    id: "urban-freestanding",
+    ui: urbanFreestandingUi,
+    profile: profileOf("urban-freestanding", urbanFreestandingProfileDocument),
+    table: cabinetTable590,
   },
 ];
 

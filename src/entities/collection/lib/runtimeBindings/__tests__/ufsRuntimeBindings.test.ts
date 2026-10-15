@@ -80,9 +80,10 @@ describe("urban-freestanding runtime bindings", () => {
     expect(patchOf("Width", 25)).toEqual({ Width: 25 });
   });
 
-  it("send the handle and the one drawer style in the spellings the scene config keeps", () => {
+  it("send the handle and the drawer styles in the spellings the scene config keeps", () => {
     expect(patchOf("Handle", "UG")).toEqual({ Handle: "UG" });
     expect(patchOf("Drawers", "2")).toEqual({ Drawers: "2D" });
+    expect(patchOf("Drawers", "1")).toEqual({ Drawers: "1D" });
   });
 
   it("send the basin and the vessel colour to every UF Sink Base", () => {
