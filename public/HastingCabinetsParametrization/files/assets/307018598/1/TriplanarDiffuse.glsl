@@ -8,6 +8,10 @@ uniform float tri_aoIntensity;
 #ifndef TRI_DETAIL_PARAMS
 #define TRI_DETAIL_PARAMS
     uniform float tri_detailTiling;
+    // === LAME ONLY: disabled for all existing collection rules ===
+    uniform float tri_lamePattern;
+    uniform vec2 tri_lamePatternTiling;
+    // === END LAME ONLY ===
 #endif
 
 #ifndef TRI_PLANAR_COMMON
@@ -28,6 +32,31 @@ uniform float tri_aoIntensity;
     }
 
 #endif
+
+// ==================== GRAIN DIRECTION ====================
+#ifndef GRAIN_FLIP_COMMON
+#define GRAIN_FLIP_COMMON
+    uniform float grain_mode;
+    uniform float grain_stripWidth;
+
+    vec2 applyGrainFlip(vec2 uv) {
+        if (grain_mode < 0.5) return uv;
+        float axis = (grain_mode < 1.5) ? uv.x : uv.y;
+        float sw = max(grain_stripWidth, 0.001);
+        float idx = floor(axis / sw);
+        if (mod(idx, 2.0) > 0.5) {
+            float local = axis - idx * sw;
+            float mirrored = sw - local;
+            if (grain_mode < 1.5) {
+                uv.x = idx * sw + mirrored;
+            } else {
+                uv.y = idx * sw + mirrored;
+            }
+        }
+        return uv;
+    }
+#endif
+// =========================================================
 
 void getAlbedo() {
     dAlbedo = material_diffuse;
@@ -53,6 +82,11 @@ void getAlbedo() {
     vec2 r_uvY = rotateUV(uvY, tri_rotation);
     vec2 r_uvZ = rotateUV(uvZ, tri_rotation);
 
+    // — GRAIN FLIP — after rotation, before sampling
+    r_uvX = applyGrainFlip(r_uvX);
+    r_uvY = applyGrainFlip(r_uvY);
+    r_uvZ = applyGrainFlip(r_uvZ);
+
     if (tri_hasDiffuse > 0.5) {
         vec3 cx = texture2D(tri_diffuseTex, r_uvX).rgb;
         vec3 cy = texture2D(tri_diffuseTex, r_uvY).rgb;
@@ -66,6 +100,13 @@ void getAlbedo() {
         vec2 aoUVX = r_uvX * tri_detailTiling;
         vec2 aoUVY = r_uvY * tri_detailTiling;
         vec2 aoUVZ = r_uvZ * tri_detailTiling;
+        // === LAME ONLY: AO ignores base material scale, rotation and grain ===
+        if (tri_lamePattern > 0.5) {
+            aoUVX = -vec2(localPos.z, localPos.y) * tri_lamePatternTiling;
+            aoUVY = -vec2(localPos.x, localPos.z) * tri_lamePatternTiling;
+            aoUVZ = -vec2(localPos.x, localPos.y) * tri_lamePatternTiling;
+        }
+        // === END LAME ONLY ===
 
         float aoX = texture2D(tri_aoTex, aoUVX).r;
         float aoY = texture2D(tri_aoTex, aoUVY).r;

@@ -9,6 +9,10 @@ uniform float tri_surfaceGradientNormals;
 #ifndef TRI_DETAIL_PARAMS
 #define TRI_DETAIL_PARAMS
     uniform float tri_detailTiling;
+    // === LAME ONLY: disabled for all existing collection rules ===
+    uniform float tri_lamePattern;
+    uniform vec2 tri_lamePatternTiling;
+    // === END LAME ONLY ===
 #endif
 
 #ifndef TRI_PLANAR_COMMON
@@ -106,9 +110,22 @@ void getNormal() {
         vec2 slopeY = triPatternSlope(triUnpack(texture2D(tri_normalTex, r_uvY)), tri_bumpiness, pY);
         vec2 slopeZ = triPatternSlope(triUnpack(texture2D(tri_normalTex, r_uvZ)), tri_bumpiness, pZ);
         if (tri_hasDetailNormal > 0.5) {
-            slopeX += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvX * tri_detailTiling)), tri_detailBumpiness, pX);
-            slopeY += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvY * tri_detailTiling)), tri_detailBumpiness, pY);
-            slopeZ += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvZ * tri_detailTiling)), tri_detailBumpiness, pZ);
+            // === LAME ONLY: detail normal has its own object-aligned UVs ===
+            if (tri_lamePattern > 0.5) {
+                vec3 dnX = triUnpack(texture2D(tri_detailNormalTex, -vec2(localPos.z, localPos.y) * tri_lamePatternTiling));
+                vec3 dnY = triUnpack(texture2D(tri_detailNormalTex, -vec2(localPos.x, localPos.z) * tri_lamePatternTiling));
+                vec3 dnZ = triUnpack(texture2D(tri_detailNormalTex, -vec2(localPos.x, localPos.y) * tri_lamePatternTiling));
+                // No inverse material rotation or grain flip for independent normals.
+                slopeX += dnX.xy * tri_detailBumpiness / max(dnX.z, 0.05);
+                slopeY += dnY.xy * tri_detailBumpiness / max(dnY.z, 0.05);
+                slopeZ += dnZ.xy * tri_detailBumpiness / max(dnZ.z, 0.05);
+            } else {
+                // Original Tricot and other collection path, unchanged.
+                slopeX += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvX * tri_detailTiling)), tri_detailBumpiness, pX);
+                slopeY += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvY * tri_detailTiling)), tri_detailBumpiness, pY);
+                slopeZ += triPatternSlope(triUnpack(texture2D(tri_detailNormalTex, r_uvZ * tri_detailTiling)), tri_detailBumpiness, pZ);
+            }
+            // === END LAME ONLY ===
         }
         // All projection UVs have a minus sign. Convert slopes into local
         // coordinates and remove their component along the geometric normal.
@@ -136,6 +153,13 @@ void getNormal() {
         vec2 dUVX = r_uvX * tri_detailTiling;
         vec2 dUVY = r_uvY * tri_detailTiling;
         vec2 dUVZ = r_uvZ * tri_detailTiling;
+        // === LAME ONLY: independent coordinates also in the legacy normal branch ===
+        if (tri_lamePattern > 0.5) {
+            dUVX = -vec2(localPos.z, localPos.y) * tri_lamePatternTiling;
+            dUVY = -vec2(localPos.x, localPos.z) * tri_lamePatternTiling;
+            dUVZ = -vec2(localPos.x, localPos.y) * tri_lamePatternTiling;
+        }
+        // === END LAME ONLY ===
 
         vec3 dnX = triUnpack(texture2D(tri_detailNormalTex, dUVX));
         dnX = vec3(dnX.z, dnX.y, dnX.x); 
