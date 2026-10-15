@@ -261,8 +261,8 @@ describe("Tricot delivered runtime bindings", () => {
     expect(tricotProfile.defaults).toMatchObject({
       CabinetColor: "Rovere Oro 932",
       DrawerPanelFluting: "Cannette",
-      HandleGrooveColor: "Nero 433 MT",
-      sinkType: "LB440",
+      HandleGrooveColor: "Agata 407 MT",
+      sinkType: "VA024",
     });
   });
 

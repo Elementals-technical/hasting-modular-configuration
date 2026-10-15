@@ -33,14 +33,14 @@ const countertop = (input: Partial<CollectionCountertopSkuInput>) =>
   });
 
 describe("Tricot countertop SKUs", () => {
-  it("spells the default top, Matte White on LB440, as the thin Solid Surface top", () => {
+  it("spells the default top, Bianco Kos 250 on VA024, as the thin HPL top", () => {
     const defaults = tricotProfile.defaults as Record<string, string>;
 
     expect(
       countertop({ style: defaults.CountertopStyle, color: defaults.CountertopColor, basins: [defaults.sinkType] }),
     ).toMatchObject({
-      top: "CT-GBSSTL-INTG-23.6W-.5H-20.7D",
-      basins: ["CT-GBSSTL-LB440-.5H"],
+      top: "CT-GBHPL-INTG-23.6W-.5H-20.7D-HPL-250",
+      basins: ["CT-GBHPL-VA024-.5H"],
       bracket: null,
     });
     // Tricot offers no faucet hole choice: the top is ordered without holes, which cost nothing.
