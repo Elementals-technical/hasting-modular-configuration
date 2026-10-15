@@ -95,7 +95,7 @@ import {
   getDropdownPosition,
 } from "@/utils/functions/getDropdownPosition";
 import { useDeferredHistorySnapshot } from "@/entities/history/lib/useDeferredHistorySnapshot";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { isApplied, useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import { setHistoryBlocked } from "@/entities/history/model/store/slice";
 import { useIsSinkBase } from "@/entities/configuration";
@@ -103,6 +103,7 @@ import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configurat
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
+  getDimensionsByCabinet,
   getStableKeyForRuntimeId,
 } from "@/entities/configuration/model/store/selectors";
 import {
@@ -189,7 +190,13 @@ import {
   useChangeDimension,
   usePerCabinetAttributeFields,
 } from "@/features/configurationCommands";
-import type { ChangePreview, ChangeResult, PlacedCabinet, PreparedCabinet } from "@/features/configurationCommands";
+import type {
+  AttributeChange,
+  ChangePreview,
+  ChangeResult,
+  PlacedCabinet,
+  PreparedCabinet,
+} from "@/features/configurationCommands";
 import { getCabinetEntries } from "@/entities/configuration/model/store/selectors";
 import {
   InSceneQuickEditorNotification,
@@ -452,6 +459,7 @@ export const PlayCanvasIntegration = ({
   const {
     change: changeAttributeValue,
     confirm: confirmAttributeValue,
+    evaluate: evaluateAttributeChange,
     getState: getCommandState,
     replay,
     record,
@@ -833,7 +841,8 @@ export const PlayCanvasIntegration = ({
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
 
-  const saveSnapshot = useHistorySnapshot();
+  // Each action of the player menu is one undo step, written once it changed the configuration.
+  const { run: runStep } = useHistoryStep();
 
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
@@ -1766,31 +1775,45 @@ export const PlayCanvasIntegration = ({
     async (width: number, cabinetId = selectedSceneProduct) => {
       if (!cabinetId) return;
 
+      // A cabinet already this wide: nothing to resize, and no undo step.
+      const recordedKey = getStableKeyForRuntimeId(store.getState(), cabinetId);
+      if (recordedKey && getDimensionsByCabinet(store.getState())[recordedKey]?.width === width) {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
       try {
-        await saveSnapshot();
-        const restoreTargets = await clearDividersForWidthResize([cabinetId]);
+        // The cabinet's own width reaches the store later, through the scene reader: an applied
+        // resize is a step even before the store shows it.
+        await runStep(
+          async () => {
+            const restoreTargets = await clearDividersForWidthResize([cabinetId]);
 
-        // The command owns the scene call and the recorded width: it addresses the cabinet by
-        // its stable key, so a scene that rejects the resize leaves no width in state.
-        const stableKey = getStableKeyForRuntimeId(store.getState(), cabinetId);
-        if (!stableKey) {
-          console.warn("[PlayCanvasIntegration] The cabinet is not in the composition", cabinetId);
-          return;
-        }
+            // The command owns the scene call and the recorded width: it addresses the cabinet by
+            // its stable key, so a scene that rejects the resize leaves no width in state.
+            const stableKey = getStableKeyForRuntimeId(store.getState(), cabinetId);
+            if (!stableKey) {
+              console.warn("[PlayCanvasIntegration] The cabinet is not in the composition", cabinetId);
+              return null;
+            }
 
-        const result = await changeDimension({
-          attributeId: "Width",
-          value: width,
-          scope: "cabinet",
-          cabinetId: stableKey,
-        });
-        if (result.status !== "applied") return;
+            const result = await changeDimension({
+              attributeId: "Width",
+              value: width,
+              scope: "cabinet",
+              cabinetId: stableKey,
+            });
+            if (result.status !== "applied") return result;
 
-        sanitizePlayCanvasMeshInstances();
-        await syncCountertopConfig();
+            sanitizePlayCanvasMeshInstances();
+            await syncCountertopConfig();
 
-        await waitForNextAnimationFrame();
-        dispatchDividerResizeRestore(restoreTargets, "width");
+            await waitForNextAnimationFrame();
+            dispatchDividerResizeRestore(restoreTargets, "width");
+            return result;
+          },
+          (result) => result !== null && isApplied(result),
+        );
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set width", error);
       } finally {
@@ -1799,7 +1822,7 @@ export const PlayCanvasIntegration = ({
     },
     [
       selectedSceneProduct,
-      saveSnapshot,
+      runStep,
       clearDividersForWidthResize,
       syncCountertopConfig,
       dispatchDividerResizeRestore,
@@ -1815,22 +1838,23 @@ export const PlayCanvasIntegration = ({
       if (!isAllowedDepth) return;
 
       try {
-        await saveSnapshot();
-        const preservedDividerConfigs = await preserveCabinetDividerConfigs(productIds);
-        const result = await changeDimension({ attributeId: "Depth", value: depth, scope: "global" });
-        if (result.status !== "applied") return;
+        await runStep(async () => {
+          const preservedDividerConfigs = await preserveCabinetDividerConfigs(productIds);
+          const result = await changeDimension({ attributeId: "Depth", value: depth, scope: "global" });
+          if (result.status !== "applied") return;
 
-        await restoreCabinetDividerConfigs(preservedDividerConfigs);
-        sanitizePlayCanvasMeshInstances();
+          await restoreCabinetDividerConfigs(preservedDividerConfigs);
+          sanitizePlayCanvasMeshInstances();
 
-        await waitForNextAnimationFrame();
+          await waitForNextAnimationFrame();
+        });
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set depth", error);
       } finally {
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [productIds, depthOptions, saveSnapshot, changeDimension],
+    [productIds, depthOptions, runStep, changeDimension],
   );
 
   const requestDividerResize = useCallback(
@@ -1985,13 +2009,21 @@ export const PlayCanvasIntegration = ({
 
         // No cabinet placed yet: the handle is the choice for the next cabinet.
         if (!cabinetId) {
-          await saveSnapshot();
-          dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+          await runStep(async () => {
+            dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+          });
           return;
         }
 
+        // The handle already chosen: nothing to send (Urban Duplex and Lame offer one handle).
+        if (handleType === selectedProductConfig?.Handle) return;
+
+        // A change that waits for confirmation takes its undo step when it is confirmed.
+        const request: AttributeChange = { attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId };
+        const evaluation = evaluateAttributeChange(request);
+        const appliesAtOnce = evaluation.kind === "planned" && evaluation.confirmation.length === 0;
         reportHandleChangeResult(
-          await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
+          await (appliesAtOnce ? runStep(() => changeAttributeValue(request)) : changeAttributeValue(request)),
         );
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to set handle type", error);
@@ -2003,9 +2035,10 @@ export const PlayCanvasIntegration = ({
       changeAttributeValue,
       dimensionOptions.handles,
       dispatch,
+      evaluateAttributeChange,
       getCommandState,
       reportHandleChangeResult,
-      saveSnapshot,
+      runStep,
       selectedProductConfig,
     ],
   );
@@ -2026,14 +2059,15 @@ export const PlayCanvasIntegration = ({
       if (!selectedCabinetKey) return;
 
       try {
-        await saveSnapshot();
-        const result = await changeAttributeValue({
-          attributeId,
-          value,
-          scope: "cabinet",
-          cabinetId: selectedCabinetKey,
-          onlyThisCabinet: true,
-        });
+        const result = await runStep(() =>
+          changeAttributeValue({
+            attributeId,
+            value,
+            scope: "cabinet",
+            cabinetId: selectedCabinetKey,
+            onlyThisCabinet: true,
+          }),
+        );
         if (result.status !== "applied") {
           console.warn(`[PlayCanvasIntegration] ${attributeId} was not changed`, result);
         }
@@ -2041,7 +2075,7 @@ export const PlayCanvasIntegration = ({
         console.error(`[PlayCanvasIntegration] Failed to set ${attributeId}`, error);
       }
     },
-    [changeAttributeValue, saveSnapshot, selectedCabinetKey],
+    [changeAttributeValue, runStep, selectedCabinetKey],
   );
 
   /** The cabinets of a composition share one height, so this resizes them all, as Depth does. */
@@ -2055,8 +2089,7 @@ export const PlayCanvasIntegration = ({
       }
 
       try {
-        await saveSnapshot();
-        const result = await changeDimension({ attributeId: "Height", value: height, scope: "global" });
+        const result = await runStep(() => changeDimension({ attributeId: "Height", value: height, scope: "global" }));
         if (result.status !== "applied") {
           console.warn("[PlayCanvasIntegration] The height was not changed", result);
         }
@@ -2066,7 +2099,7 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [changeDimension, heightChoices, productIds, saveSnapshot, selectedDimensions.height],
+    [changeDimension, heightChoices, productIds, runStep, selectedDimensions.height],
   );
 
   const handleCancelHandlePreview = useCallback(() => {
@@ -2079,12 +2112,11 @@ export const PlayCanvasIntegration = ({
     setPendingHandlePreview(null);
 
     try {
-      await saveSnapshot();
-      reportHandleChangeResult(await confirmAttributeValue(preview));
+      reportHandleChangeResult(await runStep(() => confirmAttributeValue(preview)));
     } catch (error) {
       console.error("[PlayCanvasIntegration] Failed to set handle type", error);
     }
-  }, [confirmAttributeValue, pendingHandlePreview, reportHandleChangeResult, saveSnapshot]);
+  }, [confirmAttributeValue, pendingHandlePreview, reportHandleChangeResult, runStep]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -2116,75 +2148,77 @@ export const PlayCanvasIntegration = ({
     if (!selectedSceneProduct) return;
 
     try {
-      await saveSnapshot();
+      // Removing a cabinet, a side panel or the towel bar is one undo step.
+      await runStep(async () => {
+        // ── Towel Bar deletion ────────────────────────────────────────────────
+        // TowelBar entities are NOT cabinet products — they are the scene add-on of the
+        // TowelBarOption value, so deleting one changes that value through the command.
+        if (isTowelBarEntity) {
+          // Determine which side was deleted from the entity name
+          // e.g. "TowelBar_Left-abc123" → "left",  "TowelBar_Right-xyz789" → "right"
+          const nameLower = (selectedSceneProduct ?? "").toLowerCase();
+          const deletedSide: "left" | "right" | null = nameLower.includes("towelbar_left")
+            ? "left"
+            : nameLower.includes("towelbar_right")
+              ? "right"
+              : null;
 
-      // ── Towel Bar deletion ────────────────────────────────────────────────
-      // TowelBar entities are NOT cabinet products — they are the scene add-on of the
-      // TowelBarOption value, so deleting one changes that value through the command.
-      if (isTowelBarEntity) {
-        // Determine which side was deleted from the entity name
-        // e.g. "TowelBar_Left-abc123" → "left",  "TowelBar_Right-xyz789" → "right"
-        const nameLower = (selectedSceneProduct ?? "").toLowerCase();
-        const deletedSide: "left" | "right" | null = nameLower.includes("towelbar_left")
-          ? "left"
-          : nameLower.includes("towelbar_right")
-            ? "right"
-            : null;
+          // Deletion matrix:
+          //  Both + delete left  → Right
+          //  Both + delete right → Left
+          //  Both + unknown side → None  (safe fallback)
+          //  Left + delete left  → None
+          //  Right + delete right → None
+          let nextOption = "None";
+          if (towelBarOption === "Both") {
+            if (deletedSide === "left") nextOption = "Right";
+            else if (deletedSide === "right") nextOption = "Left";
+          }
 
-        // Deletion matrix:
-        //  Both + delete left  → Right
-        //  Both + delete right → Left
-        //  Both + unknown side → None  (safe fallback)
-        //  Left + delete left  → None
-        //  Right + delete right → None
-        let nextOption = "None";
-        if (towelBarOption === "Both") {
-          if (deletedSide === "left") nextOption = "Right";
-          else if (deletedSide === "right") nextOption = "Left";
+          // The binding clears the towel bar before placing the remaining side; no side left
+          // also clears its colour.
+          const result = await changeAttributeValue({
+            attributeId: "TowelBarOption",
+            value: nextOption,
+            scope: "global",
+          });
+          if (result.status !== "applied")
+            console.warn("[PlayCanvasIntegration] The towel bar was not removed", result);
+
+          setDropdownState((prev) => ({ ...prev, visible: false }));
+          return;
         }
 
-        // The binding clears the towel bar before placing the remaining side; no side left
-        // also clears its colour.
-        const result = await changeAttributeValue({
-          attributeId: "TowelBarOption",
-          value: nextOption,
-          scope: "global",
-        });
-        if (result.status !== "applied") console.warn("[PlayCanvasIntegration] The towel bar was not removed", result);
+        // ── Side Panel deletion ──────────────────────────────────────────────
+        const spName = (selectedSceneProduct ?? "").toLowerCase();
+        if (spName.includes("sidepanel") || spName.includes("side-panel")) {
+          const deletedSide: "left" | "right" | null = spName.includes("left")
+            ? "left"
+            : spName.includes("right")
+              ? "right"
+              : null;
 
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-        return;
-      }
-
-      // ── Side Panel deletion ──────────────────────────────────────────────
-      const spName = (selectedSceneProduct ?? "").toLowerCase();
-      if (spName.includes("sidepanel") || spName.includes("side-panel")) {
-        const deletedSide: "left" | "right" | null = spName.includes("left")
-          ? "left"
-          : spName.includes("right")
-            ? "right"
-            : null;
-
-        // Single cabinet → SP added as "both", so delete both sides regardless of entity name.
-        // Multi-cabinet → delete only the clicked side.
-        const isSingleCabinet = productIds.length <= 1;
-        if (isSingleCabinet || !deletedSide) {
-          await spDeleteSide(dispatch, "left");
-          await spDeleteSide(dispatch, "right");
-        } else {
-          // Preserve the groove option when the other side keeps its panel, so a
-          // single-side deletion doesn't wipe the remaining panel on save/restore.
-          const remainingSideStatus = deletedSide === "left" ? sidePanelRight : sidePanelLeft;
-          await spDeleteSide(dispatch, deletedSide, undefined, remainingSideStatus);
+          // Single cabinet → SP added as "both", so delete both sides regardless of entity name.
+          // Multi-cabinet → delete only the clicked side.
+          const isSingleCabinet = productIds.length <= 1;
+          if (isSingleCabinet || !deletedSide) {
+            await spDeleteSide(dispatch, "left");
+            await spDeleteSide(dispatch, "right");
+          } else {
+            // Preserve the groove option when the other side keeps its panel, so a
+            // single-side deletion doesn't wipe the remaining panel on save/restore.
+            const remainingSideStatus = deletedSide === "left" ? sidePanelRight : sidePanelLeft;
+            await spDeleteSide(dispatch, deletedSide, undefined, remainingSideStatus);
+          }
+          dispatch(setSelectedSceneProduct(""));
+          setDropdownState((prev) => ({ ...prev, visible: false }));
+          return;
         }
-        dispatch(setSelectedSceneProduct(""));
-        setDropdownState((prev) => ({ ...prev, visible: false }));
-        return;
-      }
 
-      // ── Cabinet deletion ──────────────────────────────────────────────────
-      const removed = await composition.removeCabinets([selectedSceneProduct]);
-      if (removed.status === "error") console.warn("[PlayCanvasIntegration] The cabinet was not removed", removed);
+        // ── Cabinet deletion ──────────────────────────────────────────────────
+        const removed = await composition.removeCabinets([selectedSceneProduct]);
+        if (removed.status === "error") console.warn("[PlayCanvasIntegration] The cabinet was not removed", removed);
+      });
     } catch (error) {
       console.error("[PlayCanvasIntegration] Failed to remove product", error);
     } finally {
@@ -2197,7 +2231,7 @@ export const PlayCanvasIntegration = ({
     isTowelBarEntity,
     selectedSceneProduct,
     towelBarOption,
-    saveSnapshot,
+    runStep,
     productIds.length,
     sidePanelLeft,
     sidePanelRight,
@@ -2213,7 +2247,6 @@ export const PlayCanvasIntegration = ({
       const actionConfig = action.config;
 
       try {
-        await saveSnapshot();
         getSelectTool()?.deselectAll();
         await waitForNextAnimationFrame();
         // USH shows one basin for the whole configuration, so the scene's choice for this basin is
@@ -2224,12 +2257,14 @@ export const PlayCanvasIntegration = ({
             typeof actionConfig[key] === "string" ? [[key, actionConfig[key] as string]] : [],
           ),
         );
-        const replayed = await replay({
-          send,
-          recordOnly:
-            send.sinkType === VESSEL_PLACEHOLDER_SINK_TYPE ? { CountertopStyle: VESSEL_PLACEHOLDER_SINK_TYPE } : {},
-          record: true,
-        });
+        const replayed = await runStep(() =>
+          replay({
+            send,
+            recordOnly:
+              send.sinkType === VESSEL_PLACEHOLDER_SINK_TYPE ? { CountertopStyle: VESSEL_PLACEHOLDER_SINK_TYPE } : {},
+            record: true,
+          }),
+        );
         if (replayed.status !== "applied" || replayed.skipped.length > 0) {
           console.warn("[PlayCanvasIntegration] The basin choice did not reach the scene", replayed);
         }
@@ -2240,7 +2275,7 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [replay, saveSnapshot],
+    [replay, runStep],
   );
 
   const resolveProductTypeFromId = useCallback((productId: string, config?: Record<string, unknown>) => {
@@ -2283,57 +2318,45 @@ export const PlayCanvasIntegration = ({
           return;
         }
 
-        await saveSnapshot();
-        const config = await getConfig(duplicateSourceId);
-        if (!config) return;
-        // Live scene is authoritative for dimensions/colors — it reflects the
-        // current resized state. selectedProductConfig may be stale for
-        // Width/Depth (it is not refreshed on resize, only on cabinet click).
-        // The scene config does not name what the state holds for the cabinet alone (its series,
-        // the side of its lateral panel): the copy takes those of the cabinet it is a copy of.
-        const mergedConfig = {
-          ...selectedProductConfig,
-          ...config,
-          ...selectOwnCabinetValues(store.getState(), duplicateSourceId, { sentToOne: true }),
-        };
+        // The copy and the side panel a side shelf takes the place of are one undo step.
+        await runStep(async () => {
+          const config = await getConfig(duplicateSourceId);
+          if (!config) return;
+          // Live scene is authoritative for dimensions/colors — it reflects the
+          // current resized state. selectedProductConfig may be stale for
+          // Width/Depth (it is not refreshed on resize, only on cabinet click).
+          // The scene config does not name what the state holds for the cabinet alone (its series,
+          // the side of its lateral panel): the copy takes those of the cabinet it is a copy of.
+          const mergedConfig = {
+            ...selectedProductConfig,
+            ...config,
+            ...selectOwnCabinetValues(store.getState(), duplicateSourceId, { sentToOne: true }),
+          };
 
-        console.log("mergedConfig", mergedConfig);
+          console.log("mergedConfig", mergedConfig);
 
-        const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
-        if (cabinetTypeOf(duplicateSourceId) === "Side-Shelf") {
-          // A side shelf at the edge takes the place of that side's panel.
-          const rowSide = rowEndSideOf(side);
-          if (!rowSide) return;
-          await spAutoRemoveSide(dispatch, rowSide, productIds.length);
-        }
+          const productType = resolveProductTypeFromId(duplicateSourceId, mergedConfig);
+          if (cabinetTypeOf(duplicateSourceId) === "Side-Shelf") {
+            // A side shelf at the edge takes the place of that side's panel.
+            const rowSide = rowEndSideOf(side);
+            if (!rowSide) return;
+            await spAutoRemoveSide(dispatch, rowSide, productIds.length);
+          }
 
-        // The copy goes beside the clicked product and is recorded there with its drawer style; a
-        // duplicated vessel sink base shows the vessel colour again.
-        const isVessel = typeof mergedConfig.sinkType === "string" && mergedConfig.sinkType.startsWith("Vessel");
-        // A short cabinet stays at its end of the composition: a taller copy asked for outside it goes
-        // inside it. Only a "+" beside a row end is redirected; a column's place is taken as offered.
-        const besideRowEnd =
-          side === "left" || side === "right"
-            ? resolveSteppedEndPlacement({
-                anchorRuntimeId: entityId,
-                side,
-                orderedRuntimeIds: getOrderedProductIds(productIds).filter((id) => productIds.includes(id)),
-                steppedRuntimeIds: selectSteppedCabinetIds(store.getState()),
-                addsEndCabinet: isSteppedSceneConfig(mergedConfig) || cabinetTypeOf(duplicateSourceId) === "Side-Shelf",
-              })
-            : null;
-        const added = await composition.addCabinet({
-          product: { productType, config: mergedConfig },
-          placement: besideRowEnd ? { kind: "beside", ...besideRowEnd } : placementForPlus(side, entityId),
-          afterPlacement: vesselColorRef.current && isVessel ? { VesselColor: vesselColorRef.current } : undefined,
+          // The copy goes beside the clicked product and is recorded there with its drawer style; a
+          // duplicated vessel sink base shows the vessel colour again.
+          const isVessel = typeof mergedConfig.sinkType === "string" && mergedConfig.sinkType.startsWith("Vessel");
+          const added = await composition.addCabinet({
+            product: { productType, config: mergedConfig },
+            placement: placementForPlus(side, entityId),
+            afterPlacement: vesselColorRef.current && isVessel ? { VesselColor: vesselColorRef.current } : undefined,
+          });
+          const productId = added.status === "error" ? null : added.placed[0];
+          if (!productId) return;
+
+          updateDimensionDataForProduct(productId, mergedConfig);
+          closeInPlayerActionSurface();
         });
-        // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.
-        reportSceneRefusal(added);
-        const productId = added.status === "error" ? null : added.placed[0];
-        if (!productId) return;
-
-        updateDimensionDataForProduct(productId, mergedConfig);
-        closeInPlayerActionSurface();
       } catch (error) {
         console.error("[PlayCanvasIntegration] Failed to duplicate product", error);
       } finally {
@@ -2357,7 +2380,7 @@ export const PlayCanvasIntegration = ({
     duplicateSourceId,
     maxCountertopLength,
     resolveProductTypeFromId,
-    saveSnapshot,
+    runStep,
     sceneTotalWidth,
     selectedDimensions.width,
     selectedProductConfig,
@@ -2459,22 +2482,16 @@ export const PlayCanvasIntegration = ({
 
   /** Swaps cabinets in order, as one step of the history; stops at the first swap the scene refuses. */
   const handleSwapProducts = useCallback(
-    async (swaps: readonly CabinetSwap[]) => {
-      if (swaps.length === 0) return;
-
-      await saveSnapshot();
-      for (const [idA, idB] of swaps) {
+    async (idA: string, idB: string) =>
+      runStep(async () => {
         const swapped = await composition.swapCabinets(idA, idB);
         if (swapped.status === "error") {
-          // A refusal of the scene (UF: the swap would split the tall cabinets) is explained to the user.
-          reportSceneRefusal(swapped);
           console.warn("[PlayCanvasIntegration] The cabinets were not swapped", swapped);
           return;
         }
-      }
-      await enforceSidePanelEligibilityForEdgeCabinets();
-    },
-    [composition, enforceSidePanelEligibilityForEdgeCabinets, saveSnapshot],
+        await enforceSidePanelEligibilityForEdgeCabinets();
+      }),
+    [composition, enforceSidePanelEligibilityForEdgeCabinets, runStep],
   );
 
   // Reposition ▸ Move Left / Move Right: the neighbour comes from the menu, which keeps side shelves at row ends.
@@ -3647,13 +3664,14 @@ export const PlayCanvasIntegration = ({
   const handleCountertopThicknessSelect = useCallback(
     async (thickness: number) => {
       if (!selectedSceneProduct || !thickness) return;
-      await saveSnapshot();
 
-      const result = await changeAttributeValue({
-        attributeId: "Thickness",
-        value: `${thickness}`,
-        scope: "countertop",
-      });
+      const result = await runStep(() =>
+        changeAttributeValue({
+          attributeId: "Thickness",
+          value: `${thickness}`,
+          scope: "countertop",
+        }),
+      );
       if (result.status !== "applied") return;
 
       getSelectTool()?.deselectAll();
@@ -3661,7 +3679,7 @@ export const PlayCanvasIntegration = ({
       setDropdownState((prev) => ({ ...prev, visible: false }));
       setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
     },
-    [changeAttributeValue, saveSnapshot, selectedSceneProduct],
+    [changeAttributeValue, runStep, selectedSceneProduct],
   );
 
   const handleOpenCountertopColor = useCallback(() => {

@@ -438,9 +438,8 @@ export const collectionSkuProfileSchema = z
     /** The side panels, for a collection that offers them. */
     sidePanel: z.union([pricedAsSchema, ownSidePanelSchema]).optional(),
     /**
-     * The scene's lower covers (Urban Low Height, Urban Duplex, Urban Freestanding), independently coloured
-     * and ordered as `CT-{prefix}{material}-VES-{W}W-{thickness}H-{D}D-{material}-{colour}`. Its presence
-     * is what offers the Upper / Lower countertop colour picker.
+     * The scene's decorative lower covers (Urban Low Height, Urban Duplex), independently coloured and ordered
+     * as `CT-{prefix}{material}-{INTG|VES}-{W}W-{thickness}H-{D}D-{material}-{colour}` in the Upper's style.
      */
     cabinetCover: z
       .object({
@@ -450,19 +449,19 @@ export const collectionSkuProfileSchema = z
          */
         prefix: z.string().trim().min(1).optional(),
         /** Inches, as the SKU spells it (0.5 → `.5H`). */
-        thicknessIn: z.number().positive().optional(),
-        /** Confirmed cover materials, not the upper countertop's material matrix. */
+        thicknessIn: z.number().positive(),
+        /** The materials the cover comes in, as the material SKUs of its palette name them. */
         materialSkus: z.array(z.string().trim().min(1)).min(1),
-        /** The cabinet colour attribute whose palette the cover takes; `CabinetColor` when omitted. */
+        /**
+         * The colour attribute whose palette the cover takes: a cabinet colour, `CabinetColor` when omitted,
+         * or `CountertopColor` for a cover in the countertop's colours, spelled as the countertop spells them.
+         */
         colorAttributeId: z.string().trim().min(1).optional(),
         /**
-         * The flows whose countertop step offers Lower; `["prebuilt"]` when omitted. A flow is listed
-         * only where the scene can lay a cover (UF: the custom flow, where a short cabinet is added).
+         * The attribute whose colour the cover takes until another is chosen, as the app asks the scene for it
+         * (Urban Duplex: `LateralPanelColor`); when omitted, the colour the scene gives it.
          */
-        flows: z
-          .array(z.enum(["prebuilt", "custom"]))
-          .min(1)
-          .optional(),
+        defaultColorAttributeId: z.string().trim().min(1).optional(),
       })
       .strict()
       .refine(({ prefix, thicknessIn }) => (prefix === undefined) === (thicknessIn === undefined), {

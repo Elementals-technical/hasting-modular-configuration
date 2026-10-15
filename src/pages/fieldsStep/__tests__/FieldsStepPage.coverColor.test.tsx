@@ -193,21 +193,25 @@ const renderDuplexCountertopStep = (value: typeof duplexCollection) => {
   );
 };
 
-it("offers Upper and Lower on Urban Duplex once the scene publishes a cover, in the Base Panel palette", async () => {
+it("offers Upper and Lower on Urban Duplex once the scene publishes a cover, in the countertop's colours", async () => {
   renderDuplexCountertopStep(duplexCollection);
 
   await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
   fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  // The scene's HPL slab reads as chosen: its colour is a countertop colour too.
+  await waitFor(() =>
+    expect(colors.getByRole("button", { name: "Rox Black TKQ" }).getAttribute("aria-pressed")).toBe("true"),
+  );
+  // A cabinet colour is not offered for the Lower.
+  expect(colors.queryByRole("button", { name: "Bianco Calce DA ST" })).toBeNull();
   await act(async () => {
-    // HPL is a panel colour and a countertop colour, but not a material of the decorative top.
-    expect(colors.queryByRole("button", { name: "Pulpis Chiaro TKH" })).toBeNull();
-    fireEvent.click(colors.getByRole("button", { name: "Bianco Calce DA ST" }));
+    fireEvent.click(colors.getByRole("button", { name: "Bianco Male TFA" }));
   });
 
-  expect(mocks.lower).toHaveBeenCalledWith("Bianco Calce DA ST");
+  expect(mocks.lower).toHaveBeenCalledWith("Bianco Male TFA");
   expect(mocks.upper).not.toHaveBeenCalled();
-  expect(colors.getByRole("button", { name: "Bianco Calce DA ST" }).getAttribute("aria-pressed")).toBe("true");
+  expect(colors.getByRole("button", { name: "Bianco Male TFA" }).getAttribute("aria-pressed")).toBe("true");
 });
 
 it("shows no Lower for a collection without the cover contract, whatever the scene publishes", async () => {

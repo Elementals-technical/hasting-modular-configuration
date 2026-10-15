@@ -6,13 +6,15 @@ import { Provider } from "react-redux";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
-import { ReadyCollectionContext, type ProductProfile } from "@/entities/collection";
+import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
+import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
+import datatable593 from "@/entities/collection/__tests__/fixtures/remote/datatable-593.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
@@ -31,6 +33,9 @@ import classProfileDocument from "../../../../public/collections/class/product-p
 import classUi from "../../../../public/collections/class/ui.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 import makoUi from "../../../../public/collections/mako/ui.json";
+import tricotManifest from "../../../../public/collections/tricot/manifest.json";
+import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
+import tricotUi from "../../../../public/collections/tricot/ui.json";
 import ulhManifest from "../../../../public/collections/urban-low-height/manifest.json";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import ulhUi from "../../../../public/collections/urban-low-height/ui.json";
@@ -83,6 +88,16 @@ const collections = {
     profile: parsedClassProfile.profile,
     ready: readyCollectionOf("class", classManifest, classUi, datatable578),
   },
+};
+
+const parsedTricotProfile = parseProductProfile(tricotProfileDocument);
+if (!parsedTricotProfile.ok) throw new Error("Packaged Tricot profile failed validation");
+
+// Tricot takes its vessel colours from a section of its own material configurator 12.
+const tricotConfiguratorGroups = configuratorSchema.parse(configurator12).availableOptions;
+const tricot = {
+  profile: parsedTricotProfile.profile,
+  ready: readyCollectionOf("tricot", tricotManifest, tricotUi, datatable593, tricotConfiguratorGroups),
 };
 
 const urbanLowHeight = {
@@ -357,6 +372,103 @@ describe.each(Object.entries(collections))("%s vessel choice follows the USH cou
     ).toBe(true);
   });
 });
+
+describe("Tricot vessel choice follows the Class one", () => {
+  const { fieldOf, shownValues, enabledValues } = fieldsOf(tricot);
+  const vesselPalette = configuratorSchema
+    .parse(configurator12)
+    .availableOptions.find(({ proxyName }) => proxyName === "Select Vessel Color")
+    ?.options.flatMap(({ variants }) => variants.map(({ name }) => name));
+
+  beforeEach(() => {
+    startWith(tricot);
+    store.dispatch(setActiveCountertopColor("CALACATTA 259"));
+  });
+
+  it("offers both countertop styles, with their pictures", () => {
+    expect(fieldOf("countertop-style")?.options.map(({ value, image }) => [value, image])).toEqual([
+      ["integrated", expect.stringContaining("images/countertop-style/Integrated.png")],
+      ["vessel", expect.stringContaining("images/countertop-style/Vessel.png")],
+    ]);
+    expect(enabledValues("countertop-style")).toEqual(["integrated", "vessel"]);
+  });
+
+  it("shows None and the vessels, not the integrated basins, for the vessel style", () => {
+    store.dispatch(setCountertopStyle("vessel"));
+
+    expect(shownValues("basin-style")).toEqual(["None", "Iris", "Frame", "Plaza"]);
+    expect(enabledValues("basin-style")).toEqual(["None", "Iris", "Frame", "Plaza"]);
+  });
+
+  it("offers the vessel colour once a vessel is chosen: the empty cutout and an integrated top have none", () => {
+    store.dispatch(setCountertopStyle("integrated"));
+    expect(fieldOf("vessel-color")?.visible).toBe(false);
+
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle(""));
+    expect(fieldOf("vessel-color")?.visible).toBe(false);
+
+    store.dispatch(setActiveBasinStyle("Iris"));
+    expect(fieldOf("vessel-color")?.visible).toBe(true);
+  });
+
+  // Configurator 12 lists the 20 lacquered matt and 20 lacquered gloss colours under Select Vessel Color.
+  it.each([
+    ["Iris", / MT$/, 20],
+    ["Frame", / MT$/, 20],
+    ["Plaza", / (MT|GL)$/, 40],
+  ])("offers %s the lacquers of its palette, and shows the rest with the reason", (vessel, finish, count) => {
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle(vessel));
+    const field = fieldOf("vessel-color");
+    const enabled = enabledValues("vessel-color") ?? [];
+
+    expect(enabled).toHaveLength(count);
+    expect(enabled.every((value) => finish.test(value))).toBe(true);
+    expect(vesselPalette).toHaveLength(40);
+    expect(new Set(shownValues("vessel-color"))).toEqual(new Set(vesselPalette));
+    expect(
+      field?.options
+        .filter(({ enabled: isEnabled }) => !isEnabled)
+        .every(({ reasonCode }) => reasonCode === "vessel.colorUnavailable"),
+    ).toBe(true);
+  });
+});
+
+// Table 593 makes every Tricot top up to 220 cm, for both styles, so the colours follow the cabinets'
+// widths as the Urban Low Height ones do.
+describe.each(["integrated", "vessel"])(
+  "Tricot countertop colours follow the countertop matrix for the %s style, as Urban Low Height's",
+  (style) => {
+    const { fieldOf } = fieldsOf(tricot);
+
+    beforeEach(() => {
+      startWith(tricot);
+      store.dispatch(setCountertopStyle(style));
+    });
+
+    it("offers every colour while the top stays within 220 cm", () => {
+      store.dispatch(setSelectedDimensions({ width: 200, depth: 52 }));
+      const options = fieldOf("countertop-color")?.options ?? [];
+
+      expect(options).toHaveLength(71);
+      expect(options.every(({ enabled }) => enabled)).toBe(true);
+    });
+
+    it("refuses every colour past 220 cm, with a reason the collection words", () => {
+      store.dispatch(setSelectedDimensions({ width: 240, depth: 52 }));
+      const options = fieldOf("countertop-color")?.options ?? [];
+
+      expect(options.filter(({ enabled }) => enabled)).toEqual([]);
+      expect(new Set(options.map(({ reasonCode }) => reasonCode))).toEqual(
+        new Set(["countertop.materialNotAvailableForWidth"]),
+      );
+      expect(selectMessage(tricot.profile, "countertop.materialNotAvailableForWidth")).toBe(
+        "Not available for current cabinet width",
+      );
+    });
+  },
+);
 
 // The Urban Standard Height vessels take the colours its vesselCompatibility names, judged by the
 // material a colour is listed under and its colour code, as the USH countertop step judges them.

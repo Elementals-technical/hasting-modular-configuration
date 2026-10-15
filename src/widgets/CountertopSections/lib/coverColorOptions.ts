@@ -1,6 +1,6 @@
 import type { CollectionSkuProfile, FieldOptionState } from "@/entities/collection";
 
-/** Lower is a decorative cabinet-material panel, not an upper slab with a basin. */
+/** Lower's colours: its palette, in the materials the collection's cover comes in. */
 export const buildCoverColorOptions = (
   options: FieldOptionState[],
   skuProfile: CollectionSkuProfile | null,

@@ -50,5 +50,10 @@ export const parseCabinetCoverColorState = (state: unknown): CabinetCoverColorSt
       ? [{ ...segment, materialId: source.materialId, thicknessM: source.thicknessM }]
       : [];
   });
-  return { compositionId: state.compositionId, segments };
+  const requested = isRecord(state.settings) ? state.settings.materialId : null;
+  return {
+    compositionId: state.compositionId,
+    segments,
+    requestedMaterialId: typeof requested === "string" && requested.trim() ? requested.trim() : null,
+  };
 };

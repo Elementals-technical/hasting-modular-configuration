@@ -5,7 +5,8 @@
   "sources": [
     "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
     "Tricot Vanities - SKUs + Pricing.xlsx: SKU Structure, SKU Curation, CabinetPricing",
-    "Class Vanities - SKUs + Pricing.xlsx: Countertop_Pricing, Basin Style_Pricing, Accessories_Pricing (team decision 2026-10-09: the Tricot top is spelled and priced as Class's GB top)"
+    "Class Vanities - SKUs + Pricing.xlsx: Countertop_Pricing, Basin Style_Pricing, Accessories_Pricing (team decision 2026-10-09: the Tricot top is spelled and priced as Class's GB top)",
+    "Class vessels Iris, Frame and Plaza (VES-IRIS/FRM/PLZ, table 542), offered on the Tricot vessel top since 2026-10-15"
   ],
   "cabinet": {
     "series": "TRIC",
@@ -103,7 +104,22 @@
     "elementCode": "CAB"
   },
   "dividers": {},
+  "vessels": {
+    "Iris": { "series": "IRIS", "widthIn": "16.5", "heightIn": "4.3", "depthIn": "16.5" },
+    "Frame": { "series": "FRM", "widthIn": "19.7", "heightIn": "4.3", "depthIn": "13.8" },
+    "Plaza": { "series": "PLZ", "widthIn": "23.6", "heightIn": "4.7", "depthIn": "18.9" }
+  },
   "gaps": [
+    {
+      "group": "vessel",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Iris, Frame and Plaza are the Class vessels, priced from their SKUs (table 542) in the 40 lacquer colours of configurator 12; the Tricot documents give no vessel, so the product has not confirmed them or their palettes for Tricot.",
+      "appliesWhen": {
+        "attributeId": "sinkType",
+        "values": ["Iris", "Frame", "Plaza"]
+      }
+    },
     {
       "group": "bracket",
       "blocksTotal": false,

@@ -147,7 +147,7 @@ describe("Tricot delivered runtime bindings", () => {
     }
   });
 
-  it.each(["SidePanels", "GrainDirection", "VesselColor"])(
+  it.each(["SidePanels", "GrainDirection"])(
     "keeps missing visual %s unbound, not state-only: never sent, and a cabinet is placed without it",
     (id) => {
       expect(patch(id, "anything")).toMatchObject({ ok: false, reason: "unbound", detail: expect.any(String) });
@@ -156,9 +156,9 @@ describe("Tricot delivered runtime bindings", () => {
     },
   );
 
-  it("sends each basin as Class does, as an authored sub-product of the sink base, and reads it back", () => {
+  it("sends each basin and vessel as Class does, as an authored sub-product of the sink base, and reads it back", () => {
     const basins = tricotProfile.attributes.find(({ attributeId }) => attributeId === "sinkType")?.options ?? [];
-    for (const { value } of basins) {
+    for (const { value } of basins.filter(({ value }) => value !== "None")) {
       const resolution = patch("sinkType", value);
       if (!resolution.ok || !("patch" in resolution)) throw new Error(`No basin for ${value}`);
       expect(resolution.target).toEqual({ kind: "productType", productType: "Tricot-sink-cabinet" });
@@ -166,9 +166,41 @@ describe("Tricot delivered runtime bindings", () => {
       expect(bundle, sceneBasin).toContain(`registry.registerProduct("${sceneBasin}"`);
       expect(configurationValueOf(bindings, "sinkType", sceneBasin, value)).toBe(value);
     }
+    expect(patch("sinkType", "Iris")).toMatchObject({ patch: { sinkType: "Vessel_Iris" } });
+    expect(patch("sinkType", "Frame")).toMatchObject({ patch: { sinkType: "Vessel_Frame" } });
+    expect(patch("sinkType", "Plaza")).toMatchObject({ patch: { sinkType: "Vessel_Blade11" } });
+    // None and a cleared basin, as a switch to the vessel style leaves it, are the empty vessel cutout.
+    expect(patch("sinkType", "None")).toMatchObject({ patch: { sinkType: "Vessel" } });
+    expect(patch("sinkType", "")).toMatchObject({ patch: { sinkType: "Vessel" } });
     // The scene's default basin is LB440's, so a sink base placed without a choice reads back as LB440.
     expect(patch("sinkType", "LB440")).toMatchObject({ patch: { sinkType: "Top_HPLPrisma" } });
     expect(findProductConfigBindingErrors(bindings, { sinkType: "Top_HPLPrisma" })).toEqual([]);
+  });
+
+  it("sends the vessel colour to the sink base as its lacquer material, and reads it back", () => {
+    const scene = JSON.parse(sceneConfig) as { assets: Record<string, { name?: string; type?: string }> };
+    const materials = new Set(
+      Object.values(scene.assets)
+        .filter(({ type }) => type === "material")
+        .map(({ name }) => name),
+    );
+
+    expect(patch("VesselColor", "Salvia 415 MT")).toMatchObject({
+      ok: true,
+      target: { kind: "productType", productType: "Tricot-sink-cabinet" },
+      patch: { VesselColor: "Salvia 415 Lacquered MT" },
+    });
+    expect(patch("VesselColor", "Zaffiro 411 GL")).toMatchObject({
+      patch: { VesselColor: "Zaffiro 411 Lacquered GL" },
+    });
+    const binding = bindings.bindings.find(({ attributeId }) => attributeId === "VesselColor");
+    if (binding?.status !== "bound" || binding.values.kind !== "identity") throw new Error("Missing vessel colour");
+    const overrides = Object.entries(binding.values.overrides ?? {});
+    expect(overrides).toHaveLength(40);
+    for (const [value, material] of overrides) {
+      expect(materials.has(String(material)), String(material)).toBe(true);
+      expect(configurationValueOf(bindings, "VesselColor", String(material), value)).toBe(value);
+    }
   });
 
   it("sends the countertop colour and thickness to the composition, and records the style, as Class does", () => {
@@ -186,6 +218,7 @@ describe("Tricot delivered runtime bindings", () => {
       patch: { Thickness: "4.75" },
     });
     expect(isStateOnlyResolution(patch("CountertopStyle", "integrated"))).toBe(true);
+    expect(isStateOnlyResolution(patch("CountertopStyle", "vessel"))).toBe(true);
   });
 
   it("passes the keys the scene writes into every product it places", () => {
@@ -228,8 +261,8 @@ describe("Tricot delivered runtime bindings", () => {
     expect(tricotProfile.defaults).toMatchObject({
       CabinetColor: "Rovere Oro 932",
       DrawerPanelFluting: "Cannette",
-      HandleGrooveColor: "Nero 433 MT",
-      sinkType: "LB440",
+      HandleGrooveColor: "Agata 407 MT",
+      sinkType: "VA024",
     });
   });
 

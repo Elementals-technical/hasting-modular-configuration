@@ -45,11 +45,46 @@ describe("Tricot default model price", () => {
     const { lines, gaps } = buildCollectionPricingLines(defaultModel());
 
     expect(lines.map(({ group, sku, widthCm }) => ({ group, sku, ...(widthCm ? { widthCm } : {}) }))).toEqual([
-      { group: "cabinet", sku: "VAN-TRIC-SB/1DW/CAN-23.6W-15.7H-20.5D-CAB-WDV-932-HDL-LACM-433" },
-      { group: "countertop", sku: "CT-GBSSTL-INTG-23.6W-.5H-20.7D", widthCm: 60 },
-      { group: "basin", sku: "CT-GBSSTL-LB440-.5H" },
-      { group: "faucetHoles", sku: "CT-GBSSTL-FAHO/0" },
+      { group: "cabinet", sku: "VAN-TRIC-SB/1DW/CAN-23.6W-15.7H-20.5D-CAB-WDV-932-HDL-LACM-407" },
+      { group: "countertop", sku: "CT-GBHPL-INTG-23.6W-.5H-20.7D-HPL-250", widthCm: 60 },
+      { group: "basin", sku: "CT-GBHPL-VA024-.5H" },
+      { group: "faucetHoles", sku: "CT-GBHPL-FAHO/0" },
     ]);
     expect(gaps.filter(({ blocksTotal }) => blocksTotal)).toEqual([]);
+  });
+});
+
+describe("Tricot vessel model price", () => {
+  const vesselModel = (sinkType: string, vesselColor: string) =>
+    buildCollectionPricingLines({
+      ...defaultModel(),
+      countertopColor: "Matte White",
+      countertopStyle: "vessel",
+      sinkType,
+      vesselColor,
+    });
+
+  it("orders the Class GB vessel top, its cutout and the vessel in its lacquer", () => {
+    const { lines, gaps } = vesselModel("Plaza", "Zaffiro 411 GL");
+
+    expect(lines.filter(({ group }) => group !== "cabinet").map(({ group, sku }) => ({ group, sku }))).toEqual([
+      { group: "countertop", sku: "CT-GBSSTL-VES-23.6W-.5H-20.7D" },
+      { group: "holeCut", sku: "CT-GBSSTL-HCUT" },
+      { group: "faucetHoles", sku: "CT-GBSSTL-FAHO/0" },
+      { group: "vessel", sku: "VES-PLZ-X-23.6W-4.7H-18.9D-LACG-411" },
+    ]);
+    expect(gaps.filter(({ blocksTotal }) => blocksTotal)).toEqual([]);
+    // The vessels and their palettes are Class's, which the product has not confirmed for Tricot.
+    expect(gaps.find(({ group }) => group === "vessel")).toMatchObject({ blocksTotal: false, owner: "product" });
+  });
+
+  it("orders no vessel for the bare cutout, nor without a colour, and the price says why", () => {
+    expect(vesselModel("None", "").lines.map(({ group }) => group)).not.toContain("vessel");
+
+    const { lines, gaps } = vesselModel("Iris", "");
+    expect(lines.map(({ group }) => group)).not.toContain("vessel");
+    expect(gaps.filter(({ blocksTotal }) => blocksTotal)).toEqual([
+      expect.objectContaining({ reason: "VesselColor is not chosen, so the vessel has no price." }),
+    ]);
   });
 });

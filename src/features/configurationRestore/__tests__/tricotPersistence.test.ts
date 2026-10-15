@@ -85,8 +85,14 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
     flow,
     configurator: tricotConfigurator,
   };
+  // The default top, which takes the default basin: a colour without it would clear the basin first.
   expect(
-    (await changeAttribute({ attributeId: "CountertopColor", scope: "countertop", value: "Matte White" }, deps)).status,
+    (
+      await changeAttribute(
+        { attributeId: "CountertopColor", scope: "countertop", value: tricotMatrixProfile.defaults.CountertopColor },
+        deps,
+      )
+    ).status,
   ).toBe("applied");
   expect(
     (await changeAttribute({ attributeId: "CabinetColor", scope: "global", value: "Noce Canaletto 933" }, deps)).status,

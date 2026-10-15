@@ -33,6 +33,7 @@ import {
   type PreparedCabinet,
 } from "./composition";
 import { confirmAttributeChange } from "./confirmAttributeChange";
+import { evaluateChange, type ChangeEvaluation } from "./evaluateChange";
 import {
   recordValues,
   replayValues,
@@ -68,6 +69,11 @@ export type CommandRunnerDeps = {
 
 export type CommandRunner = {
   change: (change: AttributeChange) => Promise<ChangeResult>;
+  /**
+   * What `change` would decide, without applying anything: whether the set is planned and waits for
+   * confirmation. Lets a page take an undo step only for a change that applies at once.
+   */
+  evaluate: (change: AttributeChange) => ChangeEvaluation;
   confirm: (preview: ChangePreview) => Promise<ChangeResult>;
   changeDimension: (change: DimensionChange) => Promise<ChangeResult>;
   /** Shows values the configuration already holds on the scene again (undo, restore). */
@@ -106,6 +112,7 @@ export const createCommandRunner = ({
 
   return {
     change: (change) => changeAttribute(change, deps()),
+    evaluate: (change) => evaluateChange(change, getState(), configurator),
     confirm: (preview) => confirmAttributeChange(preview, deps()),
     changeDimension: (change) => changeDimension(change, deps()),
     replay: (request) => replayValues(request, deps()),

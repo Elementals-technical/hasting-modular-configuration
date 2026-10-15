@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 
 import { selectAttribute } from "@/entities/collection";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import {
   setActiveBasinStyle,
   setCountertopColorSku,
@@ -46,7 +46,8 @@ export type CountertopAccordion = { sectionId: string; label: string; defaultOpe
 /** Countertop sections for both flows; colour SKU and basin apply stay here until D02 and a basin command. */
 export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs): CountertopAccordion[] => {
   const dispatch = useAppDispatch();
-  const saveSnapshot = useHistorySnapshot();
+  // A pick on the step is one undo step, written once it changed the configuration.
+  const { run: runStep } = useHistoryStep();
   const { change } = useChangeAttribute();
   const sections = useCustomizationStepSections(stepId);
   const fieldOf = (attributeId: string) =>
@@ -78,17 +79,21 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
   }, [context.ruleState.allowedThicknesses, thicknessField]);
 
   const changeThickness = useCallback(
-    async (thickness: string) => {
-      await saveSnapshot();
-      await change({ attributeId: "Thickness", value: thickness, scope: "countertop" });
-    },
-    [change, saveSnapshot],
+    (thickness: string) => runStep(() => change({ attributeId: "Thickness", value: thickness, scope: "countertop" })),
+    [change, runStep],
+  );
+
+  // A thickness the rules pick for the countertop: their change, not the user's, so it takes no undo step.
+  const resetThickness = useCallback(
+    (thickness: string) => change({ attributeId: "Thickness", value: thickness, scope: "countertop" }),
+    [change],
   );
 
   const changeCountertopColor = async (colorName: string, _config?: unknown, metadata?: ProductOptionMetadata) => {
     if (!colorName || !colorState.isColorCompatible(colorName)) return;
-    await saveSnapshot();
-    const result = await change({ attributeId: "CountertopColor", value: colorName, scope: "countertop" });
+    const result = await runStep(() =>
+      change({ attributeId: "CountertopColor", value: colorName, scope: "countertop" }),
+    );
     if (result.status !== "applied") return;
     dispatch(
       setCountertopColorSku(metadata?.sku ?? findCountertopSkuByColorName(context.configuratorGroups, colorName)),
@@ -99,13 +104,14 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
     if (!colorName || !sinkBaseCabinetId) return;
     const option = vesselState.findOptionByValue(colorName);
     if (option && !vesselState.isCompatibleWithSinkStyle(option)) return;
-    await saveSnapshot();
-    const result = await change({
-      attributeId: "VesselColor",
-      value: colorName,
-      scope: "basin",
-      sinkBaseId: sinkBaseCabinetId,
-    });
+    const result = await runStep(() =>
+      change({
+        attributeId: "VesselColor",
+        value: colorName,
+        scope: "basin",
+        sinkBaseId: sinkBaseCabinetId,
+      }),
+    );
     if (result.status === "applied") vesselState.setActiveVesselColor(colorName);
   };
 
@@ -145,36 +151,39 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
     availableBasinOptions: basinState.availableBasinOptions,
     hasSinkBase: basinState.hasSinkBase,
     isActiveStyleAvailable: basinState.isActiveStyleAvailable,
-    changeThickness,
+    resetThickness,
     applyBasin,
   });
 
   const changeBasin = async (basinStyle: string) => {
     const option = basinState.basinOptions.find((item) => (item.name ?? item.title) === basinStyle);
     if (option?.isAvailable === false) return;
-    await saveSnapshot();
 
-    const isNone = basinStyle === VESSEL_SINK_NONE_OPTION_VALUE;
-    if (isNone || basinStyle.startsWith("Vessel_")) {
-      if (!isVesselStyle) dispatch(setCountertopStyle("Vessel"));
-      // "None" and a second click on the chosen vessel leave an empty cutout.
-      if (isNone || activeBasinStyle === basinStyle) return applyVesselCutout();
-    }
-    await applyBasin(basinStyle);
+    await runStep(async () => {
+      const isNone = basinStyle === VESSEL_SINK_NONE_OPTION_VALUE;
+      if (isNone || basinStyle.startsWith("Vessel_")) {
+        if (!isVesselStyle) dispatch(setCountertopStyle("Vessel"));
+        // "None" and a second click on the chosen vessel leave an empty cutout.
+        if (isNone || activeBasinStyle === basinStyle) return applyVesselCutout();
+      }
+      await applyBasin(basinStyle);
+    });
   };
 
   const changeCountertopStyle = async (styleValue: string) => {
     const style = basinState.styleOptions.find((option) => option.value === styleValue)?.label ?? styleValue;
-    await saveSnapshot();
-    dispatch(setCountertopStyle(style));
 
-    if (style.toLowerCase() === "vessel") {
-      await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
-      dispatch(setActiveBasinStyle(""));
-    } else {
-      await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: "" });
-      dispatch(setVesselColor(""));
-    }
+    await runStep(async () => {
+      dispatch(setCountertopStyle(style));
+
+      if (style.toLowerCase() === "vessel") {
+        await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
+        dispatch(setActiveBasinStyle(""));
+      } else {
+        await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: "" });
+        dispatch(setVesselColor(""));
+      }
+    });
   };
 
   const orderSwatches = () => {

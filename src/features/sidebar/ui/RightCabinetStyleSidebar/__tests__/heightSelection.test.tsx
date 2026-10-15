@@ -50,11 +50,15 @@ import { RightCabinetStyleSidebar } from "../RightCabinetStyleSidebar";
 const scene = vi.hoisted(() => ({
   runtime: null as TestRuntimePort | null,
   directBatch: vi.fn(),
-  saveSnapshot: vi.fn(async () => {}),
+  // Each undo step the sidebar takes runs its change; the step's own rules are useHistoryStep's tests.
+  runStep: vi.fn(<T,>(change: () => Promise<T>) => change()),
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => false }));
-vi.mock("@/entities/history/lib/useHistorySnapshot", () => ({ useHistorySnapshot: () => scene.saveSnapshot }));
+vi.mock("@/entities/history/lib/useHistoryStep", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/history/lib/useHistoryStep")>()),
+  useHistoryStep: () => ({ run: scene.runStep }),
+}));
 vi.mock("@/utils/functions/playcanvas/setConfigBatch", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/utils/functions/playcanvas/setConfigBatch")>()),
   setConfigBatch: scene.directBatch,
@@ -134,7 +138,7 @@ const placeCabinet = () => {
 beforeEach(() => {
   scene.runtime = null;
   scene.directBatch.mockClear();
-  scene.saveSnapshot.mockClear();
+  scene.runStep.mockClear();
 
   store.dispatch(reset());
   store.dispatch(resetConfiguration());
@@ -190,7 +194,7 @@ describe("height of an Urban Low Height cabinet in the style sidebar", () => {
     chooseHeight('11"');
 
     await waitFor(() => expect(product().selectedDimensions.height).toBe(28));
-    expect(scene.saveSnapshot).toHaveBeenCalledTimes(1);
+    expect(scene.runStep).toHaveBeenCalledTimes(1);
     expect(scene.runtime?.calls).toEqual([
       [expect.objectContaining({ attributeId: "Height", target: { scope: "global" }, value: 28 })],
     ]);
@@ -203,14 +207,16 @@ describe("height of an Urban Low Height cabinet in the style sidebar", () => {
 
     chooseOption("Handle", "Push to open");
 
-    // Nothing is sent or recorded until the user confirms the handle change.
+    // Nothing is sent or recorded until the user confirms the handle change, nor is an undo step taken.
     await screen.findByText("Update Handle Style?");
     expect(scene.runtime?.calls ?? []).toEqual([]);
     expect(product().selectedDimensions.height).toBe(38);
+    expect(scene.runStep).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
 
     await waitFor(() => expect(product().selectedDimensions.height).toBe(35));
+    expect(scene.runStep).toHaveBeenCalledTimes(1);
     expect(product().selectedProductConfig?.Handle).toBe("handle_pto");
     // One set: the handle, and the nearest height it takes.
     expect(scene.runtime?.calls).toHaveLength(1);

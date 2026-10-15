@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useActiveCollection } from "@/entities/collection";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { getTowelBarColor, getTowelBarOption } from "@/entities/product/model/store/selectors";
 import { ProductOptionsGrid } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 import {
@@ -27,7 +27,7 @@ export type AccessoriesAccordion = { sectionId: string; label: string; defaultOp
 
 /** Accessories sections for both flows; the divider section drives the drawer buttons of the scene. */
 export const useAccessoriesSections = (stepId: string) => {
-  const saveSnapshot = useHistorySnapshot();
+  const { run: runStep } = useHistoryStep();
   const { change } = useChangeAttribute();
   const sections = useCustomizationStepSections(stepId);
   const fieldOf = (attributeId: string) =>
@@ -57,8 +57,7 @@ export const useAccessoriesSections = (stepId: string) => {
 
   const changeAttribute = (attributeId: "TowelBarOption" | "TowelBarColor") => async (value: string) => {
     if (!value) return;
-    await saveSnapshot();
-    await change({ attributeId, value, scope: "global" });
+    await runStep(() => change({ attributeId, value, scope: "global" }));
   };
 
   const onSectionChange = (sectionId: string) => {

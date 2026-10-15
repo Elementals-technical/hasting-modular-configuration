@@ -8,7 +8,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext } from "@/entities/collection";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
-import { reset, setActiveProfile, setCountertopStyle } from "@/entities/product/model/store/slice";
+import { clearHistory, setHistoryRestoring } from "@/entities/history/model/store/slice";
+import {
+  addProductId,
+  reset,
+  setActiveCountertopThickness,
+  setActiveProfile,
+  setCountertopStyle,
+} from "@/entities/product/model/store/slice";
 import { readyCollectionFixture } from "@/features/configurationCommands/__tests__/readyCollectionFixture";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
@@ -108,5 +115,45 @@ describe("the countertop step from ui.json", () => {
     });
 
     expect(changeMock).toHaveBeenCalledWith({ attributeId: "Thickness", value: "0.5", scope: "countertop" });
+  });
+});
+
+describe("the countertop step's resets", () => {
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(clearHistory());
+    store.dispatch(setHistoryRestoring(false));
+    // A placed cabinet, so a history step written here would be one that undo could restore.
+    store.dispatch(addProductId("rt-a"));
+    store.dispatch(setActiveCountertopThickness("9"));
+    changeMock.mockClear();
+  });
+
+  const thicknessChanges = () =>
+    changeMock.mock.calls.filter(
+      (call: unknown[]) => (call[0] as { attributeId?: string }).attributeId === "Thickness",
+    );
+
+  it("puts back a thickness the rules allow without writing an undo step", async () => {
+    renderStep();
+    await act(async () => {});
+
+    expect(thicknessChanges().length).toBeGreaterThan(0);
+    expect(store.getState().rootStateUI.history.past).toEqual([]);
+  });
+
+  it("waits for an undo to end before it resets anything", async () => {
+    store.dispatch(setHistoryRestoring(true));
+    renderStep();
+    await act(async () => {});
+
+    expect(thicknessChanges()).toEqual([]);
+
+    await act(async () => {
+      store.dispatch(setHistoryRestoring(false));
+    });
+
+    expect(thicknessChanges().length).toBeGreaterThan(0);
   });
 });

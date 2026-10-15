@@ -311,6 +311,8 @@ export type CabinetCoverApi = {
 export type CabinetCoverColorState = {
   compositionId: string;
   segments: (CabinetCoverSegment & { materialId: string; thicknessM: number })[];
+  /** The material the composition asks its covers for (`configure`); null when it names none. */
+  requestedMaterialId: string | null;
 };
 
 export type CabinetCoverConfigureResult = {

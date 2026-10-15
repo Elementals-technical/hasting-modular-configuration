@@ -52,7 +52,7 @@ import { setScenePlusFilter, type ScenePlusKind } from "@/utils/functions/playca
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
@@ -74,7 +74,7 @@ import {
   getStableKeyForRuntimeId,
 } from "@/entities/configuration/model/store/selectors";
 import { useChangeAttribute, usePerCabinetAttributeFields } from "@/features/configurationCommands";
-import type { ChangePreview, ChangeResult } from "@/features/configurationCommands";
+import type { AttributeChange, ChangePreview, ChangeResult } from "@/features/configurationCommands";
 import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
@@ -152,7 +152,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const sceneTotalWidth = lengthGuard.currentWithSp;
   const maxCountertopLength = lengthGuard.max;
 
-  const saveSnapshot = useHistorySnapshot();
+  const { run: runStep } = useHistoryStep();
   // A collection with Drag & Drop also places cabinets at the places the scene offers (columns).
   const placesInColumns = useActiveCollection((collection) => isDragDropCollection(collection.id));
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
@@ -187,6 +187,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     change: changeAttributeValue,
     changeDimension,
     confirm: confirmAttributeValue,
+    evaluate: evaluateAttributeChange,
     getState: getCommandState,
     composition,
   } = useChangeAttribute();
@@ -480,10 +481,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     heightChangeInFlightRef.current = true;
 
     try {
-      await saveSnapshot();
       commandHeightRef.current = nextHeight;
 
-      const result = await changeDimension({ attributeId: "Height", value: nextHeight, scope: "global" });
+      const result = await runStep(() =>
+        changeDimension({ attributeId: "Height", value: nextHeight, scope: "global" }),
+      );
       if (result.status !== "applied") {
         commandHeightRef.current = null;
         console.warn("[Sidebar] The height was not changed", result);
@@ -524,14 +526,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     const runtimeId = getSelectedSceneProduct(getCommandState());
 
-    await saveSnapshot();
-    const result = await changeAttributeValue({
-      attributeId,
-      value: next,
-      scope: "cabinet",
-      cabinetId: selectedCabinetId,
-      onlyThisCabinet: true,
-    });
+    const result = await runStep(() =>
+      changeAttributeValue({
+        attributeId,
+        value: next,
+        scope: "cabinet",
+        cabinetId: selectedCabinetId,
+        onlyThisCabinet: true,
+      }),
+    );
     if (result.status !== "applied") {
       console.warn(`[Sidebar] ${attributeId} was not changed`, result);
       return;
@@ -575,13 +578,18 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     // No cabinet placed yet: this is the choice for the next cabinet; there is nothing to send.
     if (!cabinetId) {
-      await saveSnapshot();
-      dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+      await runStep(async () => {
+        dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: handleType }));
+      });
       return;
     }
 
+    // A change that waits for confirmation takes its undo step when it is confirmed, not before the dialog.
+    const request: AttributeChange = { attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId };
+    const evaluation = evaluateAttributeChange(request);
+    const appliesAtOnce = evaluation.kind === "planned" && evaluation.confirmation.length === 0;
     showHandleChangeResult(
-      await changeAttributeValue({ attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId }),
+      await (appliesAtOnce ? runStep(() => changeAttributeValue(request)) : changeAttributeValue(request)),
     );
   };
 
@@ -594,12 +602,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     const preview = pendingHandlePreview;
     setPendingHandlePreview(null);
 
-    await saveSnapshot();
-
     const plannedHeight = preview.plan.find(({ attributeId }) => attributeId === "Height")?.value;
     commandHeightRef.current = typeof plannedHeight === "number" ? plannedHeight : null;
 
-    const result = await confirmAttributeValue(preview);
+    const result = await runStep(() => confirmAttributeValue(preview));
 
     if (result.status !== "applied" && result.status !== "partial") {
       commandHeightRef.current = null;
@@ -882,46 +888,33 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           : null;
       const widthForAddedCabinet = selectedWidthIsFitting ? selectedDimensions.width : fallbackWidth;
 
-      if (activeDrawerProduct === "Side-Shelf") {
-        // A side shelf stands at a row end, in the place of that side's panel.
-        const rowSide = rowEndSideOf(side);
-        if (!rowSide) return;
-        await spAutoRemoveSide(dispatch, rowSide);
-      }
+      // The cabinet and the side panel a side shelf takes the place of are one undo step.
+      const productId = await runStep(async () => {
+        if (activeDrawerProduct === "Side-Shelf") {
+          // A side shelf stands at a row end, in the place of that side's panel.
+          const rowSide = rowEndSideOf(side);
+          if (!rowSide) return null;
+          await spAutoRemoveSide(dispatch, rowSide);
+        }
 
-      await saveSnapshot();
-
-      // A short cabinet stays at its end of the composition: a taller one asked for outside it goes
-      // inside it. Only a "+" beside a row end is redirected; a column's place is taken as offered.
-      const placement =
-        side === "left" || side === "right"
-          ? resolveSteppedEndPlacement({
-              anchorRuntimeId: entityId,
-              side,
-              orderedRuntimeIds: getOrderedProductIds(selectedProducts).filter((id) => selectedProducts.includes(id)),
-              steppedRuntimeIds: steppedCabinetIds,
-              addsEndCabinet: isSteppedStyle || activeDrawerProduct === "Side-Shelf",
-            })
-          : { anchorRuntimeId: entityId, side };
-
-      // The collection's scene product goes beside the clicked one and is recorded there with its
-      // drawer style, as a duplicated cabinet is.
-      const added = await composition.addCabinet(
-        buildAddedCabinetRequest({
-          cabinetType: activeDrawerProduct,
-          // The cabinet takes the values its selectors show.
-          config: productConfig ? { ...productConfig, ...shownCabinetAttributeValues } : productConfig,
-          width: widthForAddedCabinet,
-          sinkType,
-          countertopStyle,
-          vesselColor,
-          anchorRuntimeId: placement.anchorRuntimeId,
-          side: placement.side,
-        }),
-      );
-      // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.
-      reportSceneRefusal(added);
-      const productId = added.status === "error" ? null : added.placed[0];
+        // The collection's scene product goes beside the clicked one and is recorded there with its
+        // drawer style, as a duplicated cabinet is.
+        const added = await composition.addCabinet(
+          buildAddedCabinetRequest({
+            cabinetType: activeDrawerProduct,
+            // The cabinet takes the values its selectors show.
+            config: productConfig ? { ...productConfig, ...shownCabinetAttributeValues } : productConfig,
+            width: widthForAddedCabinet,
+            sinkType,
+            countertopStyle,
+            vesselColor,
+            profile: activeProfile,
+            anchorRuntimeId: entityId,
+            side,
+          }),
+        );
+        return added.status === "error" ? null : added.placed[0];
+      });
       if (!productId) return;
 
       dispatch(setHasBootstrappedCabinetBuilder(true));
@@ -945,7 +938,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     onProductAdded,
     productConfig,
     shownCabinetAttributeValues,
-    saveSnapshot,
+    runStep,
     sceneTotalWidth,
     selectedDimensions.width,
     selectedProducts,

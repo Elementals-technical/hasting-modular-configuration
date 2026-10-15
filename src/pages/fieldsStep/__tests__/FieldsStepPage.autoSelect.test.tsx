@@ -41,6 +41,7 @@ import {
   setVesselColor,
 } from "@/entities/product/model/store/slice";
 import type { AttributeChange, ChangeResult } from "@/features/configurationCommands";
+import { evaluateChange } from "@/features/configurationCommands/lib/evaluateChange";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 
 import { FieldsStepPage } from "../FieldsStepPage";
@@ -55,8 +56,13 @@ const changeMock = vi.fn<(request: AttributeChange) => Promise<ChangeResult>>(as
   status: "applied",
   plan: [],
 }));
-// One runner for every render, as useChangeAttribute memoizes it.
-const runner = { change: changeMock, getState: () => store.getState() };
+// One runner for every render, as useChangeAttribute memoizes it. A field asks it first whether a pick
+// applies at once, which the command's own evaluation answers.
+const runner = {
+  change: changeMock,
+  evaluate: (request: AttributeChange) => evaluateChange(request, store.getState()),
+  getState: () => store.getState(),
+};
 
 vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", () => ({ useChangeAttribute: () => runner }));
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => true }));

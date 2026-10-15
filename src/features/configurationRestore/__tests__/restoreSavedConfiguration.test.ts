@@ -108,7 +108,8 @@ describe("restoreSavedConfiguration", () => {
       reason: null,
       message: null,
     });
-    expect(store.getState().rootStateUI.history.past).toHaveLength(1);
+    // Nothing to undo yet: the first change writes the restored configuration.
+    expect(store.getState().rootStateUI.history.past).toEqual([]);
     expect(store.getState().rootStateUI.history.isRestoring).toBe(false);
   });
 

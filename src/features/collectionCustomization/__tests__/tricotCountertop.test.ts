@@ -94,6 +94,37 @@ describe("Tricot countertop preparation", () => {
     },
   );
 
+  // The matrix lists integrated basins only: a vessel and the bare cutout follow its vessel rules.
+  it.each(["prebuilt", "custom"] as const)(
+    "lets a vessel top take a vessel and the bare cutout in %s, and keeps the vessel through a colour change",
+    async (flow) => {
+      withMatrix(80);
+      const runtime = createTestRuntimePort();
+      const deps = {
+        getState: store.getState,
+        dispatch: store.dispatch,
+        runtime: runtime.port,
+        flow,
+        configurator: tricotConfigurator,
+      };
+      const basin = { scope: "basin", sinkBaseId: "cab-1" } as const;
+      const statusOf = async (attributeId: string, value: string, target: object = { scope: "countertop" }) =>
+        (await changeAttribute({ attributeId, value, ...target } as Parameters<typeof changeAttribute>[0], deps))
+          .status;
+
+      expect(await statusOf("CountertopColor", "Matte White")).toBe("applied");
+      expect(await statusOf("CountertopStyle", "vessel")).toBe("applied");
+      expect(await statusOf("sinkType", "Iris", basin)).toBe("applied");
+      expect(await statusOf("VesselColor", "Salvia 415 MT", basin)).toBe("applied");
+      expect(await statusOf("CountertopColor", "CALACATTA 259")).toBe("applied");
+      expect(getAttributeValue(store.getState(), "sinkType", basin)).toBe("Iris");
+      expect(await statusOf("Thickness", "4")).toBe("applied");
+      expect(getAttributeValue(store.getState(), "sinkType", basin)).toBe("Iris");
+      expect(await statusOf("sinkType", "None", basin)).toBe("applied");
+      expect(await statusOf("sinkType", "Plaza", basin)).toBe("applied");
+    },
+  );
+
   it("blocks incompatible widths and drawer pairs before any runtime write", () => {
     withMatrix();
     store.dispatch(
@@ -127,7 +158,7 @@ describe("Tricot countertop preparation", () => {
     ).toBe("change.notAvailable");
   });
 
-  it("offers precisely the source materials and ten basins, with no assumed thickness defaults", () => {
+  it("offers precisely the source materials, ten basins and the Class vessels, with no assumed thickness defaults", () => {
     const colors = resolveSectionFields(tricotUi, "countertop-color", tricotProfile, {}, {}, tricotConfigurator)[0]
       .field.options;
     expect(colors).toHaveLength(71);
@@ -150,7 +181,12 @@ describe("Tricot countertop preparation", () => {
       "LV892",
       "VA002",
       "VA005",
+      "None",
+      "Iris",
+      "Frame",
+      "Plaza",
     ]);
+    expect(selectOptions(tricotProfile, "CountertopStyle").map(({ value }) => value)).toEqual(["integrated", "vessel"]);
     // In inches and in rising order, as the other collections write them; the table's fractions are aliases.
     expect(selectOptions(tricotProfile, "Thickness").map(({ value, label }) => [value, label])).toEqual([
       ["0.5", '0.5"'],
@@ -160,7 +196,13 @@ describe("Tricot countertop preparation", () => {
       ["4.75", '4.7"'],
     ]);
     expect(normalizeOptionValue(tricotProfile, "Thickness", "4-3/4")).toBe("4.75");
-    expect(tricotUi.steps.countertop.sectionIds).toEqual(["countertop-color", "thickness", "basin-style"]);
+    expect(tricotUi.steps.countertop.sectionIds).toEqual([
+      "countertop-color",
+      "thickness",
+      "countertop-style",
+      "basin-style",
+      "vessel-color",
+    ]);
   });
 
   // Configurator 12 spells every colour as the matrix and the price list do; the profile lists none of its own.

@@ -123,7 +123,8 @@ import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/di
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
+import { clearHistory } from "@/entities/history/model/store/slice";
 import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { store } from "@/app/store";
@@ -373,7 +374,7 @@ export const CabinetBuilderPage = () => {
   const optionImageContext = useAppSelector(selectOptionImageContext);
 
 
-  const saveSnapshot = useHistorySnapshot();
+  const { run: runStep } = useHistoryStep();
   const hasProducts = selectedProducts.length > 0;
   const hasPendingCabinetBuilderSelection =
     activeCabinetType !== null || drawerProduct.trim().length > 0 || selectedProductConfig !== null;
@@ -673,29 +674,33 @@ export const CabinetBuilderPage = () => {
   const handleApprovePtoSwitch = useCallback(async () => {
     setIsPtoSwitchPromptOpen(false);
     if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
-    await saveSnapshot();
     if (!nonGrooveHandle) return;
 
-    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+    // The handle switch is one undo step.
+    const switched = await runStep(async () => {
+      const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
 
-    if (cabinetId) {
-      // The prompt the user just approved is the confirmation, so a preview is confirmed at once.
-      const asked = await changeAttributeValue({
-        attributeId: "Handle",
-        value: nonGrooveHandle,
-        scope: "cabinet",
-        cabinetId,
-      });
-      const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
+      if (cabinetId) {
+        // The prompt the user just approved is the confirmation, so a preview is confirmed at once.
+        const asked = await changeAttributeValue({
+          attributeId: "Handle",
+          value: nonGrooveHandle,
+          scope: "cabinet",
+          cabinetId,
+        });
+        const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
 
-      if (result.status !== "applied" && result.status !== "partial") {
-        console.error("[CabinetBuilderPage] Failed to switch to a non-groove handle", result);
-        return;
+        if (result.status !== "applied" && result.status !== "partial") {
+          console.error("[CabinetBuilderPage] Failed to switch to a non-groove handle", result);
+          return false;
+        }
+      } else {
+        // No cabinet placed yet: the handle is the choice for the next cabinet.
+        dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: nonGrooveHandle }));
       }
-    } else {
-      // No cabinet placed yet: the handle is the choice for the next cabinet.
-      dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: nonGrooveHandle }));
-    }
+      return true;
+    });
+    if (!switched) return;
 
     dispatch(setActiveCabinetType("Side-Shelf"));
     dispatch(setDrawerProduct("Side-Shelf"));
@@ -708,7 +713,7 @@ export const CabinetBuilderPage = () => {
     getCommandState,
     hasProducts,
     nonGrooveHandle,
-    saveSnapshot,
+    runStep,
     selectedProductConfig,
   ]);
 
@@ -799,96 +804,99 @@ export const CabinetBuilderPage = () => {
       ?.stableKey;
     if (!cabinetId) return;
 
-    await saveSnapshot();
+    // The drawer switch, the dividers it clears and the height it brings are one undo step.
+    await runStep(async () => {
+      // Cabinets already in the style keep their drawers; only their height is left to change.
+      const switchesDrawers = cabinetIdsToUpdate.some((productId) => placedCabinetStyles[productId] !== drawerRawValue);
 
-    // Cabinets already in the style keep their drawers; only their height is left to change.
-    const switchesDrawers = cabinetIdsToUpdate.some((productId) => placedCabinetStyles[productId] !== drawerRawValue);
+      // The cabinet being added is of the series of the card, and the rules judge the switch for it.
+      // Its drawers come with the set, or are set here where no cabinet switches.
+      if (series || !switchesDrawers) {
+        dispatch(
+          setSelectedProductConfig({
+            ...(selectedProductConfig ?? {}),
+            ...(series ? { [SERIES_ATTRIBUTE_ID]: series } : {}),
+            ...(switchesDrawers ? {} : { Drawers: mappedValue }),
+          }),
+        );
+      }
 
-    // The cabinet being added is of the series of the card, and the rules judge the switch for it.
-    // Its drawers come with the set, or are set here where no cabinet switches.
-    if (series || !switchesDrawers) {
-      dispatch(
-        setSelectedProductConfig({
-          ...(selectedProductConfig ?? {}),
-          ...(series ? { [SERIES_ATTRIBUTE_ID]: series } : {}),
-          ...(switchesDrawers ? {} : { Drawers: mappedValue }),
-        }),
-      );
-    }
+      // Cabinets that leave two drawers lose their top dividers, cleared before the drawers change.
+      if (drawerRawValue === "1" && cabinetIdsToUpdate.length > 0) {
+        const configsBeforeDrawerChange = await Promise.all(
+          cabinetIdsToUpdate.map((productId) => getConfig(productId)),
+        );
+        const topDividerClearCabinetIds = cabinetIdsToUpdate.filter((productId, index) => {
+          const previousDrawerValue =
+            placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
+          return previousDrawerValue === "2";
+        });
 
-    // Cabinets that leave two drawers lose their top dividers, cleared before the drawers change.
-    if (drawerRawValue === "1" && cabinetIdsToUpdate.length > 0) {
-      const configsBeforeDrawerChange = await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)));
-      const topDividerClearCabinetIds = cabinetIdsToUpdate.filter((productId, index) => {
-        const previousDrawerValue =
-          placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
-        return previousDrawerValue === "2";
+        if (topDividerClearCabinetIds.length > 0) {
+          await clearDividerZones(topDividerClearCabinetIds, ["TopDrawerDividers"]);
+          dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
+        }
+      }
+
+      let heightAfterSwitch = placedHeight;
+
+      if (switchesDrawers) {
+        // Drawers, the handle the new drawers require and the forced height go to the scene as one
+        // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
+        const asked = await changeAttributeValue({
+          attributeId: "Drawers",
+          value: drawerRawValue,
+          scope: "cabinet",
+          cabinetId,
+        });
+        const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
+
+        if (result.status !== "applied" && result.status !== "partial") {
+          console.error("[CabinetBuilderPage] Failed to switch the drawer style", result);
+          return;
+        }
+
+        const settled = result.status === "applied" ? result.plan : result.applied;
+        const plannedHeight = settled.find((change) => change.attributeId === "Height")?.value;
+        if (typeof plannedHeight === "number") heightAfterSwitch = plannedHeight;
+      }
+
+      setActiveStyleValue(pendingMixingStyle.value);
+
+      // The set brings the height the rules require of the cabinet it was judged for. Where several
+      // series supply the type, a style may come in fewer heights: the composition goes on to one
+      // of those. A collection with its own cabinets only is left to the set alone.
+      const seriesHeight = series ? switchHeight : null;
+      if (seriesHeight !== null && heightAfterSwitch !== seriesHeight) {
+        const resized = await changeDimension({ attributeId: "Height", value: seriesHeight, scope: "global" });
+        if (resized.status !== "applied") {
+          console.error("[CabinetBuilderPage] Failed to set the height of the drawer style", resized);
+          return;
+        }
+      }
+
+      // In some compositions a batch update keeps a stale height until the sidebar is touched. The
+      // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
+      const product = getCommandState().rootStateUI.product;
+      const appliedHeight = seriesHeight ?? product.selectedDimensions.height;
+      if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
+
+      const appliedHandle = product.selectedProductConfig?.Handle;
+      const handleConfig =
+        typeof appliedHandle === "string" && appliedHandle
+          ? buildHandleStyleConfigPatch(appliedHandle, product.productOptions.HandleGrooveColor, product.activeProfile)
+          : null;
+      const depth = product.selectedDimensions.depth;
+      await ensureCabinetHeights({
+        runtimeIds: cabinetIdsToUpdate,
+        height: appliedHeight,
+        bindings: getActiveRuntimeBindings(getCommandState()),
+        patch: {
+          Drawers: mappedValue,
+          ...(handleConfig ?? {}),
+          ...(typeof depth === "number" ? { Depth: depth } : {}),
+        },
       });
-
-      if (topDividerClearCabinetIds.length > 0) {
-        await clearDividerZones(topDividerClearCabinetIds, ["TopDrawerDividers"]);
-        dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
-      }
-    }
-
-    let heightAfterSwitch = placedHeight;
-
-    if (switchesDrawers) {
-      // Drawers, the handle the new drawers require and the forced height go to the scene as one
-      // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
-      const asked = await changeAttributeValue({
-        attributeId: "Drawers",
-        value: drawerRawValue,
-        scope: "cabinet",
-        cabinetId,
-      });
-      const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
-
-      if (result.status !== "applied" && result.status !== "partial") {
-        console.error("[CabinetBuilderPage] Failed to switch the drawer style", result);
-        return;
-      }
-
-      const settled = result.status === "applied" ? result.plan : result.applied;
-      const plannedHeight = settled.find((change) => change.attributeId === "Height")?.value;
-      if (typeof plannedHeight === "number") heightAfterSwitch = plannedHeight;
-    }
-
-    setActiveStyleValue(pendingMixingStyle.value);
-
-    // The set brings the height the rules require of the cabinet it was judged for. Where several
-    // series supply the type, a style may come in fewer heights: the composition goes on to one
-    // of those. A collection with its own cabinets only is left to the set alone.
-    const seriesHeight = series ? switchHeight : null;
-    if (seriesHeight !== null && heightAfterSwitch !== seriesHeight) {
-      const resized = await changeDimension({ attributeId: "Height", value: seriesHeight, scope: "global" });
-      if (resized.status !== "applied") {
-        console.error("[CabinetBuilderPage] Failed to set the height of the drawer style", resized);
-        return;
-      }
-    }
-
-    // In some compositions a batch update keeps a stale height until the sidebar is touched. The
-    // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
-    const product = getCommandState().rootStateUI.product;
-    const appliedHeight = seriesHeight ?? product.selectedDimensions.height;
-    if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
-
-    const appliedHandle = product.selectedProductConfig?.Handle;
-    const handleConfig =
-      typeof appliedHandle === "string" && appliedHandle
-        ? buildHandleStyleConfigPatch(appliedHandle, product.productOptions.HandleGrooveColor, product.activeProfile)
-        : null;
-    const depth = product.selectedDimensions.depth;
-    await ensureCabinetHeights({
-      runtimeIds: cabinetIdsToUpdate,
-      height: appliedHeight,
-      bindings: getActiveRuntimeBindings(getCommandState()),
-      patch: {
-        Drawers: mappedValue,
-        ...(handleConfig ?? {}),
-        ...(typeof depth === "number" ? { Depth: depth } : {}),
-      },
     });
   }, [
     cabinetCatalog,
@@ -899,7 +907,7 @@ export const CabinetBuilderPage = () => {
     getCommandState,
     pendingMixingStyle,
     placedCabinetStyles,
-    saveSnapshot,
+    runStep,
     selectedProductConfig,
     selectedProducts,
   ]);
@@ -1084,6 +1092,8 @@ export const CabinetBuilderPage = () => {
     bootstrappedRef.current = false;
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
+    // The builder starts over: nothing placed before can be undone back into it.
+    dispatch(clearHistory());
     record({
       CabinetColor: preservedCabinetColor,
       CountertopColor: preservedCountertopColor,
@@ -1124,6 +1134,8 @@ export const CabinetBuilderPage = () => {
         bootstrappedRef.current = false;
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
+        // A model opened in the builder starts the history over, as placing it on the model page does.
+        dispatch(clearHistory());
         await composition.clear({ resetAddOns: false });
 
         if (cancelled) return;
@@ -1700,18 +1712,20 @@ export const CabinetBuilderPage = () => {
           }
         }
 
-        await saveSnapshot();
-        if (productName === "Side-Shelf") {
-          await autoRemoveSide(dispatch, "right", selectedProducts.length);
-        }
+        // The cabinet and the side panel a side shelf takes the place of are one undo step.
+        const productId = await runStep(async () => {
+          if (productName === "Side-Shelf") {
+            await autoRemoveSide(dispatch, "right", selectedProducts.length);
+          }
 
-        // Placing the cabinet records it with its drawer style.
-        const added = await composition.addCabinet({
-          product: { productType: productName, config: productConfig },
-          placement: { kind: "end" },
-          record: productConfig.sinkType ? { sinkType: productConfig.sinkType } : undefined,
+          // Placing the cabinet records it with its drawer style.
+          const added = await composition.addCabinet({
+            product: { productType: productName, config: productConfig },
+            placement: { kind: "end" },
+            record: productConfig.sinkType ? { sinkType: productConfig.sinkType } : undefined,
+          });
+          return added.status === "error" ? null : added.placed[0];
         });
-        const productId = added.status === "error" ? null : added.placed[0];
 
         if (!productId) {
           autoAddSignatureRef.current = null;
@@ -1757,7 +1771,7 @@ export const CabinetBuilderPage = () => {
       handleSelectCabinetConfig,
       hasProducts,
       isCabinetBuilderStep,
-      saveSnapshot,
+      runStep,
       selectedDimensions.depth,
       selectedDimensions.height,
       selectedDimensions.width,

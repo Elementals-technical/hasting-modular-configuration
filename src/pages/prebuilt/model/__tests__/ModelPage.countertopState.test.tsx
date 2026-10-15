@@ -12,15 +12,21 @@ import classUiDocument from "../../../../../public/collections/class/ui.json";
 import makoManifestDocument from "../../../../../public/collections/mako/manifest.json";
 import makoPresetsDocument from "../../../../../public/collections/mako/presets.json";
 import makoUiDocument from "../../../../../public/collections/mako/ui.json";
+import ulhManifestDocument from "../../../../../public/collections/urban-low-height/manifest.json";
+import ulhPresetsDocument from "../../../../../public/collections/urban-low-height/presets.json";
+import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
+import ulhUiDocument from "../../../../../public/collections/urban-low-height/ui.json";
 import { store } from "@/app/store";
 import { parseProductProfile, ReadyCollectionContext, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
+import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import type { RuntimeBindingSet } from "@/entities/collection/model/runtimeBindings";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import {
@@ -320,6 +326,67 @@ describe.each(CASES)("$collectionId: a Prebuilt order opened from its link", (te
 
     expect(getCountertopStyle(store.getState())).toBe("vessel");
     expect(getSinkType(store.getState())).toBe("Iris");
+  });
+});
+
+describe("urban-low-height: a Prebuilt order opened from its link keeps its handle", () => {
+  const parsedUlhProfile = parseProductProfile(ulhProfileDocument);
+  if (!parsedUlhProfile.ok) throw new Error("Urban Low Height profile must parse");
+  const ulh: Case = {
+    collectionId: "urban-low-height",
+    profile: parsedUlhProfile.profile,
+    bindings: ulhRuntimeBindings,
+    sinkBaseSceneType: "ULH-sink-cabinet",
+    manifest: ulhManifestDocument,
+    ui: ulhUiDocument,
+    presets: ulhPresetsDocument,
+    countertopTable: datatable589,
+  };
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(clearRestore());
+    store.dispatch(clearHistory());
+    store.dispatch(setActiveProfile(ulh.profile));
+    store.dispatch(setActiveCollectionId(ulh.collectionId));
+    store.dispatch(setActiveRuntimeBindings(ulh.bindings));
+    mocks.changes.length = 0;
+    mocks.sceneReady = true;
+  });
+
+  it("chooses the handle saved at the first cabinet, which the cabinets after it are priced with", async () => {
+    // Two sink bases; the commands recorded the composition's handle once, at the first cabinet.
+    const sourceIds = ["ULH-sink-cabinet-aaa111", "ULH-sink-cabinet-bbb222"];
+    mocks.record = {
+      configuration: Object.fromEntries(
+        sourceIds.map((sourceId) => [
+          sourceId,
+          { ProductType: "ULH-sink-cabinet", Width: 60, Height: 38, Depth: 46, Drawers: "1D" },
+        ]),
+      ),
+      metadata: {
+        path: "/prebuilt/model",
+        orderedProductIds: sourceIds,
+        collectionId: ulh.collectionId,
+        uiState: {},
+        configuration: {
+          version: 2,
+          collectionId: ulh.collectionId,
+          cabinets: [
+            { stableKey: "cab-1", index: 0 },
+            { stableKey: "cab-2", index: 1 },
+          ],
+          values: { "cabinet:cab-1": { Handle: "handle_urban_topcut" } },
+        },
+      },
+    };
+
+    renderAt(ulh, `/prebuilt/model?collectionId=${ulh.collectionId}&configId=7101`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+
+    expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_urban_topcut");
   });
 });
 

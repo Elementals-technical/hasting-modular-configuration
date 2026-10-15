@@ -80,6 +80,9 @@ describe("cabinet covers", () => {
   it("reads the visible cover material independently of stale preset settings", () => {
     const parsed = parseCabinetCoverColorState({ ...state, settings: { materialId: "Bianco Male TFA" } });
     expect(parsed?.segments[0]).toMatchObject({ materialId: "Rox Black TKQ", thicknessM: 0.0127 });
+    // What the composition asks for is read apart from what the slabs show.
+    expect(parsed?.requestedMaterialId).toBe("Bianco Male TFA");
+    expect(parseCabinetCoverColorState(state)?.requestedMaterialId).toBeNull();
     expect(parseCabinetCoverColorState({ ...state, service: { ...state.service, compositionId: "old" } })).toBeNull();
   });
 

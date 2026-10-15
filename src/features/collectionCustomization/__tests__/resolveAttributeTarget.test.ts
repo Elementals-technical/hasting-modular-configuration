@@ -66,8 +66,8 @@ describe("resolveAttributeTarget", () => {
   });
 
   it("finds nothing for an attribute the collection does not show", () => {
-    expect(resolveAttributeTarget(tricot, "prebuilt", "CountertopStyle")).toBeNull();
-    expect(resolveAttributeTarget(tricot, "custom", "VesselColor")).toBeNull();
+    expect(resolveAttributeTarget(tricot, "prebuilt", "FaucetHolesAmount")).toBeNull();
+    expect(resolveAttributeTarget(tricot, "custom", "DividersStyle")).toBeNull();
     expect(resolveAttributeTarget(null, "custom", "CabinetColor")).toBeNull();
   });
 
