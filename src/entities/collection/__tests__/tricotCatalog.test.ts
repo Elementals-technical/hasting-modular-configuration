@@ -314,11 +314,22 @@ const shippedImages = new Set(
 );
 
 describe("Tricot basin pictures", () => {
-  it("shows the Class basin pictures, which have none for VA023, and ships each", () => {
+  it("shows the Class basin and vessel pictures, which have none for VA023 or the bare cutout, and ships each", () => {
     const pictures: Record<string, string> = ui.optionImages.sinkType;
     const basins = tricotProfile.attributes.find(({ attributeId }) => attributeId === "sinkType")?.options ?? [];
 
-    expect(basins.filter(({ value }) => !pictures[value]).map(({ value }) => value)).toEqual(["VA023"]);
+    expect(basins.filter(({ value }) => !pictures[value]).map(({ value }) => value)).toEqual(["VA023", "None"]);
+    for (const picture of Object.values(pictures)) expect(shippedImages.has(picture), picture).toBe(true);
+  });
+
+  it("shows a picture of each countertop style, and ships each", () => {
+    const pictures: Record<string, string> = ui.optionImages.CountertopStyle;
+    const styles = tricotProfile.attributes.find(({ attributeId }) => attributeId === "CountertopStyle")?.options ?? [];
+
+    expect(styles.map(({ value }) => pictures[value])).toEqual([
+      "images/countertop-style/Integrated.png",
+      "images/countertop-style/Vessel.png",
+    ]);
     for (const picture of Object.values(pictures)) expect(shippedImages.has(picture), picture).toBe(true);
   });
 });

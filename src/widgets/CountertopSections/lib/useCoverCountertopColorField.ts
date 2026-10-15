@@ -9,7 +9,7 @@ import { resolveCabinetCoverColorAttributeId } from "@/shared/lib/sku";
 import { buildCoverColorOptions } from "./coverColorOptions";
 import { useCabinetCoverColor } from "./useCabinetCoverColor";
 
-/** Lower's independent cabinet-material field; the scene publishes its applied finish for pricing. */
+/** Lower's independent colour field; the scene publishes its applied finish for pricing. */
 export const useCoverCountertopColorField = (enabled: boolean) => {
   const profile = useAppSelector(getActiveProductProfile);
   const configurator = useActiveCollection((collection) => collection.catalog.configurator);

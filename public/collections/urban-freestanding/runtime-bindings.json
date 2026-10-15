@@ -71,11 +71,14 @@
         "patches": {
           "2": {
             "Drawers": "2D"
+          },
+          "1": {
+            "Drawers": "1D"
           }
         }
       },
       "order": 10,
-      "note": "Urban Freestanding has two drawers (2DW) only. The UF scene draws them from Height without reading the key; sent in the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config."
+      "note": "Urban Freestanding has two drawers (2DW) and, in the short floor cabinet, one (1DW). The UF scene draws them from Height without reading the key (one drawer at 50 and 53 only); sent in the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config."
     },
     {
       "attributeId": "CabinetColor",

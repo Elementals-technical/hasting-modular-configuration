@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { selectAttribute } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import {
   getDividersOption,
   getDividersStyle,
@@ -51,7 +51,7 @@ type DividersStateArgs = {
 /** Divider option and style, the drawer top view with its camera, and the widgets the scene draws over drawers. */
 export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArgs) => {
   const dispatch = useAppDispatch();
-  const saveSnapshot = useHistorySnapshot();
+  const { run: runStep } = useHistoryStep();
   const isPlayCanvasReady = usePlayCanvasReady();
   const activeProfile = useAppSelector(getActiveProductProfile);
   // "Nothing chosen" is the profile's noneValue, so no collection has to spell it "None".
@@ -81,7 +81,7 @@ export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArg
     isPlayCanvasReady,
     dividerSelection,
     optionsSource: styleCatalog,
-    saveSnapshot,
+    runStep,
     fallbackCabinetId: selectedSceneProduct || null,
     shouldRestoreDrawerButtons: isSectionOpen,
   });
@@ -134,26 +134,28 @@ export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArg
     if (value === dividerSelection && value !== "None") return;
 
     divider.clearWarning();
-    await saveSnapshot();
 
-    if (shouldClearDividersOnOptionChange(value, dividerSelection, dividersNoneValue)) {
-      await clearPlacedDividersInScene(selectedProducts);
-      dispatch(clearPlacedDividers());
-      const exitTopView = wrapExitTopView({});
-      if (exitTopView) await Promise.resolve(exitTopView());
-      else warnDividerUiDebug("Accessories.DividerSelection", "exitTopView not ready while switching to None");
-    }
+    // The option and the dividers it clears are one undo step.
+    await runStep(async () => {
+      if (shouldClearDividersOnOptionChange(value, dividerSelection, dividersNoneValue)) {
+        await clearPlacedDividersInScene(selectedProducts);
+        dispatch(clearPlacedDividers());
+        const exitTopView = wrapExitTopView({});
+        if (exitTopView) await Promise.resolve(exitTopView());
+        else warnDividerUiDebug("Accessories.DividerSelection", "exitTopView not ready while switching to None");
+      }
 
-    if (value === "Customize") {
-      setVisibleDrawerButtons(true);
-    } else {
-      setVisibleDrawerButtons(false);
-      setVisibleDividerSlotButtons(false);
-      dispatch(setIsDrawerOpen(false));
-    }
+      if (value === "Customize") {
+        setVisibleDrawerButtons(true);
+      } else {
+        setVisibleDrawerButtons(false);
+        setVisibleDividerSlotButtons(false);
+        dispatch(setIsDrawerOpen(false));
+      }
 
-    dispatch(setDividersOption(value));
-    if (value !== "Customize") dispatch(setDividersStyle(""));
+      dispatch(setDividersOption(value));
+      if (value !== "Customize") dispatch(setDividersStyle(""));
+    });
   };
 
   const changeStyle = async (value: string) => {
@@ -167,8 +169,9 @@ export const useDividersState = ({ styleField, isSectionOpen }: DividersStateArg
     if (value === dividerStyle) return;
 
     divider.clearWarning();
-    await saveSnapshot();
-    dispatch(setDividersStyle(value));
+    await runStep(async () => {
+      dispatch(setDividersStyle(value));
+    });
   };
 
   const onSectionToggle = (isOpen: boolean) => {

@@ -1,9 +1,8 @@
 import { useCallback, useState } from "react";
 
 import type { AttributeValue } from "@/entities/configuration";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 
-import { evaluateChange } from "../lib/evaluateChange";
 import { resolveChangeRequest } from "../lib/resolveChangeRequest";
 import type { ChangePreview, ChangeResult } from "../model/types";
 import { useChangeAttribute, type UseChangeAttributeOptions } from "./useChangeAttribute";
@@ -12,14 +11,16 @@ import { useChangeAttribute, type UseChangeAttributeOptions } from "./useChangeA
  * The selection handler C hands to a field (EXECUTION §1: C06 -> B06).
  *
  * A field passes the picked value to `onChange`; the handler addresses it at the scope the
- * profile declares and runs it through the command service. A history step is recorded
- * only for a change that is about to be applied, so a preview the user cancels leaves no
- * empty undo step. A change that needs approval comes back as `preview` for the field's
- * dialog (`onConfirm` / `onCancel`); a change the rules refuse comes back as `notice`.
+ * profile declares and runs it through the command service. A history step is taken only
+ * for a change that is about to be applied, so a preview the user cancels leaves no empty
+ * undo step, and is written only once the change moved the configuration, so picking the
+ * value already chosen leaves none either. A change that needs approval comes back as
+ * `preview` for the field's dialog (`onConfirm` / `onCancel`); a change the rules refuse
+ * comes back as `notice`.
  */
 export const useAttributeChangeHandler = (attributeId: string, { runtime }: UseChangeAttributeOptions = {}) => {
-  const { change, confirm, getState } = useChangeAttribute({ runtime });
-  const saveSnapshot = useHistorySnapshot();
+  const { change, confirm, evaluate, getState } = useChangeAttribute({ runtime });
+  const { run: runStep } = useHistoryStep();
   const [preview, setPreview] = useState<ChangePreview | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -41,22 +42,19 @@ export const useAttributeChangeHandler = (attributeId: string, { runtime }: UseC
         });
       }
 
-      const evaluation = evaluateChange(request, getState());
-      if (evaluation.kind === "planned" && evaluation.confirmation.length === 0) {
-        await saveSnapshot();
-      }
+      const evaluation = evaluate(request);
+      const appliesAtOnce = evaluation.kind === "planned" && evaluation.confirmation.length === 0;
 
-      return showResult(await change(request));
+      return showResult(await (appliesAtOnce ? runStep(() => change(request)) : change(request)));
     },
-    [attributeId, change, getState, saveSnapshot, showResult],
+    [attributeId, change, evaluate, getState, runStep, showResult],
   );
 
   const onConfirm = useCallback(async (): Promise<ChangeResult | null> => {
     if (!preview) return null;
 
-    await saveSnapshot();
-    return showResult(await confirm(preview));
-  }, [confirm, preview, saveSnapshot, showResult]);
+    return showResult(await runStep(() => confirm(preview)));
+  }, [confirm, preview, runStep, showResult]);
 
   const onCancel = useCallback(() => setPreview(null), []);
 

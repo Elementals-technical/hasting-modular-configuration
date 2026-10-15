@@ -107,11 +107,13 @@ export const BottomCanvasButtons = () => {
   useFullDimensionsRefresh(isFullDimensionsEnabled, fullDimensionsUnit, deactivateFullDimensions);
 
   // Undo and redo restore the state as a whole, so the values are only shown on the scene again.
+  // The outcome goes back to the restore, which reports an incomplete replay as a partial rebuild.
   const replaySnapshotValues = async (values: ReplayValues) => {
     const result = await replay({ send: values, record: false });
     if (result.status !== "applied" || result.skipped.length > 0) {
       console.warn("[History] The scene did not take every value of the snapshot", result);
     }
+    return result;
   };
 
   const handleSelectFullDimensionsUnit = async (unit: FullDimensionsUnit) => {

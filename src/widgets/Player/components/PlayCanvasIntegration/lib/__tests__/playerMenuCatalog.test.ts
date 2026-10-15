@@ -91,12 +91,14 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
-  it("leaves out the countertop style and the vessel of Tricot, which shows neither", () => {
-    const { items } = supportOf("tricot", "custom");
+  it("offers the countertop style and the vessel of Tricot, which shows both", () => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      const { items } = supportOf("tricot", flowId);
 
-    expect(items.has("countertop-style")).toBe(false);
-    expect(items.has("vessel-style")).toBe(true);
-    expect(items.has("vessel-color")).toBe(false);
+      expect(items.has("countertop-style")).toBe(true);
+      expect(items.has("vessel-style")).toBe(true);
+      expect(items.has("vessel-color")).toBe(true);
+    }
   });
 
   it("leads each item to the collection's own step and section", () => {

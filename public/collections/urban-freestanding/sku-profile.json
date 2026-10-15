@@ -8,7 +8,8 @@
     "Pricing: the sizes in inches (60 x 91 x 50 cm is 23.6W-35.8H-19.7D); the formula adds CAB-{material}-{colour code} and, on an Upper or Central Groove cabinet, HDL-{material}-{colour code} in the cabinet colour while no groove colour is offered",
     "Hasting Master File [Urban Freestanding]: 232 cabinet colours, coded as Urban Standard Height and Urban Low Height code them",
     "Configurator 11 (modular-config-phase-2-materials-(Urban Freestanding)): the material SKU of each cabinet and countertop colour",
-    "Accessories Pricing!B4: faucet holes, hole cutout, dividers, towel bar and book matching use the Urban Standard Height SKUs"
+    "Accessories Pricing!B4: faucet holes, hole cutout, dividers, towel bar and book matching use the Urban Standard Height SKUs",
+    "1DW (short floor cabinet, cabinet table 590): spelled VAN-URFS-<SB|SC>/1DW/… like 2DW; the price list has no 1DW row yet (UFS-SIZ-01), so the price server returns none"
   ],
   "cabinet": {
     "series": "URFS",
@@ -23,7 +24,8 @@
       {
         "attributeId": "Drawers",
         "codes": {
-          "2": "2DW"
+          "2": "2DW",
+          "1": "1DW"
         }
       },
       {

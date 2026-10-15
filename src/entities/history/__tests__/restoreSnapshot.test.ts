@@ -4,12 +4,14 @@ import { store } from "@/app/store";
 import {
   getAttributeValue,
   getCabinetEntries,
+  getRuntimeSyncState,
   resetConfiguration,
   setAttributeValue,
   type SceneLayout,
 } from "@/entities/configuration";
 import { addProductId, reset, setCabinetColor, setTowelBarOption } from "@/entities/product/model/store/slice";
 import { createTestSceneRestorer } from "@/features/playCanvasAdapter/lib/testSceneRestorer";
+import { restoreSidePanelState } from "@/features/sidePanel";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { captureSnapshot } from "../lib/captureSnapshot";
@@ -36,7 +38,7 @@ vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
 
 const HANDLE_FINISH = "TestFinish";
 const getState = () => store.getState();
-const replay = vi.fn(async () => undefined);
+const replay = vi.fn(async (): Promise<{ status: "applied" | "partial" | "error" }> => ({ status: "applied" }));
 
 const placeTwoCabinets = () => {
   store.dispatch(addProductId("rt-a"));
@@ -118,6 +120,26 @@ describe("history snapshot restore", () => {
       expect.objectContaining({ CabinetColor: "Pulpis Chiaro TKH", TowelBarOption: "Right" }),
     );
     expect(setConfigBatch).not.toHaveBeenCalled();
+  });
+
+  it("reports a rebuild whose values the scene did not all take as partial, and still puts the side panels back", async () => {
+    placeTwoCabinets();
+    const snapshot = await captureSnapshot(getState);
+    const { restorer } = createTestSceneRestorer();
+    vi.mocked(restoreSidePanelState).mockClear();
+    replay.mockResolvedValueOnce({ status: "error" });
+
+    const result = await restoreSnapshot(snapshot, {
+      dispatch: store.dispatch,
+      getState,
+      getBindings: () => null,
+      restorer,
+      replay,
+    });
+
+    expect(result.status).toBe("partial");
+    expect(getRuntimeSyncState(store.getState()).needsSync).toBe(true);
+    expect(restoreSidePanelState).toHaveBeenCalledTimes(1);
   });
 
   it("changes neither the scene add-ons nor the state when the restorer rejects the snapshot", async () => {

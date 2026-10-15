@@ -5,6 +5,7 @@ import { BottomStickyBar, INTERACTIVE_CONFIGURATOR_TUTORIAL_TARGETS } from "@/fe
 import { getActiveStep } from "@/features/sidebar/model/store/selectors";
 import { setActiveStep } from "@/features/sidebar/model/store/slice";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
+import { useLowerCountertopDefaultColor } from "@/features/countertopPlacement/lib/useLowerCountertopDefaultColor";
 
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { usePriceCalculation } from "@/shared/hooks/usePriceCalculation";
@@ -21,6 +22,7 @@ export const ConfiguratorSidebar = ({ children }: PropsWithChildren) => {
   const dispatch = useAppDispatch();
 
   usePriceCalculation();
+  useLowerCountertopDefaultColor();
 
   const navigation = useCollectionNavigation();
   const flow = navigation?.flowId ?? "prebuilt";
