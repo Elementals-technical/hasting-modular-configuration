@@ -78,7 +78,7 @@
         }
       },
       "order": 10,
-      "note": "Urban Freestanding has two drawers (2DW) and, in the short floor cabinet, one (1DW). The UF scene draws them from Height without reading the key (one drawer at 50 and 53 only); sent in the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config."
+      "note": "Two drawers (2DW) for the tall cabinets and one (1D) for the 1 Drawer Short Side Cabinet. The UF scene draws the drawers from Height without reading the key (UF_TopDrawer is hidden on a short cabinet); sent in the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config, and the scene bridge finds the short cabinet by it (buildSteppedSceneProducts)."
     },
     {
       "attributeId": "CabinetColor",
