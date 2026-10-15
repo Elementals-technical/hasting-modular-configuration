@@ -271,6 +271,11 @@
   "sidePanel": {
     "pricedAs": "urban-standard-height"
   },
+  "cabinetCover": {
+    "materialSkus": ["LACG", "LACM", "ST", "HPL", "3D", "BM", "WDV", "ESS"],
+    "colorAttributeId": "CabinetColor",
+    "flows": ["prebuilt", "custom"]
+  },
   "dividers": {},
   "gaps": [
     {

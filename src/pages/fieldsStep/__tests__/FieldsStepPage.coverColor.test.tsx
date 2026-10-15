@@ -7,8 +7,10 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 import { collectionSkuProfileSchema, parseProductProfile, ReadyCollectionContext } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
+import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
+import datatable591 from "@/entities/collection/__tests__/fixtures/remote/datatable-591.json";
 import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
@@ -24,6 +26,10 @@ import duplexManifest from "../../../../public/collections/urban-duplex/manifest
 import duplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import duplexSkuDocument from "../../../../public/collections/urban-duplex/sku-profile.json";
 import duplexUi from "../../../../public/collections/urban-duplex/ui.json";
+import freestandingManifest from "../../../../public/collections/urban-freestanding/manifest.json";
+import freestandingProfileDocument from "../../../../public/collections/urban-freestanding/product-profile.json";
+import freestandingSkuDocument from "../../../../public/collections/urban-freestanding/sku-profile.json";
+import freestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 import { FieldsStepPage } from "../FieldsStepPage";
 
 const mocks = vi.hoisted(() => ({ read: vi.fn(), lower: vi.fn(), upper: vi.fn() }));
@@ -209,6 +215,71 @@ it("shows no Lower for a collection without the cover contract, whatever the sce
     ...duplexCollection,
     catalog: { ...duplexCollection.catalog, skuProfile: { ...duplexSkuProfile, cabinetCover: undefined } },
   });
+
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  await waitFor(() => expect(colors.getByRole("button", { name: "Pulpis Chiaro TKH" })).toBeTruthy());
+  expect(screen.queryByRole("tab", { name: "Lower" })).toBeNull();
+  expect(mocks.read).not.toHaveBeenCalled();
+});
+
+// Urban Freestanding: Lower is the cover the scene lays on a 1 Drawer Short Side Cabinet, which the
+// custom flow adds. It takes the palette of the collection's own cabinets.
+const freestandingParsed = parseProductProfile(freestandingProfileDocument);
+if (!freestandingParsed.ok) throw new Error("Invalid Urban Freestanding profile");
+const freestandingGroups = configurator11.availableOptions as unknown as ConfiguratorAvailableOption[];
+const freestandingBase = buildReadyCollection("urban-freestanding", freestandingManifest, freestandingUi);
+const freestandingCollection = {
+  ...freestandingBase,
+  catalog: {
+    ...freestandingBase.catalog,
+    configurator: {
+      groups: freestandingGroups,
+      groupsByName: Object.fromEntries(freestandingGroups.map((item) => [item.proxyName, item])),
+    },
+    skuProfile: collectionSkuProfileSchema.parse(freestandingSkuDocument),
+    countertops: parseCountertopMatrix(datatable591 as unknown as CountertopDatatable),
+  },
+};
+
+const renderCountertopStep = (path: string, value: typeof collection | typeof freestandingCollection) =>
+  render(
+    <Provider store={store}>
+      <MemoryRouter initialEntries={[path]}>
+        <ReadyCollectionContext.Provider value={value}>
+          <FieldsStepPage stepId="countertop" />
+        </ReadyCollectionContext.Provider>
+      </MemoryRouter>
+    </Provider>,
+  );
+
+it("offers Upper and Lower in the Urban Freestanding custom flow, Lower in the cabinets' palette", async () => {
+  store.dispatch(setActiveProfile(freestandingParsed.profile));
+  renderCountertopStep("/custom/countertop?collectionId=urban-freestanding", freestandingCollection);
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  await act(async () => {
+    // A Porcelain countertop colour is Upper's only; Lower lists the cabinet colours.
+    expect(colors.queryByRole("button", { name: "Aosta Green Marble Lucidato TR4" })).toBeNull();
+    fireEvent.click(colors.getByRole("button", { name: "Agata BD ST" }));
+  });
+
+  expect(mocks.lower).toHaveBeenCalledWith("Agata BD ST");
+  expect(mocks.upper).not.toHaveBeenCalled();
+});
+
+it("shows no Lower on Urban Freestanding while the scene lays no cover", async () => {
+  mocks.read.mockResolvedValue({ compositionId: "cabinets", segments: [] });
+  store.dispatch(setActiveProfile(freestandingParsed.profile));
+  renderCountertopStep("/custom/countertop?collectionId=urban-freestanding", freestandingCollection);
+
+  await waitFor(() => expect(mocks.read).toHaveBeenCalled());
+  expect(screen.queryByRole("tab", { name: "Lower" })).toBeNull();
+});
+
+it("keeps Urban Low Height's Lower to the prebuilt flow, as its contract names no other", async () => {
+  renderCountertopStep("/custom/countertop?collectionId=urban-low-height", collection);
 
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
   await waitFor(() => expect(colors.getByRole("button", { name: "Pulpis Chiaro TKH" })).toBeTruthy());

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 
+import { useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration";
 import { getConfiguratorProductElement } from "@/entities/configurator/lib/configuratorGroupKind";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
@@ -46,9 +47,11 @@ const ColorSectionField = ({
   const dispatch = useAppDispatch();
   const profile = useAppSelector(getActiveProductProfile);
   const flowId = useCollectionNavigation()?.flowId;
-  const coverColor = useCoverCountertopColorField(
-    definition.attributeId === "CountertopColor" && flowId === "prebuilt",
-  );
+  // The cover contract names the flows that offer Lower (Urban Freestanding: also custom, where its
+  // short cabinet is added); prebuilt only when it names none.
+  const lowerFlows = useActiveCollection((collection) => collection.catalog.skuProfile?.cabinetCover?.flows);
+  const offersLower = Boolean(flowId && (lowerFlows ?? ["prebuilt"]).includes(flowId));
+  const coverColor = useCoverCountertopColorField(definition.attributeId === "CountertopColor" && offersLower);
 
   const orderSwatches = () => {
     const configuratorSection = selectConfiguratorSection(profile, definition.attributeId);

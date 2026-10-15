@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { collectionSkuProfileSchema } from "@/entities/collection/model/schemas";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
-import { URBAN_DUPLEX, URBAN_LOW_HEIGHT } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
+import {
+  URBAN_DUPLEX,
+  URBAN_FREESTANDING,
+  URBAN_LOW_HEIGHT,
+} from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 import { resolveCabinetCoverColorAttributeId } from "@/shared/lib/sku";
 import { resolveConfiguratorOptions } from "@/features/collectionCustomization/lib/resolveSectionState";
 
@@ -58,6 +62,29 @@ describe("Lower countertop colors", () => {
     expect(result.some(({ value }) => value === "Bianco Calce DA ST")).toBe(true);
     expect(result.some(({ value }) => value === "Pulpis Chiaro TKH")).toBe(false);
     expect(result.every(({ traits }) => traits?.sku && cover.materialSkus.includes(traits.sku))).toBe(true);
+  });
+
+  it("offers Urban Freestanding the whole palette of its own cabinets, and no countertop-only material", () => {
+    const cover = URBAN_FREESTANDING.skuProfile.cabinetCover;
+    if (!cover) throw new Error("Urban Freestanding has no cover contract");
+    const attributeId = resolveCabinetCoverColorAttributeId(cover);
+    const cabinetColors = resolveConfiguratorOptions(
+      URBAN_FREESTANDING.profile,
+      attributeId,
+      URBAN_FREESTANDING.configurator,
+    );
+    const result = buildCoverColorOptions(cabinetColors, URBAN_FREESTANDING.skuProfile);
+
+    expect(attributeId).toBe("CabinetColor");
+    // Every colour the Urban Freestanding cabinets come in, each of its eight materials.
+    expect(result.map(({ value }) => value)).toEqual(cabinetColors.map(({ value }) => value));
+    expect(new Set(result.map(({ traits }) => traits?.sku))).toEqual(
+      new Set(["LACG", "LACM", "ST", "HPL", "3D", "BM", "WDV", "ESS"]),
+    );
+    // Porcelain and Fenix are Upper's materials, not the cabinets'.
+    expect(buildCoverColorOptions(options, URBAN_FREESTANDING.skuProfile).map(({ value }) => value)).not.toContain(
+      "POR",
+    );
   });
 
   it("keeps Cabinet Color for a collection that names no attribute", () => {

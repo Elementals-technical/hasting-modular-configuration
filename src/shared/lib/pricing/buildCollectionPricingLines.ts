@@ -102,6 +102,13 @@ const UNPRICED_CABINET_COVER = {
     "The lower countertop cover has no price: its applied colour/material or supporting cabinet depth is unknown or unsupported.",
 };
 
+/** A collection offers Lower before its cover SKU is confirmed: the cover is ordered, its price unknown. */
+const UNCONFIRMED_CABINET_COVER_SKU = {
+  owner: "product",
+  reason:
+    "The lower countertop has no confirmed SKU or price for this collection yet: it is shown in the scene but not priced.",
+};
+
 /** Why a countertop priced as Urban Standard Height's has no top line. */
 const UNPRICED_USH_COUNTERTOP =
   "The countertop has no Urban Standard Height price here: the countertop table gives no thickness for its material at this depth, or its colour names no material.";
@@ -462,7 +469,11 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   // 7) Actual generated Lower panels, regardless of Upper offset/style. Their colour comes from
   // the published scene slab, while D is the nominal depth of the supporting cabinet(s).
   const cover = skuProfile.cabinetCover;
-  if (cover && input.cabinetCovers?.length) {
+  const coverSku = cover?.prefix && cover.thicknessIn ? { prefix: cover.prefix, thicknessIn: cover.thicknessIn } : null;
+  if (cover && !coverSku && input.cabinetCovers?.length) {
+    gaps.push({ group: "input", blocksTotal: true, ...UNCONFIRMED_CABINET_COVER_SKU });
+  }
+  if (cover && coverSku && input.cabinetCovers?.length) {
     const covers = new Map<string, { quantity: number; totalWidthCm: number }>();
     const colorAttributeId = resolveCabinetCoverColorAttributeId(cover);
     let unpriced = false;
@@ -478,10 +489,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       });
       const coverDepthCm = depths.length > 0 && depths.every((depth) => depth === depths[0]) ? depths[0] : null;
       const sku = buildCabinetCoverSku({
-        prefix: cover.prefix,
+        prefix: coverSku.prefix,
         widthCm: coverWidthCm,
         depthCm: coverDepthCm,
-        thicknessIn: cover.thicknessIn,
+        thicknessIn: coverSku.thicknessIn,
         materialSku: materialSku && cover.materialSkus.includes(materialSku) ? materialSku : null,
         colorCode,
       });

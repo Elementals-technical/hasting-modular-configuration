@@ -31,7 +31,8 @@ export const useCoverCountertopColorField = (enabled: boolean) => {
     attributeId: "CoverCountertopColor",
     value: color.color,
     options,
-    visible: color.available,
+    // Shown once the scene reports a cover and the contract leaves a colour to pick.
+    visible: color.available && options.length > 0,
     enabled: !color.processing,
   };
   return { ...color, field };
