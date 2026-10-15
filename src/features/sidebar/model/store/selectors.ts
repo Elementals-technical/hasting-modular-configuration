@@ -5,3 +5,5 @@ export const getIsOpenSidebar = (state: RootState) => state.rootStateUI.sidebar.
 export const getActiveStep = (state: RootState) => state.rootStateUI.sidebar.activeStep;
 
 export const getIsActiveStyleSidebar = (state: RootState) => state.rootStateUI.sidebar.isOpenStyleSidebar;
+
+export const getPlacementButtonsVisible = (state: RootState) => state.rootStateUI.sidebar.placementButtonsVisible;

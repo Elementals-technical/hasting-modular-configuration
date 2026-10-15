@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { parseRuntimeBindings } from "@/entities/collection";
@@ -13,7 +13,17 @@ import type {
 } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createCompositionPort, type SceneCompositionBridge } from "../lib/createCompositionPort";
+import type { SceneSlotRequest } from "../lib/sceneSlotPlacement";
 import { createTestSceneReader } from "../lib/testSceneReader";
+
+// As the scene's placement does: each of its calls waits in the batch queue of the bridge.
+vi.mock("../lib/sceneSlotPlacement", async () => {
+  const { runInBatchQueue } = await import("@/utils/functions/playcanvas/setConfigBatch");
+  return {
+    placeInSceneSlot: async () =>
+      runInBatchQueue(async () => ({ status: "applied", runtimeId: "UD-side-cabinet-queued" })),
+  };
+});
 
 type Answers = {
   preset?: ScenePresetResult;
@@ -374,6 +384,92 @@ describe("createCompositionPort", () => {
       expect(product).not.toHaveProperty("LateralPanelColor");
       expect(product).not.toHaveProperty("Series");
     }
+  });
+
+  it("places an Urban Duplex cabinet at a place the scene offers, translated for its scene type", async () => {
+    const fake = createFakeScene();
+    const requests: SceneSlotRequest[] = [];
+    const port = createCompositionPort({
+      getBindings: () => urbanDuplexRuntimeBindings,
+      scene: fake.scene,
+      reader: createTestSceneReader().reader,
+      placeInSlot: async (request) => {
+        requests.push(request);
+        return { status: "applied", runtimeId: "UD-side-cabinet-placed" };
+      },
+    });
+
+    const result = await port.add(
+      {
+        productType: "Sink-Cabinet",
+        config: { Width: 70, Height: 28, Drawers: "1", Series: "URSTD", LateralPanelSide: "L" },
+      },
+      { kind: "slot", anchorRuntimeId: "UD-sink-cabinet-1", slot: "bottom" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["UD-side-cabinet-placed"] });
+    // Neither an insert nor an add: the scene's own placement does it.
+    expect(fake.calls).toEqual([]);
+    expect(requests).toEqual([
+      {
+        sceneType: "UD-side-cabinet",
+        anchorRuntimeId: "UD-sink-cabinet-1",
+        slot: "bottom",
+        config: expect.objectContaining({
+          Width: 70,
+          Drawers: "1D",
+          HandleStyle: "Default",
+          HandleSide: "Left",
+          ProductType: "UD-side-cabinet",
+        }),
+      },
+    ]);
+  });
+
+  it("passes a place the scene refuses through as rejected", async () => {
+    const issue = { code: "placement-unavailable" as const, message: "DOES_NOT_FIT" };
+    const port = createCompositionPort({
+      getBindings: () => urbanDuplexRuntimeBindings,
+      scene: createFakeScene().scene,
+      reader: createTestSceneReader().reader,
+      placeInSlot: async () => ({ status: "rejected", issues: [issue] }),
+    });
+
+    const result = await port.add(
+      { productType: "Sink-Cabinet", config: { Width: 60, Height: 56 } },
+      { kind: "slot", anchorRuntimeId: "UD-side-cabinet-1", slot: "top" },
+    );
+
+    expect(result).toEqual({ status: "rejected", issues: [issue] });
+  });
+
+  it("leaves the batch queue free for the calls of its own placement", async () => {
+    const port = createCompositionPort({
+      getBindings: () => urbanDuplexRuntimeBindings,
+      scene: createFakeScene().scene,
+      reader: createTestSceneReader().reader,
+    });
+
+    const result = await port.add(
+      { productType: "Sink-Cabinet", config: { Width: 70, Height: 28 } },
+      { kind: "slot", anchorRuntimeId: "UD-sink-cabinet-1", slot: "right" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["UD-side-cabinet-queued"] });
+  });
+
+  it("translates a product for the scene's own tools without a scene call", () => {
+    const { port, calls } = createPort(undefined, urbanDuplexRuntimeBindings);
+
+    const draft = port.toSceneProduct({
+      productType: "Side-Shelf",
+      config: { Width: 15, BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" },
+    });
+
+    // The open side shelf is the lateral panel colour, as when it is placed.
+    expect(draft).toMatchObject({ sceneType: "UD-open-shelves-side", config: { CabinetColor: "Pulpis Chiaro TKH" } });
+    expect(calls).toEqual([]);
+    expect(port.toSceneProduct({ productType: "Unknown-Type", config: {} })).toBeNull();
   });
 
   it("sends a shared value under its other keys too, but not the one meant for a single product type", async () => {

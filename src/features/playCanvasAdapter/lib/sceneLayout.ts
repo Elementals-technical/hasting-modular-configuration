@@ -41,7 +41,7 @@ export type SceneLayoutImport =
 const CAPTURE_BUDGET_MS = 2000;
 
 /** The scene refused because it is in the middle of something; nothing was changed. */
-const BUSY_CODES = new Set([
+export const BUSY_CODES = new Set([
   "COMPOSITION_BUSY",
   "LEGACY_WRITERS_BUSY",
   "STALE_COMPOSITION",
@@ -67,7 +67,7 @@ const documentKeys = (document: ConfiguratorPreset): string[] =>
     isRecord(product) && typeof product.key === "string" && product.key ? [product.key] : [],
   );
 
-const errorCode = (error: unknown): string =>
+export const errorCode = (error: unknown): string =>
   isRecord(error) && typeof error.code === "string" && error.code ? error.code : "scene-error";
 
 /** A layout as it was stored: a saved configuration is checked before it reaches the scene. */

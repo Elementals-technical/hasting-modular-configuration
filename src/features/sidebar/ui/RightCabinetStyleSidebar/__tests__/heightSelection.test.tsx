@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ulhManifest from "../../../../../../public/collections/urban-low-height/manifest.json";
@@ -35,6 +35,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import { renderWithUshCollection } from "@/features/collectionCustomization/__tests__/testUtils/renderWithUshCollection";
 import type { TestRuntimePort } from "@/features/playCanvasAdapter";
+import { getPlacementButtonsVisible } from "@/features/sidebar/model/store/selectors";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 
 import { RightCabinetStyleSidebar } from "../RightCabinetStyleSidebar";
@@ -266,5 +267,25 @@ describe("height in the style sidebar of Urban Standard Height", () => {
     });
 
     expect(selectorTitles()).toEqual(["Width", "Depth", "Handle"]);
+  });
+});
+
+describe("the scene's + buttons of the style sidebar", () => {
+  // The player offers Drag to Place beside them, so it reads whether they show.
+  it("are published while the sidebar shows them for the cabinet being added, and withdrawn after", async () => {
+    const { unmount } = renderUlhSidebar();
+    await waitFor(() => expect(getPlacementButtonsVisible(store.getState())).toBe(true));
+
+    act(() => {
+      store.dispatch(setOpenStyleSidebar(false));
+    });
+    expect(getPlacementButtonsVisible(store.getState())).toBe(false);
+
+    act(() => {
+      store.dispatch(setOpenStyleSidebar(true));
+    });
+    await waitFor(() => expect(getPlacementButtonsVisible(store.getState())).toBe(true));
+    unmount();
+    expect(getPlacementButtonsVisible(store.getState())).toBe(false);
   });
 });

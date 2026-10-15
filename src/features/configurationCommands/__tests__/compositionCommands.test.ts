@@ -41,6 +41,7 @@ import {
   adoptComposition,
   applyPreset,
   clearComposition,
+  prepareCabinet,
   removeCabinets,
   swapCabinets,
   type CompositionDeps,
@@ -829,6 +830,102 @@ describe("composition commands", () => {
             config: { Width: 15, BasePanelColor: "Castagno Scuro 1C3", LateralPanelColor: "Metal bronzo 2MD" },
           },
         });
+      });
+
+      it("prepares a cabinet for Drag & Drop as addCabinet places one, without a scene call", async () => {
+        const { composition, deps } = placeTwo(["L", "L"]);
+        const config = { Width: 35, Drawers: "1D", Series: "URSTD" };
+
+        const prepared = prepareCabinet({ productType: "Sink-Cabinet", config }, deps);
+        expect(composition.calls).toEqual([]);
+
+        await add(deps, "Sink-Cabinet", config);
+        const call = lastCall(composition);
+        // The stand-in port keeps the collection's names; the config is what addCabinet hands it.
+        expect(prepared?.selection).toEqual(call.op === "add" ? call.product.config : null);
+        expect(prepared?.selection).toMatchObject({
+          Drawers: "1",
+          Series: "URSTD",
+          BasePanelColor: "Bianco Calce DA ST",
+          LateralPanelColor: "Pulpis Chiaro TKH",
+          LateralPanelSide: "L",
+        });
+        expect(prepared?.inherited).toMatchObject({ LateralPanelSide: "L" });
+      });
+
+      it("prepares a copy of a placed cabinet without where that one stands", () => {
+        const { deps } = placeTwo();
+
+        const prepared = prepareCabinet(
+          {
+            productType: "Sink-Cabinet",
+            config: { Width: 60, SupportGroupId: "group-1~under", SpatialOffsetM: { x: 0, y: 0 }, positionX: 1.2 },
+          },
+          deps,
+        );
+
+        expect(prepared?.selection).not.toHaveProperty("SupportGroupId");
+        expect(prepared?.selection).not.toHaveProperty("SpatialOffsetM");
+        expect(prepared?.selection).not.toHaveProperty("positionX");
+        expect(prepared?.product.config).toEqual({ Width: 60 });
+      });
+
+      it("records a cabinet a drag placed as addCabinet records one", async () => {
+        const { deps } = placeTwo(["R", "R"]);
+        const prepared = prepareCabinet(
+          { productType: "Sink-Cabinet", config: { Width: 35, Drawers: "1D", Series: "URSTD", LateralPanelSide: "L" } },
+          deps,
+        );
+        if (!prepared) throw new Error("the cabinet must be prepared");
+        const runtimeIds = [...product().productIds, "UD-side-cabinet-dragged"];
+
+        await adoptComposition(
+          {
+            runtimeIds,
+            products: runtimeIds.map(() => ({ productType: "Sink-Cabinet", config: { Width: 60 } })),
+            placed: [
+              { runtimeId: "UD-side-cabinet-dragged", product: prepared.product, inherited: prepared.inherited },
+            ],
+          },
+          deps,
+        );
+
+        // The scene config names neither: the series and the side it was placed as are recorded.
+        expect(seriesHeld()).toEqual(["URDPX", "URDPX", "URSTD"]);
+        expect(sides()).toEqual(["R", "R", "L"]);
+      });
+
+      it("records nothing of its own for a cabinet adopted without a placement", async () => {
+        const { deps } = placeTwo(["R", "R"]);
+        const runtimeIds = [...product().productIds, "UD-side-cabinet-moved"];
+
+        await adoptComposition(
+          { runtimeIds, products: runtimeIds.map(() => ({ productType: "Sink-Cabinet", config: { Width: 60 } })) },
+          deps,
+        );
+
+        expect(sides()).toEqual(["R", "R", undefined]);
+      });
+
+      it("places a cabinet in the free place under a hanging one and lists it in its column", async () => {
+        const { composition, deps } = setup(["UD-sink-cabinet-a1b2c3d4e", "UD-side-cabinet-f5g6h7i8j"]);
+
+        const result = await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 70, Drawers: "1D" } },
+            placement: { kind: "slot", anchorRuntimeId: "UD-sink-cabinet-a1b2c3d4e", slot: "bottom" },
+          },
+          deps,
+        );
+
+        expect(result.status).toBe("applied");
+        expect(lastCall(composition)).toMatchObject({ op: "add", placement: { kind: "slot", slot: "bottom" } });
+        // A column lists its top before its bottom.
+        expect(product().productIds).toEqual([
+          "UD-sink-cabinet-a1b2c3d4e",
+          "Sink-Cabinet-new-1",
+          "UD-side-cabinet-f5g6h7i8j",
+        ]);
       });
     });
 

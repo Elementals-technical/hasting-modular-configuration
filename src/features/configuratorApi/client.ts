@@ -138,6 +138,18 @@ const defaultCreateId = (): string => {
   return `placement-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 };
 
+/**
+ * Sessions a composition command opens and applies at once (a cabinet placed in the free place of
+ * a column) carry this prefix, so the Drag & Drop controls, which follow every session of the
+ * scene, leave them to the command.
+ */
+export const COMMAND_PLACEMENT_SESSION_PREFIX = "command-placement-";
+
+export const createCommandPlacementId = (): string => `${COMMAND_PLACEMENT_SESSION_PREFIX}${defaultCreateId()}`;
+
+export const isCommandPlacementSession = (sessionId: unknown): boolean =>
+  typeof sessionId === "string" && sessionId.startsWith(COMMAND_PLACEMENT_SESSION_PREFIX);
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 

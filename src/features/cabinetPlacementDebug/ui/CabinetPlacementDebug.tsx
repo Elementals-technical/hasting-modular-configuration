@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 
 import {
   createConfiguratorClient,
+  isCommandPlacementSession,
   type CabinetsState,
   type ConfiguratorClient,
   type CabinetDraftState,
@@ -10,20 +11,31 @@ import {
   type ConfiguratorCompactPreset,
 } from "@/features/configuratorApi";
 
-import { draftInvalidHint, draftValidationStatus } from "../lib/draftValidationMessage";
+import { DRAFT_HINTS, draftInvalidHint, draftValidationStatus } from "../lib/draftValidationMessage";
 import { createPlacementOverlayStore, visibleOverlayFrame } from "../lib/placementOverlayStore";
+import { sideShelvesAtRowEnds, wallAfterDraft } from "../lib/sideShelfEdges";
 import { CabinetDraftOverlay } from "./CabinetDraftOverlay";
 import { MoveIcon } from "./placementIcons";
 import s from "./CabinetPlacementDebug.module.scss";
 
+export type CabinetPlacementSelection = { definitionId: string; selection: Record<string, unknown> };
+
 type Props = {
   ready: boolean;
-  selection: { definitionId: string; selection: Record<string, unknown> } | null;
+  selection: CabinetPlacementSelection | null;
+  /**
+   * The cabinet an Add places, resolved when the Add starts: the scene type and config as the
+   * composition commands would place them. Without it, `selection` is placed as it is.
+   */
+  prepareSelection?: () => CabinetPlacementSelection | null;
   selectedProductId: string | null;
+  /** The builder shows its "+" buttons for the cabinet being added: "Drag to Place" is offered with them. */
+  offerAdd?: boolean;
   createClient?: () => ConfiguratorClient;
   externalBusy?: boolean;
   onPlacementBusyChange?: (busy: boolean) => void;
-  onCompositionCommitted?: (state: CabinetsState) => void | Promise<void>;
+  /** The scene committed a change; its receipt names the cabinets it added. */
+  onCompositionCommitted?: (state: CabinetsState, receipt: ConfiguratorReceipt) => void | Promise<void>;
   /** A change is about to start. Awaited first: the scene cannot describe itself once a draft is open. */
   onBeforeCompositionChange?: () => void | Promise<void>;
   /** The change announced by `onBeforeCompositionChange` did not happen (cancelled, or it failed to start). */
@@ -31,6 +43,8 @@ type Props = {
   onRepositionAvailabilityChange?: (status: CabinetRepositionAvailability) => void;
   /** Engineering tools (Move selected, add side, Save/Restore JSON): `?placementDebug` in the URL. */
   showDebugTools?: boolean;
+  /** The scene type of a side shelf, which stays at an end of its row: a draft that leaves one inward is not applied. */
+  isSideShelfType?: (definitionId: string) => boolean;
 };
 
 export type CabinetPlacementControls = {
@@ -58,17 +72,20 @@ const errorMessage = (error: unknown): string => {
 const isTerminal = (lifecycle: unknown) => ["committed", "cancelled", "error"].includes(String(lifecycle));
 
 /**
- * Cabinet Drag & Drop. "Drag & Drop" (top-right of the canvas) opens an Add draft of the configured
- * cabinet right away: PlayCanvas tints it green (free spot) or red (overlaps a cabinet; Apply blocked)
- * and publishes screen anchors, where this component puts the move icon, Apply and discard (x).
- * "Cancel" replaces the button while the draft is open. A PlayCanvas build without the overlay (or a
+ * Cabinet Drag & Drop. "Drag to Place", offered above the composition while the builder shows its "+"
+ * buttons, opens an Add draft of the configured cabinet right away; elsewhere a draft opens only from
+ * the cabinet menu (`reposition`). PlayCanvas tints the draft green (free spot) or red (overlaps a
+ * cabinet; Apply blocked) and publishes screen anchors, where this component puts the move icon, Apply
+ * and discard (x). "Cancel" shows while the draft is open. A PlayCanvas build without the overlay (or a
  * draft off screen) falls back to Apply next to Cancel.
  */
 export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>(function CabinetPlacementDebug(
   {
     ready,
     selection,
+    prepareSelection,
     selectedProductId,
+    offerAdd = false,
     createClient = createConfiguratorClient,
     externalBusy = false,
     onPlacementBusyChange,
@@ -77,6 +94,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     onCompositionChangeAbandoned,
     onRepositionAvailabilityChange,
     showDebugTools = false,
+    isSideShelfType,
   },
   ref,
 ) {
@@ -89,6 +107,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   onBeforeChangeRef.current = onBeforeCompositionChange;
   const onAbandonedRef = useRef(onCompositionChangeAbandoned);
   onAbandonedRef.current = onCompositionChangeAbandoned;
+  const prepareSelectionRef = useRef(prepareSelection);
+  prepareSelectionRef.current = prepareSelection;
   const receiptSyncRef = useRef(new Map<string, Promise<void>>());
   const refreshCapabilitiesRef = useRef<(() => Promise<void>) | null>(null);
   const [connected, setConnected] = useState(false);
@@ -109,6 +129,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     }
   });
   const [restoreConfirmed, setRestoreConfirmed] = useState(false);
+  // The composition a draft started from, for the side shelf rule: the scene does not check it.
+  const [draftStart, setDraftStart] = useState<{ sessionId: string; state: CabinetsState } | null>(null);
   const [overlayStore] = useState(createPlacementOverlayStore);
   // A primitive snapshot: re-render when the anchored session changes, not on every overlay frame.
   const anchoredSessionId = useSyncExternalStore(
@@ -121,7 +143,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     if (previous) return previous;
     const task = (async () => {
       const state = await client.getCabinetsState();
-      if (clientRef.current === client) await onCommittedRef.current?.(state);
+      if (clientRef.current === client) await onCommittedRef.current?.(state, receipt);
     })();
     receiptSyncRef.current.set(receipt.requestId, task);
     return task;
@@ -155,7 +177,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
         return;
       }
       const next = dataOf(event);
-      if (typeof next.sessionId !== "string") return;
+      // A command's own session (a cabinet placed in a column) opens and closes without these controls.
+      if (typeof next.sessionId !== "string" || isCommandPlacementSession(next.sessionId)) return;
       const finished = isTerminal(next.lifecycle);
       setSession(finished ? null : next.sessionId);
       setDraft(finished ? null : (next as CabinetDraftState));
@@ -214,6 +237,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
               await client.on("cabinetPlacement", "action", (event: unknown) => {
                 if (disposed) return;
                 const action = dataOf(event);
+                if (isCommandPlacementSession(action.sessionId)) return;
                 if (activeSessionRef.current && action.sessionId !== activeSessionRef.current) return;
                 if (action.status === "committed" || action.status === "cancelled") {
                   // Only the open draft: a late report of an earlier one must not drop the next start.
@@ -234,7 +258,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
                 if (disposed) return;
                 const composition = dataOf(event);
                 if (typeof composition.status === "string") setCompositionStatus(composition.status);
-                if (typeof composition.activeSessionId === "string") setSession(composition.activeSessionId);
+                if (isCommandPlacementSession(composition.activeSessionId)) setSession(null);
+                else if (typeof composition.activeSessionId === "string") setSession(composition.activeSessionId);
                 else if (composition.activeSessionId === null) setSession(null);
                 if (retryDeadline && Date.now() >= retryDeadline) retryDeadline = 0;
                 void refreshCapabilities();
@@ -260,7 +285,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
             const state = dataOf(await client.getCompositionState());
             if (disposed) return;
             setCompositionStatus(typeof state.status === "string" ? state.status : "ready");
-            if (typeof state.activeSessionId === "string") {
+            if (typeof state.activeSessionId === "string" && !isCommandPlacementSession(state.activeSessionId)) {
               setSession(state.activeSessionId);
               updateDraft(await client.getPlacementState(state.activeSessionId));
             }
@@ -342,18 +367,22 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       await onBeforeChangeRef.current?.();
       announced = true;
       let next: CabinetDraftState;
+      let startState: CabinetsState | null = null;
       if (kind === "add") {
-        if (!selection) return;
+        // Resolved now, with the values the configuration holds at this moment.
+        const chosen = prepareSelectionRef.current ? prepareSelectionRef.current() : selection;
+        if (!chosen) return;
         const state = await client.getCabinetsState();
+        startState = state;
         if (!showDebugTools && state.cabinets.length > 0) {
           // Normal path: let the runtime start the draft at its best free end-of-row slot.
-          next = await client.beginAdd(selection.definitionId, selection.selection);
+          next = await client.beginAdd(chosen.definitionId, chosen.selection);
         } else {
           // Debug side selector (or empty-composition seed): resolve an explicit option.
           const anchor = state.selectedCabinetId ?? selectedProductId;
           const anchorCabinetId = state.cabinets.some((cabinet) => cabinet.id === anchor) ? anchor : null;
           const options = await client.getPlacementOptions({
-            ...selection,
+            ...chosen,
             operation: "add",
             ...(anchorCabinetId ? { anchorCabinetId } : {}),
           });
@@ -365,13 +394,13 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
             // Claiming an empty composition changes its revision and invalidates option IDs.
             // Use the runtime-provided seed pose through the public free-placement contract.
             if (typeof option.frameId !== "string") throw new Error("The seed placement has no frame");
-            next = await client.beginAdd(selection.definitionId, selection.selection, {
+            next = await client.beginAdd(chosen.definitionId, chosen.selection, {
               kind: "free",
               frameId: option.frameId,
               positionM: option.positionM,
             });
           } else {
-            next = await client.beginAdd(selection.definitionId, selection.selection, {
+            next = await client.beginAdd(chosen.definitionId, chosen.selection, {
               kind: "option",
               optionId: option.id,
             });
@@ -380,6 +409,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       } else {
         // Local runtime does not publish cabinet selection events: read it at click time.
         const state = await client.getCabinetsState();
+        startState = state;
         const id = explicitProductId !== undefined ? explicitProductId : (state.selectedCabinetId ?? selectedProductId);
         if (!id || !state.cabinets.some((cabinet) => cabinet.id === id))
           throw new Error(
@@ -392,6 +422,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
       activeSessionRef.current = next.sessionId;
       setSessionId(next.sessionId);
       setDraft(next);
+      setDraftStart(startState ? { sessionId: next.sessionId, state: startState } : null);
       setStatus("Drag the cabinet in the canvas, then Apply or Cancel");
       announced = false;
     }).finally(() => {
@@ -456,13 +487,17 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     return () => onPlacementBusyChange?.(false);
   }, [placementBusy, onPlacementBusyChange]);
 
+  // A side shelf the draft would leave inward or in a column (the scene does not check it).
+  const draftWall = draft && draftStart?.sessionId === draft.sessionId ? wallAfterDraft(draftStart.state, draft) : null;
+  const sideShelfInward = Boolean(isSideShelfType && draftWall && !sideShelvesAtRowEnds(draftWall, isSideShelfType));
   const applyDisabled =
     !connected ||
     capabilitiesRefreshing ||
     pending ||
     !supported.includes("cabinetPlacement.apply") ||
     draft?.canApply !== true ||
-    (draftValidationStatus(draft) ?? "valid") !== "valid";
+    (draftValidationStatus(draft) ?? "valid") !== "valid" ||
+    sideShelfInward;
   const cancelDisabled =
     !connected ||
     capabilitiesRefreshing ||
@@ -470,47 +505,34 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     !supported.includes("cabinetPlacement.cancel") ||
     draft?.canCancel !== true;
   const anchored = Boolean(sessionId) && anchoredSessionId === sessionId;
-  const collisionHint = draftInvalidHint(draft);
+  const collisionHint = draftInvalidHint(draft) ?? (sideShelfInward ? DRAFT_HINTS.sideShelfAtRowEnd : null);
 
   return (
     <>
       <div className={s.toolbar}>
-        <div className={s.toolbarButtons}>
-          {sessionId ? (
-            <>
-              {!anchored && (
-                <button
-                  type="button"
-                  className={s.primaryPill}
-                  disabled={applyDisabled}
-                  title={collisionHint ?? undefined}
-                  onClick={() => finish("apply")}
-                >
-                  Apply
-                </button>
-              )}
+        {sessionId && (
+          <div className={s.toolbarButtons}>
+            {!anchored && (
               <button
                 type="button"
-                className={s.secondaryPill}
-                disabled={cancelDisabled}
-                onClick={() => finish("cancel")}
+                className={s.primaryPill}
+                disabled={applyDisabled}
+                title={collisionHint ?? undefined}
+                onClick={() => finish("apply")}
               >
-                Cancel
+                Apply
               </button>
-            </>
-          ) : (
+            )}
             <button
               type="button"
-              className={s.primaryPill}
-              disabled={busy || !canAdd || !selection}
-              title={!selection ? "Choose a cabinet configuration first" : undefined}
-              onClick={() => start("add")}
+              className={s.secondaryPill}
+              disabled={cancelDisabled}
+              onClick={() => finish("cancel")}
             >
-              <MoveIcon size={16} />
-              Drag &amp; Drop
+              Cancel
             </button>
-          )}
-        </div>
+          </div>
+        )}
         {sessionId && collisionHint && <p className={s.hint}>{collisionHint}</p>}
         {error && (
           <p role="alert" className={s.error}>
@@ -521,6 +543,23 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
           {status}
         </p>
       </div>
+      {offerAdd && !sessionId && (
+        <button
+          type="button"
+          className={s.dragToPlace}
+          disabled={busy || !canAdd || !selection}
+          title={!selection ? "Choose a cabinet configuration first" : undefined}
+          // On press, as the scene's "+" do: the press closes the builder's sidebar, and with it this
+          // option, before a click could land. A click with no press before it is Enter or Space.
+          onMouseDown={() => start("add")}
+          onClick={(event) => {
+            if (event.detail === 0) start("add");
+          }}
+        >
+          <MoveIcon size={16} />
+          Drag to Place
+        </button>
+      )}
       <CabinetDraftOverlay
         store={overlayStore}
         sessionId={sessionId}

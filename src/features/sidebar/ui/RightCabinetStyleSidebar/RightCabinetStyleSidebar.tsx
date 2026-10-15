@@ -16,7 +16,7 @@ import image from "../../../../shared/assets/images/png/img_png.png";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { getIsActiveStyleSidebar } from "../../model/store/selectors";
-import { setOpenStyleSidebar } from "../../model/store/slice";
+import { setOpenStyleSidebar, setPlacementButtonsVisible } from "../../model/store/slice";
 import {
   getDimensionOptions,
   getDrawerProduct,
@@ -48,6 +48,7 @@ import { setVisibleButtons, type VisibleButtonsOptions } from "@/utils/functions
 import { reportSceneRefusal } from "@/features/sceneRefusalNotice";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
+import { setScenePlusFilter, type ScenePlusKind } from "@/utils/functions/playcanvas/sceneBridge";
 import { getSelectTool } from "@/utils/functions/playcanvas/getSelectTool";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
@@ -91,6 +92,8 @@ import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedPro
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
+import { plusFilterFor, rowEndSideOf } from "../../lib/plusPlacement";
+import { isDragDropCollection } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import { resolveStyleSidebarFields } from "../../lib/resolveStyleSidebarFields";
 
 interface RightCabinetStyleSidebarProps {
@@ -150,6 +153,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const maxCountertopLength = lengthGuard.max;
 
   const saveSnapshot = useHistorySnapshot();
+  // A collection with Drag & Drop also places cabinets at the places the scene offers (columns).
+  const placesInColumns = useActiveCollection((collection) => isDragDropCollection(collection.id));
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const styleSidebarFields = resolveStyleSidebarFields(
     useActiveCollection((collection) => collection.catalog.customization ?? null),
@@ -751,6 +756,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     };
 
     setVisibleButtons(shouldShowPlacementButtons, isOpenedStyleSidebar ? options : undefined);
+    // A row that holds columns shows only the "+" that fit this cabinet (a shelf never goes in a column).
+    setScenePlusFilter(
+      shouldShowPlacementButtons
+        ? plusFilterFor(
+            activeDrawerProduct,
+            (id) => resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, id),
+            { columns: placesInColumns },
+          )
+        : null,
+    );
     placementButtonsVisibleRef.current = shouldShowPlacementButtons;
 
     // On an empty scene, setVisibleButtons rebuilds the scene's buttons and leaves the "+" of the
@@ -759,11 +774,17 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     // change of the cabinet being added, so it shows it again, on the same condition as the page.
     const isEmptyComposition = selectedProducts.length === 0;
     if (isOpenedStyleSidebar && isEmptyComposition) showEmptyButton();
+    // The player offers Drag to Place beside them.
+    dispatch(setPlacementButtonsVisible(shouldShowPlacementButtons));
   }, [
     activeCabinetRule,
     activeDrawerProduct,
+    activeProfile,
+    dispatch,
     isOpenedStyleSidebar,
     isSteppedStyle,
+    placesInColumns,
+    runtimeBindings,
     selectedDimensions.height,
     selectedDrawers,
     selectedProducts.length,
@@ -775,8 +796,10 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     () => () => {
       if (!placementButtonsVisibleRef.current) return;
       setVisibleButtons(false);
+      setScenePlusFilter(null);
+      dispatch(setPlacementButtonsVisible(false));
     },
-    [],
+    [dispatch],
   );
 
   // Close sidebar when clicking outside of it.
@@ -801,11 +824,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [dispatch, hasModalOpen, isOpenedStyleSidebar, isStyleSidebarTutorialStepActive]);
 
-  // Set the product to the desired side (left/right).
+  // Set the product where the "+" stands: a row end, or the free place of a column.
   useEffect(() => {
     if (!isPlayCanvasReady) return;
 
-    const onPlusClick = async (entityId: string, side: "left" | "right") => {
+    const onPlusClick = async (entityId: string, side: ScenePlusKind) => {
       console.log("Clicked Plus Button", entityId, side);
 
       if (!activeDrawerProduct) return;
@@ -825,12 +848,15 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         .map((value) => Number(value))
         .filter((value) => Number.isFinite(value) && value > 0);
 
+      // A cabinet under a hanging one does not lengthen the countertop above it.
+      const addableWidthLimit = side === "bottom" ? null : maxAddableCabinetWidth;
       const fittingAddWidths =
-        maxAddableCabinetWidth === null
+        addableWidthLimit === null
           ? availableAddWidths
-          : availableAddWidths.filter((width) => width <= maxAddableCabinetWidth + 0.01);
+          : availableAddWidths.filter((width) => width <= addableWidthLimit + 0.01);
 
       if (
+        addableWidthLimit !== null &&
         maxCountertopLength !== null &&
         sceneTotalWidth !== null &&
         selectedProducts.length > 0 &&
@@ -849,7 +875,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const selectedWidthIsFitting =
         typeof selectedDimensions.width === "number" &&
         Number.isFinite(selectedDimensions.width) &&
-        (maxAddableCabinetWidth === null || selectedDimensions.width <= maxAddableCabinetWidth + 0.01);
+        (addableWidthLimit === null || selectedDimensions.width <= addableWidthLimit + 0.01);
       const fallbackWidth =
         fittingAddWidths.length > 0
           ? fittingAddWidths.reduce((max, width) => (width > max ? width : max), fittingAddWidths[0])
@@ -857,19 +883,26 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       const widthForAddedCabinet = selectedWidthIsFitting ? selectedDimensions.width : fallbackWidth;
 
       if (activeDrawerProduct === "Side-Shelf") {
-        await spAutoRemoveSide(dispatch, side);
+        // A side shelf stands at a row end, in the place of that side's panel.
+        const rowSide = rowEndSideOf(side);
+        if (!rowSide) return;
+        await spAutoRemoveSide(dispatch, rowSide);
       }
 
       await saveSnapshot();
 
-      // A short cabinet stays at its end of the composition: a taller one asked for outside it goes inside it.
-      const placement = resolveSteppedEndPlacement({
-        anchorRuntimeId: entityId,
-        side,
-        orderedRuntimeIds: getOrderedProductIds(selectedProducts).filter((id) => selectedProducts.includes(id)),
-        steppedRuntimeIds: steppedCabinetIds,
-        addsEndCabinet: isSteppedStyle || activeDrawerProduct === "Side-Shelf",
-      });
+      // A short cabinet stays at its end of the composition: a taller one asked for outside it goes
+      // inside it. Only a "+" beside a row end is redirected; a column's place is taken as offered.
+      const placement =
+        side === "left" || side === "right"
+          ? resolveSteppedEndPlacement({
+              anchorRuntimeId: entityId,
+              side,
+              orderedRuntimeIds: getOrderedProductIds(selectedProducts).filter((id) => selectedProducts.includes(id)),
+              steppedRuntimeIds: steppedCabinetIds,
+              addsEndCabinet: isSteppedStyle || activeDrawerProduct === "Side-Shelf",
+            })
+          : { anchorRuntimeId: entityId, side };
 
       // The collection's scene product goes beside the clicked one and is recorded there with its
       // drawer style, as a duplicated cabinet is.

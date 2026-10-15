@@ -1,7 +1,8 @@
 import { URBAN_LOW_HEIGHT } from "./collectionPricingScenarios";
 
-// The existing configurator-4 fixture is deliberately tiny. These two additional variants were
-// verified with GET /configurators/4?view=full&serialize=true on 2026-10-12 (not price fixtures).
+// The existing configurator-4 fixture is deliberately tiny. These additional variants were verified
+// with GET /configurators/4?view=full&serialize=true on 2026-10-12, and Rox Black TKQ, the HPL cabinet
+// colour Urban Low Height starts in, on 2026-10-14 (not price fixtures).
 const groups = URBAN_LOW_HEIGHT.configurator.groups.map((group) => {
   if (group.proxyName !== "Cabinet Color") return group;
   const base = group.options[0];
@@ -35,6 +36,19 @@ const groups = URBAN_LOW_HEIGHT.configurator.groups.map((group) => {
             id: 90_003,
             name: "Blu Pavone A6 GL",
             metadata: { value: "Blu Pavone A6 GL", sku: "LACG", Material: "Lacquered GL" },
+          },
+        ],
+      },
+      {
+        ...base,
+        id: 90_004,
+        name: "HPL",
+        variants: [
+          {
+            ...variant,
+            id: 90_005,
+            name: "Rox Black TKQ",
+            metadata: { value: "Rox Black TKQ", sku: "HPL", Material: "HPL" },
           },
         ],
       },

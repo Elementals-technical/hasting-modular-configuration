@@ -34,6 +34,8 @@ export type {
   SceneCompositionProduct,
   SceneCompositionReplaceRequest,
   SceneCompositionResult,
+  ScenePlacementSlot,
+  SceneProductDraft,
   SidePanelApplyResult,
   SidePanelPlacement,
   FailedRuntimeChange,

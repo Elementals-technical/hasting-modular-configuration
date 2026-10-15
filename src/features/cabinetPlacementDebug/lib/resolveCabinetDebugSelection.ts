@@ -2,7 +2,7 @@ import type { RuntimeBindingSet } from "@/entities/collection";
 import { resolveProductConfig } from "@/entities/collection";
 
 /** Collections with cabinet/countertop Drag & Drop. Others keep the classic Resize/Reposition menus. */
-export const DRAG_DROP_COLLECTION_IDS: readonly string[] = ["urban-low-height"];
+export const DRAG_DROP_COLLECTION_IDS: readonly string[] = ["urban-low-height", "urban-duplex"];
 
 export const isDragDropCollection = (collectionId: string | null | undefined): boolean =>
   typeof collectionId === "string" && DRAG_DROP_COLLECTION_IDS.includes(collectionId);
