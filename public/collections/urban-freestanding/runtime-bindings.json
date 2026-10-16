@@ -4,6 +4,7 @@
   "productTypes": {
     "Sink-Base": "UF-sink-cabinet",
     "Sink-Cabinet": "UF-side-cabinet",
+    "Short-Cabinet": "UF-side-cabinet",
     "Open-Shelf": "UF-open-shelves",
     "Side-Shelf": "UF-open-shelves-side"
   },
@@ -71,11 +72,14 @@
         "patches": {
           "2": {
             "Drawers": "2D"
+          },
+          "1": {
+            "Drawers": "1D"
           }
         }
       },
       "order": 10,
-      "note": "Urban Freestanding has two drawers (2DW) only. The UF scene draws them from Height without reading the key; sent in the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config."
+      "note": "Two drawers (2DW) for the tall cabinets and one (1D) for the 1 Drawer Short Side Cabinet. The UF scene draws the drawers from Height without reading the key (UF_TopDrawer is hidden on a short cabinet); sent in the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config, and the scene bridge finds the short cabinet by it (buildSteppedSceneProducts)."
     },
     {
       "attributeId": "CabinetColor",
@@ -196,7 +200,7 @@
     {
       "attributeId": "CabinetType",
       "status": "unbound",
-      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The UF scene products of each value are in productTypes."
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The UF scene products of each value are in productTypes. The Short-Cabinet is a UF-side-cabinet below 60 cm, as the scene draws it: a placed one reads back as Short-Cabinet by its one-drawer style (ruleData.steppedModules), any other as Sink-Cabinet."
     },
     {
       "attributeId": "HandleGrooveColorSku",

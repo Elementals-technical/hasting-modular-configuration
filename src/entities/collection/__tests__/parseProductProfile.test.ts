@@ -269,4 +269,65 @@ describe("parseProductProfile", () => {
       message: 'column mapping "forcedHeight" must be a column name',
     });
   });
+
+  it("reads the heights drawers come in and rejects an entry without heights", () => {
+    const raw = clone(ushProfile) as Record<string, unknown>;
+    const ruleData = raw.ruleData as Record<string, Record<string, unknown>>;
+    ruleData.cabinetMatrixLegacyAdapter.heightsByDrawers = { "1": [53, 38, 28] };
+
+    const result = parseProductProfile(raw);
+    expect(result.ok && result.profile.ruleData.cabinetMatrixLegacyAdapter.heightsByDrawers).toEqual({
+      "1": [53, 38, 28],
+    });
+    // Absent in a collection whose table says every height.
+    const plain = parseProductProfile(ushProfile);
+    expect(plain.ok && "heightsByDrawers" in plain.profile.ruleData.cabinetMatrixLegacyAdapter).toBe(false);
+
+    for (const broken of [{ "1": [] }, { "1": [53, 0] }, { "1": "53|38" }, [53, 38]]) {
+      ruleData.cabinetMatrixLegacyAdapter.heightsByDrawers = broken;
+      const rejected = parseProductProfile(raw);
+      expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+        code: "ruleData.invalid_section",
+        dataPath: "/ruleData/cabinetMatrixLegacyAdapter/heightsByDrawers",
+        message: "heightsByDrawers must map a drawers value to a non-empty list of heights in cm",
+      });
+    }
+  });
+
+  it("reads the cabinets other series supply and rejects a module without widths or heights", () => {
+    const raw = clone(ushProfile) as Record<string, unknown>;
+    const ruleData = raw.ruleData as Record<string, unknown>;
+    const modules = [
+      { series: "URSTD", cabinetType: "Sink-Cabinet", widthsCm: [25, 60], heightsByDrawers: { "2": [56], "1": [53] } },
+      { series: "URLH", cabinetType: "Sink-Cabinet", widthsCm: [25], heightsByDrawers: { "1": [38, 28] } },
+    ];
+    ruleData.seriesModules = modules;
+
+    const result = parseProductProfile(raw);
+    expect(result.ok && result.profile.ruleData.seriesModules).toEqual(modules);
+    // Absent in a collection that places its own cabinets only.
+    const plain = parseProductProfile(ushProfile);
+    expect(plain.ok && plain.profile.ruleData.seriesModules).toBeUndefined();
+
+    for (const broken of [
+      [],
+      "URSTD",
+      [{ ...modules[0], series: "" }],
+      [{ ...modules[0], widthsCm: [] }],
+      [{ ...modules[0], widthsCm: [25, 0] }],
+      [{ ...modules[0], heightsByDrawers: {} }],
+      [{ ...modules[0], heightsByDrawers: { "2": [] } }],
+      // One variant of a cabinet type per series.
+      [modules[0], modules[0]],
+    ]) {
+      ruleData.seriesModules = broken;
+      const rejected = parseProductProfile(raw);
+      expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+        code: "ruleData.invalid_section",
+        dataPath: "/ruleData/seriesModules",
+        message:
+          "seriesModules must list, once per series and cabinet type, positive widths and the heights of each drawer style",
+      });
+    }
+  });
 });

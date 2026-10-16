@@ -87,6 +87,7 @@ describe("the accessories step from ui.json", () => {
   it("offers no groove while no cabinet is in the scene", () => {
     renderStep();
 
-    expect(within(screen.getByRole("region", { name: "Side Panels" })).queryAllByRole("button")).toHaveLength(0);
+    const options = within(screen.getByRole("region", { name: "Side Panels" })).getAllByRole("button");
+    expect(options.map((option) => option.getAttribute("aria-label"))).toEqual(["None"]);
   });
 });

@@ -8,6 +8,8 @@ import type {
   ConfigurationCompositionPort,
   ConfigurationRuntimePort,
   ConfigurationSidePanelPort,
+  SceneCompositionProduct,
+  SceneProductDraft,
 } from "@/entities/configuration";
 import { createCompositionPort, createPlayCanvasRuntimePort, createSidePanelPort } from "@/features/playCanvasAdapter";
 
@@ -18,16 +20,20 @@ import {
   adoptComposition,
   applyPreset,
   clearComposition,
+  prepareCabinet,
   removeCabinets,
   swapCabinets,
+  toPresetSceneProduct,
   type AddCabinetRequest,
   type AdoptCompositionRequest,
   type ApplyPresetRequest,
   type ClearCompositionRequest,
   type CompositionDeps,
   type CompositionResult,
+  type PreparedCabinet,
 } from "./composition";
 import { confirmAttributeChange } from "./confirmAttributeChange";
+import { evaluateChange, type ChangeEvaluation } from "./evaluateChange";
 import {
   recordValues,
   replayValues,
@@ -63,6 +69,11 @@ export type CommandRunnerDeps = {
 
 export type CommandRunner = {
   change: (change: AttributeChange) => Promise<ChangeResult>;
+  /**
+   * What `change` would decide, without applying anything: whether the set is planned and waits for
+   * confirmation. Lets a page take an undo step only for a change that applies at once.
+   */
+  evaluate: (change: AttributeChange) => ChangeEvaluation;
   confirm: (preview: ChangePreview) => Promise<ChangeResult>;
   changeDimension: (change: DimensionChange) => Promise<ChangeResult>;
   /** Shows values the configuration already holds on the scene again (undo, restore). */
@@ -78,6 +89,10 @@ export type CommandRunner = {
     clear: (request: ClearCompositionRequest) => Promise<CompositionResult>;
     /** Records a composition the scene already holds, without a scene call. */
     adopt: (request: AdoptCompositionRequest) => Promise<CompositionResult>;
+    /** A cabinet for the scene's own placement tools (Drag & Drop), translated as `addCabinet` would. */
+    prepare: (product: SceneCompositionProduct) => PreparedCabinet | null;
+    /** A preset's product in the scene's names and values, for a preset the scene imports itself. */
+    toPresetSceneProduct: (product: SceneCompositionProduct) => SceneProductDraft | null;
   };
   /** Current state, for reading what a change should address at the moment it is made. */
   getState: () => RootState;
@@ -97,6 +112,7 @@ export const createCommandRunner = ({
 
   return {
     change: (change) => changeAttribute(change, deps()),
+    evaluate: (change) => evaluateChange(change, getState(), configurator),
     confirm: (preview) => confirmAttributeChange(preview, deps()),
     changeDimension: (change) => changeDimension(change, deps()),
     replay: (request) => replayValues(request, deps()),
@@ -108,6 +124,8 @@ export const createCommandRunner = ({
       swapCabinets: (runtimeIdA, runtimeIdB) => swapCabinets(runtimeIdA, runtimeIdB, compositionDeps()),
       clear: (request) => clearComposition(request, compositionDeps()),
       adopt: (request) => adoptComposition(request, compositionDeps()),
+      prepare: (product) => prepareCabinet(product, { getState, composition }),
+      toPresetSceneProduct: (product) => toPresetSceneProduct(product, { getState, composition }),
     },
     getState,
   };

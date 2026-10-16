@@ -1,4 +1,8 @@
+import { isVesselBasin, type ProductProfile } from "@/entities/collection";
 import type { AddCabinetRequest } from "@/features/configurationCommands";
+import type { ScenePlusKind } from "@/utils/functions/playcanvas/sceneBridge";
+
+import { placementForPlus } from "./plusPlacement";
 
 export type AddedCabinetInput = {
   /** The cabinet type as the collection names it; the port finds its scene product. */
@@ -10,9 +14,12 @@ export type AddedCabinetInput = {
   sinkType?: string | null;
   countertopStyle?: string | null;
   vesselColor?: string | null;
+  /** The active collection, whose basin catalog names its own vessels (Tricot's Iris, Urban's Vessel_Blade11). */
+  profile?: ProductProfile | null;
   /** The placed cabinet whose plus button was clicked. */
   anchorRuntimeId: string;
-  side: "left" | "right";
+  /** The kind of the plus button: a row end, or the free place of a column (`top`, `bottom`). */
+  side: ScenePlusKind;
 };
 
 /**
@@ -26,6 +33,7 @@ export const buildAddedCabinetRequest = ({
   sinkType,
   countertopStyle,
   vesselColor,
+  profile = null,
   anchorRuntimeId,
   side,
 }: AddedCabinetInput): AddCabinetRequest => {
@@ -44,11 +52,13 @@ export const buildAddedCabinetRequest = ({
 
   if (width !== null) productConfig.Width = width;
 
-  const isVessel = typeof productConfig.sinkType === "string" && productConfig.sinkType.startsWith("Vessel");
+  // A vessel by its scene name (Vessel_Blade11, the Vessel cutout) or by the collection's own name for it (Iris).
+  const placedSinkType = typeof productConfig.sinkType === "string" ? productConfig.sinkType : "";
+  const isVessel = placedSinkType.startsWith("Vessel") || isVesselBasin(profile, placedSinkType);
 
   return {
     product: { productType: cabinetType, config: productConfig },
-    placement: { kind: "beside", anchorRuntimeId, side },
+    placement: placementForPlus(side, anchorRuntimeId),
     afterPlacement: vesselColor && isVessel ? { VesselColor: vesselColor } : undefined,
   };
 };

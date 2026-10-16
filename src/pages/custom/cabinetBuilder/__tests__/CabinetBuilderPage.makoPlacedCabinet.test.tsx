@@ -139,13 +139,17 @@ describe("a Mako cabinet placed from an empty builder", () => {
 
   afterEach(cleanup);
 
-  it("is priced in Mako's starting colour with the G57 the scene draws when nothing is chosen", async () => {
+  it("is priced in Mako's starting colours with the G57 the scene draws when nothing is chosen", async () => {
     await openEmptyBuilder();
     pickSinkBase();
 
     await placeWithPlusButton();
 
-    expect(cabinetSkus()).toEqual(["VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400"]);
+    // The handle starts in the collection's handle colour, which the cabinet is also placed with.
+    expect(cabinetSkus()).toEqual(["VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400"]);
+    expect(getValuesByAttributeId(store.getState()).HandleColor?.map(({ value }) => value)).toEqual([
+      "Antracite 400 MT",
+    ]);
   });
 
   it("keeps the handle the user chose", async () => {
@@ -154,6 +158,6 @@ describe("a Mako cabinet placed from an empty builder", () => {
 
     await placeWithPlusButton();
 
-    expect(cabinetSkus()).toEqual(["VAN-MAKOV-SB/2DW/G50-23.6W-20.5H-20.5D-CAB-LACM-400"]);
+    expect(cabinetSkus()).toEqual(["VAN-MAKOV-SB/2DW/G50-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400"]);
   });
 });

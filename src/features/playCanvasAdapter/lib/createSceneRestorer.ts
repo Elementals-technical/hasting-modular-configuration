@@ -2,6 +2,7 @@ import type { RuntimeBindingSet } from "@/entities/collection";
 import type {
   ConfigurationSceneReader,
   ConfigurationSceneRestorer,
+  SceneLayout,
   SceneRestoreFailure,
   SceneRestoreIssue,
   SceneRestoreMatch,
@@ -17,6 +18,8 @@ import type {
 } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createSceneReader } from "./createSceneReader";
+import { importSceneLayout } from "./sceneLayout";
+import type { SceneLayoutImport } from "./sceneLayout";
 import {
   findProductConfigBindingErrors,
   resolveProductConfig,
@@ -33,6 +36,10 @@ import {
  * 3. A failed product does not stop the rest. Once the scene was cleared the result is
  *    "partial", never a failure without changes: the scene has changed and C must know it.
  * 4. The actual order is read back and compared with the order of the request.
+ *
+ * A request that carries a layout is given to the scene as that layout instead of steps 2-4:
+ * the products come back where they stood, rows included. A layout the scene cannot take
+ * falls back to steps 2-4, so the composition still comes back, in one row.
  */
 
 /** The scene side of the restorer. Tests pass a fake; the app uses sceneBridge. */
@@ -47,6 +54,8 @@ export type SceneRestorerDeps = {
   getBindings: () => RuntimeBindingSet | null;
   scene?: SceneRestoreBridge;
   reader?: ConfigurationSceneReader;
+  /** Puts a captured layout back. Tests pass a fake; the app asks the scene. */
+  importLayout?: (layout: SceneLayout, sourceIds: readonly string[]) => Promise<SceneLayoutImport>;
 };
 
 const defaultScene: SceneRestoreBridge = {
@@ -80,6 +89,7 @@ export const createSceneRestorer = ({
   getBindings,
   scene = defaultScene,
   reader = createSceneReader(),
+  importLayout = importSceneLayout,
 }: SceneRestorerDeps): ConfigurationSceneRestorer => {
   const preflight = (request: SceneRestoreRequest): SceneRestoreIssue[] => {
     const issues: SceneRestoreIssue[] = [];
@@ -133,12 +143,43 @@ export const createSceneRestorer = ({
     return state.status === "ready" && state.order.length === request.products.length ? [...state.order] : [];
   };
 
+  /** The result of a layout the scene took: every product is back, listed in the scene's order. */
+  const readImported = async (
+    request: SceneRestoreRequest,
+    runtimeIds: Readonly<Record<string, string>>,
+  ): Promise<SceneRestoreResult> => {
+    const matches: SceneRestoreMatch[] = request.products.map(({ sourceId }) => ({
+      sourceId,
+      runtimeId: runtimeIds[sourceId],
+    }));
+    const sceneState = await reader.read(matches.map(({ runtimeId }) => runtimeId));
+
+    if (sceneState.status === "ready") {
+      // Rows have no single left-to-right order, so the scene's own order is taken as it is.
+      const position = new Map(sceneState.order.map((runtimeId, index) => [runtimeId, index]));
+      if (matches.every(({ runtimeId }) => position.has(runtimeId))) {
+        matches.sort((left, right) => (position.get(left.runtimeId) ?? 0) - (position.get(right.runtimeId) ?? 0));
+      }
+    }
+
+    return { status: "restored", matches, scene: sceneState };
+  };
+
   const restore = async (request: SceneRestoreRequest): Promise<SceneRestoreResult> => {
     if (!scene.isReady()) return { status: "not-ready" };
 
     const issues = preflight(request);
     const bindings = getBindings();
     if (issues.length > 0 || !bindings) return { status: "rejected", issues };
+
+    if (request.layout) {
+      const imported = await importLayout(
+        request.layout,
+        request.products.map(({ sourceId }) => sourceId),
+      );
+      if (imported.status === "not-ready") return { status: "not-ready" };
+      if (imported.status === "imported") return readImported(request, imported.runtimeIds);
+    }
 
     const cleared = await scene.clear();
     if (cleared.status === "not-ready") return { status: "not-ready" };
@@ -155,7 +196,9 @@ export const createSceneRestorer = ({
     const presetProducts = request.products.flatMap(({ productType, config }) => {
       const sceneType = resolveSceneProductType(bindings, productType);
       const resolvedConfig =
-        bindings.strictProductConfig && isRecord(config) ? resolveProductConfig(bindings, config) : config;
+        bindings.strictProductConfig && isRecord(config)
+          ? resolveProductConfig(bindings, config, undefined, sceneType ?? undefined)
+          : config;
       return sceneType && isRecord(resolvedConfig)
         ? [{ ...withRuntimeProductType(resolvedConfig, sceneType), name: sceneType }]
         : [];

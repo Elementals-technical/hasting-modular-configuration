@@ -29,6 +29,7 @@ import {
   semanticValueOf,
   useActiveCollection,
   useCollectionPresets,
+  type ProductProfile,
 } from "@/entities/collection";
 import {
   useCollectionNavigation,
@@ -36,7 +37,13 @@ import {
   withPreservedCollectionId,
 } from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { applyCompactPresetWithBridge, hasCompactRows } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
+import { applyCompactPresetWithBridge, hasCompactRows, type CompactPresetSource } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
+import {
+  columnsCollectionOf,
+  toColumnsCompactPreset,
+  type ColumnsPresetCabinet,
+} from "@/features/playCanvasAdapter/lib/columnsCompactPreset";
+import type { CabinetsState, ConfiguratorImportReceipt } from "@/features/configuratorApi";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
   addProductPreset,
@@ -177,6 +184,31 @@ const readSavedBasin = (fragment: RestorePlan["fragment"]): string | undefined =
     .map(({ stableKey }) => readFragmentValue(fragment, "sinkType", { scope: "basin", sinkBaseId: stableKey }))
     .concat(readFragmentValue(fragment, "sinkType", { scope: "basin" }))
     .find((value): value is string => typeof value === "string");
+
+/**
+ * The handle a configuration was saved with, as placing a model records it: the one value its cabinets
+ * hold, else the one every saved product agrees on (a save made before the fragment carried it).
+ * Undefined where they differ, as Mako cabinets with handles of their own may: those stay per cabinet.
+ */
+const readSavedHandle = (
+  fragment: RestorePlan["fragment"],
+  products: readonly PresetProduct[],
+  profile: ProductProfile | null,
+): string | undefined => {
+  const agreed = (values: readonly unknown[]) => {
+    const handles = new Set(
+      values.flatMap((value) =>
+        typeof value === "string" && value ? [normalizeOptionValue(profile, "Handle", value) ?? value] : [],
+      ),
+    );
+    return handles.size === 1 ? [...handles][0] : undefined;
+  };
+  const saved = fragment.cabinets
+    .map(({ stableKey }) => readFragmentValue(fragment, "Handle", { scope: "cabinet", cabinetId: stableKey }))
+    .concat(readFragmentValue(fragment, "Handle", { scope: "global" }));
+
+  return agreed(saved) ?? agreed(products.map(({ Handle }) => Handle));
+};
 
 const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
   const totalWidthValues = presetProducts.map((preset) =>
@@ -465,6 +497,125 @@ export const ModelPage = () => {
     return overrides;
   }, [cabinetColor, handleGrooveColor]);
 
+  // Compact import bypasses applyPreset: adopt its actual primary cabinets so their sizes and
+  // colours enter the same pricing pipeline as flat presets, and keep them as the model's products,
+  // as a flat preset's are kept: Summary and Custom read the placed cabinets by them. Derived
+  // covers are never cabinets.
+  // A model of a collection with columns comes with its cabinets in the collection's own names and
+  // values (`columns`): each is recorded as a flat preset's product is, its series and the side of
+  // its lateral panel with it, which the scene's config cannot tell back.
+  const adoptCompactCabinets = useCallback(
+    async (
+      state: CabinetsState,
+      receipt?: ConfiguratorImportReceipt,
+      columns?: { cabinets: readonly ColumnsPresetCabinet[]; shared: Record<string, unknown> },
+    ) => {
+      if (!state.cabinets.length) throw new Error("The compact preset reported no cabinets.");
+      const presetProducts = new Map(
+        (columns?.cabinets ?? []).flatMap(({ key, product }) => {
+          const runtimeId = receipt?.keyToProductId[key];
+          return runtimeId ? [[runtimeId, product] as const] : [];
+        }),
+      );
+      const normalized = (attributeId: string, value: string) =>
+        normalizeOptionValue(activeProfileRef.current, attributeId, value) ?? value;
+      // The model's colours and handle, which no cabinet carries alone; the countertop's follow below.
+      const sharedCabinetValues = columns
+        ? Object.fromEntries(
+            Object.entries(columns.shared).flatMap(([attributeId, value]) => {
+              const scope = selectAttribute(activeProfileRef.current, attributeId)?.scope;
+              return typeof value === "string" && value && (scope === "global" || scope === "cabinet")
+                ? [[attributeId, normalized(attributeId, value)]]
+                : [];
+            }),
+          )
+        : Object.fromEntries(
+            ["Handle", "CabinetColor", "HandleGrooveColor", "DrawerPanelFluting"].flatMap((attributeId) => {
+              const value = state.cabinets[0].selection[attributeId];
+              return typeof value === "string" &&
+                value &&
+                state.cabinets.every(({ selection }) => selection[attributeId] === value)
+                ? [[attributeId, normalized(attributeId, value)]]
+                : [];
+            }),
+          );
+      // In the composition's order, which the scene reports apart from its list of cabinets.
+      const sceneOrder = getOrderedProductIds();
+      const cabinets = [...state.cabinets].sort((a, b) => sceneOrder.indexOf(a.id) - sceneOrder.indexOf(b.id));
+      const products = cabinets.map(
+        ({ id, definitionId, selection }) =>
+          presetProducts.get(id) ?? {
+            productType:
+              Object.entries(runtimeBindings?.productTypes ?? {}).find(([, type]) => type === definitionId)?.[0] ??
+              definitionId,
+            config: selection,
+          },
+      );
+      const adopted = await composition.adopt({
+        runtimeIds: cabinets.map(({ id }) => id),
+        products,
+        // adopt intentionally leaves typed composition values to its caller (saved restore uses its
+        // own choices); a fresh compact model records the values its actual cabinets agree on.
+        record: sharedCabinetValues,
+      });
+      if (adopted.status !== "applied")
+        throw new Error("The imported compact cabinets could not be recorded for pricing.");
+      dispatch(
+        addProductPreset(
+          cabinets.map(({ id, selection }, index) => {
+            const presetProduct = presetProducts.get(id);
+            return presetProduct
+              ? { ...presetProduct.config, name: presetProduct.productType }
+              : { ...buildPresetFromConfiguration({ [id]: selection })[0], name: products[index].productType };
+          }),
+        ),
+      );
+    },
+    [composition, dispatch, runtimeBindings],
+  );
+
+  const applyAndAdoptCompactPreset = useCallback(
+    async (preset: CompactPresetSource | null | undefined) => {
+      // A collection whose scene lays cabinets in columns imports the model as columns.
+      const columnsCollection = columnsCollectionOf(activeCollection.id);
+      const columns =
+        preset && columnsCollection && hasCompactRows(preset)
+          ? toColumnsCompactPreset(preset, columnsCollection, composition.toPresetSceneProduct)
+          : null;
+      const imported = await applyCompactPresetWithBridge(
+        preset,
+        undefined,
+        (state, receipt) =>
+          adoptCompactCabinets(
+            state,
+            receipt,
+            columns ? { cabinets: columns.cabinets, shared: preset?.shared ?? {} } : undefined,
+          ),
+        columns ? () => columns.preset : undefined,
+      );
+      if (!imported) return;
+      // The basin of such a model is its sink cabinet's.
+      const sinkType = preset?.rows
+        ?.flatMap(({ products }) => products)
+        .find((product) => typeof product.sinkType === "string" && product.sinkType)?.sinkType;
+      const config: Record<string, unknown> = { ...(sinkType ? { sinkType } : {}), ...preset?.shared, ...preset?.top };
+      const color = typeof config.CountertopColor === "string" ? config.CountertopColor : undefined;
+      const sink = typeof config.sinkType === "string" ? config.sinkType : undefined;
+      syncCountertopSelectionFromSceneConfig(
+        {
+          CountertopColor: color,
+          sinkType: sink,
+          CountertopStyle: sink ? inferCountertopStyleFromSinkType(sink) : undefined,
+        },
+        { clearMissing: true },
+      );
+      if (typeof config.Thickness === "string" || typeof config.Thickness === "number") {
+        record({ Thickness: String(config.Thickness) });
+      }
+    },
+    [activeCollection.id, adoptCompactCabinets, composition, record, syncCountertopSelectionFromSceneConfig],
+  );
+
   const resetRestrictedCountertopSelections = useCallback(() => {
     record({ Thickness: "", VesselColor: "", FaucetHolesAmount: "0" });
   }, [record]);
@@ -532,7 +683,7 @@ export const ModelPage = () => {
         const selectedPreset = presetId === undefined ? null : (presets.find((preset) => preset.id === presetId) ?? null);
         if (hasCompactRows(selectedPreset)) {
           try {
-            await applyCompactPresetWithBridge(selectedPreset);
+            await applyAndAdoptCompactPreset(selectedPreset);
           } catch (error) {
             console.warn("[Prebuilt] The compact preset was not applied", error);
             return;
@@ -615,6 +766,7 @@ export const ModelPage = () => {
       }
     },
     [
+      applyAndAdoptCompactPreset,
       colorTransferableOverrides,
       composition,
       dispatch,
@@ -915,6 +1067,11 @@ export const ModelPage = () => {
             : undefined;
         const restoredThickness =
           typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
+        // The handle is chosen once for the composition, as placing the model chooses it: the price of the
+        // cabinets after the first, the rules and the handle menus read that choice.
+        const restoredHandle = selectAttribute(activeProfileRef.current, "Handle")
+          ? readSavedHandle(plan.fragment, presetProducts, activeProfileRef.current)
+          : undefined;
         record({
           ...toConfigurationValues({
             CountertopColor: globalConfig.CountertopColor,
@@ -931,6 +1088,7 @@ export const ModelPage = () => {
           ...(restoredCabinetColor ? { CabinetColor: restoredCabinetColor } : {}),
           ...(restoredHandleGrooveColor ? { HandleGrooveColor: restoredHandleGrooveColor } : {}),
           ...(restoredThickness ? { Thickness: restoredThickness } : {}),
+          ...(restoredHandle ? { Handle: restoredHandle } : {}),
         });
         if (globalConfig.CountertopColor) {
           if (restoredCountertopColorSku) {
@@ -1016,7 +1174,7 @@ export const ModelPage = () => {
       // Compact presets (format "ulh-compact-v1") carry rows, not presetProducts: import them via the bridge.
       if (hasCompactRows(presetFromUrl)) {
         try {
-          await applyCompactPresetWithBridge(presetFromUrl);
+          await applyAndAdoptCompactPreset(presetFromUrl);
           sessionStorage.setItem("prebuiltModelInitialized", "1");
           dispatch(clearHistory());
         } catch (error) {
@@ -1068,6 +1226,7 @@ export const ModelPage = () => {
     };
     run();
   }, [
+    applyAndAdoptCompactPreset,
     canvasReady,
     composition,
     configIdFromUrl,

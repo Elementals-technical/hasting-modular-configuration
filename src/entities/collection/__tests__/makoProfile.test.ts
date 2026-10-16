@@ -129,11 +129,12 @@ describe("mako product profile", () => {
     expect(selectOptionValues(profile(), "Height")).not.toContain("40");
   });
 
-  it("switches the legs off with no colour and on in the cabinet colour", () => {
-    // "None" names the legs in the cabinet colour, as the models and the scene read it. It is the
-    // default, not the reset value: legs on a one-drawer cabinet stay undetermined (MAKO-LEG-002).
+  it("switches the legs off with no colour and on in a leg colour of their own", () => {
+    // The legs start in a colour of their palette, as the models carry it, so a cabinet colour
+    // does not repaint them. It is the default, not the reset value: legs on a one-drawer cabinet
+    // stay undetermined (MAKO-LEG-002).
     expect(attribute("LegColor")?.resetValue).toBe("");
-    expect(attribute("LegColor")?.defaultValue).toBe("None");
+    expect(attribute("LegColor")?.defaultValue).toBe("Antracite 400 MT");
   });
 
   it("declares the drawer style groups, the vessel colours and the changes the product has not decided yet", () => {

@@ -53,6 +53,9 @@ export const createTestCompositionPort = (initial: readonly string[] = []): Test
   const port: ConfigurationCompositionPort = {
     isReady: () => ready,
 
+    // The stand-in keeps the collection's names: it has no bindings to translate them with.
+    toSceneProduct: ({ productType, config }) => ({ sceneType: productType, config: { ...config } }),
+
     async replace(request) {
       calls.push({ op: "replace", request });
       const placed = request.products.map(({ productType }) => newId(productType));
@@ -70,8 +73,13 @@ export const createTestCompositionPort = (initial: readonly string[] = []): Test
           return;
         }
 
+        // A column lists its top before its bottom, as the scene does.
+        const before =
+          placement.kind === "beside"
+            ? placement.side === "left"
+            : placement.slot === "left" || placement.slot === "top";
         const anchor = order.indexOf(placement.anchorRuntimeId);
-        const at = anchor === -1 ? order.length : placement.side === "left" ? anchor : anchor + 1;
+        const at = anchor === -1 ? order.length : before ? anchor : anchor + 1;
         order = [...order.slice(0, at), runtimeId, ...order.slice(at)];
       });
     },

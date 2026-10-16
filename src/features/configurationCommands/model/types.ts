@@ -24,17 +24,24 @@ import type {
 export type AttributeChange = { attributeId: string; value: AttributeValue } & (
   | { scope: "global" | "countertop" }
   | { scope: "basin"; sinkBaseId?: StableCabinetKey }
-  | { scope: "cabinet"; cabinetId: StableCabinetKey }
+  /**
+   * `onlyThisCabinet`: the cabinet named is the only one that changes. Without it a value the
+   * scene gives every cabinet at once goes to them all, the named cabinet being where a field
+   * records it. Taken only for a value whose binding allows it (`perProduct`).
+   */
+  | { scope: "cabinet"; cabinetId: StableCabinetKey; onlyThisCabinet?: boolean }
   | { scope: "drawer"; cabinetId: StableCabinetKey; drawerType: DrawerType }
 );
 
 /**
  * Dimensions are core scene commands, rather than ProductProfile options. Width is
- * owned by one cabinet; Depth is deliberately shared by the USH composition.
+ * owned by one cabinet; Depth and Height are deliberately shared by the composition
+ * (the scene gives every product the height it is sent).
  */
 export type DimensionChange =
   | { attributeId: "Width"; value: number; scope: "cabinet"; cabinetId: StableCabinetKey }
-  | { attributeId: "Depth"; value: number; scope: "global" };
+  | { attributeId: "Depth"; value: number; scope: "global" }
+  | { attributeId: "Height"; value: number; scope: "global" };
 
 /** One entry of the agreed set handed to I. */
 export type PlannedChange = {
@@ -45,6 +52,8 @@ export type PlannedChange = {
   origin: "requested" | "dependency";
   /** Stable code explaining a dependency; B resolves it to text. */
   reasonCode?: string;
+  /** The change is for the cabinet it names alone (`AttributeChange.onlyThisCabinet`). */
+  onlyThisCabinet?: boolean;
 };
 
 /** A change of the set the scene did not apply, with I's reason. */

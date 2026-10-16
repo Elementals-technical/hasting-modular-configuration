@@ -134,12 +134,20 @@ describe("resolveSectionFields", () => {
       for (const values of withoutLegs) {
         const field = legColor(values);
 
-        expect(field?.toggle).toEqual({ label: "Enable Legs, Then Color", on: false, onValue: "None", offValue: "" });
+        expect(field?.toggle).toEqual({
+          label: "Enable Legs, Then Color",
+          on: false,
+          onValue: "Antracite 400 MT",
+          offValue: "",
+        });
+        // On chooses a colour the grid offers, so the legs keep it when the cabinet is repainted.
+        expect(field?.options.map(({ value }) => value)).toContain(field?.toggle?.onValue);
         expect(field?.options.map(({ value }) => value)).not.toContain("None");
         expect(field?.options.map(({ value }) => value)).not.toContain("");
       }
     });
 
+    // "None", the legs in the cabinet colour, is what a configuration saved earlier may still hold.
     it("is on with legs, in the cabinet colour or their own, and offers the leg colours alone", () => {
       for (const LegColor of ["None", "Gold"]) {
         const field = legColor({ LegColor });

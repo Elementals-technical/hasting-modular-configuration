@@ -1,3 +1,5 @@
+import { ArrowUpRight } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
 import hastingsLogoUrl from "@/shared/assets/images/svg/logo/hastings-logo.svg";
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import { formatCountertopThicknessLabel } from "@/entities/countertop";
@@ -410,17 +412,7 @@ const renderCabinetDetails = (section?: PrintSection) => {
   );
 };
 
-const CoverLinkArrow = () => (
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M11.6666 11.6667H28.3333M28.3333 11.6667V28.3333M28.3333 11.6667L11.6666 28.3333"
-      stroke="#AC5331"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+const CoverLinkArrow = () => <AppIcon icon={ArrowUpRight} size={40} color="#AC5331" />;
 
 const QuoteFooter = () => (
   <footer className={s.footer}>

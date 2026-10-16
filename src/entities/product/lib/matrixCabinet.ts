@@ -1,4 +1,4 @@
-import { normalizeHandleProfile, normalizeOptionValue } from "@/entities/collection";
+import { normalizeHandleProfile, normalizeOptionValue, selectOption } from "@/entities/collection";
 import type { NormalizedMatrixRow, ProductProfile, RuntimeBindingSet } from "@/entities/collection";
 import type { ProductDatatable, ProductDatatableRow } from "@/entities/product/api";
 import type { ConfiguratorCatalog, TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
@@ -81,6 +81,7 @@ export const buildCabinetCatalogFromMatrix = (
         forcedHeightByDrawers: relation?.forcedHeightByDrawers ?? {},
         requiresDrawersByHandle: relation?.requiresDrawersByHandle ?? {},
         heightsByHandle: relation?.heightsByHandle ?? {},
+        heightsByDrawers: relation?.heightsByDrawers ?? {},
         supportsHeight: supportsHeight.length ? supportsHeight : undefined,
         ...(adapter.columns.unavailableWithIntegrated
           ? {
@@ -100,8 +101,134 @@ export const buildCabinetCatalogFromMatrix = (
     ];
   });
 
-  return { typeCabinetRules };
+  const ownRules = withSteppedModules(typeCabinetRules, profile, normalizeDrawers);
+
+  return {
+    typeCabinetRules: [...ownRules, ...buildSeriesVariants(ownRules, profile, normalizeDrawers)],
+  };
 };
+
+/**
+ * The drawer styles that stand at a height of their own (`ruleData.steppedModules`): the Urban
+ * Freestanding Floor-Mount Short Cabinet, the `Short-Cabinet` type of table 590 (1DW only).
+ *
+ * Table 590 gives the short cabinet its own forced heights (`UG/1DW:56|PTO/1DW:53|CG/1DW:56`), but a
+ * forced height is the one height of the whole composition: choosing the short cabinet or a handle
+ * would bring every cabinet down to it. So the stepped styles' heights move out of the rule's forced
+ * heights into `steppedHeightByHandle`, from which the scene bridge places the short cabinet
+ * (buildSteppedSceneProducts). The widths, depths and handles are the type's.
+ *
+ * A type whose every style is stepped has no composition height of its own: it takes the heights,
+ * and the forced height of each handle, of the first type of the category it stands beside
+ * (`requiresPlacedCategory`), so choosing it keeps the tall cabinets at their height.
+ */
+const withSteppedModules = (
+  rules: readonly TypeCabinetRuleConfig[],
+  profile: ProductProfile,
+  normalizeDrawers: (value: string) => string,
+): TypeCabinetRuleConfig[] => {
+  const modules = profile.ruleData.steppedModules ?? [];
+  // The stepped styles of a type, as the Drawers catalog names them ("1DW" → "1").
+  const steppedOf = (code: string) =>
+    modules.filter(({ cabinetType }) => cabinetType === code).map(({ drawers }) => normalizeDrawers(drawers));
+  const isSteppedOnly = (rule: TypeCabinetRuleConfig) =>
+    rule.drawers.length > 0 && rule.drawers.every((drawers) => steppedOf(rule.code).includes(drawers));
+
+  return rules.map((rule) => {
+    const stepped = steppedOf(rule.code);
+    if (stepped.length === 0) return rule;
+
+    // 1. Split the forced heights: the composition's stay, the stepped styles' become their own.
+    const forcedHeightByHandle: Record<string, Record<string, number>> = {};
+    const steppedHeightByHandle: Record<string, Record<string, number>> = {};
+    for (const [handle, heightByDrawers] of Object.entries(rule.forcedHeightByHandle ?? {})) {
+      for (const [drawers, heightCm] of Object.entries(heightByDrawers)) {
+        if (stepped.includes(drawers)) (steppedHeightByHandle[drawers] ??= {})[handle] = heightCm;
+        else (forcedHeightByHandle[handle] ??= {})[drawers] = heightCm;
+      }
+    }
+    const forcedHeightByDrawers = Object.fromEntries(
+      Object.entries(rule.forcedHeightByDrawers ?? {}).filter(([drawers]) => !stepped.includes(drawers)),
+    );
+    const steppedRule = {
+      ...rule,
+      forcedHeightByHandle,
+      forcedHeightByDrawers,
+      steppedDrawers: stepped,
+      steppedHeightByHandle,
+    };
+    if (!isSteppedOnly(rule)) return steppedRule;
+
+    // 2. A stepped-only type takes the composition's heights from the first tall type it stands beside.
+    const category = modules.find(({ cabinetType }) => cabinetType === rule.code)?.requiresPlacedCategory;
+    const tall = rules.find(
+      (candidate) =>
+        !isSteppedOnly(candidate) && selectOption(profile, "CabinetType", candidate.code)?.category === category,
+    );
+    const tallDrawers = tall?.drawers.find((drawers) => !steppedOf(tall.code).includes(drawers));
+    if (!tall || !tallDrawers) return steppedRule;
+
+    const compositionHeightByHandle: Record<string, Record<string, number>> = {};
+    for (const [handle, heightByDrawers] of Object.entries(tall.forcedHeightByHandle ?? {})) {
+      const heightCm = heightByDrawers[tallDrawers];
+      if (heightCm === undefined) continue;
+      for (const drawers of stepped) (compositionHeightByHandle[handle] ??= {})[drawers] = heightCm;
+    }
+
+    return {
+      ...steppedRule,
+      heights: tall.heights,
+      supportsHeight: tall.supportsHeight,
+      forcedHeightByHandle: compositionHeightByHandle,
+    };
+  });
+};
+
+/**
+ * The cabinets other series supply (`ruleData.seriesModules`), each as a variant of the cabinet
+ * type it stands in for: its own widths, drawer styles and heights; the depths, the handle and
+ * the scene product of the collection's type. Listed after the collection's own rules, so a
+ * lookup by type alone still finds those.
+ */
+const buildSeriesVariants = (
+  ownRules: readonly TypeCabinetRuleConfig[],
+  profile: ProductProfile,
+  normalizeDrawers: (value: string) => string,
+): TypeCabinetRuleConfig[] =>
+  (profile.ruleData.seriesModules ?? []).flatMap((module) => {
+    const own = ownRules.find(({ code }) => code === module.cabinetType);
+    if (!own) return [];
+
+    const styles = Object.entries(module.heightsByDrawers).map(
+      ([drawers, heights]) => [normalizeDrawers(drawers), heights] as const,
+    );
+    // In the order of the collection's own styles and heights, whatever order the module names them in.
+    const orderOf = (drawers: string) =>
+      own.drawers.includes(drawers) ? own.drawers.indexOf(drawers) : own.drawers.length;
+    const heightsByStyle = [...styles].sort(([a], [b]) => orderOf(a) - orderOf(b));
+    const heights = [...new Set(heightsByStyle.flatMap(([, styleHeights]) => styleHeights))].sort((a, b) => b - a);
+
+    return [
+      {
+        ...own,
+        series: module.series,
+        widths: module.widthsCm,
+        heights,
+        supportsHeight: heights,
+        drawers: heightsByStyle.map(([drawers]) => drawers),
+        // One height is forced with the style; several are left to choose from.
+        forcedHeightByDrawers: Object.fromEntries(
+          heightsByStyle.flatMap(([drawers, styleHeights]) =>
+            styleHeights.length === 1 ? [[drawers, styleHeights[0]]] : [],
+          ),
+        ),
+        heightsByDrawers: Object.fromEntries(heightsByStyle.filter(([, styleHeights]) => styleHeights.length > 1)),
+        forcedHeightByHandle: {},
+        requiresDrawersByHandle: {},
+        heightsByHandle: {},
+      },
+    ];
+  });
 
 /** Uses approved local module facts without inventing a remote datatable identity. */
 export const buildCabinetCatalogFromProfile = (
@@ -121,6 +248,7 @@ export const buildCabinetCatalogFromProfile = (
     forcedHeightByDrawers: {},
     requiresDrawersByHandle: {},
     heightsByHandle: {},
+    heightsByDrawers: {},
     ...(bindings?.productTypes[module.cabinetType]
       ? { sceneProductType: bindings.productTypes[module.cabinetType] }
       : {}),

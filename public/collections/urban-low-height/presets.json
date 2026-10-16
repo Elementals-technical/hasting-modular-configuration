@@ -846,6 +846,7 @@
         "enabled": true,
         "profileId": "ulh-v1",
         "eligibilityMode": "all",
+        "materialId": "Bianco Male TFA",
         "thicknessM": 0.012700083809585871,
         "tolerances": {
           "contactM": 0.001,
@@ -919,6 +920,7 @@
         "enabled": true,
         "profileId": "ulh-v1",
         "eligibilityMode": "all",
+        "materialId": "Bianco Male TFA",
         "thicknessM": 0.012700083809585871,
         "tolerances": {
           "contactM": 0.001,
@@ -1199,6 +1201,7 @@
         "enabled": true,
         "profileId": "ulh-v1",
         "eligibilityMode": "all",
+        "materialId": "Bianco Male TFA",
         "thicknessM": 0.012700083809585871,
         "tolerances": {
           "contactM": 0.001,
@@ -1328,6 +1331,7 @@
         "enabled": true,
         "profileId": "ulh-v1",
         "eligibilityMode": "all",
+        "materialId": "Bianco Male TFA",
         "thicknessM": 0.012700083809585871,
         "tolerances": {
           "contactM": 0.001,
@@ -1633,6 +1637,7 @@
         "enabled": true,
         "profileId": "ulh-v1",
         "eligibilityMode": "all",
+        "materialId": "Bianco Male TFA",
         "thicknessM": 0.012700083809585871,
         "tolerances": {
           "contactM": 0.001,
@@ -1699,6 +1704,7 @@
         "enabled": true,
         "profileId": "ulh-v1",
         "eligibilityMode": "all",
+        "materialId": "Bianco Male TFA",
         "thicknessM": 0.012700083809585871,
         "tolerances": {
           "contactM": 0.001,

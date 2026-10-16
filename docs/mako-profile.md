@@ -17,7 +17,7 @@ the map, the map wins and the conflict is recorded.
 | `mako/manifest.json` | label `Mako`, no defaults, local `presets` / `ui` / `productProfile` / `skuProfile` / `runtimeBindings`, remote 4 / 438 / 581 (Mako cabinet table) |
 | `mako/ui.json` | same flows as Class: “Mako Models”, “Mako Cabinet Builder”, no sections yet |
 | `mako/runtime-bindings.json` | how each Mako value reaches the scene (see below) |
-| `mako/presets.json` | 42 models (Master File L2–L43), sizes from the key suffix, picture paths `images/Mako Vanity · 24_ 1-Drawer.png`. Compositions from `MAKO_MODEL_PRESET_MODULES` (team, 21.09.2026): Sink Base / Side Cabinet at 40–120 cm, height and drawers by style, depth 52, cabinet and handle colour `Antracite 400 MT` (configurator 9: `LACM`, colour code `400`; it replaced the scene material name `Antracite Matte OCF`, which configurator 9 does not offer and which left the cabinet SKU without its material block, 23.09.2026), legs in the cabinet colour (`LegColor: "None"`) on the Legs models, handle G57 — until the product names the models' handle. Basin and symmetry tags follow the compositions (ids 20, 29, 32, 37, 40, 41 corrected) |
+| `mako/presets.json` | 42 models (Master File L2–L43), sizes from the key suffix, picture paths `images/Mako Vanity · 24_ 1-Drawer.png`. Compositions from `MAKO_MODEL_PRESET_MODULES` (team, 21.09.2026): Sink Base / Side Cabinet at 40–120 cm, height and drawers by style, depth 52, cabinet and handle colour `Antracite 400 MT` (configurator 9: `LACM`, colour code `400`; it replaced the scene material name `Antracite Matte OCF`, which configurator 9 does not offer and which left the cabinet SKU without its material block, 23.09.2026), legs in a colour of their own, `LegColor: "Antracite 400 MT"`, on the Legs models (it replaced `"None"`, the legs in the cabinet colour, which every cabinet colour repainted, 14.10.2026), handle G57 — until the product names the models' handle. Basin and symmetry tags follow the compositions (ids 20, 29, 32, 37, 40, 41 corrected) |
 
 ## Colour catalogs are listed, not read from the configurator
 
@@ -44,7 +44,10 @@ its material group. Mako glass keys have no `G` prefix, unlike Class (Q-MAKO-010
 | `FaucetHolesAmount` | countertop | `0`–`3` | §11 |
 | `DividersStyle` | drawer | `Metal`, `Oak` | §13 |
 
-**Defaults** (`defaults`): `CabinetColor: Antracite 400 MT`, the colour of the 42 models; and a countertop the order is
+**Defaults** (`defaults`): `CabinetColor: Antracite 400 MT` and `HandleColor: Antracite 400 MT`, the colours of the 42
+models — a cabinet placed in an empty builder starts with that handle colour in the scene, in the state and in its SKU
+(`-HDL-LACM-400`), where it used to show the scene's own `Antracite Matte OCF` and carry no `HDL` block (13.10.2026); and
+a countertop the order is
 priced with before the Countertop & Basin step — `CountertopColor: Nero 433 GL` (Glass Gloss, GLSG .5"; the black glass
 top of Mako on the Hastings site), `CountertopStyle: integrated` and `sinkType: VA005`, an integrated glass basin table
 577 allows over a Sink Base of 60 cm or more (team, 28.09.2026). The models carry no countertop value of their own.
@@ -61,9 +64,19 @@ profile keeps the product values; `runtime-bindings.json` says how each reaches 
 | `Drawers` `1` / `2` | `Height` 26 / 52, which lays the drawers out; legs hidden. The legacy `1D` / `2D` stays in the scene config for history and saved configurations |
 | `Height` | 26 / 52 only |
 | `Width`, `Depth` | as they are, in cm (the scene takes 40–120 and 52) |
-| `LegColor` | no colour: legs hidden and their colour cleared; a colour: legs shown in it. `None` shows them in the cabinet colour |
+| `LegColor` | no colour: legs hidden and their colour cleared; a colour: legs shown in it. `None` shows them in the cabinet colour: the models and the legs switch start in `Antracite 400 MT` (the attribute's `defaultValue`), and `None` stays for the configurations saved with it |
 | `CabinetColor`, `HandleColor`, `CountertopColor`, a `LegColor` colour | the exact scene material name, which names the material: `overrides` send `Acqua 419 MT` as `Acqua 419 Lacquered MT`, the glass `GAcqua 419 MT` as `Acqua 419 Glass MT`; `Gold` / `Silver` as they are |
 | `sinkType`, `VesselColor`, `HandleGrooveColor` | recorded only: no Mako basin in the scene, no groove on Mako handles |
+
+**One handle colour and one leg colour for the composition.** The bindings of `HandleColor` and `LegColor` send a value
+to every cabinet (`target: all`), so the state records it at every cabinet too, and a cabinet that joins the composition
+(the builder's plus, Add Cabinet, a duplicate) is placed with it and records it. The rule is read from the data, not from
+the attribute's name: a cabinet-scoped value without a typed projection whose binding targets `all`
+(`isBroadcastCabinetValue`, `selectBroadcastValues` in `features/configurationCommands/lib`). Before 13.10.2026 the value
+was recorded at the first cabinet only: a cabinet added later kept the scene's default handle, deleting the first cabinet
+dropped the `HDL` block of the others, and in a model of two cabinets only the first took a new colour in its SKU. A value
+recorded as empty is not inherited: legs that were switched off stay off on an added cabinet. When the product allows a
+handle colour per cabinet, the binding's target changes and the rule stops applying by itself.
 
 Since the canvas update of 2026-09-29 the scene has the lacquered and glass materials and four HPL countertops
 (`Bianco Kos 250`, `Grigio Bromo 253`, `Grigio London 252`, `Nero Ingo 251`). It has no Porcelain, Laminate, Solid

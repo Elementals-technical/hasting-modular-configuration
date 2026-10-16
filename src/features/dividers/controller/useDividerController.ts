@@ -39,8 +39,8 @@ export type UseDividerControllerOptions<T extends DividerOptionBase> = {
   dividerSelection: string;
   /** DividersStyle options of the active collection, used to derive grid options with availability. */
   optionsSource: readonly T[];
-  /** History snapshot saver — called before every place/remove. Read freshly (may be unstable). */
-  saveSnapshot: () => Promise<void> | void;
+  /** Runs a place or a remove as one undo step (the page's history step). Read freshly (may be unstable). */
+  runStep: <R>(change: () => Promise<R>) => Promise<R>;
   /** Page-level cabinet id used to match resize-restore targets (e.g. selectedSceneProduct). */
   fallbackCabinetId?: string | null;
   /** Whether the drawer CTA should be restored after a resize (Dividers accordion open). */
@@ -106,7 +106,7 @@ export function useDividerController<T extends DividerOptionBase>(
     isPlayCanvasReady,
     dividerSelection,
     optionsSource,
-    saveSnapshot,
+    runStep,
     fallbackCabinetId = null,
     shouldRestoreDrawerButtons = false,
   } = options;
@@ -140,7 +140,7 @@ export function useDividerController<T extends DividerOptionBase>(
     state,
     dividerSelection,
     isPlayCanvasReady,
-    saveSnapshot,
+    runStep,
     fallbackCabinetId,
     shouldRestoreDrawerButtons,
   });
@@ -148,7 +148,7 @@ export function useDividerController<T extends DividerOptionBase>(
     state,
     dividerSelection,
     isPlayCanvasReady,
-    saveSnapshot,
+    runStep,
     fallbackCabinetId,
     shouldRestoreDrawerButtons,
   };
@@ -332,13 +332,14 @@ export function useDividerController<T extends DividerOptionBase>(
         busyRef.current = true;
         setStatus("busy");
         try {
-          await latest.saveSnapshot();
-          const removed = await adapter.execute({ kind: "remove", slot, traceId });
-          await runSettle(context, traceId);
-          recordDividerUiDebug("Controller.OccupiedSlot", "Remove occupied divider completed", {
-            traceId,
-            removed,
-            slot: summarizeSlot(slot),
+          await latest.runStep(async () => {
+            const removed = await adapter.execute({ kind: "remove", slot, traceId });
+            await runSettle(context, traceId);
+            recordDividerUiDebug("Controller.OccupiedSlot", "Remove occupied divider completed", {
+              traceId,
+              removed,
+              slot: summarizeSlot(slot),
+            });
           });
         } finally {
           busyRef.current = false;
@@ -383,34 +384,35 @@ export function useDividerController<T extends DividerOptionBase>(
       setStatus("busy");
       clearWarning();
       try {
-        await latest.saveSnapshot();
-        recordDividerUiDebug("Controller.AddSlot", "Place divider request prepared", {
-          traceId,
-          cabinetId: context.cabinetId,
-          drawerType: context.drawerType,
-          zone: enrichedSlot.zone,
-          key: enrichedSlot.key,
-          zoneIndex: enrichedSlot.zoneIndex,
-          placementType: enrichedSlot.placementType,
-          selectedType: decision.command.type,
-        });
-        const placed = await adapter.execute(decision.command);
-        if (!placed) {
-          warnDividerUiDebug("Controller.AddSlot", "Runtime rejected the placement", {
+        await latest.runStep(async () => {
+          recordDividerUiDebug("Controller.AddSlot", "Place divider request prepared", {
             traceId,
-            slot: summarizeSlot(enrichedSlot),
+            cabinetId: context.cabinetId,
+            drawerType: context.drawerType,
+            zone: enrichedSlot.zone,
+            key: enrichedSlot.key,
+            zoneIndex: enrichedSlot.zoneIndex,
+            placementType: enrichedSlot.placementType,
             selectedType: decision.command.type,
           });
-        }
-        await runSettle(context, traceId);
-        recordDividerUiDebug("Controller.AddSlot", "Add slot flow completed", {
-          traceId,
-          placed,
-          cabinetId: context.cabinetId,
-          drawerType: context.drawerType,
-          zone: enrichedSlot.zone,
-          key: enrichedSlot.key,
-          selectedType: decision.command.type,
+          const placed = await adapter.execute(decision.command);
+          if (!placed) {
+            warnDividerUiDebug("Controller.AddSlot", "Runtime rejected the placement", {
+              traceId,
+              slot: summarizeSlot(enrichedSlot),
+              selectedType: decision.command.type,
+            });
+          }
+          await runSettle(context, traceId);
+          recordDividerUiDebug("Controller.AddSlot", "Add slot flow completed", {
+            traceId,
+            placed,
+            cabinetId: context.cabinetId,
+            drawerType: context.drawerType,
+            zone: enrichedSlot.zone,
+            key: enrichedSlot.key,
+            selectedType: decision.command.type,
+          });
         });
       } finally {
         busyRef.current = false;

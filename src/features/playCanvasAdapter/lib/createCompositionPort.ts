@@ -6,6 +6,7 @@ import type {
   SceneCompositionProduct,
   SceneCompositionReplaceRequest,
   SceneCompositionResult,
+  SceneProductDraft,
   SceneRestoreIssue,
 } from "@/entities/configuration";
 import {
@@ -25,6 +26,7 @@ import type {
   ScenePresetResult,
 } from "@/utils/functions/playcanvas/sceneBridge";
 
+import { placeInSceneSlot, type SceneSlotPlacer } from "./sceneSlotPlacement";
 import { createSceneReader } from "./createSceneReader";
 import { findProductConfigBindingErrors } from "@/entities/collection/lib/runtimeBindings/resolveProductConfig";
 import { resolveSceneProductType } from "./createSceneRestorer";
@@ -65,6 +67,11 @@ export type CompositionPortDeps = {
   getBindings: () => RuntimeBindingSet | null;
   scene?: SceneCompositionBridge;
   reader?: ConfigurationSceneReader;
+  /**
+   * Places a cabinet at a place the scene offers; tests pass a stand-in. Not wrapped in the batch
+   * queue: each of its scene calls already waits there, and would wait behind the wrap for good.
+   */
+  placeInSlot?: SceneSlotPlacer;
 };
 
 const defaultScene: SceneCompositionBridge = {
@@ -90,18 +97,26 @@ export const createCompositionPort = ({
   getBindings,
   scene = defaultScene,
   reader = createSceneReader(),
+  placeInSlot = placeInSceneSlot,
 }: CompositionPortDeps): ConfigurationCompositionPort => {
   /**
    * The product as the scene places it: its scene type, and its config translated for that scene
    * and naming that type. A Mako handle, for one, reaches the Mako cabinet as HandleStyle.
    */
-  const toSceneProduct = (bindings: RuntimeBindingSet, { productType, config }: SceneCompositionProduct) => {
+  const toSceneProduct = (
+    bindings: RuntimeBindingSet,
+    { productType, config }: SceneCompositionProduct,
+  ): SceneProductDraft | null => {
     const sceneType = resolveSceneProductType(bindings, productType);
     if (!sceneType) return null;
 
     return {
       sceneType,
-      config: { ...resolveProductConfig(bindings, config), ProductType: sceneType, productType: sceneType },
+      config: {
+        ...resolveProductConfig(bindings, config, undefined, sceneType),
+        ProductType: sceneType,
+        productType: sceneType,
+      },
     };
   };
 
@@ -150,7 +165,13 @@ export const createCompositionPort = ({
         continue;
       }
 
-      if (!isStateOnlyResolution(resolution)) Object.assign(globalConfig, resolution.patch);
+      if (isStateOnlyResolution(resolution)) continue;
+
+      Object.assign(globalConfig, resolution.patch);
+      // The value under its other keys; one for a single product type goes with that product's own config.
+      for (const delivery of resolution.also ?? []) {
+        if (delivery.target.kind !== "productType") Object.assign(globalConfig, delivery.patch);
+      }
     }
 
     if (issues.length > 0) return { status: "rejected", issues };
@@ -210,7 +231,20 @@ export const createCompositionPort = ({
     if (placement.kind === "end") {
       const created = await scene.addProduct(placed.sceneType, placed.config);
       if (created.status === "not-ready") return { status: "not-ready" };
-      if (created.status === "failed") return { status: "failed", message: created.message };
+      if (created.status === "failed")
+        return { status: "failed", message: created.message, sceneCode: created.sceneCode };
+
+      return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
+    }
+
+    if (placement.kind === "slot") {
+      const created = await placeInSlot({
+        sceneType: placed.sceneType,
+        config: placed.config,
+        anchorRuntimeId: placement.anchorRuntimeId,
+        slot: placement.slot,
+      });
+      if (created.status !== "applied") return created;
 
       return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
     }
@@ -224,7 +258,8 @@ export const createCompositionPort = ({
       placed.config,
     );
     if (created.status === "not-ready") return { status: "not-ready" };
-    if (created.status === "failed") return { status: "failed", message: created.message };
+    if (created.status === "failed")
+      return { status: "failed", message: created.message, sceneCode: created.sceneCode };
 
     if (created.configApplied) {
       return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
@@ -278,7 +313,7 @@ export const createCompositionPort = ({
 
     const result = await scene.swapProducts(runtimeIdA, runtimeIdB);
     if (result.status === "not-ready") return { status: "not-ready" };
-    if (result.status === "failed") return { status: "failed", message: result.message };
+    if (result.status === "failed") return { status: "failed", message: result.message, sceneCode: result.sceneCode };
 
     return { status: "applied", placed: [], scene: await readAfter([]) };
   };
@@ -293,5 +328,10 @@ export const createCompositionPort = ({
     return { status: "applied", placed: [], scene: await readAfter([]) };
   };
 
-  return { isReady: () => scene.isReady(), replace, add, remove, swap, clear };
+  const describe: ConfigurationCompositionPort["toSceneProduct"] = (product) => {
+    const bindings = getBindings();
+    return bindings ? toSceneProduct(bindings, product) : null;
+  };
+
+  return { isReady: () => scene.isReady(), toSceneProduct: describe, replace, add, remove, swap, clear };
 };

@@ -1,6 +1,10 @@
-type ButtonSide = "left" | "right";
+import type { ScenePlus, ScenePlusKind } from "./sceneBridge";
 
-type ButtonClickHandler = (entityId: string, side: ButtonSide) => void | Promise<void>;
+/**
+ * The scene calls it with the cabinet the "+" stands by and the "+"'s kind; a row that holds
+ * columns (Urban Duplex) also passes the "+" itself.
+ */
+type ButtonClickHandler = (entityId: string, kind: ScenePlusKind, plus?: ScenePlus) => void | Promise<void>;
 
 export function setHandleButtonClick(callback: ButtonClickHandler) {
   // @ts-ignore

@@ -63,6 +63,16 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
+  it("resizes Width and Depth unless the collection's ui.json lists the sizes itself", () => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      expect(supportOf("urban-standard-height", flowId).resize).toEqual(["Width", "Depth"]);
+      // Urban Low Height lists Height too: its cabinets take two heights per handle.
+      expect(supportOf("urban-low-height", flowId).resize).toEqual(["Width", "Depth", "Height"]);
+      // So does Urban Duplex: its one-drawer cabinet comes at 53 cm and as the Slim 38 and 28.
+      expect(supportOf("urban-duplex", flowId).resize).toEqual(["Width", "Depth", "Height"]);
+    }
+  });
+
   it("leaves out what Class has no data for: the accessories page and a handle choice", () => {
     for (const flowId of CUSTOMIZATION_FLOW_IDS) {
       const { items } = supportOf("class", flowId);
@@ -81,12 +91,14 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
-  it("leaves out the countertop style and the vessel of Tricot, which shows neither", () => {
-    const { items } = supportOf("tricot", "custom");
+  it("offers the countertop style and the vessel of Tricot, which shows both", () => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      const { items } = supportOf("tricot", flowId);
 
-    expect(items.has("countertop-style")).toBe(false);
-    expect(items.has("vessel-style")).toBe(true);
-    expect(items.has("vessel-color")).toBe(false);
+      expect(items.has("countertop-style")).toBe(true);
+      expect(items.has("vessel-style")).toBe(true);
+      expect(items.has("vessel-color")).toBe(true);
+    }
   });
 
   it("leads each item to the collection's own step and section", () => {

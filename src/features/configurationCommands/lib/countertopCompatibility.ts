@@ -1,6 +1,8 @@
 import type { RootState } from "@/app/store";
 import {
+  isVesselBasin,
   normalizeOptionValue,
+  selectAttribute,
   selectConfiguratorGroup,
   selectOption,
   selectDefaultValue,
@@ -15,7 +17,10 @@ import {
   type ValueTarget,
 } from "@/entities/configuration";
 import { findPlacedCabinetRule } from "@/features/configurator-rule-core/cabinetBuilder";
-import { buildCountertopRuleState } from "@/features/configurator-rule-core/countertop/rules";
+import {
+  buildCountertopRuleState,
+  type CountertopRuleResult,
+} from "@/features/configurator-rule-core/countertop/rules";
 import { parseThicknessValue, normalizeBasinKey } from "@/features/configurator-rule-core/countertop/parse";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
 import type { AttributeChange, ChangeBlockedReason, PlannedChange } from "../model/types";
@@ -135,6 +140,14 @@ export const evaluateCountertopChange = (
         profile,
       }),
     );
+  // The matrix lists integrated basins only. A vessel, and the vessel cutout without one, are judged by
+  // its vessel rules, as the basin field judges them.
+  const noneBasin = selectAttribute(profile, "sinkType")?.noneValue;
+  const fits = (result: CountertopRuleResult, basin: string) => {
+    if (noneBasin && (normalizeOptionValue(profile, "sinkType", basin) ?? basin) === noneBasin) return true;
+    if (isVesselBasin(profile, basin)) return result.vesselSinkAvailability.isAvailable;
+    return result.allowedBasinKeys.has(normalizeBasinKey(basin));
+  };
   let results = buildResults(thickness);
   if (colorChange) {
     const allowedThicknesses = [...results[0].allowedThicknesses].filter((v) =>
@@ -155,14 +168,12 @@ export const evaluateCountertopChange = (
     const value = parseThicknessValue(String(change.value));
     if (value === null || !results.every((r) => r.allowedThicknesses.has(value)))
       return { blocked: invalid(), dependencies };
-  } else if (
-    !results.every((r, index) => r.allowedBasinKeys.has(normalizeBasinKey(basinFor(sinkBases[index].stableKey))))
-  )
+  } else if (!results.every((r, index) => fits(r, basinFor(sinkBases[index].stableKey))))
     return { blocked: invalid(), dependencies };
   if (change.attributeId !== "sinkType") {
     for (const [index, c] of sinkBases.entries()) {
       const basin = basinFor(c.stableKey);
-      if (basin && !results[index].allowedBasinKeys.has(normalizeBasinKey(basin)))
+      if (basin && !fits(results[index], basin))
         dependencies.push({
           attributeId: "sinkType",
           target: { scope: "basin", sinkBaseId: c.stableKey },
@@ -171,7 +182,7 @@ export const evaluateCountertopChange = (
         });
     }
     const globalBasin = String(getAttributeValue(state, "sinkType", { scope: "basin" }) ?? options.sinkType ?? "");
-    if (globalBasin && !results.every((r) => r.allowedBasinKeys.has(normalizeBasinKey(globalBasin))))
+    if (globalBasin && !results.every((r) => fits(r, globalBasin)))
       dependencies.push({ attributeId: "sinkType", target: { scope: "basin" }, value: "", origin: "dependency" });
   }
   return { dependencies };

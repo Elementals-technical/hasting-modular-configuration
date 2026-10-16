@@ -100,6 +100,17 @@
       ]
     },
     {
+      "attributeId": "Height",
+      "scope": "cabinet",
+      "defaultValue": "56",
+      "options": [
+        { "value": "56", "label": "56 cm", "order": 10 },
+        { "value": "53", "label": "53 cm", "order": 20 },
+        { "value": "38", "label": "38 cm", "order": 30 },
+        { "value": "28", "label": "28 cm", "order": 40 }
+      ]
+    },
+    {
       "attributeId": "LateralPanelSide",
       "scope": "cabinet",
       "options": [
@@ -126,7 +137,7 @@
         },
         {
           "value": "URSTD",
-          "label": "Urban Standard Height",
+          "label": "Urban Standard",
           "order": 20,
           "legacyDescription": "A cabinet without a lateral panel that a model takes from Urban Standard Height"
         },
@@ -294,10 +305,40 @@
         },
         {
           "value": "Vessel",
-          "label": "Vessel cutout",
+          "label": "None",
           "order": 140,
           "category": "vessel",
           "legacyDescription": "Cutout without an integrated basin: the scene token the pages send when a vessel is used"
+        },
+        {
+          "value": "Vessel_Blade11",
+          "label": "Vessel Blade 11",
+          "order": 150,
+          "category": "vessel"
+        },
+        {
+          "value": "Vessel_Blade18",
+          "label": "Vessel Blade 18",
+          "order": 160,
+          "category": "vessel"
+        },
+        {
+          "value": "Vessel_UrbanModo",
+          "label": "Vessel Urban Modo",
+          "order": 170,
+          "category": "vessel"
+        },
+        {
+          "value": "Vessel_UrbanMorris",
+          "label": "Vessel Urban Morris",
+          "order": 180,
+          "category": "vessel"
+        },
+        {
+          "value": "Vessel_Aquarius",
+          "label": "Vessel Acquarius",
+          "order": 190,
+          "category": "vessel"
         }
       ]
     },
@@ -373,8 +414,23 @@
         "forcedHeightByHandle": {},
         "requiresDrawersByHandle": {},
         "forcedHeight": "forced_height_cm"
-      }
+      },
+      "heightsByDrawers": { "1": [53, 38, 28] }
     },
+    "seriesModules": [
+      {
+        "series": "URSTD",
+        "cabinetType": "Sink-Cabinet",
+        "widthsCm": [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        "heightsByDrawers": { "2": [56], "1": [53], "1+inner": [53] }
+      },
+      {
+        "series": "URLH",
+        "cabinetType": "Sink-Cabinet",
+        "widthsCm": [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        "heightsByDrawers": { "1": [38, 28] }
+      }
+    ],
     "drawerStyleGroups": [["1", "1+inner"], ["2"]],
     "materialNormalization": {
       "aliases": {
@@ -419,6 +475,36 @@
       ],
       "vesselCompatibleCountertopMaterialTokens": ["hpl", "porcelain", "tekorlux", "tal", "tam", "solidsurface"]
     },
+    "vesselCompatibility": {
+      "hiddenStyles": ["Vessel_UrbanModo_Cover", "Vessel_UrbanModo_Seam", "Vessel_UrbanModo_Flat"],
+      "allowedMaterialsByStyle": {
+        "Vessel_Blade11": ["ceramic"],
+        "Vessel_Blade18": ["ceramic"],
+        "Vessel_UrbanModo": ["solidsurface", "hpl", "porcelain"],
+        "Vessel_UrbanMorris": ["tekorlux", "sstkr", "tal", "tam"],
+        "Vessel_Aquarius": ["tekorlux", "sstkr", "tal", "tam"]
+      },
+      "allowedColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "solidsurface": ["T1C", "T1D"],
+          "hpl": ["TKF", "TKH", "TKJ", "TKN", "TKP", "TKQ"]
+        },
+        "Vessel_UrbanMorris": {
+          "tekorlux": ["TAL", "TAM"]
+        }
+      },
+      "unavailableColorCodesByStyle": {
+        "Vessel_UrbanModo": {
+          "porcelain": ["TQ2"]
+        }
+      },
+      "defaultFinishByStyle": {
+        "Vessel_UrbanModo": {
+          "materialTokens": ["solidsurface", "ocritech", "ssocr", "sst1c"],
+          "colorCodes": ["T1C"]
+        }
+      }
+    },
     "countertopFallbacks": {
       "needsConfirmation": true,
       "restrictedIntegratedDepthsCm": [46],
@@ -434,6 +520,7 @@
     "handle.defaultRequiredHeight": "Required for selected handle and all products",
     "drawers.mixingRestricted": "Cannot mix 1 Drawer and 2 Drawer cabinet styles in one vanity configuration.",
     "drawers.requiredHeight": "Required for selected drawers",
+    "drawers.notWithSeriesCabinet": "Not available with the {series} cabinet in this design.",
     "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
@@ -495,19 +582,20 @@
     "cabinetColor.grooveFollows": "The groove color changes with the cabinet color."
   },
   "excludedFromThisProfile": {
-    "scene": "The scene has no Urban Duplex product, so every cabinet type is unplaced (runtime-bindings.json): no model or builder cabinet is placed until it has one.",
-    "cabinetHeights": "The cabinet style sets the height (DUP-CAB-001): 2DW 56 cm, 1DW and 1DWID 53 cm, the 1DW Slim cabinets 38 or 28 cm. The cabinet table forces 2DW:56, 1DW:53 and 1DWID:53, so the builder offers the standard heights only until the Slim styles are added; the presets keep their Slim heights.",
+    "scene": "The scene places the four Urban Duplex products (runtime-bindings.json): the drawer cabinets, the open shelf and the open side shelf, with the panel colours and the side of the lateral panel. Still not laid out: a depth of 50 cm (the scene knows 46 and 50.5, so 50 is drawn at 46), an open side shelf at 38 or 28 cm (drawn 56 cm high), and two rows of cabinets (multiLevelModels).",
+    "cabinetHeights": "The cabinet style sets the height (DUP-CAB-001): 2DW 56 cm, 1DWID 53 cm, 1DW 53 cm or, as the Slim cabinets, 38 or 28 cm. The cabinet table forces 1DW:53, so the three heights of 1DW are listed here (cabinetMatrixLegacyAdapter.heightsByDrawers) and chosen in the Height field, as Urban Low Height chooses its heights. The five Cabinet Style tiles of the client's sketch, with the two Slim styles (IMG #118), wait for their labels (DUP-STY-01).",
     "heightPairing": "Which heights one composition may combine waits for DUP-CMP-01.",
-    "lateralPanel": "The lateral panel side is chosen per cabinet; its default R follows the renders (IMG #118, #122) until DUP-PNL-01. The handle groove is priced in the Lateral Panel colour until DUP-PNL-02.",
+    "lateralPanel": "Each cabinet has its lateral panel on its own side: a model sets them, the style sidebar and the menu of a placed cabinet change one cabinet, and the field of the Color step sets one side for them all. A cabinet added later takes the side chosen for it in the sidebar, else the side of the first cabinet. The default R follows the renders (IMG #118, #122) until DUP-PNL-01. The handle groove is priced, and painted, in the Lateral Panel colour until DUP-PNL-02.",
     "priceColumn": "When the base and lateral panels are of different materials, the price server chooses the price column from the full SKU (DUP-SKU-01).",
-    "shelves": "Open Shelf 25-70 cm (UROS 2S at 56/53 cm, 1S at 38/28 cm) and Open Side Shelf 15 cm (UROSS) take the Urban Standard Height and Urban Low Height prices (Pricing!D397, D463); Urban Standard Height has no Open Side Shelf at 22.0H or 20.9H (DUP-SKU-02). The Open Shelf is priced in the Base Panel colour and the Open Side Shelf in the Lateral Panel colour, as the renders show them, until the client confirms.",
-    "hybridModels": "28 models use Urban Standard Height or Urban Low Height cabinets without a lateral panel (Pre-Render | Hybrid Models): each preset product names its Series, and those cabinets are spelled VAN-URSTD-... or VAN-URLH-... with CAB in the Base Panel colour and HDL in the Lateral Panel colour.",
-    "sideCabinetWidths": "Side cabinets are 60-120 cm wide as Pricing lists them. SKU Curation also lists 25, 35 and 50 cm; the models take those from Urban Standard Height and Urban Low Height.",
+    "shelves": "Open Shelf 25-70 cm (UROS 2S at 56/53 cm, 1S at 38/28 cm) and Open Side Shelf 15 cm (UROSS) take the Urban Standard Height and Urban Low Height prices (Pricing!D397, D463); Urban Standard Height has no Open Side Shelf at 22.0H or 20.9H (DUP-SKU-02). The Open Shelf is priced and painted in the Base Panel colour and the Open Side Shelf in the Lateral Panel colour, as the renders show them, until the client confirms. The Open Side Shelf goes beside the Upper Groove cabinets, the only handle of the collection, as the models place it (DUP-CMP-05).",
+    "hybridModels": "28 models use Urban Standard Height or Urban Low Height cabinets without a lateral panel (Pre-Render | Hybrid Models): each preset product names its Series, and those cabinets are spelled VAN-URSTD-... or VAN-URLH-... with CAB in the Base Panel colour and HDL in the Lateral Panel colour. The scene shows them with the full handles (the Series binding). The Cabinet Builder offers their side cabinets as styles of the Side Cabinet, each under the name of its series (ruleData.seriesModules): Urban Standard Height at 56 cm with two drawers and 53 cm with one, Urban Low Height at 38 and 28 cm, as tables 439 and 580 list them with the Upper Groove handle; the price server prices every width, height and depth of them. A composition keeps one height, so the two do not stand in one.",
+    "sideCabinetWidths": "Side cabinets are 60-120 cm wide as Pricing lists them. SKU Curation also lists 25, 35 and 50 cm; the models and the builder take those from Urban Standard Height and Urban Low Height (ruleData.seriesModules).",
     "pricingGaps": "Pricing has the 2DW Side Cabinet at 50 cm deep only and the 1DW Side Cabinet at 15.0H and 46 cm deep only with the panel on the right; the cabinet table cannot express either.",
     "multiLevelModels": "The five Multi-Level models are compact presets of the collection DPLX; the scene imports compact presets of Urban Low Height only.",
+    "lowerCountertop": "Upper/Lower of the Countertop Color step (sku-profile cabinetCover): Lower appears once the scene publishes a Cabinet_Cover, which scene v53 lays on the bare tops of Urban Duplex sink and side cabinets, and offers the countertop's colours, in the Lateral Panel colour until another is chosen: the app asks the scene for it (team, 2026-10-15). Only the twelve HPL panel colours are countertop colours too, so a Lateral Panel in another material leaves the Lower unpriced. Scene v53 paints a cover in its cabinet's Base Panel colour whatever it is asked for, so the Lower stays unpriced there unless that colour is HPL, until the scene takes the colour asked for.",
     "thickness": "Thicknesses are Urban Standard Height's (P1064) as table 595 gives them, copied from Urban Low Height's 589: 1/2, 4 and 5-1/8 for HPL and Fenix, 1/2, 2-3/8, 4 and 5-1/2 for Porcelain. Offset, Remote and floating tops over the low cabinets are not modelled (GEN-TOP-23, DUP-TOP-02).",
     "solidSurfaceBasin": "Solid-Surface: Rectangular has no row of its own; it is the Urban Standard Height candidate Top_Tekorlux_Rectangular until GEN-MAT-01.",
-    "vesselSinks": "The Master File lists no vessel sinks; only the vessel cutout is offered until the list is confirmed.",
+    "vesselSinks": "The Master File lists no vessel styles of its own (GEN-TOP-04), and the basin rules are Urban Standard Height's (P1064), so the vessels are Urban Standard Height's as Urban Low Height offers them, with its rules (ruleData.vesselCompatibility): Blade 11 and Blade 18 in ceramic, Urban Modo in solid surface, Urban Morris and Aquarius in Tekorlux, in the colours of configurator 13 (Select Vessel Color). Table 595 asks a Sink Base of 80 cm for a vessel (min_vsl_cm). Scene v62 gives UD-sink-cabinet no RuleChangeSinkType, so its basin stays the one it was placed with until the scene adds the rule.",
     "colorCodes": "The 232 cabinet colours of the Base Panel and the Lateral Panel are coded as Urban Standard Height and Urban Low Height code them (GEN-MAT-01).",
     "sidePanels": "Side panels are sourced from Urban Standard Height and Urban Low Height (Pricing!A506) and wait for GEN-SP-01; not offered.",
     "dividers": "Not offered: the Master File lists none for Urban Duplex (GEN-ACC-01).",

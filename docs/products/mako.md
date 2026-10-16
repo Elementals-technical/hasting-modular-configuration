@@ -14,7 +14,13 @@
 - Drawers 1/2; scene values `1D`/`2D`; heights 26/52 cm.
 - Handles G57/G50 надсилаються як scene key `HandleStyle`.
 - HandleColor, CabinetColor і LegColor походять із named groups configurator 9.
-- `LegColor` також керує `ShowLegs`; empty ховає legs, `None` показує їх у cabinet color.
+- HandleColor і LegColor — одні на всю композицію: binding шле їх усім шафам (`target: all`), тож state
+  записує значення в кожної шафи, а додана шафа (plus, Add Cabinet, duplicate) успадковує його і в сцені,
+  і в state. Стартовий HandleColor — `Antracite 400 MT` (`defaults`), як у 42 моделях; LegColor стартового
+  значення не має. Правило читається з даних (`isBroadcastCabinetValue`), а не з назви attribute.
+- `LegColor` також керує `ShowLegs`; empty ховає legs. Моделі на legs і перемикач «Enable Legs, Then Color»
+  дають власний колір `Antracite 400 MT` (`defaultValue` атрибута), тож зміна Cabinet Color legs не
+  перефарбовує. `None` показує legs у cabinet color і лишається тільки для збережених раніше конфігурацій.
 - CountertopStyle bound; basin і VesselColor state-only, бо Mako scene поки не має basin sub-product.
 - Drawer style groups забороняють змішувати 1- і 2-drawer cabinets.
 
@@ -38,5 +44,6 @@ SKU contract. Gaps: vessel (блокує total), Solid Surface group ambiguity �
 ## Мінімальна перевірка
 
 Mako profile/runtime tests, table 581 catalog, placed-cabinet tests, collection SKU/pricing tests,
-save/restore roundtrip і build. Для legs перевірити порядок Drawers → LegColor, бо binding навмисно
+save/restore roundtrip і build. Для HandleColor/LegColor: вибрати колір, додати шафу, видалити першу шафу —
+сцена і SKU кожної шафи мають називати той самий колір (`compositionCommands.test.ts`). Для legs перевірити порядок Drawers → LegColor, бо binding навмисно
 спочатку ховає legs при зміні drawer style, а потім відновлює їх обраним color.

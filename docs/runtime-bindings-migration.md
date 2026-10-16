@@ -28,12 +28,21 @@ type BoundRuntimeBinding = {
   values: IdentityValues | MappedValues;  // sent as is, or value -> full scene patch
   order?: number;                         // phase the attribute is sent in
   resetBefore?: ScenePatch;               // step sent before the value
+  also?: { target: RuntimeTarget; sceneKey: string }[]; // more places the same value goes to (identity values)
+  placedWithNewProducts?: boolean;        // a product placed later is given the value with its config
+  perProduct?: boolean;                   // a change for one cabinet alone reaches that product only
 };
 
 type UnboundRuntimeBinding = { attributeId: string; status: "unbound"; reason: string };
 ```
 
 An attribute with no scene translation is declared `unbound` with its reason, so a deliberate gap is never mistaken for a forgotten one. Identity values may declare an `emptyValue` (a cleared groove colour is sent as `"None"`) and `overrides` (values the scene knows under another name).
+
+A value with more than one place in the scene names the others in `also`: each entry is a target and a scene key, and the value is sent there after the binding's own target, as steps of the same change. The Urban Duplex lateral panel colour is the scene's `CabinetColorLateral`, also its `HandleGrooveColor`, and the `CabinetColor` of an open side shelf. A product being placed takes an entry addressed to a product type only when it is of that type; the others go into its config with the value itself.
+
+The scene keeps a value per product and does not hand it to a product placed later. A binding with `placedWithNewProducts` asks for that: `addCabinet` places the product with the configuration's value, or the collection's starting value while none was chosen (`selectPlacedWithValues`). The value is not recorded again; the configuration holds it once. A cabinet value the scene broadcasts (target `all`, no typed projection) needs no flag: it is inherited and recorded at the new cabinet (`selectBroadcastValues`).
+
+A value bound to `all` reaches every product, whatever cabinet a change names: a field names the first cabinet only to have a place to record the value, and it is recorded at every cabinet. A binding with `perProduct` says the scene keeps the value on each product, so a change that asks for its cabinet alone (`onlyThisCabinet` of the change) is sent to that product and recorded at that cabinet only. The side of the Urban Duplex lateral panel is bound so: the field of the Color step turns every panel, the style sidebar and the menu of a placed cabinet turn one. A change that asks for one cabinet where the binding does not allow it is refused (`scope-mismatch`) rather than sent to them all. A cabinet that joins is recorded with the value it was placed with: its own where its config carries one, else the composition's.
 
 The pure functions are exported from `@/entities/collection`:
 
@@ -81,8 +90,9 @@ The types live in `entities/configuration/model/runtimePort.ts` so C depends on 
 1. Everything that can be known without the scene is checked first: readiness, bindings of the right collection, a translation for every change, a runtime id for every addressed cabinet. If any check fails, nothing is sent.
 2. The set runs phase by phase (`order`), keeping C's order within a phase. A binding without `order` runs after every declared one.
 3. A value may take steps (`resetBefore`, then the value). A change counts as applied only when every step is. An identical step is sent once per set.
-4. A broadcast must reach every placed cabinet: missing ids in the scene's `updatedIds` are a failure, not a success.
-5. The first failure stops the set; the remaining changes are reported as `not-attempted`.
+4. A broadcast must reach every placed cabinet: missing ids in the scene's `updatedIds` are a failure, not a success. The check is per step, so an `also` step for one product type is not asked to reach them all.
+5. The scene takes every product whose id contains the product type it is given. When a placed product of another type contains the name (`UD-open-shelves` in `UD-open-shelves-side-…`), a `productType` target is sent to the ids of its own type instead; otherwise it stays the broadcast the binding declares.
+6. The first failure stops the set; the remaining changes are reported as `not-attempted`.
 
 `getBindings` returns the active collection's table, `catalog.runtimeBindings` from `useActiveCollection()`. A loads it through the manifest (`local.runtimeBindings`) and validates it against the profile and the UI schema; a broken or foreign table blocks the collection with diagnostics. Until the collection is ready the callers pass `null`, so the port answers `unsupported` and nothing is sent. The temporary loader (`runtimeBindingsCache`, `RuntimeBindingsBridge`) was removed once A07 landed.
 
@@ -138,13 +148,19 @@ type ConfigurationSceneRestorer = {
   restore(request: SceneRestoreRequest): Promise<SceneRestoreResult>;
 };
 
-type SceneRestoreRequest = { products: { sourceId: string; productType: string; config: Record<string, unknown> | null }[] };
+type SceneRestoreRequest = {
+  products: { sourceId: string; productType: string; config: Record<string, unknown> | null }[];
+  layout?: SceneLayout;
+};
+
+/** Where the products stood, as the scene wrote it down. Only the adapter reads `document`. */
+type SceneLayout = { version: 1; document: Record<string, unknown>; cabinetIds: Record<string, string> };
 ```
 
 `createSceneRestorer({ getBindings })` rebuilds a composition in composition order:
 
 1. **Preflight**, before the scene is touched: a non-empty composition, unique source ids, a config per product, loaded bindings and a scene type for every product type through `productTypes` of the bindings (`Side-Cabinet` is placed as `Sink-Cabinet`). The scene's product registry is not reachable from the host page, so the table is the check.
-2. The scene is cleared once (`removeAllProduct`), then each product is added on the right with `addProduct` and configured with `setConfig`. `addProduct` returns the runtime id, which gives the exact old → new mapping; `presetProducts` clears the scene itself and silently skips a product it cannot create, so it is not used here.
+2. The scene is cleared once (`clearSceneProducts`), then rebuilt in one call of the native `presetProducts`, which returns the runtime ids. (An earlier version added the products one by one with `addProduct` and `setConfig`; the code no longer does.)
 3. A product that fails does not stop the rest. The actual order is read back through the scene reader and compared with the request.
 
 | Status | Meaning | Scene touched |
@@ -155,6 +171,18 @@ type SceneRestoreRequest = { products: { sourceId: string; productType: string; 
 | `partial` | The scene was cleared but a product was not created (`not-created`), its config refused (`config-rejected`), the order differs (`order-mismatch`) or clearing failed (`scene-error`); `matches` lists what exists | Yes |
 
 The scene side is three new `sceneBridge` operations on the batch queue: `clearSceneProducts`, `addSceneProduct` (a missing id is a failure) and `setSceneProductConfig` (`false` from the scene is `product-not-found`; the legacy wrapper swallowed it). `createTestSceneRestorer()` is the stand-in.
+
+**A request with a layout.** Step 2 places the products in one row, left to right. A collection whose cabinets stand in rows (Urban Low Height) cannot be rebuilt that way, so its requests carry `layout`: the document the scene exports for a composition (`composition.exportPreset`) and the runtime id each cabinet had at that moment. After preflight the restorer gives the document back (`composition.importPreset`), which replaces the composition and returns the new id of every cabinet; steps 2 and 3 are skipped and `matches` follow the scene's own order.
+
+| `importSceneLayout` | Meaning | What the restorer does |
+|---|---|---|
+| `imported` | The scene holds the layout | `restored`, with `matches` built from the receipt |
+| `not-ready` | The scene is busy (`COMPOSITION_BUSY`, `LEGACY_WRITERS_BUSY`, `STALE_COMPOSITION` after one retry, not ready yet); nothing was changed | `not-ready` |
+| `unusable` | The layout names other products than the request, the scene refused the document (`PRESET_*`, `RECOVERY_REQUIRED`, no such method) or the receipt is incomplete | Steps 2 and 3: the products come back in one row |
+
+`captureSceneLayout()` reads a layout and never fails loudly: it does not wait for a scene that is not ready, gives up after two seconds, reads again once when the composition changed between its two reads, and resolves `null` otherwise. `parseSceneLayout` checks a stored layout before it is used. All three live in `features/playCanvasAdapter/lib/sceneLayout.ts`; no other file calls the two scene methods for a restore.
+
+**Who sends a layout.** History snapshots (`SceneSnapshot.sceneLayout`) and saved configurations (`metadata.sceneLayout`), both through `captureFreeLayout`, which answers only for Drag & Drop collections. The history reads it through a slot (`setSceneLayoutCapture`, registered in `main.tsx`), so `entities/history` gains no import of a feature. A layout is kept only when it describes exactly the products of the snapshot or of the save. A snapshot or a configuration without one restores as before.
 
 **First consumer: undo/redo.** `restoreSnapshot(snapshot, { dispatch, getState })` builds the request from the history snapshot and returns the result. A snapshot product without a config is rejected instead of silently dropped. On `restored`/`partial` it records only the products that exist; the snapshot now keeps each product's stable key (`cabinetKeys`), and `restoreCabinets` gives the rebuilt products their keys back before the product ids change, so values addressed to a cabinet survive undo. Values of cabinets that are not in the rebuilt composition are dropped. `BottomCanvasButtons` moves the history only when the scene was rebuilt and logs a partial result.
 
@@ -226,7 +254,7 @@ All statuses are `Pending downstream migration` unless stated otherwise. These c
 - **Basin per cabinet.** Mako/Class need "чаша конкретної SB" (developer-i README line 53). That needs a cabinet key on basin-scoped changes, which is a C model change, not a binding.
 - **`CountertopStyle` is not read by the scene.** No scene script under `public/HastingCabinetsParametrization` contains the key; `sceneKeysInExport.test.ts` records it as the only bound key the scene code does not read. It is kept because the code sends it; the browser run in `i06-scene-acceptance.md` decides whether it can go.
 - **Handle re-send after drawers.** Legacy code re-broadcast the handle after a drawers change "so PlayCanvas re-evaluates its internal height-forcing rules". The drawers command (C06) sends the handle only when it changes and the dependent height explicitly; the page still re-sends handle and height to a cabinet whose actual height, read through the scene reader, stayed stale. Whether the scene needs the unchanged handle is part of the browser check.
-- **Restore preflight depends on loaded bindings.** Until A07 exposes `catalog.runtimeBindings`, a collection whose table failed to load cannot undo (`bindings-unavailable`) rather than rebuilding blindly. History snapshots also carry no configuration values, so a value dropped when a cabinet was removed does not come back with undo; that belongs to C09.
+- **Restore preflight depends on loaded bindings.** Until A07 exposes `catalog.runtimeBindings`, a collection whose table failed to load cannot undo (`bindings-unavailable`) rather than rebuilding blindly. History snapshots carry the configuration's scoped values (`configuration`), so a value dropped when a cabinet was removed comes back with undo.
 - **Scene events.** The reader runs after app actions because the scene has none. A scene event for resize and reorder (in `hasting-modular-playcanvas-flow-git`) would replace the 200 ms wait; I05 can use the same reader to confirm a restored composition.
 - **Top dividers around drawers.** Clearing `TopDrawerDividers` for cabinets leaving two drawers has no binding and no port operation, so `CabinetBuilderPage` sends it just before the drawers command, where it used to share the drawers patch.
 - **`order` values** are derived from the legacy call sequences and need confirming in the real scene.

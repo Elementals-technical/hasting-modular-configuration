@@ -97,9 +97,54 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 
 - Manifest id та всі локальні `collectionId` збігаються.
 - Поле з `ui.json` існує в profile або має свідомий runtime/status contract.
+- Розділ, який показує одне зі своїх полів за раз, описує `ui.json`, а не код сторінки: `fieldTabs: { label }`
+  у розділі (рядок над вкладками) і `tab: { label, icon }` у кожному його полі. Urban Duplex так показує
+  Panel Color: вкладки Base Panel / Lateral Panel, під ними сітка кольорів вибраної панелі. `icon` — файл
+  пакета колекції 48×24 (`images/panel/*.svg`). Розділ без `fieldTabs` показує поля стопкою.
+- Значення шафи, яке можна змінити лише в одній шафі, перелічує `ui.json`: `styleSidebar.attributes`
+  (selector у right sidebar Cabinet Builder після власних Width / Depth / Height / Handle) і
+  `playerMenu.attributes` (підменю в Details меню поставленої шафи). Для шафи, виділеної на сцені,
+  змінюється лише вона; без виділення sidebar задає значення шафі, яку зараз додають. Binding такого
+  attribute мусить мати `perProduct: true`, інакше колекція не завантажиться
+  (`runtime.not-per-product`). Urban Duplex так показує сторону Lateral Panel; поле на кроці Color
+  і далі ставить її всім шафам. Елемент списку може мати умову:
+  `{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }` — значення пропонують лише шафі,
+  яка сама тримає ці значення (Urban Duplex: шафи інших серій панелі не мають).
+- Шафи, які колекції постачає інша серія, описує profile: `ruleData.seriesModules` — на кожну серію і тип
+  шафи свої `widthsCm` і `heightsByDrawers` (Urban Duplex: Side Cabinet серій `URSTD` і `URLH`). З них
+  каталог отримує варіант правила типу з полем `series`; глибини, handle і продукт сцени — від власного
+  типу. Cabinet Style показує стилі групами під назвами серій (label option attribute `Series`); тип
+  без варіантів лишається без заголовків. Вибір плитки кладе `Series` у config шафи: за ним binding
+  шле сцені вигляд, SKU бере `bySeries`, а правила — ширини й висоти серії. `Series` записується
+  в кожної шафи окремо (binding з target `product`), тому його ніколи не читають із сусідньої.
+  Картинки плиток — `optionImageVariants.Drawers` з умовою `when: { "Series": … }`. Композиція має одну
+  висоту: стиль, якого немає в цій висоті, перемикає всі шафи після підтвердження, а якщо поставлена
+  шафа іншої серії такої висоти не має — недоступний (`drawers.notWithSeriesCabinet`); selector Height
+  лишає тільки висоти, які мають усі поставлені шафи інших серій. Кожен SKU, який так можна зібрати,
+  мусить мати ціну на сервері: комбінацію без ціни прибирають із `seriesModules`.
+- Стиль шафи, що стоїть нижче за сусідні й має власну висоту (Urban Freestanding: Side Cabinet ▸ 1 Drawer
+  Short), описують: таблиця шаф (`drawer_configs` 1DW і його `forced_height_cm` — розмір і висота
+  для SKU), profile `ruleData.steppedModules` (тип, стиль, `placement: composition-end`, категорія шафи, яка
+  потрібна першою). Висоти stepped-стилю каталог не форсує, а переносить у `steppedHeightByHandle`
+  (`matrixCabinet` `withSteppedModules`); з них `buildSteppedSceneProducts` складає для `sceneBridge` scene
+  type, значення, за якими сцена впізнає коротку шафу (через bindings), і висоту за handle. Композиція
+  лишається на висоті інших шаф, а `sceneBridge` ставить і після кожної команди з `Height`/`Handle` повертає
+  короткій шафі власну висоту. Висоти в JSON колекції не дублюються. Деталі —
+  [`../urban-freestanding-short-cabinet.md`](../urban-freestanding-short-cabinet.md).
 - Кожен core/UI attribute покритий binding зі статусом `bound`, `state-only` або `unbound`.
 - Cabinet table читається через mapping саме цього profile; не додавати USH fallback.
-- Product type існує в `productTypes` або свідомо прихований у `unplacedProductTypes`.
+- Висоту, яку користувач обирає сам (selector Height у right sidebar і Resize ▸ Height у меню шафи),
+  дає profile: `cabinetMatrixLegacyAdapter.columns.heightsByHandle` — висоти кожного handle з колонок
+  таблиці (Urban Low Height), або `cabinetMatrixLegacyAdapter.heightsByDrawers` — висоти стилю шухляд,
+  коли таблиця форсує для нього одну (Urban Duplex: `"1": [53, 38, 28]`, бо table 594 каже `1DW:53`,
+  а 1DW продається ще й як Slim 38 і 28 cm). Обидва місця вмикає `ui.json` (`styleSidebar.fields`,
+  `playerMenu.resize`); висоту нової композиції задає `defaultValue` attribute `Height`. Стиль, якого
+  немає у висоті вже поставлених шаф (Urban Duplex: 1DWID поруч зі Slim), перемикає їх усі після
+  підтвердження — так само, як стиль іншої групи `drawerStyleGroups`.
+- Product type існує в `productTypes` або свідомо прихований у `unplacedProductTypes`. Тип переноситься
+  в `productTypes` лише після того, як сцена реєструє його продукт (`sceneKeysInExport.test.ts`
+  перевіряє це для Urban Freestanding і Urban Duplex): на невідомий тип сцена відповідає порожньою
+  заглушкою.
 - `optionsSource: configurator:<group>` точно збігається з `proxyName` remote configurator group;
   `configurator:<group>/<option>` бере лише одну option цієї групи (Urban Duplex:
   `Select Cabinet Colors/Base Panel` і `…/Lateral Panel`). Якщо attribute має ще й власні `options`

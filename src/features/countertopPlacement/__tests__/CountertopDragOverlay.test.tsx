@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CountertopOverlayFrame } from "@/features/configuratorApi";
@@ -62,17 +62,26 @@ const renderOverlay = (frame: CountertopOverlayFrame, { pending = false }: { pen
     onPreview: vi.fn(),
     onResizeFrom: vi.fn(),
   };
-  render(<CountertopDragOverlay store={store} pending={pending} {...props} />);
+  render(
+    <CountertopDragOverlay
+      store={store}
+      pending={pending}
+      lengthLimitsM={{ minM: inches(36), maxM: inches(96) }}
+      {...props}
+    />,
+  );
   return props;
 };
 
 describe("CountertopDragOverlay length chip", () => {
-  it.each([false, true])("shows the length read-only with the drag hint (attached: %s)", (attached) => {
+  it.each([false, true])("shows the length with ✎ and the drag hint (attached: %s)", (attached) => {
     renderOverlay(frameOf({ attached, lengthM: inches(40) }));
-    expect(screen.getByTestId("countertop-length-chip").textContent).toBe("40″");
+    expect(screen.getByTestId("countertop-length-chip").textContent?.trim()).toBe("40″");
     expect(screen.getByText("Drag the ends to change the length")).toBeTruthy();
     expect(screen.queryByText("Move the countertop off the cabinets to change its length")).toBeNull();
     expect(screen.queryAllByRole("button").map((button) => button.getAttribute("aria-label") ?? button.textContent)).toEqual([
+      "Edit countertop length, 40″",
+      "Edit countertop depth, 22″",
       "Apply",
       "Discard countertop changes",
     ]);
@@ -106,6 +115,91 @@ describe("CountertopDragOverlay length chip", () => {
     const handles = handlesProps.mock.calls.at(-1)?.[0] as { resizeBoundsM: unknown; disabled: boolean };
     expect(handles.disabled).toBe(false);
     expect(handles.resizeBoundsM).toBe(resizeBoundsM);
+  });
+});
+
+describe("CountertopDragOverlay length popover", () => {
+  const POPOVER = { name: "Countertop length" };
+  const openPopover = () => {
+    fireEvent.click(screen.getByRole("button", { name: /^Edit countertop length/ }));
+    return screen.getByRole("dialog", POPOVER);
+  };
+
+  it("opens from the chip with the frame's length and limits", () => {
+    renderOverlay(frameOf());
+    const chip = screen.getByRole("button", { name: /^Edit countertop length/ });
+    expect(chip.getAttribute("aria-expanded")).toBe("false");
+    const popover = openPopover();
+    expect(chip.getAttribute("aria-expanded")).toBe("true");
+    expect(within(popover).getByRole("spinbutton", { name: "Length" })).toHaveProperty("value", "84″");
+    expect(within(popover).getByText("Min 48″")).toBeTruthy();
+    expect(within(popover).getByText("Max 120″")).toBeTruthy();
+  });
+
+  it("takes the runtime's effective limits first, the collection's when nothing publishes any", () => {
+    setCountertopRuntimeState({
+      readiness: "ready",
+      productId: "top",
+      lengthLimitsM: { minLengthM: inches(60), maxLengthM: inches(100) },
+    });
+    renderOverlay(frameOf());
+    expect(within(openPopover()).getByText("Min 60″")).toBeTruthy();
+    cleanup();
+    setCountertopRuntimeState(null);
+    renderOverlay(frameOf({ limits: null }));
+    const popover = openPopover();
+    expect(within(popover).getByText("Min 36″")).toBeTruthy();
+    expect(within(popover).getByText("Max 96″")).toBeTruthy();
+  });
+
+  it.each<[string, () => void]>([
+    ["Apply", () => fireEvent.click(within(screen.getByRole("dialog", POPOVER)).getByRole("button", { name: "Apply" }))],
+    ["×", () => fireEvent.click(screen.getByRole("button", { name: "Close" }))],
+    ["Escape", () => fireEvent.keyDown(document, { key: "Escape" })],
+    ["a press outside it", () => fireEvent.pointerDown(document.body)],
+    ["the chip again", () => fireEvent.click(screen.getByRole("button", { name: /^Edit countertop length/ }))],
+  ])("closes on %s and sends nothing", (_, close) => {
+    const props = renderOverlay(frameOf());
+    openPopover();
+    fireEvent.click(screen.getByRole("button", { name: "Increase length" }));
+    close();
+    expect(screen.queryByRole("dialog", POPOVER)).toBeNull();
+    for (const callback of Object.values(props)) expect(callback).not.toHaveBeenCalled();
+  });
+
+  it("the depth chip opens the Depth popover alone, at the chip, one popover at a time", () => {
+    renderOverlay(frameOf());
+    openPopover();
+    const depthChip = screen.getByRole("button", { name: "Edit countertop depth, 22″" });
+    expect(depthChip.textContent?.trim()).toBe("22″");
+    fireEvent.click(depthChip);
+    expect(screen.queryByRole("dialog", POPOVER)).toBeNull();
+    const depth = screen.getByRole("dialog", { name: "Countertop depth" });
+    expect(depthChip.getAttribute("aria-expanded")).toBe("true");
+    expect(within(depth).getByRole("spinbutton", { name: "Depth" })).toHaveProperty("value", "22″");
+    expect(within(depth).queryByRole("group", { name: "Align" })).toBeNull();
+    expect(within(depth).queryByText(/^Min /)).toBeNull();
+    fireEvent.click(depthChip);
+    expect(screen.queryByRole("dialog", { name: "Countertop depth" })).toBeNull();
+  });
+
+  it("the depth popover's Apply sends nothing", () => {
+    const props = renderOverlay(frameOf());
+    fireEvent.click(screen.getByRole("button", { name: /^Edit countertop depth/ }));
+    const depth = screen.getByRole("dialog", { name: "Countertop depth" });
+    fireEvent.click(within(depth).getByRole("button", { name: "Increase depth" }));
+    fireEvent.click(within(depth).getByRole("button", { name: "Apply" }));
+    expect(screen.queryByRole("dialog", { name: "Countertop depth" })).toBeNull();
+    for (const callback of Object.values(props)) expect(callback).not.toHaveBeenCalled();
+  });
+
+  it("both chips are shut while a command runs or the top is dragged", () => {
+    const chips = () => screen.getAllByRole("button", { name: /^Edit countertop/ });
+    renderOverlay(frameOf(), { pending: true });
+    expect(chips().map((chip) => chip.hasAttribute("disabled"))).toEqual([true, true]);
+    cleanup();
+    renderOverlay(frameOf({ dragging: true }));
+    expect(chips().map((chip) => chip.hasAttribute("disabled"))).toEqual([true, true]);
   });
 });
 

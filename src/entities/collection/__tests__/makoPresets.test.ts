@@ -77,13 +77,14 @@ describe("mako model compositions", () => {
     }
   });
 
-  it("puts legs, in the cabinet colour, only on the models that have them and only on 2DW", () => {
+  it("puts legs, in a leg colour of their own, only on the models that have them and only on 2DW", () => {
     for (const { title, presetProducts } of presets) {
       const { drawers, legs } = titleOf(title);
       if (legs) expect(drawers, title).toBe("2");
 
       for (const product of presetProducts) {
-        expect(product.LegColor, title).toBe(legs ? "None" : undefined);
+        // The colour the cabinets start in, named for the legs: a cabinet colour does not repaint them.
+        expect(product.LegColor, title).toBe(legs ? "Antracite 400 MT" : undefined);
       }
     }
   });
@@ -115,6 +116,8 @@ describe("mako model compositions", () => {
           HandleColor: "Antracite 400 Lacquered MT",
           HandleStyle: "G57",
           ShowLegs: legs ? "Enable" : "Disable",
+          // The legs name their own material, so the scene does not paint them as the cabinet.
+          ...(legs ? { LegColor: "Antracite 400 Lacquered MT" } : {}),
         });
       }
     }

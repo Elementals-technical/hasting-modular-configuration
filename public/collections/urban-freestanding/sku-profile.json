@@ -4,11 +4,12 @@
   "status": "partial",
   "sources": [
     "Urban Freestanding - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Curation, Pricing, Accessories Pricing",
-    "SKU Curation: VAN-URFS-<SB|SC>/2DW/<UG|PTO|CG>/<X|CVB|CVA|CHB|CHA>-<W>-<H>-<D> with heights that include the 3 cm plinth (91H = 88+3, 88H = 85+3); VAN-UROS-3S-<W>-<88|85>H-<D> and VAN-UROSS-<L|R>-15W-85H-<D>, whose heights leave it out (\"88H + 3H compatiable\")",
+    "SKU Curation: VAN-URFS-<SB|SC>/2DW/<UG|PTO|CG>/<X|CVB|CVA|CHB|CHA>-<W>-<H>-<D> with heights that include the 3 cm plinth (91H = 88+3, 88H = 85+3; the 1DW short Side Cabinet VAN-URFS-SC/1DW/… 56H = 53+3, 53H = 50+3, team 2026-10-15: priced as the 2DW one, its own height in the SKU; no short Sink Base); VAN-UROS-3S-<W>-<88|85>H-<D> and VAN-UROSS-<L|R>-15W-85H-<D>, whose heights leave it out (\"88H + 3H compatiable\")",
     "Pricing: the sizes in inches (60 x 91 x 50 cm is 23.6W-35.8H-19.7D); the formula adds CAB-{material}-{colour code} and, on an Upper or Central Groove cabinet, HDL-{material}-{colour code} in the cabinet colour while no groove colour is offered",
     "Hasting Master File [Urban Freestanding]: 232 cabinet colours, coded as Urban Standard Height and Urban Low Height code them",
     "Configurator 11 (modular-config-phase-2-materials-(Urban Freestanding)): the material SKU of each cabinet and countertop colour",
-    "Accessories Pricing!B4: faucet holes, hole cutout, dividers, towel bar and book matching use the Urban Standard Height SKUs"
+    "Accessories Pricing!B4: faucet holes, hole cutout, dividers, towel bar and book matching use the Urban Standard Height SKUs",
+    "1DW (Short-Cabinet, the short floor cabinet of cabinet table 590): spelled VAN-URFS-SC/1DW/… like the 2DW Side Cabinet, with its own height; the price list has no 1DW row yet (UFS-SIZ-01), so the price server returns none"
   ],
   "cabinet": {
     "series": "URFS",
@@ -17,13 +18,15 @@
         "attributeId": "CabinetType",
         "codes": {
           "Sink-Base": "SB",
-          "Sink-Cabinet": "SC"
+          "Sink-Cabinet": "SC",
+          "Short-Cabinet": "SC"
         }
       },
       {
         "attributeId": "Drawers",
         "codes": {
-          "2": "2DW"
+          "2": "2DW",
+          "1": "1DW"
         }
       },
       {
@@ -269,6 +272,11 @@
   },
   "sidePanel": {
     "pricedAs": "urban-standard-height"
+  },
+  "cabinetCover": {
+    "materialSkus": ["LACG", "LACM", "ST", "HPL", "3D", "BM", "WDV", "ESS"],
+    "colorAttributeId": "CabinetColor",
+    "flows": ["prebuilt", "custom"]
   },
   "dividers": {},
   "gaps": [

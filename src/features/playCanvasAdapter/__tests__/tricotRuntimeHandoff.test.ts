@@ -164,7 +164,7 @@ describe("Tricot production composition handoff through the adapter", () => {
         expect(product).toMatchObject({
           CabinetPattern: "Cannette",
           HandleGrooveColor: "Nero 433 Lacquered MT",
-          CountertopColor: "Matte White",
+          CountertopColor: "Solid Surface Matte White",
         });
         expect(Object.keys(product).filter((key) => NOT_SENT.includes(key))).toEqual([]);
         expectBasinOnSinkBaseOnly(product);
@@ -189,7 +189,7 @@ describe("Tricot production composition handoff through the adapter", () => {
         Width: config.Width,
         CabinetPattern: "Cannette",
         HandleGrooveColor: "Nero 433 Lacquered MT",
-        CountertopColor: "Matte White",
+        CountertopColor: "Solid Surface Matte White",
         sinkType: "Top_HPLPrisma",
       });
       expect(Object.keys(sent).filter((key) => NOT_SENT.includes(key))).toEqual([]);
@@ -219,7 +219,7 @@ describe("Tricot production composition handoff through the adapter", () => {
     ).toMatchObject({ status: "applied" });
     // The pending wood stays out; the style is recorded only, as Class records it.
     expect(scene.presetProducts).toHaveBeenCalledWith(expect.any(Array), {
-      CountertopColor: "Matte White",
+      CountertopColor: "Solid Surface Matte White",
       HandleGrooveColor: "Nero 433 Lacquered MT",
       sinkType: "Top_HPLPrisma",
     });

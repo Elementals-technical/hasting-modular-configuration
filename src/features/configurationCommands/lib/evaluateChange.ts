@@ -2,6 +2,7 @@ import type { RootState } from "@/app/store";
 import {
   normalizeOptionValue,
   selectConfiguratorGroup,
+  selectRuntimeBinding,
   semanticValueOf,
   type ProductProfile,
 } from "@/entities/collection";
@@ -15,6 +16,7 @@ import {
 } from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
+import { seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { checkAvailability } from "./availabilityGates";
 import { buildChangePlan } from "./buildChangePlan";
@@ -67,6 +69,7 @@ const toSelection = (state: RootState): Selection => {
     height: product.selectedDimensions.height ?? 0,
     drawers: normalizeOptionValue(profile, "Drawers", config?.Drawers),
     handle: normalizeOptionValue(profile, "Handle", config?.Handle),
+    series: seriesOfConfig(config),
   };
 };
 
@@ -118,6 +121,24 @@ export const evaluateChange = (
     return { kind: "error", code: "unknown-target", message: targetResult.message };
   }
 
+  // One cabinet alone can change only where the scene keeps the value per product; elsewhere the
+  // scene would give it to every cabinet, which is not what was asked.
+  const onlyThisCabinet = change.scope === "cabinet" && change.onlyThisCabinet === true;
+  if (onlyThisCabinet) {
+    const bindings = getActiveRuntimeBindings(state);
+    const binding = bindings ? selectRuntimeBinding(bindings, change.attributeId) : null;
+
+    // A value sent to one product anyway needs no leave for it.
+    const reachesOneProduct = binding?.status === "bound" && (binding.perProduct || binding.target.kind === "product");
+    if (!reachesOneProduct) {
+      return {
+        kind: "error",
+        code: "scope-mismatch",
+        message: `attribute "${change.attributeId}" cannot be changed for one cabinet alone`,
+      };
+    }
+  }
+
   // `profile` is non-null here: validateChange returns an error otherwise.
   const activeProfile = profile as NonNullable<typeof profile>;
 
@@ -160,6 +181,7 @@ export const evaluateChange = (
     },
     cabinets,
     configurator,
+    placedCabinetStyles: state.rootStateUI.product.placedCabinetStyles,
   });
 
   if (!planResult.ok) {
@@ -171,9 +193,17 @@ export const evaluateChange = (
     };
   }
 
+  const requestedPlan = onlyThisCabinet
+    ? planResult.plan.map((entry) =>
+        entry.origin === "requested" && entry.attributeId === change.attributeId
+          ? { ...entry, onlyThisCabinet: true }
+          : entry,
+      )
+    : planResult.plan;
+
   return {
     kind: "planned",
-    plan: [...planResult.plan, ...countertop.dependencies],
+    plan: [...requestedPlan, ...countertop.dependencies],
     confirmation: resolveConfirmation(change, planResult.plan, activeProfile, cabinets.length),
     collectionId: activeProfile.collectionId,
   };

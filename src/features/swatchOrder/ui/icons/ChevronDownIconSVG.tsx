@@ -1,7 +1,7 @@
-import type { FC, SVGProps } from "react";
+import type { LucideProps } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
 
-export const ChevronDownIconSVG: FC<SVGProps<SVGSVGElement>> = (props) => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
+export const ChevronDownIconSVG = ({ width = 16, height = 16, ...props }: LucideProps) => (
+  <AppIcon {...props} icon={ChevronDown} width={width} height={height} />
 );

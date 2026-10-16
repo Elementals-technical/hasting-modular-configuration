@@ -413,6 +413,11 @@ export const collectionSkuProfileSchema = z
           .strict()
           .optional(),
         elements: skuElementsSchema,
+        /**
+         * The height the price list writes for a table height, as for a cabinet type of its own: the
+         * Urban Duplex matrix keys `15.0H` and `11.0H`, and the server reads `15H` as another row.
+         */
+        heightCodes: stringMapSchema.optional(),
       })
       .strict(),
     colors: z
@@ -432,6 +437,46 @@ export const collectionSkuProfileSchema = z
     towelBar: pricedAsSchema.optional(),
     /** The side panels, for a collection that offers them. */
     sidePanel: z.union([pricedAsSchema, ownSidePanelSchema]).optional(),
+    /**
+     * The scene's lower covers (Urban Low Height, Urban Duplex, Urban Freestanding), independently coloured
+     * and ordered as `CT-{prefix}{material}-{INTG|VES}-{W}W-{thickness}H-{D}D-{material}-{colour}` in the
+     * Upper's style. Its presence is what offers the Upper / Lower countertop colour picker.
+     */
+    cabinetCover: z
+      .object({
+        /**
+         * SKU series and thickness, given together once the collection confirms them. Without them
+         * the cover is still offered, but its price stays an explicit gap (never zero, never borrowed).
+         */
+        prefix: z.string().trim().min(1).optional(),
+        /** Inches, as the SKU spells it (0.5 → `.5H`). */
+        thicknessIn: z.number().positive().optional(),
+        /** The materials the cover comes in, as the material SKUs of its palette name them. */
+        materialSkus: z.array(z.string().trim().min(1)).min(1),
+        /**
+         * The colour attribute whose palette the cover takes: a cabinet colour, `CabinetColor` when omitted,
+         * or `CountertopColor` for a cover in the countertop's colours, spelled as the countertop spells them.
+         */
+        colorAttributeId: z.string().trim().min(1).optional(),
+        /**
+         * The attribute whose colour the cover takes until another is chosen, as the app asks the scene for it
+         * (Urban Duplex: `LateralPanelColor`); when omitted, the colour the scene gives it.
+         */
+        defaultColorAttributeId: z.string().trim().min(1).optional(),
+        /**
+         * The flows whose countertop step offers Lower; `["prebuilt"]` when omitted. A flow is listed
+         * only where the scene can lay a cover (UF: the custom flow, where a short cabinet is added).
+         */
+        flows: z
+          .array(z.enum(["prebuilt", "custom"]))
+          .min(1)
+          .optional(),
+      })
+      .strict()
+      .refine(({ prefix, thicknessIn }) => (prefix === undefined) === (thicknessIn === undefined), {
+        message: "cabinetCover.prefix and cabinetCover.thicknessIn are given together",
+      })
+      .optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
     /** The legs a composition stands on, for a collection that offers them. */

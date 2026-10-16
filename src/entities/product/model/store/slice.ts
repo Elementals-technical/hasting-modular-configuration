@@ -9,8 +9,12 @@ import { resolveForcedHeightForHandle } from "@/features/configurator-rule-core/
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { normalizeDividerType } from "@/features/dividers/model/normalize";
 import type { DividerType } from "@/features/dividers/model/types";
-import { hasCapability, normalizeOptionValue, type ProductProfile } from "@/entities/collection";
-import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import { hasCapability, normalizeOptionValue, selectAttribute, type ProductProfile } from "@/entities/collection";
+import {
+  SERIES_ATTRIBUTE_ID,
+  seriesOfConfig,
+  type ConfiguratorCatalog,
+} from "@/shared/config/configurator/typeCabinetCatalog";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import type { PresetProduct } from "../../types";
 
@@ -185,6 +189,7 @@ const toSelection = (state: ProductState): Selection => ({
   height: state.selectedDimensions.height ?? 0,
   drawers: mapDrawerConfigToRule(state.selectedProductConfig?.Drawers, state.activeProfile),
   handle: mapHandleConfigToRule(state.selectedProductConfig?.Handle, state.activeProfile),
+  series: seriesOfConfig(state.selectedProductConfig),
 });
 
 const applyRulesToState = (state: ProductState, intent?: Intent) => {
@@ -514,6 +519,18 @@ const productSlice = createSlice({
 
       state.activeCabinetType = newCabinetTypeId;
 
+      // A series that supplies no cabinet of the new type does not go with it: the next cabinet is
+      // the collection's own (an Urban Standard side cabinet was configured, a Sink Base is next).
+      const series = seriesOfConfig(state.selectedProductConfig);
+      const suppliesType = state.cabinetCatalog.typeCabinetRules.some(
+        (rule) => rule.code === newCabinetTypeId && rule.series === series,
+      );
+      if (series && !suppliesType && state.selectedProductConfig) {
+        state.selectedProductConfig = Object.fromEntries(
+          Object.entries(state.selectedProductConfig).filter(([key]) => key !== SERIES_ATTRIBUTE_ID),
+        );
+      }
+
       // When switching to a new cabinet type, set a default height if current height is invalid
       if (newCabinetTypeId !== previousCabinetType && newCabinetTypeId !== null) {
         const cabinetRule = state.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === newCabinetTypeId);
@@ -522,14 +539,18 @@ const productSlice = createSlice({
           const currentHeight = state.selectedDimensions.height;
           const isCurrentHeightValid = typeof currentHeight === "number" && cabinetRule.heights.includes(currentHeight);
 
-          // If current height is not valid for the new cabinet type, use the last available height
-          // (typically the default/preferred height for that cabinet type)
+          // If current height is not valid for the new cabinet type, use the height the collection
+          // names as its default, or else the last available height (typically the
+          // default/preferred height for that cabinet type)
           if (!isCurrentHeightValid) {
             // const currentHandle = mapHandleConfigToRule(state.selectedProductConfig?.Handle);
             // const hasForcedHandle = currentHandle === "handle_pto" || currentHandle === "handle_urban_topcut" || currentHandle === "handle_urban_botcut";
 
             // if (!hasForcedHandle) {
-            const defaultHeight = cabinetRule.heights[cabinetRule.heights.length - 1];
+            const profileHeight = Number(selectAttribute(state.activeProfile, "Height")?.defaultValue);
+            const defaultHeight = cabinetRule.heights.includes(profileHeight)
+              ? profileHeight
+              : cabinetRule.heights[cabinetRule.heights.length - 1];
             state.selectedDimensions.height = defaultHeight;
             // }
           }
@@ -625,6 +646,7 @@ const productSlice = createSlice({
             cabinetType: state.activeCabinetType,
             drawers,
             handle,
+            series: seriesOfConfig(state.selectedProductConfig),
           });
 
         const targetHeight = forcedHeightFor(nextHandle);

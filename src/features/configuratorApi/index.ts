@@ -1,6 +1,11 @@
 export { createConfiguratorBridge } from "./bridge";
 export type { ConfiguratorBridge, ConfiguratorBridgeOptions } from "./bridge";
-export { createConfiguratorClient } from "./client";
+export {
+  COMMAND_PLACEMENT_SESSION_PREFIX,
+  createCommandPlacementId,
+  createConfiguratorClient,
+  isCommandPlacementSession,
+} from "./client";
 export type {
   ConfiguratorCapabilitiesOptions,
   ConfiguratorClient,
@@ -37,6 +42,8 @@ export type {
   CabinetPlacementOptionsInput,
   CabinetPositionM,
   ConfiguratorPreset,
+  ConfiguratorColumnsPresetRow,
+  ConfiguratorCompactColumn,
   ConfiguratorCompactPreset,
   ConfiguratorCompactPresetRow,
   ConfiguratorPresetProduct,
@@ -77,16 +84,23 @@ export type {
   CabinetLandSinkInput,
   CabinetLandSinkReceipt,
   CountertopSinkLocalM,
+  CabinetCoverApi,
+  CabinetCoverColorState,
+  CabinetCoverConfigureResult,
+  CabinetCoverSegment,
   PlacementOverlayApi,
   PlacementOverlayFrame,
   PlacementOverlayPoint,
   PlacementOverlayPointName,
 } from "./types";
 export {
+  COUNTERTOP_LIFTED_ABOVE_M,
   COUNTERTOP_REASON_SLUGS,
   COUNTERTOP_RESIZE_STEP_M,
   COUNTERTOP_STANDARD_EPSILON_M,
   classifyCountertopError,
+  isLiftedCountertop,
   isStandardCountertop,
 } from "./countertop";
+export { parseCabinetCoverSegments } from "./cabinetCover";
 export type { CountertopFailure, CountertopFailureKind } from "./countertop";

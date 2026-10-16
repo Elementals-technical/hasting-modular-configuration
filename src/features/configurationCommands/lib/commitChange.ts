@@ -1,7 +1,12 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
-import type { ProductProfile } from "@/entities/collection";
-import { normalizeOptionValue, selectAttribute, selectLegacySpelling } from "@/entities/collection";
+import type { ProductProfile, RuntimeBindingSet } from "@/entities/collection";
+import {
+  normalizeOptionValue,
+  selectAttribute,
+  selectLegacySpelling,
+  selectRuntimeBinding,
+} from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { getAttributeOwnership, setAttributeValue } from "@/entities/configuration";
 import {
@@ -58,6 +63,10 @@ export type CommitContext = {
   configurator?: ConfiguratorGroupCatalog | null;
   /** Presets of the composition, which carry the colours into Customize. */
   productsPresets?: readonly PresetProduct[];
+  /** Bindings of the active collection: a value the scene gives every cabinet is recorded at each. */
+  bindings?: RuntimeBindingSet | null;
+  /** Stable keys of the placed cabinets, in composition order. */
+  cabinetIds?: readonly string[];
 };
 
 type Committer = (change: PlannedChange, context: CommitContext) => UnknownAction[];
@@ -189,6 +198,23 @@ export const commitChange = (change: PlannedChange, context: CommitContext): Unk
 type RuleSelectionCommit = { handle?: string; height?: number; drawers?: string };
 
 /**
+ * Where an applied value is recorded. A field names the first cabinet for a value of the whole
+ * composition; when the scene gave that value to every cabinet, every cabinet records it. So a
+ * cabinet a model placed does not keep the model's value, and the value outlives the first cabinet.
+ */
+const recordedTargets = (change: PlannedChange, context: CommitContext): PlannedChange["target"][] => {
+  const cabinetIds = context.cabinetIds ?? [];
+
+  return change.target.scope === "cabinet" &&
+    // A change for one cabinet alone went to that cabinet only.
+    !change.onlyThisCabinet &&
+    cabinetIds.length > 0 &&
+    isBroadcastCabinetValue(context.profile, context.bindings, change.attributeId)
+    ? cabinetIds.map((cabinetId) => ({ scope: "cabinet", cabinetId }))
+    : [change.target];
+};
+
+/**
  * Actions that record an applied set.
  *
  * Handle, height and drawers go into one commitRuleSelection after the per-cabinet actions,
@@ -226,7 +252,9 @@ export const commitPlan = (changes: readonly PlannedChange[], context: CommitCon
         break;
 
       default:
-        actions.push(...commitChange(change, context));
+        for (const target of recordedTargets(change, context)) {
+          actions.push(...commitChange({ ...change, target }, context));
+        }
 
         // A cleared groove is not written into the presets, as the handle change never did.
         if (isPresetColor(change.attributeId) && asText(change)) {
@@ -250,6 +278,24 @@ export const commitPlan = (changes: readonly PlannedChange[], context: CommitCon
 
 /** Attribute ids that are written into the typed product slice rather than the scoped map. */
 export const TYPED_COMMIT_ATTRIBUTE_IDS: readonly string[] = Object.keys(COMMITTERS);
+
+/**
+ * A cabinet value the scene receives for every cabinet at once (its binding targets "all") and
+ * that lives only in the scoped map: the handle colour of a collection whose handles are
+ * painted. It is the composition's value, so the state holds it at every cabinet, as the scene
+ * does. A value with a typed projection (the handle, the groove colour) keeps its own path.
+ */
+export const isBroadcastCabinetValue = (
+  profile: ProductProfile | null,
+  bindings: RuntimeBindingSet | null | undefined,
+  attributeId: string,
+): boolean => {
+  if (Object.hasOwn(COMMITTERS, attributeId)) return false;
+  if (selectAttribute(profile, attributeId)?.scope !== "cabinet") return false;
+
+  const binding = bindings ? selectRuntimeBinding(bindings, attributeId) : null;
+  return binding?.status === "bound" && binding.target.kind === "all";
+};
 
 /**
  * Actions that record values placed products already carry, each at its own address. The scene

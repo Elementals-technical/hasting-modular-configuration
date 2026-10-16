@@ -7,6 +7,14 @@
   padding: 20px;
 
   border-bottom: 1px solid #e5e6ea;
+
+  [data-accordion-layout="contained"] & {
+    position: sticky;
+    top: calc(-1 * var(--accordion-content-padding-y, 0px));
+    z-index: 2;
+    background-color: var(--main-header-bg);
+    --filter-row-padding-top: 12px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -14,6 +22,10 @@
     flex-wrap: nowrap;
     gap: 4px;
     padding: 12px 10px;
+
+    [data-accordion-layout="contained"] & {
+      --filter-row-padding-top: 8px;
+    }
 
     > button {
       flex: 0 0 auto;

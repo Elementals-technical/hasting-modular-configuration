@@ -159,8 +159,17 @@
     },
     {
       "attributeId": "HandleGrooveColor",
-      "status": "state-only",
-      "reason": "The ULH scene paints the groove in the cabinet colour: RuleMaterialsCabinetULH colours ULH_Cabinet_HGroove with CabinetColor, and RuleChangeHandleGrooveColor reaches Urban Standard Height meshes only. Recorded for the SKU and the Summary, not sent, until the export paints the ULH groove on its own."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "HandleGrooveColor",
+        "emptyValue": "None"
+      },
+      "order": 50,
+      "note": "RuleMaterialsCabinetULH paints ULH_Cabinet_HGroove independently for handle_urban_topcut, leaving the exterior in CabinetColor. None or an empty value restores the cabinet finish; PTO ignores the optional groove colour. Broadcast keeps every cabinet in the composition in sync."
     },
     {
       "attributeId": "FaucetHolesAmount",

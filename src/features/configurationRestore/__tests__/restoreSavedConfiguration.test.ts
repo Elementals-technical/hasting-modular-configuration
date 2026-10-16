@@ -108,7 +108,8 @@ describe("restoreSavedConfiguration", () => {
       reason: null,
       message: null,
     });
-    expect(store.getState().rootStateUI.history.past).toHaveLength(1);
+    // Nothing to undo yet: the first change writes the restored configuration.
+    expect(store.getState().rootStateUI.history.past).toEqual([]);
     expect(store.getState().rootStateUI.history.isRestoring).toBe(false);
   });
 
@@ -215,5 +216,34 @@ describe("restoreSavedConfiguration", () => {
     store.dispatch(addProductId("Sink-Base-user01"));
 
     expect(getRestoreState(store.getState()).status).toBe("idle");
+  });
+
+  it("asks the scene to put the cabinets back where the configuration was saved", async () => {
+    const record = savedRecord();
+    const sceneLayout = {
+      version: 1,
+      document: {
+        presetSchemaVersion: 2,
+        collection: {},
+        presetProducts: [{ key: "cabinet0" }, { key: "cabinet1" }],
+        presetLayout: {},
+      },
+      cabinetIds: { cabinet0: "Sink-Base-aaa111", cabinet1: "Sink-Cabinet-bbb222" },
+    };
+    record.metadata.sceneLayout = sceneLayout;
+    const { scene, restore } = setUp(record);
+
+    const result = await restore();
+
+    expect(result.status).toBe("restored");
+    expect(scene.requests[0].layout).toEqual(sceneLayout);
+  });
+
+  it("asks for one row when the configuration was saved without a layout", async () => {
+    const { scene, restore } = setUp();
+
+    await restore();
+
+    expect("layout" in scene.requests[0]).toBe(false);
   });
 });

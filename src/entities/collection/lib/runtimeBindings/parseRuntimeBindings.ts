@@ -1,4 +1,5 @@
 import type {
+  AlsoDelivery,
   FlowTargets,
   IdentityValues,
   MappedValues,
@@ -242,6 +243,49 @@ const parseCabinetTypeTable = (
   return valid ? table : null;
 };
 
+/** `also`: the other places an identity value goes to. Undefined when the entry has none. */
+const parseAlso = (
+  raw: unknown,
+  values: IdentityValues | MappedValues | null,
+  path: string,
+  collect: Collector,
+): AlsoDelivery[] | undefined | null => {
+  if (raw === undefined) return undefined;
+
+  if (!Array.isArray(raw) || raw.length === 0) {
+    collect.add("bindings.invalid_field_type", path, "also must be a non-empty array");
+    return null;
+  }
+
+  if (values && values.kind !== "identity") {
+    collect.add("binding.invalid_values", path, "also needs identity values: the same value is sent again");
+    return null;
+  }
+
+  const also: AlsoDelivery[] = [];
+  let valid = true;
+
+  raw.forEach((entry, index) => {
+    const entryPath = `${path}/${index}`;
+    const target = parseTarget(isRecord(entry) ? entry.target : undefined, `${entryPath}/target`, collect);
+
+    if (!isRecord(entry) || !isNonEmptyString(entry.sceneKey)) {
+      collect.add("binding.invalid_values", `${entryPath}/sceneKey`, "an also entry needs a sceneKey");
+      valid = false;
+      return;
+    }
+
+    if (!target) {
+      valid = false;
+      return;
+    }
+
+    also.push({ target, sceneKey: entry.sceneKey });
+  });
+
+  return valid ? also : null;
+};
+
 const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBinding | null => {
   if (!isRecord(raw)) {
     collect.add("bindings.invalid_field_type", path, "binding must be an object");
@@ -279,13 +323,33 @@ const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBi
   const resetBefore =
     raw.resetBefore === undefined ? undefined : parsePatch(raw.resetBefore, `${path}/resetBefore`, collect);
 
-  if (!target || !values || !orderValid || resetBefore === null) return null;
+  const also = parseAlso(raw.also, values, `${path}/also`, collect);
+
+  const placedValid = raw.placedWithNewProducts === undefined || typeof raw.placedWithNewProducts === "boolean";
+  if (!placedValid) {
+    collect.add(
+      "bindings.invalid_field_type",
+      `${path}/placedWithNewProducts`,
+      "placedWithNewProducts must be a boolean",
+    );
+  }
+
+  const perProductValid = raw.perProduct === undefined || typeof raw.perProduct === "boolean";
+  if (!perProductValid) {
+    collect.add("bindings.invalid_field_type", `${path}/perProduct`, "perProduct must be a boolean");
+  }
+
+  if (!target || !values || !orderValid || resetBefore === null || also === null || !placedValid || !perProductValid)
+    return null;
 
   return {
     attributeId: raw.attributeId,
     status: "bound",
     target,
     values,
+    ...(also ? { also } : {}),
+    ...(raw.placedWithNewProducts === true ? { placedWithNewProducts: true } : {}),
+    ...(raw.perProduct === true ? { perProduct: true } : {}),
     ...(typeof raw.order === "number" ? { order: raw.order } : {}),
     ...(resetBefore ? { resetBefore } : {}),
     ...(isNonEmptyString(raw.note) ? { note: raw.note } : {}),

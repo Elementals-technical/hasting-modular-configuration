@@ -11,6 +11,11 @@ import type { SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
 
 export type SceneSelectorResolution = { ok: true; selector: SceneSelector | null } | { ok: false; message: string };
 
+/** The scene names a product `${type}-${random tail}`, and the tail has no dash. */
+const isOfSceneType = (runtimeId: string, productType: string): boolean =>
+  runtimeId === productType ||
+  (runtimeId.startsWith(`${productType}-`) && !runtimeId.slice(productType.length + 1).includes("-"));
+
 export const resolveSceneSelector = (
   target: RuntimeTarget,
   change: RuntimeChange,
@@ -25,7 +30,15 @@ export const resolveSceneSelector = (
       // name it stays the broadcast the binding declares, which is how a configuration-wide
       // basin still reaches every sink base.
       if (change.target.scope !== "basin" || !change.target.sinkBaseId) {
-        return { ok: true, selector: { productType: target.productType } };
+        // The scene takes every product whose id contains the type, so "UD-open-shelves" would
+        // also reach "UD-open-shelves-side-…". With such a product placed, the products of the
+        // type itself are addressed by id; otherwise the broadcast stays as the binding declares it.
+        const reached = context.cabinetRuntimeIds.filter((runtimeId) => runtimeId.includes(target.productType));
+        const ofType = reached.filter((runtimeId) => isOfSceneType(runtimeId, target.productType));
+
+        if (ofType.length === reached.length) return { ok: true, selector: { productType: target.productType } };
+
+        return { ok: true, selector: ofType.length > 0 ? { productIds: ofType } : null };
       }
 
       const runtimeId = context.resolveRuntimeId(change.target.sinkBaseId);

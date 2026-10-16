@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getActiveCountertopThickness } from "@/entities/product/model/store/selectors";
 import { parseThicknessValue } from "@/features/configurator-rule-core/countertop";
-import { classifyCountertopError, isStandardCountertop, type CountertopApi } from "@/features/configuratorApi";
+import {
+  classifyCountertopError,
+  isLiftedCountertop,
+  isStandardCountertop,
+  type CountertopApi,
+} from "@/features/configuratorApi";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
 import { getCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
@@ -19,8 +24,6 @@ const THICKNESS_TOLERANCE_IN = 0.25;
 const THIN_BELOW_IN = 1;
 const OFFSET_ONLY_IN = 4;
 const FREE_THICKNESSES_IN = [2.4, 5.125, 5.5];
-/** A top higher than this (metres) counts as lifted. */
-const LIFTED_ABOVE_M = 0.01;
 
 const MODE_NOTICE: Record<CountertopMovementMode, string> = {
   none: "countertop.mode.none",
@@ -92,7 +95,7 @@ export const useCountertopMovementMode = (getApi: () => CountertopApi | null, re
   const topReady = useCountertopRuntimeValue((state) => state?.readiness === "ready") && ready;
   const locked = useCountertopRuntimeValue((state) => state?.verticalLocked === true);
   const target = useCountertopRuntimeValue((state) => `${state?.productId ?? ""}|${state?.compositionId ?? ""}`);
-  const lifted = useCountertopRuntimeValue((state) => (state?.offset?.y ?? 0) > LIFTED_ABOVE_M);
+  const lifted = useCountertopRuntimeValue((state) => isLiftedCountertop(state));
   const standard = useCountertopRuntimeValue((state) => isStandardCountertop(state));
   const dragging = useCountertopRuntimeValue((state) => state?.dragging === true);
   const mode = resolveMovementMode(thicknessOption, thicknessM);

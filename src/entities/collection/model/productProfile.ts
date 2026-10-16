@@ -110,6 +110,12 @@ export type CabinetMatrixLegacyAdapter = {
      */
     heightsByHandle?: Record<string, string>;
   };
+  /**
+   * drawers value -> the heights in cm a cabinet with these drawers comes in, for a table whose
+   * one forced height per drawers cannot say it (Urban Duplex: one drawer at 53 cm, and the Slim
+   * cabinets at 38 and 28). The user chooses among them; a change of drawers lands on the nearest.
+   */
+  heightsByDrawers?: Record<string, number[]>;
 };
 
 /**
@@ -259,6 +265,39 @@ export type CabinetColorTraitsRuleData = {
 };
 
 /**
+ * A cabinet of another series a collection places beside its own: a variant of one of its cabinet
+ * types with the widths and the heights that series sells it in (Urban Duplex: the Urban Standard
+ * Height and Urban Low Height side cabinets of its hybrid models). The rest of the type — its
+ * depths, its handle, its scene product — is the collection's.
+ */
+export type SeriesCabinetModule = {
+  /** Option value of the `Series` attribute the placed cabinet holds. */
+  series: string;
+  cabinetType: string;
+  widthsCm: number[];
+  /** drawers value -> the heights in cm it comes in; the keys are the drawer styles of the series. */
+  heightsByDrawers: Record<string, number[]>;
+};
+
+/**
+ * A drawer style of a cabinet type that stands at a height of its own beside the taller cabinets
+ * of the composition (Urban Freestanding: the Short-Cabinet). The one-height rule of
+ * the composition does not reach it: the composition keeps the height of its other cabinets, and
+ * the scene bridge places this one at the table's height of its style (buildSteppedSceneProducts). Its widths,
+ * depths and handle are those of its cabinet type.
+ */
+export type SteppedCabinetModule = {
+  cabinetType: string;
+  /** Drawers option value of the style. */
+  drawers: string;
+  /** Where the cabinet may stand: at either end of the composition. */
+  placement: "composition-end";
+  /** A placed cabinet of this CabinetType category (one that is not stepped) is required first. */
+  requiresPlacedCategory: string;
+  note?: string;
+};
+
+/**
  * Rule parameters: the algorithms stay in code, their lists, limits and exclusions live here.
  *
  * Every section except the cabinet matrix adapter is optional. An absent section means the
@@ -279,6 +318,10 @@ export type ProfileRuleData = {
     drawerValues: string[];
     hasSink: boolean;
   }[];
+  /** Cabinets of other series offered beside the collection's own, as variants of its types. */
+  seriesModules?: SeriesCabinetModule[];
+  /** Drawer styles that stand at a height of their own, out of the composition's one-height rule. */
+  steppedModules?: SteppedCabinetModule[];
   drawerStyleGroups?: DrawerStyleGroups;
   /** Changes the product has no rule for yet (CONTRACTS §8); the command holds them back. */
   undeterminedRules?: UndeterminedRule[];

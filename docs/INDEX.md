@@ -47,6 +47,10 @@ product.
 - [`mako-profile.md`](mako-profile.md) — Provenance of the Mako collection and its profile.
 - [`urban-low-height-profile.md`](urban-low-height-profile.md) — Provenance of the Urban Low Height profile.
 
+### Urban Freestanding short cabinet
+
+- [`urban-freestanding-short-cabinet.md`](urban-freestanding-short-cabinet.md) — How the 1DW Floor-Mount Short Cabinet was added (data path, decision, changes, checks) and the questions left to the client.
+
 ### Side-panel refactor
 
 - [`side-panel-reasons-refactor.md`](side-panel-reasons-refactor.md) — Design and status of the side-panel reason-registry refactor.

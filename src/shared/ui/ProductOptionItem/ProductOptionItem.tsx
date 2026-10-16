@@ -94,76 +94,79 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   const optionContent = (
     <div
       className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${isCabinetTypeVariant ? s.cabinetTypeItem : ""} ${isAccessoryVariant ? s.accessoryItem : ""} ${isSinkBaseCabinetType ? s.sinkBaseCabinetTypeItem : ""} ${isSideCabinetType ? s.sideCabinetTypeItem : ""} ${!available ? s.disabledOption : ""}`}
-      onClick={() => {
-        if (!available) return;
-        onClick?.(productName, config, metadata);
-        setActive?.(id);
-      }}
     >
-      <div className={s.imageContainer}>
-        <div
-          className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""} ${needsLightBorder ? s.lightBorder : ""}`}
-        >
-          {hasImage ? (
-            <img src={imageSrc} alt="color image" />
-          ) : hasHexColor ? (
-            <div className={s.colorSwatch} style={{ backgroundColor: metadata?.hex }} />
-          ) : (
-            <img src={imageSrc} alt="color image" />
-          )}
-        </div>
-
-        {onPreview && (
-          <button
-            className={s.expandBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              onPreview(title, metadata);
-            }}
+      <button
+        type="button"
+        className={s.selectButton}
+        aria-label={title}
+        aria-pressed={isActive}
+        aria-disabled={!available || undefined}
+        onClick={() => {
+          if (!available) return;
+          onClick?.(productName, config, metadata);
+          setActive?.(id);
+        }}
+      >
+        <span className={s.imageContainer}>
+          <span
+            className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""} ${needsLightBorder ? s.lightBorder : ""}`}
           >
-            <ExpandIcon />
-          </button>
-        )}
-      </div>
+            {hasImage ? (
+              <img src={imageSrc} alt="" />
+            ) : hasHexColor ? (
+              <span className={s.colorSwatch} style={{ backgroundColor: metadata?.hex }} />
+            ) : (
+              <img src={imageSrc} alt="" />
+            )}
+          </span>
+        </span>
 
-      {available ? (
-        <div className={`${s.title} ${s.titleHint}`}>
-          {title}
+        {available ? (
+          <span className={`${s.title} ${s.titleHint}`}>
+            {title}
 
-          {isShortDesc && (
-            <Hint
-              className={s.optionHint_descr}
-              placement="right"
-              content={"Hint with dimensions & short description "}
-            >
-              <span className={s.descIcon}>
-                <HintOptionIcon />
-              </span>
-            </Hint>
-          )}
-        </div>
-      ) : (
-        <>
-          <div className={s.disabledTitleRow}>
-            <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+            {isShortDesc && (
+              <Hint
+                className={s.optionHint_descr}
+                placement="right"
+                content={"Hint with dimensions & short description "}
+              >
+                <span className={s.descIcon}>
+                  <HintOptionIcon />
+                </span>
+              </Hint>
+            )}
+          </span>
+        ) : (
+          <span className={s.disabledTitleRow}>
+            <span className={`${s.title} ${s.titleDisabled}`}>{title}</span>
             {disabledBadgeLabel && <span className={s.disabledBadge}>{disabledBadgeLabel}</span>}
-          </div>
-          {disabledActionLabel && onDisabledAction && (
-            <button
-              type="button"
-              className={s.disabledAction}
-              onClick={(e) => {
-                e.stopPropagation();
-                void onDisabledAction();
-              }}
-            >
-              {disabledActionLabel}
-            </button>
-          )}
-        </>
-      )}
+          </span>
+        )}
 
-      <div className={s.desc}>{desc}</div>
+        <span className={s.desc}>{desc}</span>
+      </button>
+      {onPreview && (
+        <button
+          type="button"
+          className={s.expandBtn}
+          aria-label={`Preview ${title}`}
+          onClick={() => onPreview(title, metadata)}
+        >
+          <ExpandIcon />
+        </button>
+      )}
+      {!available && disabledActionLabel && onDisabledAction && (
+        <button
+          type="button"
+          className={s.disabledAction}
+          onClick={() => {
+            void onDisabledAction();
+          }}
+        >
+          {disabledActionLabel}
+        </button>
+      )}
     </div>
   );
 

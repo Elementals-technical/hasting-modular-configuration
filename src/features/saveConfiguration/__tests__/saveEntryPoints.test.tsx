@@ -13,7 +13,12 @@ vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
   getConfig: vi.fn(async (id: string) => ({ ProductType: "Sink-Base", Width: 60, Handle: "handle_pto", id })),
 }));
 
+vi.mock("@/features/cabinetPlacementDebug/lib/captureFreeLayout", () => ({
+  captureFreeLayout: vi.fn(async () => null),
+}));
+
 import { store } from "@/app/store";
+import type { SceneLayout } from "@/entities/configuration";
 import {
   finishRestore,
   resetConfiguration,
@@ -31,6 +36,8 @@ import {
   setSelectedProductConfig,
   setTowelBarOption,
 } from "@/entities/product/model/store/slice";
+
+import { captureFreeLayout } from "@/features/cabinetPlacementDebug/lib/captureFreeLayout";
 
 import {
   hashConfigurationRequest,
@@ -83,6 +90,8 @@ const withoutTimestamp = ({ configuration, metadata }: ConfigurationSaveRequest)
 });
 
 beforeEach(() => {
+  vi.mocked(captureFreeLayout).mockReset();
+  vi.mocked(captureFreeLayout).mockResolvedValue(null);
   store.dispatch(reset());
   store.dispatch(resetConfiguration());
   store.dispatch(setActiveCollectionId(USH));
@@ -147,5 +156,47 @@ describe("the five save entry points", () => {
     const { result } = renderHook(() => useSaveCurrentConfiguration(), { wrapper: wrapperOn("/custom/summary") });
 
     await expect(result.current()).resolves.toEqual({ ok: false, reason: "no-collection" });
+  });
+});
+
+describe("where the cabinets stood", () => {
+  const layoutOf = (...ids: string[]): SceneLayout => ({
+    version: 1,
+    document: { presetSchemaVersion: 2, collection: {}, presetProducts: [], presetLayout: {} },
+    cabinetIds: Object.fromEntries(ids.map((id, index) => [`cabinet${index}`, id])),
+  });
+
+  it("is saved with the configuration when the scene of the collection can say it", async () => {
+    const layout = layoutOf("rt-b", "rt-a");
+    vi.mocked(captureFreeLayout).mockResolvedValue(layout);
+
+    const request = await buildFrom("/custom/summary");
+
+    expect(captureFreeLayout).toHaveBeenCalledWith(USH);
+    expect(request?.metadata.sceneLayout).toEqual(layout);
+  });
+
+  it.each([
+    ["the scene has none", async () => null],
+    ["the scene fails to read it", async () => Promise.reject(new Error("busy"))],
+    ["it names a product the save does not hold", async () => layoutOf("rt-a", "rt-x")],
+  ])("is left out when %s, and the configuration is saved all the same", async (_, capture) => {
+    vi.mocked(captureFreeLayout).mockImplementation(capture);
+
+    const request = await buildFrom("/custom/summary");
+
+    expect(request?.metadata.orderedProductIds).toEqual(["rt-a", "rt-b"]);
+    expect("sceneLayout" in (request?.metadata ?? {})).toBe(false);
+  });
+
+  it("tells two saves apart by it, and keeps equal ones equal", async () => {
+    vi.mocked(captureFreeLayout).mockImplementation(async () => layoutOf("rt-a", "rt-b"));
+    const first = await buildFrom("/custom/summary");
+    const same = await buildFrom("/custom/summary");
+    vi.mocked(captureFreeLayout).mockImplementation(async () => layoutOf("rt-b", "rt-a"));
+    const moved = await buildFrom("/custom/summary");
+
+    expect(hashConfigurationRequest(same!)).toBe(hashConfigurationRequest(first!));
+    expect(hashConfigurationRequest(moved!)).not.toBe(hashConfigurationRequest(first!));
   });
 });

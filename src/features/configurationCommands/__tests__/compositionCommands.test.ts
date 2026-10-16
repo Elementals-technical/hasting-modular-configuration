@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { store } from "@/app/store";
+import { parseProductProfile, parseRuntimeBindings } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
@@ -31,11 +34,14 @@ import {
 import { buildCollectionPricingLines } from "@/shared/lib/pricing";
 import { collectionPricingInput, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 
+import { changeAttribute } from "../lib/changeAttribute";
+import { selectOwnCabinetValues } from "../lib/compositionValues";
 import {
   addCabinet,
   adoptComposition,
   applyPreset,
   clearComposition,
+  prepareCabinet,
   removeCabinets,
   swapCabinets,
   type CompositionDeps,
@@ -269,15 +275,15 @@ describe("composition commands", () => {
     const makoModel = [
       {
         productType: "Sink-Cabinet",
-        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "Antracite 400 MT" },
       },
       {
         productType: "Sink-Base",
-        config: { Width: 60, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+        config: { Width: 60, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "Antracite 400 MT" },
       },
       {
         productType: "Sink-Cabinet",
-        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "None" },
+        config: { Width: 40, Drawers: "2D", Handle: "G57", HandleColor: "Silver", LegColor: "Antracite 400 MT" },
       },
     ];
 
@@ -297,7 +303,7 @@ describe("composition commands", () => {
         expect(cabinets).toHaveLength(3);
         cabinets.forEach(({ stableKey }) => {
           expect(cabinetValue("HandleColor", stableKey)).toBe("Silver");
-          expect(cabinetValue("LegColor", stableKey)).toBe("None");
+          expect(cabinetValue("LegColor", stableKey)).toBe("Antracite 400 MT");
         });
         // The handle is one for the composition, as the scene and the handle command hold it.
         expect(product().selectedProductConfig?.Handle).toBe("G57");
@@ -390,6 +396,539 @@ describe("composition commands", () => {
       });
     });
 
+    /**
+     * The Mako scene paints the handles and legs of every cabinet at once. The state holds such a
+     * value at every cabinet too, so the order names the colour the scene shows for each of them.
+     */
+    describe("a value the scene gives every cabinet", () => {
+      beforeEach(() => {
+        store.dispatch(setActiveProfile(makoProfile));
+        store.dispatch(setActiveCollectionId("mako"));
+        store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
+      });
+
+      const heldBy = (attributeId: string) =>
+        getCabinetEntries(store.getState()).map(({ stableKey }) => cabinetValue(attributeId, stableKey));
+
+      /** Cabinet SKUs without their size, which these tests do not vary. */
+      const handleBlocks = () => {
+        const state = store.getState();
+        const input = collectionPricingInput(
+          MAKO,
+          getCabinetEntries(state).map(({ stableKey, runtimeId }) => ({
+            stableKey,
+            runtimeId,
+            size: { width: 60, height: 52, depth: 52 },
+          })),
+          { ...getValuesByAttributeId(state) },
+          {
+            runtimeBindings: makoRuntimeBindings,
+            selectedProductConfig: product().selectedProductConfig,
+            placedCabinetStyles: product().placedCabinetStyles,
+          },
+        );
+
+        return buildCollectionPricingLines(input)
+          .lines.filter(({ group }) => group === "cabinet")
+          .map(({ sku }) => sku.replace(/^.*?-(HDL-.*)$/, "$1"));
+      };
+
+      const chooseHandleColor = async (
+        { runtime, deps }: ReturnType<typeof setup>,
+        value: string,
+        cabinet = getCabinetEntries(store.getState())[0],
+      ) =>
+        changeAttribute(
+          { attributeId: "HandleColor", value, scope: "cabinet", cabinetId: cabinet.stableKey },
+          { getState: deps.getState, dispatch: deps.dispatch, runtime: runtime.port, flow: "custom" },
+        );
+
+      it("is recorded at every cabinet when a field changes it, and sent to the scene once", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+
+        const result = await chooseHandleColor(fixture, "Gold");
+
+        expect(result.status).toBe("applied");
+        expect(fixture.runtime.calls).toHaveLength(1);
+        expect(fixture.runtime.calls[0].map(({ attributeId, value }) => [attributeId, value])).toEqual([
+          ["HandleColor", "Gold"],
+        ]);
+        // Before, only the first cabinet took the new colour and the others kept the model's.
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+      });
+
+      it("is recorded at every cabinet whichever cabinet the change names", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+
+        await chooseHandleColor(fixture, "Gold", getCabinetEntries(store.getState())[2]);
+
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold"]);
+      });
+
+      it("stays with the composition when its first cabinet is removed", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await chooseHandleColor(fixture, "Gold");
+
+        await removeCabinets([product().productIds[0]], fixture.deps);
+
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL"]);
+      });
+
+      it("goes to a cabinet added later, in the scene and in the state", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await chooseHandleColor(fixture, "Gold");
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2D" } },
+            placement: { kind: "end" },
+          },
+          fixture.deps,
+        );
+
+        // The model stands on legs in their own colour, and so does the cabinet that joins it.
+        expect(lastCall(fixture.composition)).toMatchObject({
+          op: "add",
+          product: { config: { Width: 40, Drawers: "2", HandleColor: "Gold", LegColor: "Antracite 400 MT" } },
+        });
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+        expect(heldBy("LegColor")).toEqual([
+          "Antracite 400 MT",
+          "Antracite 400 MT",
+          "Antracite 400 MT",
+          "Antracite 400 MT",
+        ]);
+        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+      });
+
+      it("starts the first cabinet of an empty composition at the collection's handle colour", async () => {
+        const { composition, deps } = setup();
+
+        await addCabinet(
+          { product: { productType: "Sink-Base", config: { Width: 60, Drawers: "2D" } }, placement: { kind: "end" } },
+          deps,
+        );
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toEqual({
+          Width: 60,
+          Drawers: "2",
+          HandleColor: "Antracite 400 MT",
+        });
+        expect(heldBy("HandleColor")).toEqual(["Antracite 400 MT"]);
+        // Legs have no starting value: a cabinet stands on them only once they are chosen.
+        expect(heldBy("LegColor")).toEqual([undefined]);
+        expect(handleBlocks()).toEqual(["HDL-LACM-400"]);
+      });
+
+      it("keeps the value a copied cabinet carries, and records the composition's", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await chooseHandleColor(fixture, "Gold");
+
+        // A duplicate is placed with the scene config of its source, which names the scene material.
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Drawers: "2D", HandleColor: "Gold", LegColor: "" } },
+            placement: { kind: "end" },
+          },
+          fixture.deps,
+        );
+
+        const call = lastCall(fixture.composition);
+        expect(call.op === "add" && call.product.config).toMatchObject({
+          HandleColor: "Gold",
+          LegColor: "Antracite 400 MT",
+        });
+        expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+      });
+
+      it("does not put legs back on a cabinet that joins a composition whose legs were switched off", async () => {
+        const fixture = setup();
+        await applyPreset({ products: makoModel }, fixture.deps);
+        await changeAttribute(
+          {
+            attributeId: "LegColor",
+            value: "",
+            scope: "cabinet",
+            cabinetId: getCabinetEntries(store.getState())[0].stableKey,
+          },
+          {
+            getState: fixture.deps.getState,
+            dispatch: fixture.deps.dispatch,
+            runtime: fixture.runtime.port,
+            flow: "custom",
+          },
+        );
+        expect(heldBy("LegColor")).toEqual(["", "", ""]);
+
+        await addCabinet(
+          { product: { productType: "Sink-Cabinet", config: { Drawers: "2D" } }, placement: { kind: "end" } },
+          fixture.deps,
+        );
+
+        const call = lastCall(fixture.composition);
+        expect(call.op === "add" && Object.keys(call.product.config)).not.toContain("LegColor");
+      });
+
+      it("adds nothing to a cabinet of a collection without such values", async () => {
+        store.dispatch(setActiveProfile(ushProfile));
+        store.dispatch(setActiveCollectionId("urban-standard-height"));
+        store.dispatch(setActiveRuntimeBindings(ushRuntimeBindings));
+        const { composition, deps } = setup(["cab-a"]);
+
+        await addCabinet(
+          { product: { productType: "Sink-Base", config: { Width: 60, Drawers: "1D" } }, placement: { kind: "end" } },
+          deps,
+        );
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toEqual({ Width: 60, Drawers: "1" });
+        expect(getValuesByAttributeId(store.getState())).toEqual({});
+      });
+    });
+
+    describe("a colour the scene keeps per product (Urban Duplex)", () => {
+      beforeEach(() => {
+        const profile = parseProductProfile(urbanDuplexProfileDocument);
+        const bindings = parseRuntimeBindings(urbanDuplexBindingsDocument);
+        if (!profile.ok || !bindings.ok) throw new Error("the packaged Urban Duplex data must parse");
+
+        store.dispatch(setActiveProfile(profile.profile));
+        store.dispatch(setActiveCollectionId("urban-duplex"));
+        store.dispatch(setActiveRuntimeBindings(bindings.bindings));
+      });
+
+      const add = (deps: CompositionDeps, productType: string, config: Record<string, unknown>) =>
+        addCabinet({ product: { productType, config }, placement: { kind: "end" } }, deps);
+
+      it("starts the first cabinet in the collection's panel colours, with its lateral panel on the right", async () => {
+        const { composition, deps } = setup();
+
+        await add(deps, "Sink-Base", { Width: 60, Drawers: "2D" });
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toEqual({
+          Width: 60,
+          Drawers: "2",
+          BasePanelColor: "Bianco Calce DA ST",
+          LateralPanelColor: "Pulpis Chiaro TKH",
+          LateralPanelSide: "R",
+        });
+        // The colours stay the configuration's own; only the side is held by each cabinet.
+        const values = getValuesByAttributeId(store.getState());
+        expect(values.BasePanelColor).toBeUndefined();
+        expect(values.LateralPanelColor).toBeUndefined();
+        expect(values.LateralPanelSide?.map(({ value }) => value)).toEqual(["R"]);
+      });
+
+      it("places a model picked after a colour was chosen in that colour, and in its own otherwise", async () => {
+        const model = [
+          {
+            productType: "Side-Shelf",
+            config: { Width: 15, BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" },
+          },
+          {
+            productType: "Sink-Base",
+            config: { Width: 70, BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" },
+          },
+        ];
+        const { composition, deps } = setup();
+
+        await applyPreset({ products: model }, deps);
+        expect(lastCall(composition)).toMatchObject({ op: "replace", request: { products: model } });
+
+        store.dispatch(
+          setAttributeValue({
+            attributeId: "BasePanelColor",
+            target: { scope: "global" },
+            value: "Castagno Scuro 1C3",
+          }),
+        );
+        await applyPreset({ products: model }, deps);
+
+        // The price reads the chosen base colour for every product, so the scene shows it too.
+        const call = lastCall(composition);
+        expect(call.op === "replace" && call.request.products.map(({ config }) => config)).toEqual([
+          { Width: 15, BasePanelColor: "Castagno Scuro 1C3", LateralPanelColor: "Pulpis Chiaro TKH" },
+          { Width: 70, BasePanelColor: "Castagno Scuro 1C3", LateralPanelColor: "Pulpis Chiaro TKH" },
+        ]);
+      });
+
+      /** Two placed drawer cabinets, each holding the side of its lateral panel. */
+      const placeTwo = (sides: [string, string] = ["R", "R"]) => {
+        const placed = setup(["UD-sink-cabinet-a1b2c3d4e", "UD-side-cabinet-f5g6h7i8j"]);
+        const cabinetIds = getCabinetEntries(store.getState()).map(({ stableKey }) => stableKey);
+        cabinetIds.forEach((cabinetId, index) =>
+          store.dispatch(
+            setAttributeValue({
+              attributeId: "LateralPanelSide",
+              target: { scope: "cabinet", cabinetId },
+              value: sides[index],
+            }),
+          ),
+        );
+        return { ...placed, cabinetIds };
+      };
+      const sides = () => {
+        const order = getCabinetEntries(store.getState()).map(({ stableKey }) => stableKey);
+        return order.map((cabinetId) =>
+          getAttributeValue(store.getState(), "LateralPanelSide", { scope: "cabinet", cabinetId }),
+        );
+      };
+
+      it("turns the lateral panel of one cabinet alone when the change asks for that cabinet", async () => {
+        const { runtime, deps, cabinetIds } = placeTwo();
+
+        const result = await changeAttribute(
+          {
+            attributeId: "LateralPanelSide",
+            value: "L",
+            scope: "cabinet",
+            cabinetId: cabinetIds[1],
+            onlyThisCabinet: true,
+          },
+          deps,
+        );
+
+        expect(result.status).toBe("applied");
+        // One change for the scene, marked for the cabinet it names; the other cabinet keeps its side.
+        expect(runtime.calls).toEqual([
+          [
+            expect.objectContaining({
+              attributeId: "LateralPanelSide",
+              target: { scope: "cabinet", cabinetId: cabinetIds[1] },
+              value: "L",
+              onlyThisCabinet: true,
+            }),
+          ],
+        ]);
+        expect(sides()).toEqual(["R", "L"]);
+      });
+
+      it("turns them all when a field sets the side, whatever cabinet it names", async () => {
+        const { deps, cabinetIds } = placeTwo(["R", "L"]);
+
+        await changeAttribute(
+          { attributeId: "LateralPanelSide", value: "L", scope: "cabinet", cabinetId: cabinetIds[0] },
+          deps,
+        );
+
+        expect(sides()).toEqual(["L", "L"]);
+      });
+
+      it("refuses one cabinet alone for a value the scene keeps once for them all", async () => {
+        const { runtime, deps, cabinetIds } = placeTwo();
+
+        const result = await changeAttribute(
+          { attributeId: "Handle", value: "UG", scope: "cabinet", cabinetId: cabinetIds[1], onlyThisCabinet: true },
+          deps,
+        );
+
+        expect(result).toMatchObject({ status: "error", code: "scope-mismatch" });
+        expect(runtime.calls).toEqual([]);
+      });
+
+      it("records a cabinet that joins with the side chosen for it, and with the composition's otherwise", async () => {
+        const { composition, deps } = placeTwo(["R", "R"]);
+
+        await add(deps, "Sink-Cabinet", { Width: 60, Drawers: "2D", LateralPanelSide: "L" });
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toMatchObject({ LateralPanelSide: "L" });
+        expect(sides()).toEqual(["R", "R", "L"]);
+
+        await add(deps, "Sink-Cabinet", { Width: 60, Drawers: "2D" });
+
+        expect(sides()).toEqual(["R", "R", "L", "R"]);
+      });
+
+      const seriesHeld = () => {
+        const order = getCabinetEntries(store.getState()).map(({ stableKey }) => stableKey);
+        return order.map((cabinetId) => getAttributeValue(store.getState(), "Series", { scope: "cabinet", cabinetId }));
+      };
+
+      it("records the series of a cabinet that joins: the one it was placed as, else the collection's", async () => {
+        const { composition, deps } = setup();
+
+        await add(deps, "Sink-Base", { Width: 60, Drawers: "2D" });
+        // A side cabinet Urban Standard Height supplies, picked as a style of that series.
+        await add(deps, "Sink-Cabinet", { Width: 35, Drawers: "2D", Series: "URSTD" });
+        await add(deps, "Open-Shelf", { Width: 35 });
+
+        // The scene is told the series of that one product; its binding turns it into the full handles.
+        const calls = composition.calls.flatMap((call) => (call.op === "add" ? [call.product.config.Series] : []));
+        expect(calls).toEqual([undefined, "URSTD", undefined]);
+        // Each cabinet holds its own, so none reads the series of the one beside it.
+        expect(seriesHeld()).toEqual(["URDPX", "URSTD", "URDPX"]);
+      });
+
+      it("records the collection's series at the cabinets that held none, once one of another series joins", async () => {
+        // Placed before the state kept the series of each cabinet.
+        const { deps } = setup(["UD-sink-cabinet-a1b2c3d4e", "UD-side-cabinet-f5g6h7i8j"]);
+        expect(seriesHeld()).toEqual([undefined, undefined]);
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 25, Drawers: "1D", Series: "URLH" } },
+            placement: { kind: "beside", anchorRuntimeId: "UD-sink-cabinet-a1b2c3d4e", side: "left" },
+          },
+          deps,
+        );
+
+        // The newcomer stands first, where the composition's values are read: the others keep their own.
+        expect(seriesHeld()).toEqual(["URLH", "URDPX", "URDPX"]);
+      });
+
+      it("reads back what a cabinet holds of its own, for a copy of it and for its rules", async () => {
+        const { deps } = placeTwo(["R", "L"]);
+        await add(deps, "Sink-Cabinet", { Width: 35, Drawers: "2D", Series: "URSTD", LateralPanelSide: "L" });
+        const [sinkBase, , added] = product().productIds;
+
+        // The series alone decides the rules of a selected cabinet; a copy also takes the side.
+        expect(selectOwnCabinetValues(store.getState(), added)).toEqual({ Series: "URSTD" });
+        expect(selectOwnCabinetValues(store.getState(), added, { sentToOne: true })).toEqual({
+          Series: "URSTD",
+          LateralPanelSide: "L",
+        });
+        expect(selectOwnCabinetValues(store.getState(), sinkBase, { sentToOne: true })).toEqual({
+          Series: "URDPX",
+          LateralPanelSide: "R",
+        });
+        expect(selectOwnCabinetValues(store.getState(), "not-placed")).toEqual({});
+      });
+
+      it("gives a shelf that joins later the colours chosen for the configuration", async () => {
+        const { composition, deps } = setup(["UD-sink-cabinet-a1b2c3d4e"]);
+        store.dispatch(
+          setAttributeValue({
+            attributeId: "BasePanelColor",
+            target: { scope: "global" },
+            value: "Castagno Scuro 1C3",
+          }),
+        );
+        store.dispatch(
+          setAttributeValue({
+            attributeId: "LateralPanelColor",
+            target: { scope: "global" },
+            value: "Metal bronzo 2MD",
+          }),
+        );
+
+        await add(deps, "Side-Shelf", { Width: 15 });
+
+        expect(lastCall(composition)).toMatchObject({
+          op: "add",
+          product: {
+            productType: "Side-Shelf",
+            config: { Width: 15, BasePanelColor: "Castagno Scuro 1C3", LateralPanelColor: "Metal bronzo 2MD" },
+          },
+        });
+      });
+
+      it("prepares a cabinet for Drag & Drop as addCabinet places one, without a scene call", async () => {
+        const { composition, deps } = placeTwo(["L", "L"]);
+        const config = { Width: 35, Drawers: "1D", Series: "URSTD" };
+
+        const prepared = prepareCabinet({ productType: "Sink-Cabinet", config }, deps);
+        expect(composition.calls).toEqual([]);
+
+        await add(deps, "Sink-Cabinet", config);
+        const call = lastCall(composition);
+        // The stand-in port keeps the collection's names; the config is what addCabinet hands it.
+        expect(prepared?.selection).toEqual(call.op === "add" ? call.product.config : null);
+        expect(prepared?.selection).toMatchObject({
+          Drawers: "1",
+          Series: "URSTD",
+          BasePanelColor: "Bianco Calce DA ST",
+          LateralPanelColor: "Pulpis Chiaro TKH",
+          LateralPanelSide: "L",
+        });
+        expect(prepared?.inherited).toMatchObject({ LateralPanelSide: "L" });
+      });
+
+      it("prepares a copy of a placed cabinet without where that one stands", () => {
+        const { deps } = placeTwo();
+
+        const prepared = prepareCabinet(
+          {
+            productType: "Sink-Cabinet",
+            config: { Width: 60, SupportGroupId: "group-1~under", SpatialOffsetM: { x: 0, y: 0 }, positionX: 1.2 },
+          },
+          deps,
+        );
+
+        expect(prepared?.selection).not.toHaveProperty("SupportGroupId");
+        expect(prepared?.selection).not.toHaveProperty("SpatialOffsetM");
+        expect(prepared?.selection).not.toHaveProperty("positionX");
+        expect(prepared?.product.config).toEqual({ Width: 60 });
+      });
+
+      it("records a cabinet a drag placed as addCabinet records one", async () => {
+        const { deps } = placeTwo(["R", "R"]);
+        const prepared = prepareCabinet(
+          { productType: "Sink-Cabinet", config: { Width: 35, Drawers: "1D", Series: "URSTD", LateralPanelSide: "L" } },
+          deps,
+        );
+        if (!prepared) throw new Error("the cabinet must be prepared");
+        const runtimeIds = [...product().productIds, "UD-side-cabinet-dragged"];
+
+        await adoptComposition(
+          {
+            runtimeIds,
+            products: runtimeIds.map(() => ({ productType: "Sink-Cabinet", config: { Width: 60 } })),
+            placed: [
+              { runtimeId: "UD-side-cabinet-dragged", product: prepared.product, inherited: prepared.inherited },
+            ],
+          },
+          deps,
+        );
+
+        // The scene config names neither: the series and the side it was placed as are recorded.
+        expect(seriesHeld()).toEqual(["URDPX", "URDPX", "URSTD"]);
+        expect(sides()).toEqual(["R", "R", "L"]);
+      });
+
+      it("records nothing of its own for a cabinet adopted without a placement", async () => {
+        const { deps } = placeTwo(["R", "R"]);
+        const runtimeIds = [...product().productIds, "UD-side-cabinet-moved"];
+
+        await adoptComposition(
+          { runtimeIds, products: runtimeIds.map(() => ({ productType: "Sink-Cabinet", config: { Width: 60 } })) },
+          deps,
+        );
+
+        expect(sides()).toEqual(["R", "R", undefined]);
+      });
+
+      it("places a cabinet in the free place under a hanging one and lists it in its column", async () => {
+        const { composition, deps } = setup(["UD-sink-cabinet-a1b2c3d4e", "UD-side-cabinet-f5g6h7i8j"]);
+
+        const result = await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 70, Drawers: "1D" } },
+            placement: { kind: "slot", anchorRuntimeId: "UD-sink-cabinet-a1b2c3d4e", slot: "bottom" },
+          },
+          deps,
+        );
+
+        expect(result.status).toBe("applied");
+        expect(lastCall(composition)).toMatchObject({ op: "add", placement: { kind: "slot", slot: "bottom" } });
+        // A column lists its top before its bottom.
+        expect(product().productIds).toEqual([
+          "UD-sink-cabinet-a1b2c3d4e",
+          "Sink-Cabinet-new-1",
+          "UD-side-cabinet-f5g6h7i8j",
+        ]);
+      });
+    });
+
     describe("a USH model", () => {
       it("records the model's handle as the composition's and nothing per cabinet", async () => {
         const { deps } = setup();
@@ -474,6 +1013,21 @@ describe("composition commands", () => {
     expect(getCabinetEntries(store.getState()).map(({ runtimeId, stableKey }) => [runtimeId, stableKey])).toEqual(
       [...keysBefore].reverse(),
     );
+  });
+
+  it("keeps the order when the scene refuses a swap, with the scene's code for the interface", async () => {
+    const { composition, deps } = setup(["cab-a", "cab-b"]);
+    composition.answerNext({ status: "failed", message: "tall run split", sceneCode: "UF_HEIGHT_RUN_VIOLATION" });
+
+    const result = await swapCabinets("cab-a", "cab-b", deps);
+
+    expect(result).toEqual({
+      status: "error",
+      code: "runtime-failed",
+      message: "tall run split",
+      sceneCode: "UF_HEIGHT_RUN_VIOLATION",
+    });
+    expect(product().productIds).toEqual(["cab-a", "cab-b"]);
   });
 
   describe("clearComposition", () => {

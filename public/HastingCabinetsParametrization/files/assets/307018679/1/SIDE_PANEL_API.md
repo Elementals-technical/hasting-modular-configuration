@@ -18,6 +18,50 @@
 | `right` | Right edge panel |
 | `both` | Both sides (default) |
 
+## ULH rows and groups
+
+For a composition containing only ULH cabinets, `SidePanelSide` is a shared choice
+for every row. `both` enables a separate left and right panel on every fully exposed,
+compatible row edge, including edges facing a gap. Two separated rows can therefore
+produce four panel products. Two vertically stacked rows also use separate panels;
+their heights are never added together.
+
+The physical edge cabinet supplies each panel's `Height`, `Depth`, `CabinetColor`,
+`Handle`, `HandleGrooveColor` and `GrainDirection`. Panels align to that cabinet's X
+edge, bottom Y and depth centre Z. Cabinet insertion order does not choose the reference.
+Neighbouring cabinets in any group can cover a side. Covered or partially covered
+sides produce no panel; shelves without registered side-panel support and sizes outside
+the existing ULH geometry tables also produce no panel. The selected type remains saved,
+so a panel reappears when its edge becomes fully exposed and compatible.
+
+`None` with `left`, `right` or `both` removes all panels on the selected sides. Each
+side can retain its own requested type. Actual ULH appearance still follows the cabinet
+handle: PTO uses `NoG`, top-cut uses `UpperG`.
+
+Every actual panel is an individual `addons` product, available through `getConfig`
+and composition snapshots with its own ID and actual dimensions/material. Pricing
+consumers must enumerate panel products, rather than assume at most one per side.
+The registered product types and random product ID format remain
+`ULH-SidePanel_Left` / `ULH-SidePanel_Right` and `<productType>-<suffix>`.
+
+Additional panel configuration fields:
+
+| Field | Meaning |
+| --- | --- |
+| `SidePanelLayout` | `group-edge` for the ULH row lifecycle |
+| `SidePanelAnchorCabinetId` | Actual physical edge cabinet |
+| `SidePanelEdgeKey` | `<cabinetId>:<side>`; independent of changing row/group IDs |
+| `SupportGroupId` | Current support group; updated after regrouping |
+| `SidePanelRequestedType` | Shared requested type for this side |
+
+Snapshots persist the shared selection in `features.sidePanelSelection`, including
+when no eligible panel products exist. Restore accepts multiple ULH panels on one side
+and reuses their product IDs. Old ULH outer panels migrate to the new lifecycle in place.
+The basin countertop counts only planned panels of its own support group in the same
+rule cycle. Towel bars use the panel at their actual edge cabinet.
+
+Other collections retain the one-left/one-right lifecycle described in the examples below.
+
 ---
 
 ## Usage Examples

@@ -27,6 +27,31 @@ const extractWidthFromConfig = (config: Record<string, unknown> | null): number 
   return toFiniteNumber(config.Width);
 };
 
+/** A placed cabinet's width (cm) and, when the scene names it, the centre of its place along the wall (m). */
+export type PlacedWidth = { widthCm: number; centreXM: number | null };
+
+/**
+ * The length a composition takes along the wall, in cm. Cabinets at one place, one over the
+ * other (a column of Urban Duplex), count once; a shifted one adds what sticks out. Without the
+ * scene's positions it is the sum of the widths, the length of one row.
+ */
+export const occupiedWidthCm = (cabinets: readonly PlacedWidth[]): number => {
+  const spans = cabinets.flatMap(({ widthCm, centreXM }): [number, number][] =>
+    centreXM === null ? [] : [[centreXM * 100 - widthCm / 2, centreXM * 100 + widthCm / 2]],
+  );
+  if (spans.length !== cabinets.length) return cabinets.reduce((sum, { widthCm }) => sum + widthCm, 0);
+
+  const merged: [number, number][] = [];
+  for (const [from, to] of spans.sort(([left], [right]) => left - right)) {
+    const last = merged.at(-1);
+    // Overlapping along the wall: one place of the row.
+    if (last && from < last[1]) last[1] = Math.max(last[1], to);
+    else merged.push([from, to]);
+  }
+
+  return Math.round(merged.reduce((sum, [from, to]) => sum + to - from, 0) * 100) / 100;
+};
+
 export const useSceneTotalWidth = (selectedProducts: string[], fallbackWidth: number | null = null): number | null => {
   const [totalWidth, setTotalWidth] = useState<number | null>(fallbackWidth);
 
@@ -42,20 +67,23 @@ export const useSceneTotalWidth = (selectedProducts: string[], fallbackWidth: nu
       }
 
       const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
-      const widths = configs
-        .map((config) => (config && typeof config === "object" ? extractWidthFromConfig(config as Record<string, unknown>) : null))
-        .filter((value): value is number => typeof value === "number");
+      const placed = configs.flatMap((config): PlacedWidth[] => {
+        if (!config || typeof config !== "object") return [];
+        const record = config as Record<string, unknown>;
+        const widthCm = extractWidthFromConfig(record);
+        return widthCm === null ? [] : [{ widthCm, centreXM: toFiniteNumber(record.positionX) }];
+      });
 
       if (cancelled) return;
 
-      if (!widths.length) {
+      if (!placed.length) {
         // Keep the last reliable scene total when PlayCanvas temporarily returns
         // configs without Width. Fallback is only for the initial unresolved state.
         setTotalWidth((prev) => prev ?? fallbackWidth);
         return;
       }
 
-      const sum = widths.reduce((acc, width) => acc + width, 0);
+      const sum = occupiedWidthCm(placed);
       const nextValue = Number.isFinite(sum) ? sum : fallbackWidth;
       setTotalWidth((prev) => {
         if (prev === null && nextValue === null) return prev;

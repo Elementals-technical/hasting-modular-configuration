@@ -2,8 +2,11 @@ import {
   CUSTOMIZATION_FLOW_IDS,
   CUSTOMIZATION_SCREEN_IDS,
   PLAYER_MENU_ITEM_IDS,
+  PLAYER_MENU_RESIZE_IDS,
+  STYLE_SIDEBAR_FIELD_IDS,
   type CustomizationSchema,
   type CustomizationSchemaDiagnostic,
+  type CustomizationSchemaDiagnosticCode,
   type ValidateCustomizationSchemaResult,
 } from "../../model/customizationSchema";
 
@@ -13,6 +16,8 @@ const VALID_KINDS = new Set(["preset-picker", "cabinet-builder", "fields", "summ
 const VALID_CONTROLS = new Set(["swatches", "options-grid", "checkbox", "colors"]);
 const VALID_SCREENS = new Set<string>(CUSTOMIZATION_SCREEN_IDS);
 const VALID_MENU_ITEMS = new Set<string>(PLAYER_MENU_ITEM_IDS);
+const VALID_MENU_RESIZE_IDS = new Set<string>(PLAYER_MENU_RESIZE_IDS);
+const VALID_SIDEBAR_FIELDS = new Set<string>(STYLE_SIDEBAR_FIELD_IDS);
 
 const isRecord = (value: unknown): value is UnknownRecord =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -168,6 +173,18 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
       });
     }
 
+    const fieldTabs = section.fieldTabs;
+    if (
+      fieldTabs !== undefined &&
+      !(isRecord(fieldTabs) && (fieldTabs.label === undefined || isNonEmptyString(fieldTabs.label)))
+    ) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `sections.${sectionId}.fieldTabs`,
+        message: "fieldTabs must be { label? } with a non-empty label",
+      });
+    }
+
     section.fields.forEach((field: unknown, index: number) => {
       const path = `sections.${sectionId}.fields[${index}]`;
       const control = isRecord(field) ? field.control : undefined;
@@ -220,6 +237,25 @@ const validateSections = (sections: UnknownRecord, diagnostics: CustomizationSch
           code: "invalid-schema",
           dataPath: `${path}.autoSelect`,
           message: 'autoSelect must be "firstAllowed"',
+        });
+      }
+
+      const tab = field.tab;
+      if (
+        tab !== undefined &&
+        !(isRecord(tab) && isNonEmptyString(tab.label) && (tab.icon === undefined || isNonEmptyString(tab.icon)))
+      ) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.tab`,
+          message: "tab must be { label, icon? } with a non-empty label and icon",
+        });
+      } else if (tab === undefined && fieldTabs !== undefined) {
+        // A field without a tab could never be reached in a section that shows one field at a time.
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${path}.tab`,
+          message: "a field of a section with fieldTabs must name its tab",
         });
       }
     });
@@ -382,12 +418,95 @@ const validateCountertopSettings = (countertop: unknown, diagnostics: Customizat
   }
 };
 
+/**
+ * A list the interface shows in the declared order: every entry is one of `validIds`, named once.
+ */
+const validateOrderedIds = (
+  value: unknown,
+  dataPath: string,
+  validIds: ReadonlySet<string>,
+  unknown: { code: CustomizationSchemaDiagnosticCode; of: string },
+  diagnostics: CustomizationSchemaDiagnostic[],
+) => {
+  if (value === undefined) return;
+  if (!Array.isArray(value)) {
+    diagnostics.push({ code: "invalid-schema", dataPath, message: `${dataPath} must be an array` });
+    return;
+  }
+  const seen = new Set<string>();
+  value.forEach((id: unknown, index: number) => {
+    if (typeof id !== "string" || !validIds.has(id)) {
+      diagnostics.push({
+        code: unknown.code,
+        dataPath: `${dataPath}[${index}]`,
+        message: `"${String(id)}" is not ${unknown.of}`,
+      });
+      return;
+    }
+    if (seen.has(id)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `${dataPath}[${index}]`,
+        message: `"${id}" is listed twice`,
+      });
+    }
+    seen.add(id);
+  });
+};
+
+/** Attribute ids, each once. Whether the collection has them is its runtime contract's to say. */
+/** An attribute id, or the id with the values the cabinet must hold (`PerCabinetAttribute`). */
+const perCabinetAttributeIdOf = (entry: unknown): string | null => {
+  if (isNonEmptyString(entry)) return entry;
+  if (!isRecord(entry) || !isNonEmptyString(entry.attributeId) || !isRecord(entry.when)) return null;
+
+  const conditions = Object.entries(entry.when);
+  return conditions.length > 0 && conditions.every(([, value]) => typeof value === "string") ? entry.attributeId : null;
+};
+
+const validateAttributeIds = (entries: unknown, dataPath: string, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (entries === undefined) return;
+
+  const ids = Array.isArray(entries) ? entries.map(perCabinetAttributeIdOf) : [null];
+  if (ids.includes(null) || new Set(ids).size !== ids.length) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath,
+      message: `${dataPath} must be an array of attribute ids, each listed once, alone or as { attributeId, when }`,
+    });
+  }
+};
+
+const validateStyleSidebar = (styleSidebar: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (styleSidebar === undefined) return;
+  if (!isRecord(styleSidebar)) {
+    diagnostics.push({ code: "invalid-schema", dataPath: "styleSidebar", message: "styleSidebar must be an object" });
+    return;
+  }
+  validateAttributeIds(styleSidebar.attributes, "styleSidebar.attributes", diagnostics);
+  validateOrderedIds(
+    styleSidebar.fields,
+    "styleSidebar.fields",
+    VALID_SIDEBAR_FIELDS,
+    { code: "unknown-sidebar-field", of: "a selector of the style sidebar" },
+    diagnostics,
+  );
+};
+
 const validatePlayerMenu = (playerMenu: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
   if (playerMenu === undefined) return;
   if (!isRecord(playerMenu)) {
     diagnostics.push({ code: "invalid-schema", dataPath: "playerMenu", message: "playerMenu must be an object" });
     return;
   }
+  validateOrderedIds(
+    playerMenu.resize,
+    "playerMenu.resize",
+    VALID_MENU_RESIZE_IDS,
+    { code: "unknown-menu-item", of: "a size the Resize item of the player menu changes" },
+    diagnostics,
+  );
+  validateAttributeIds(playerMenu.attributes, "playerMenu.attributes", diagnostics);
   const hidden = playerMenu.hidden;
   if (hidden === undefined) return;
   if (!Array.isArray(hidden)) {
@@ -436,6 +555,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validateOptionImageVariants(input.optionImageVariants, diagnostics);
   validateCountertopSettings(input.countertop, diagnostics);
   validatePlayerMenu(input.playerMenu, diagnostics);
+  validateStyleSidebar(input.styleSidebar, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };
 

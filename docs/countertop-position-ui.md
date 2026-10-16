@@ -16,15 +16,49 @@ menu item render only with `?countertopSettings`.
     custom length, drag flag; each step verified. Overlay off.
 - Cabinet Drag & Drop and countertop Drag & Drop block each other (`externalBusy` / `disabled`).
 
+## History
+
+One edit of the countertop is one undo step: the state is read when the edit starts
+(`onSessionStart`, awaited before `setDragEnabled(true)`) and written when it ends with a change.
+
+| How the edit ends | History |
+|---|---|
+| **Apply** with another position or length | One entry |
+| **Apply** where the top stood (`isSameCountertopPose`) | None |
+| **Cancel / ×** | None |
+| **Standard**, inside Drag & Drop or from the menu | One entry; none when the top already was standard |
+| The top takes, moves or lands the sink (`liftSink` / `moveSink` / `landSink`) | One entry for the whole edit, written when the sink commits |
+
+A sink commit replaces the cabinets under the top, so it writes the entry itself and then closes the
+session; the Apply that follows finds nothing left to write. Cancel that lands a hosted sink on the way
+back leaves the entry to that landing. While the mode is open, Undo and Redo are disabled; while a
+snapshot is being restored, the mode cannot be entered.
+
+Undo and redo put the top back through the layout of the scene (position, custom length, hosted sink),
+see `docs/runtime-bindings-migration.md` → Scene restore. The test-mode modal
+(`CountertopPlacementControls`) writes no entries.
+
 ## Overlay (`CountertopDragOverlay.tsx`)
 
 Anchors come from the frame in iframe px (the layer covers the iframe 1:1): move icon at `center`,
-length chip at `lengthLabel` (fallback `topCenter`), read-only depth chip at `depthLabel` (fallback
+length chip at `lengthLabel` (fallback `topCenter`), depth chip 28 px right of `depthLabel` (fallback
 `rightEnd`), handles at `leftEnd` / `rightEnd`, Apply + × under `bottomRight` (clamped into the viewport).
 `status: "colliding"` / `canApply: false` disables Apply and shows `reasons[0].message`.
 
-- Length chip opens a popover: number input in inches (step 0.5, min/max of the effective limits), Apply
-  clamps and calls `setSize({ length })` in metres.
+- The ✎ of a chip opens its popover, one at a time (`ui/CountertopDimensionPopover/`: the component,
+  its styles, its placement and their tests):
+  - **Length**: a length field in inches with a 1″ stepper (↑ / ↓ keys too), Min / Max of the effective
+    limits (`getState().lengthLimitsM`, then the frame's `limits`, then the collection's), Align Left /
+    Center / Right (Center first), Apply.
+  - **Depth**: the depth field and its stepper alone, Apply. The scene publishes no depth limits, so
+    there is no Min / Max; the depth only stays above 0.
+- The popover is portalled to the body at the popups' level, above the page header that covers the top
+  of the canvas on phones, and placed by `dimensionPopoverPlacement.ts`: above the chip, else below,
+  else over it; across within the canvas, down within the window. A transparent layer covers the page
+  while it is open: a press outside it, ×, Escape or the chip again close it.
+- No scene command takes a typed length with an alignment, or a depth, yet: Apply only closes the
+  popover, nothing is sent and the session stays open. The chips are disabled while a command runs or
+  the top is dragged.
 - Handles resize symmetrically: `newLength = startLength ± 2·(pointer delta · axiŝ)/pxPerMetre`
   (`+` right handle, `−` left), where `lengthAxisPx` is the screen vector of one metre along the length
   axis (fallback: `(rightEnd − leftEnd) / lengthM`). rAF-throttled, clamped to the limits.

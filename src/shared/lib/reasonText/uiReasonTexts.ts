@@ -32,4 +32,7 @@ export const UI_REASON_TEXTS: Record<string, string> = {
   /** Appended when the switch auto-corrected the pose. */
   "countertop.mode.lowered": "It was lowered onto the cabinets.",
   "countertop.mode.reset": "It was returned to the standard position.",
+  /* Scene refusals of an add, duplicate or swap (features/sceneRefusalNotice). */
+  UF_HEIGHT_RUN_VIOLATION:
+    "The tall cabinets must stand together: a shorter cabinet can only go at either end of them.",
 };

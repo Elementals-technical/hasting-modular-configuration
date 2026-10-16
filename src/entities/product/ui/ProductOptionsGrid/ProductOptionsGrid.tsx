@@ -116,9 +116,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
     const handleSetActive = setActiveCabinet ? () => setActiveCabinet(String(playcanvasValue), i.name) : undefined;
 
     const isMaterial =
-      (i.metadata?.materials?.length ?? 0) > 0 ||
-      (i.metadata?.colors?.length ?? 0) > 0 ||
-      !!i.metadata?.hex;
+      (i.metadata?.materials?.length ?? 0) > 0 || (i.metadata?.colors?.length ?? 0) > 0 || !!i.metadata?.hex;
 
     return (
       <ProductOptionItem
@@ -126,7 +124,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         id={i.id}
         title={i.title}
         desc={groupByDesc ? undefined : i.desc}
-        isAvailable={i.isAvailable}
+        isAvailable={isLoading ? false : i.isAvailable}
         disabledReason={i.disabledReason}
         disabledReasonCode={i.disabledReasonCode}
         disabledReasonParams={i.disabledReasonParams}
@@ -148,11 +146,11 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   };
 
   return (
-    <div className={s.optionsContainer}>
+    <div className={s.optionsContainer} aria-busy={isLoading || undefined}>
       {isLoading && <LoaderBlock />}
 
       {groupByDesc ? (
-        <div className={s.groupedOptions}>
+        <div>
           {groupedOptions.map((group) => (
             <section key={group.label} className={s.groupSection}>
               <div className={s.groupTitle}>{group.label}</div>
@@ -163,7 +161,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
           ))}
         </div>
       ) : (
-        <div className={clsx(s.flatOptions, s.optionsGrid, variant === "cabinetType" && s.optionsGridCabinetType)}>
+        <div className={clsx(s.optionsGrid, variant === "cabinetType" && s.optionsGridCabinetType)}>
           {data.map(renderOptionItem)}
         </div>
       )}

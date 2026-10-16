@@ -54,7 +54,7 @@ const splitHandleEntry = (entry: string, separator: string): [string | null, str
 
 export type NormalizeHandleProfileArgs = {
   rows: NormalizedMatrixRow[];
-  adapter: Pick<CabinetMatrixLegacyAdapter, "columns">;
+  adapter: Pick<CabinetMatrixLegacyAdapter, "columns" | "heightsByDrawers">;
   /**
    * Maps a legacy drawers spelling ("1D") to its canonical option value ("1").
    * Supplied by the caller from the Drawers catalog so aliases stay in one place.
@@ -122,12 +122,21 @@ export const normalizeHandleProfile = ({
       if (heights.length > 0) heightsByHandle[handleId] = heights;
     }
 
+    // Only the drawers this cabinet type comes with: an open shelf has none to choose a height by.
+    const drawersOfType = parseDelimitedList(row[columns.drawers]).map(normalizeDrawers);
+    const heightsByDrawers: Record<string, number[]> = {};
+    for (const [drawersRaw, heights] of Object.entries(adapter.heightsByDrawers ?? {})) {
+      const drawers = normalizeDrawers(drawersRaw);
+      if (drawersOfType.includes(drawers)) heightsByDrawers[drawers] = heights;
+    }
+
     relations.push({
       cabinetType,
       forcedHeightByHandle,
       forcedHeightByDrawers,
       requiresDrawersByHandle,
       heightsByHandle,
+      heightsByDrawers,
     });
   }
 

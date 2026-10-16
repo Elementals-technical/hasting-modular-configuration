@@ -96,6 +96,7 @@
     {
       "attributeId": "Height",
       "scope": "cabinet",
+      "defaultValue": "38",
       "options": [
         { "value": "38", "label": "38 cm", "order": 10 },
         { "value": "35", "label": "35 cm", "order": 20 },
@@ -559,7 +560,6 @@
     "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {
-    "handleGrooveColor": "Upper Groove offers a groove colour, spelled HDL-{material}-{code} as the price list's SKU formula names it (product element #2), but the ULH scene paints the groove in the cabinet colour: the choice reaches the SKU and the Summary, not the 3D model, until the scene export paints ULH_Cabinet_HGroove on its own.",
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
     "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438. Thickness takes the Urban Standard Height values, offered as table 438 gives them for the colour and depth (team, 28.09.2026).",

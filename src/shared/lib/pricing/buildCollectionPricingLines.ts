@@ -16,16 +16,20 @@ import {
 } from "@/entities/configuration";
 import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
 import {
+  buildCabinetCoverSku,
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
   createConfiguratorColorReader,
+  extractColorCode,
   isChosenColor,
   OPEN_SIDE_SHELF_SIDE,
+  resolveCabinetCoverColorAttributeId,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
+  resolveCountertopColorSkuFromCandidates,
   resolveOpenSideShelfSide,
   SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
@@ -93,6 +97,20 @@ const UNPRICED_VESSEL: Record<"not-chosen" | "no-material", { owner: string; rea
   },
 };
 
+/** Retain an explicit gap rather than pricing an unknown Lower finish as its cabinet's colour. */
+const UNPRICED_CABINET_COVER = {
+  owner: "product",
+  reason:
+    "The lower countertop cover has no price: its applied colour/material, the countertop style or the supporting cabinet depth is unknown or unsupported.",
+};
+
+/** A collection offers Lower before its cover SKU is confirmed: the cover is ordered, its price unknown. */
+const UNCONFIRMED_CABINET_COVER_SKU = {
+  owner: "product",
+  reason:
+    "The lower countertop has no confirmed SKU or price for this collection yet: it is shown in the scene but not priced.",
+};
+
 /** Why a countertop priced as Urban Standard Height's has no top line. */
 const UNPRICED_USH_COUNTERTOP =
   "The countertop has no Urban Standard Height price here: the countertop table gives no thickness for its material at this depth, or its colour names no material.";
@@ -131,9 +149,9 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const { activeProfile: profile, configurationValues: values, dimensionsByCabinet, placedCabinetStyles } = input;
   const readConfiguratorColor = createConfiguratorColorReader(profile, input.configurator ?? null);
   // The cabinet type the scene placed, read through the collection's scene types (a Mako sink
-  // base is a Mako-sink-cabinet in the scene).
+  // base is a Mako-sink-cabinet in the scene); its drawer style tells a short cabinet apart.
   const cabinetTypeOf = (runtimeId: string) =>
-    resolveCabinetTypeOfRuntimeId(profile, input.runtimeBindings ?? null, runtimeId);
+    resolveCabinetTypeOfRuntimeId(profile, input.runtimeBindings ?? null, runtimeId, placedCabinetStyles[runtimeId]);
   const isSinkBase = (entry: CabinetEntry) => cabinetTypeOf(entry.runtimeId) === "Sink-Base";
   // The Summary of a model reads the model's cabinets by their place in it, as the USH lines
   // name them; a cabinet added on top of the model, or of a custom composition, by its runtime id.
@@ -177,7 +195,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       const own = valueAt(values, attributeId, cabinetTarget) ?? globalValue(attributeId);
       if (own) return own;
       if (attributeId === "Drawers") return placedCabinetStyles[entry.runtimeId] ?? null;
-      if (attributeId === "Handle") return asText(input.selectedProductConfig?.Handle as string | undefined);
+      // The handle chosen, else the composition's, recorded at the first cabinet: a restored
+      // configuration has no choice yet, and its cabinets after the first must not lose the handle.
+      if (attributeId === "Handle") {
+        return (
+          asText(input.selectedProductConfig?.Handle as string | undefined) ??
+          asText(compositionValueOf(values.Handle, cabinets[0]?.stableKey))
+        );
+      }
       if (attributeId === "HandleGrooveColor") return asText(input.handleGrooveColor);
       if (attributeId === "CabinetColor") return startingCabinetColor;
       return (
@@ -314,9 +339,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     // A countertop priced as Urban Standard Height's (Urban Low Height): its SKUs and rules, on this
     // composition — as deep as its cabinets, as wide as they are with their side panels.
     const firstSize = dimensionsByCabinet[cabinets[0].stableKey];
-    const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : null;
+    // A lifted top that carries the sink (`cabinets.liftSink`) leaves no sink base: its own basin is
+    // the composition's, ordered once, and sized by the cabinet it was lifted from — the first one here.
+    const hostedSink = sinkBases.length === 0 && input.hostedSink?.sinkType ? input.hostedSink : null;
+    const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : (hostedSink?.sinkType ?? null);
+    const basinCabinet = sinkBases[0] ?? (hostedSink ? cabinets[0] : null);
+    const basinCount = hostedSink ? 1 : sinkBases.length;
     // The countertop table sizes the top by the sink base of that basin (its minimum sink base width).
-    const sinkBaseWidth = sinkBases.length > 0 ? (dimensionsByCabinet[sinkBases[0].stableKey]?.width ?? null) : null;
+    const sinkBaseWidth = basinCabinet ? (dimensionsByCabinet[basinCabinet.stableKey]?.width ?? null) : null;
     const compositionWidthCm =
       widthCm === null ? null : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight);
     const countertop = resolveUshCountertop(input, {
@@ -333,8 +363,10 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       sinkType,
       widthCm: hasCommittedCountertopLength ? committedCountertopLengthCm : compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
-      sinkBases: sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
-      sinkBaseCount: sinkBases.length,
+      sinkBases: hostedSink
+        ? [{ id: "hosted", sinkType: hostedSink.sinkType }]
+        : sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
+      sinkBaseCount: basinCount,
     });
 
     countertopLines.forEach(add);
@@ -343,7 +375,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (!countertopLines.some(({ group }) => group === "countertop")) {
       gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
     }
-    const vesselColor = sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : null;
+    const vesselColor =
+      sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : (hostedSink?.vesselColor ?? null);
     buildUshVesselLines({
       profile,
       countertop,
@@ -353,7 +386,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       vesselColorSku: vesselColor ? readConfiguratorColor("VesselColor", vesselColor)?.sku : null,
       widthCm: compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
-      sinkBaseCount: sinkBases.length,
+      sinkBaseCount: basinCount,
     }).forEach(add);
   }
 
@@ -393,7 +426,32 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   // 6) Side panels: a collection that reuses Urban Standard Height's orders them as USH does, at the
   // size and in the colours of the first cabinet. A groove without a colour of its own is the cabinet's.
   if (skuProfile.sidePanel && "pricedAs" in skuProfile.sidePanel && cabinets.length > 0) {
-    const [first] = cabinets;
+    // A short cabinet (`ruleData.steppedModules`: the Urban Freestanding Short-Cabinet) stands lower
+    // than the others, and the panel at its end has no confirmed height (P1125: a second panel
+    // height, UFS-SP-01). That panel is left out and named a gap; the others take the size of the
+    // first cabinet that is not short.
+    const steppedModules = profile?.ruleData.steppedModules ?? [];
+    const isShortCabinet = (entry: CabinetEntry | undefined) => {
+      if (entry === undefined || steppedModules.length === 0) return false;
+      const read = readerOf(entry);
+      const drawersRaw = placedCabinetStyles[entry.runtimeId] ?? read("Drawers");
+      const drawers = drawersRaw ? (normalizeOptionValue(profile, "Drawers", drawersRaw) ?? drawersRaw) : null;
+      const typeRaw = read("CabinetType");
+      const cabinetType = typeRaw ? (normalizeOptionValue(profile, "CabinetType", typeRaw) ?? typeRaw) : null;
+      return steppedModules.some((module) => module.cabinetType === cabinetType && module.drawers === drawers);
+    };
+    const first = cabinets.find((entry) => !isShortCabinet(entry)) ?? cabinets[0];
+    const shortLeft = input.sidePanelLeft === "active" && isShortCabinet(cabinets[0]);
+    const shortRight = input.sidePanelRight === "active" && isShortCabinet(cabinets[cabinets.length - 1]);
+    if (shortLeft || shortRight) {
+      gaps.push({
+        group: "sidePanel",
+        blocksTotal: true,
+        owner: "product",
+        reason:
+          "A side panel beside the Floor-Mount Short Cabinet has no height or SKU: the lower panel height is not given (P1125, UFS-SP-01). It is not priced.",
+      });
+    }
     const read = readerOf(first);
     const colorSku = (attributeId: string, value: string) => ({
       materialSku: resolveCollectionColorMaterial(skuProfile, profile, attributeId, value, readConfiguratorColor),
@@ -406,8 +464,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     buildUshSidePanelLines({
       series: SKU_SERIES_BY_COLLECTION["urban-standard-height"],
       panelType: input.sidePanelsOption,
-      sidePanelLeft: input.sidePanelLeft,
-      sidePanelRight: input.sidePanelRight,
+      sidePanelLeft: shortLeft ? "none" : input.sidePanelLeft,
+      sidePanelRight: shortRight ? "none" : input.sidePanelRight,
       heightCm: size?.height ?? null,
       depthCm: size?.depth ?? null,
       cabinet: cabinetColor ? colorSku("CabinetColor", cabinetColor) : { materialSku: null, colorCode: null },
@@ -415,6 +473,78 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         ? colorSku("HandleGrooveColor", grooveColor)
         : { materialSku: null, colorCode: null },
     }).forEach(add);
+  }
+
+  // 7) Actual generated Lower panels, regardless of Upper offset, spelled in the Upper's style (INTG,
+  // VES). Their colour comes from the published scene slab, while D is the nominal depth of the
+  // supporting cabinet(s).
+  const cover = skuProfile.cabinetCover;
+  const coverSku = cover?.prefix && cover.thicknessIn ? { prefix: cover.prefix, thicknessIn: cover.thicknessIn } : null;
+  if (cover && !coverSku && input.cabinetCovers?.length) {
+    gaps.push({ group: "input", blocksTotal: true, ...UNCONFIRMED_CABINET_COVER_SKU });
+  }
+  if (cover && coverSku && input.cabinetCovers?.length) {
+    const covers = new Map<string, { quantity: number; totalWidthCm: number }>();
+    const colorAttributeId = resolveCabinetCoverColorAttributeId(cover);
+    // A cover in the colours of a countertop priced as Urban Standard Height's (Urban Duplex) is spelled
+    // as that top spells them: the material of the colour's swatch, the code its name ends in.
+    const spelledAsCountertop = colorAttributeId === "CountertopColor" && "pricedAs" in skuProfile.countertop;
+    const spell = (color: string) =>
+      spelledAsCountertop
+        ? {
+            materialSku: resolveCountertopColorSkuFromCandidates({
+              value: color,
+              candidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
+            }),
+            colorCode: extractColorCode(color),
+          }
+        : {
+            materialSku: resolveCollectionColorMaterial(
+              skuProfile,
+              profile,
+              colorAttributeId,
+              color,
+              readConfiguratorColor,
+            ),
+            colorCode: resolveCollectionColorCode(skuProfile, color),
+          };
+    let unpriced = false;
+    input.cabinetCovers.forEach(({ widthCm: coverWidthCm, cabinetIds, materialId }) => {
+      const color = materialId ? (normalizeOptionValue(profile, colorAttributeId, materialId) ?? materialId) : null;
+      const { materialSku, colorCode } = color ? spell(color) : { materialSku: null, colorCode: null };
+      const depths = cabinetIds.map((id) => {
+        const under = cabinets.find(({ runtimeId }) => runtimeId === id);
+        return under ? (dimensionsByCabinet[under.stableKey]?.depth ?? null) : null;
+      });
+      const coverDepthCm = depths.length > 0 && depths.every((depth) => depth === depths[0]) ? depths[0] : null;
+      const sku = buildCabinetCoverSku({
+        prefix: coverSku.prefix,
+        style: countertopStyle,
+        widthCm: coverWidthCm,
+        depthCm: coverDepthCm,
+        thicknessIn: coverSku.thicknessIn,
+        materialSku: materialSku && cover.materialSkus.includes(materialSku) ? materialSku : null,
+        colorCode,
+      });
+      if (sku) {
+        const previous = covers.get(sku);
+        covers.set(sku, {
+          quantity: (previous?.quantity ?? 0) + 1,
+          totalWidthCm: (previous?.totalWidthCm ?? 0) + coverWidthCm,
+        });
+      } else unpriced = true;
+    });
+    [...covers].forEach(([sku, { quantity, totalWidthCm }], index) =>
+      add({
+        id: index === 0 ? "cabinetCover" : `cabinetCover:${index}`,
+        group: "cabinetCover",
+        sku,
+        quantity,
+        // CT pricing is length-based. Preserve the total exact width even if rounded SKU tokens coincide.
+        widthCm: totalWidthCm / quantity,
+      }),
+    );
+    if (unpriced) gaps.push({ group: "input", blocksTotal: true, ...UNPRICED_CABINET_COVER });
   }
 
   const ownPanel = skuProfile.sidePanel;

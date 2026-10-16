@@ -1,3 +1,4 @@
+import type { SceneLayout } from "@/entities/configuration";
 import type { AttributeValue } from "@/features/swatchOrder";
 
 import type { ConfigurationFragment } from "./configurationFragment";
@@ -64,6 +65,11 @@ export interface ConfigurationMetadata {
   uiState: ConfigurationUiState;
   swatchOrder: ConfigurationSwatchOrder;
   configuration: ConfigurationFragment;
+  /**
+   * Where the cabinets stood, for collections whose cabinets stand in rows. Absent for the
+   * others and in configurations saved before it existed; those come back in one row.
+   */
+  sceneLayout?: SceneLayout;
 }
 
 export const buildConfigurationMetadata = (args: {
@@ -72,6 +78,7 @@ export const buildConfigurationMetadata = (args: {
   uiState: ConfigurationUiState;
   swatchOrder: ConfigurationSwatchOrder;
   fragment: ConfigurationFragment;
+  sceneLayout?: SceneLayout | null;
 }): ConfigurationMetadata => ({
   path: args.path,
   savedAt: new Date().toISOString(),
@@ -80,4 +87,5 @@ export const buildConfigurationMetadata = (args: {
   uiState: args.uiState,
   swatchOrder: args.swatchOrder,
   configuration: args.fragment,
+  ...(args.sceneLayout ? { sceneLayout: args.sceneLayout } : {}),
 });

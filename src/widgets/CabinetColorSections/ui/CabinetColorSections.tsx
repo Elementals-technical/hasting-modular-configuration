@@ -27,6 +27,7 @@ import s from "./CabinetColorSections.module.scss";
 
 import type { FieldOptionState, FieldRuntimeState } from "@/entities/collection";
 import type { ReactNode } from "react";
+import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
 
 import { useReasonText } from "@/shared/lib/reasonText";
 
@@ -151,7 +152,10 @@ export const useCabinetColorSections = ({
   };
 
   const bookMatchingTooltip = !bookMatchingState.enabled
-    ? reasonText({ code: bookMatchingState.reasonCode ?? VALUE_UNAVAILABLE_REASON_CODE, text: bookMatchingState.reason })
+    ? reasonText({
+        code: bookMatchingState.reasonCode ?? VALUE_UNAVAILABLE_REASON_CODE,
+        text: bookMatchingState.reason,
+      })
     : undefined;
 
   const renderField = ({ definition, field }: ResolvedCustomizationField) => {
@@ -250,7 +254,7 @@ export const useCabinetColorSections = ({
         sectionId: section.sectionId,
         label: section.label,
         defaultOpen: section.defaultOpen,
-        content: shown.map(renderField),
+        content: <FieldStack>{shown.map(renderField)}</FieldStack>,
       },
     ];
   });

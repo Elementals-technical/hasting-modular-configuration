@@ -1,6 +1,7 @@
 .modal {
   width: min(1120px, calc(100vw - 32px));
   height: calc(100vh - 32px);
+  height: calc(100dvh - 32px);
   display: flex;
   flex-direction: column;
   background: #f9f8f7;
@@ -9,6 +10,7 @@
 }
 
 .header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -36,6 +38,7 @@
 }
 
 .filters {
+  flex-shrink: 0;
   background: #f9f8f7;
 
   > div {
@@ -56,13 +59,6 @@
   padding: 16px 20px 20px;
   overflow-y: auto;
   flex: 1;
-
-  > div {
-    height: 100%;
-
-    > div {
-      max-height: none;
-      height: 100%;
-    }
-  }
+  min-height: 0;
+  overscroll-behavior-y: contain;
 }

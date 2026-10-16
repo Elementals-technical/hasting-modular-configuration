@@ -5,16 +5,19 @@
   "sources": [
     "Urban Duplex - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Curation, Pricing, Pre-Render | Hybrid Models",
     "SKU formula: {Product Category}-{Product}-{Cabinet Type/Cabinet Style (L or R)/Handle Style/Drawer Panel Fluting}-{Width}-{Height}-{Depth}-BASP-{material}-{colour code}-LTLP-{material}-{colour code}-HDL-{material}-{colour code}: VAN-URDPX-SB/2DWL/UG/X-60W-56H-50D-BASP-HPL-TKH-LTLP-LACM-03-HDL-LACM-03. The handle element is HNDL here, as the Pricing rows write it (team, 2026-10-07); the client is asked which one pricing expects",
-    "Pricing: the sizes in inches (60 x 56 x 50 cm is 23.6W-22.0H-19.7D); 22.0H, 15.0H and 11.0H are written 22H, 15H and 11H, which the price server prices alike, except on the Open Side Shelf: viewer-3kit-hastings found it matches UROSS-...-22H to a 19.7H row, so the Open Side Shelf keeps the Pricing heights",
+    "Pricing: the sizes in inches (60 x 56 x 50 cm is 23.6W-22.0H-19.7D); the Urban Duplex cabinets keep the Pricing heights 22.0H, 20.9H, 15.0H and 11.0H: the price server (matrix 556) reads URDPX-...-15H and -11H as the 20.9H row, priced as the tall cabinet (checked 2026-10-09, 392 of 392 low cabinets). The Open Side Shelf keeps them too (UROSS-...-22H matches a 19.7H row); the Open Shelf and the Urban Standard and Low Height cabinets are written 22H, 15H and 11H, which the server prices alike",
     "Urban Duplex has the Upper Groove handle only and no fluting: the handle code is always UG and the fluting X",
     "Pre-Render | Hybrid Models: the cabinets without a lateral panel are Urban Standard Height and Urban Low Height ones, VAN-URSTD-SC/2DW/UG/X-19.7W-22.0H-19.7D-CAB-ST-DA-HDL-HPL-TKH and VAN-URLH-SC/1DW/UG/X-13.8W-11.0H-19.7D-CAB-ST-DA-HDL-HPL-TKH: the Base Panel colour and, for the groove, the Lateral Panel colour",
     "Open Shelf VAN-UROS-<2S|1S>-<W>-<H>-<D> (2S at 56/53 cm, 1S at 38/28 cm) in the Base Panel colour and Open Side Shelf VAN-UROSS-<L|R>-5.9W-<H>-<D> in the Lateral Panel colour, as the renders show them; Pricing gives them a single CAB element",
     "Hasting Master File [Urban Duplex]: the Base Panel and Lateral Panel colours are the 232 cabinet colours of Urban Standard Height and Urban Low Height, coded as those code them",
     "Configurator 13 (modular-config-phase-2-materials-(duplex)): the material SKU of each cabinet and countertop colour",
-    "Accessories Pricing (Urban Standard Height): faucet holes, hole cutout and towel bar use the Urban Standard Height SKUs"
+    "Accessories Pricing (Urban Standard Height): faucet holes, hole cutout and towel bar use the Urban Standard Height SKUs",
+    "Urban Duplex product map (P1064; section 7a row 24: a vessel on every Sink Base, the cutout without one): the vessel sinks are Urban Standard Height's, as Urban Low Height offers them, ordered as the countertop priced as Urban Standard Height's orders them: VES-{vessel}-X-{W}W-{H}H-{D}D-{material}-{colour} on every Sink Base, with the Hole Cutout CT-UR{material}-HCUT",
+    "Urban Duplex product map (P1005 as Urban Low Height defines it; Ryan ULH positioning section 2.8 and Block 2 section 3): the decorative Lower top of an uncovered low cabinet is Urban Low Height's, CT-UR{material}-{INTG|VES}-{W}W-.5H-{D}D-{material}-{colour} in the Upper's style (team, 2026-10-14); it comes in the countertop's materials and colours, the Fenix, HPL, Porcelain and Solid Surface of the Countertop Color palette (configurator 13), spelled as the countertop spells them and in the Lateral Panel colour until another is chosen (team, 2026-10-15), until the client confirms it for Urban Duplex (DUP-TOP-01, DUP-TOP-03)"
   ],
   "cabinet": {
     "series": "URDPX",
+    "heightCodes": { "28": "11.0", "38": "15.0", "53": "20.9", "56": "22.0" },
     "configBlock": [
       {
         "attributeId": "CabinetType",
@@ -182,7 +185,11 @@
               "code": "HDL",
               "attributeId": "LateralPanelColor"
             }
-          ]
+          ],
+          "heightCodes": {
+            "28": "11.0",
+            "38": "15.0"
+          }
         }
       }
     },
@@ -368,6 +375,13 @@
   "towelBar": {
     "pricedAs": "urban-standard-height"
   },
+  "cabinetCover": {
+    "prefix": "UR",
+    "thicknessIn": 0.5,
+    "materialSkus": ["FX", "HPL", "POR", "SSTL"],
+    "colorAttributeId": "CountertopColor",
+    "defaultColorAttributeId": "LateralPanelColor"
+  },
   "dividers": {},
   "gaps": [
     {
@@ -387,16 +401,6 @@
       "appliesWhen": {
         "attributeId": "sinkType",
         "values": ["Top_Tekorlux_Rectangular"]
-      }
-    },
-    {
-      "group": "vessel",
-      "blocksTotal": false,
-      "owner": "product",
-      "reason": "The Master File lists no vessel sinks (excludedFromThisProfile.vesselSinks): a vessel top is priced with its cutout and without a vessel until the list is confirmed.",
-      "appliesWhen": {
-        "attributeId": "CountertopStyle",
-        "values": ["vessel"]
       }
     }
   ]

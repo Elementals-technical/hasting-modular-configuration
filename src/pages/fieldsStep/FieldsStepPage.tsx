@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 
+import { useActiveCollection } from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration";
 import { getConfiguratorProductElement } from "@/entities/configurator/lib/configuratorGroupKind";
 import { getCountertopStyle } from "@/entities/product/model/store/selectors";
@@ -24,6 +26,10 @@ import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modul
 import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/ui/Accordion/ConfiguratorAccordion";
 import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
 import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
+import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
+import { SegmentedTabPanel, SegmentedTabs, type SegmentedTab } from "@/shared/ui/SegmentedTabs/SegmentedTabs";
+import { CountertopColorLevelPicker } from "@/widgets/CountertopSections/ui/CountertopColorLevelPicker";
+import { useCoverCountertopColorField } from "@/widgets/CountertopSections/lib/useCoverCountertopColorField";
 
 import s from "./FieldsStepPage.module.scss";
 
@@ -41,6 +47,11 @@ const ColorSectionField = ({
   const dispatch = useAppDispatch();
   const profile = useAppSelector(getActiveProductProfile);
   const flowId = useCollectionNavigation()?.flowId;
+  // The cover contract names the flows that offer Lower (Urban Freestanding: also custom, where its
+  // short cabinet is added); prebuilt only when it names none.
+  const lowerFlows = useActiveCollection((collection) => collection.catalog.skuProfile?.cabinetCover?.flows);
+  const offersLower = Boolean(flowId && (lowerFlows ?? ["prebuilt"]).includes(flowId));
+  const coverColor = useCoverCountertopColorField(definition.attributeId === "CountertopColor" && offersLower);
 
   const orderSwatches = () => {
     const configuratorSection = selectConfiguratorSection(profile, definition.attributeId);
@@ -64,7 +75,17 @@ const ColorSectionField = ({
     }
   };
 
-  return <ColorField field={field} title={section.label} onChange={select} onOrderSwatches={orderSwatches} />;
+  return (
+    <CountertopColorLevelPicker
+      lowerField={coverColor.field}
+      processing={coverColor.processing}
+      error={coverColor.error}
+      onLowerChange={coverColor.changeColor}
+      onOrderSwatches={orderSwatches}
+    >
+      <ColorField field={field} title={section.label} onChange={select} onOrderSwatches={orderSwatches} />
+    </CountertopColorLevelPicker>
+  );
 };
 
 const SectionField = (props: SectionFieldProps) => {
@@ -72,7 +93,7 @@ const SectionField = (props: SectionFieldProps) => {
   const { onChange, notice } = useAttributeChangeHandler(definition.attributeId);
 
   return (
-    <>
+    <div>
       {field.toggle && <FieldToggle toggle={field.toggle} onChange={onChange} />}
       {definition.control === "colors" ? (
         <ColorSectionField {...props} onChange={onChange} />
@@ -81,7 +102,61 @@ const SectionField = (props: SectionFieldProps) => {
       )}
       {field.hint && <p className={s.hint}>{field.hint}</p>}
       {notice && <div className={s.notice}>{notice}</div>}
-    </>
+    </div>
+  );
+};
+
+type SectionFieldTabsProps = {
+  section: SectionRef;
+  /** The line above the tabs, e.g. "Select Panel, Then Color". */
+  caption?: string;
+  /** The visible fields of the section, each with its tab. */
+  fields: ResolvedCustomizationField[];
+};
+
+/**
+ * The fields of a section that shows one at a time (`fieldTabs`): their tabs and, under them, the
+ * field chosen. A field is drawn when its tab is first chosen and kept afterwards: each keeps its
+ * filters, and the step draws one colour grid on entry rather than all of them.
+ */
+const SectionFieldTabs = ({ section, caption, fields }: SectionFieldTabsProps) => {
+  const fieldIds = fields.map(({ definition }) => definition.attributeId);
+  const [chosen, setChosen] = useState(fieldIds[0]);
+  const [opened, setOpened] = useState<readonly string[]>([fieldIds[0]]);
+  // A field its rules hide gives the place to the first one left.
+  const active = fieldIds.includes(chosen) ? chosen : fieldIds[0];
+
+  const choose = (attributeId: string) => {
+    setChosen(attributeId);
+    setOpened((previous) => [...new Set([...previous, active, attributeId])]);
+  };
+
+  const tabs: SegmentedTab[] = fields.map(({ definition }) => ({
+    value: definition.attributeId,
+    label: definition.tab?.label ?? definition.attributeId,
+    icon: definition.tab?.icon && <img src={definition.tab.icon} alt="" />,
+  }));
+
+  return (
+    <div>
+      {caption && <p className={s.tabsCaption}>{caption}</p>}
+      <SegmentedTabs label={caption ?? section.label} tabs={tabs} value={active} onValueChange={choose}>
+        {fields.map(({ definition, field }) => {
+          const { attributeId } = definition;
+
+          return (
+            <SegmentedTabPanel key={attributeId} value={attributeId} keepMounted={opened.includes(attributeId)}>
+              <SectionField
+                definition={definition}
+                field={field}
+                // The field is named by its tab: the full mode and the swatch order show it.
+                section={{ sectionId: section.sectionId, label: definition.tab?.label ?? section.label }}
+              />
+            </SegmentedTabPanel>
+          );
+        })}
+      </SegmentedTabs>
+    </div>
   );
 };
 
@@ -126,19 +201,27 @@ export const FieldsStepPage = ({ stepId }: { stepId: string }) => {
         value={accordionValue}
         onValueChange={setAccordionValue}
       >
-        {sections.map(({ sectionId, label: sectionLabel, labelWhenVessel, fields }) => {
+        {sections.map(({ sectionId, label: sectionLabel, labelWhenVessel, fieldTabs, fields }) => {
           const label = isVesselStyle ? (labelWhenVessel ?? sectionLabel) : sectionLabel;
+          const visibleFields = fields.filter(({ field }) => field.visible);
 
           return (
             <ConfiguratorAccordionItem key={sectionId} value={sectionId} title={label}>
-              {fields.map(({ definition, field }) => (
-                <SectionField
-                  key={definition.attributeId}
-                  definition={definition}
-                  field={field}
-                  section={{ sectionId, label }}
-                />
-              ))}
+              {/* One field left needs no tabs: it is shown as the field of any section. */}
+              {fieldTabs && visibleFields.length > 1 ? (
+                <SectionFieldTabs section={{ sectionId, label }} caption={fieldTabs.label} fields={visibleFields} />
+              ) : (
+                <FieldStack>
+                  {visibleFields.map(({ definition, field }) => (
+                    <SectionField
+                      key={definition.attributeId}
+                      definition={definition}
+                      field={field}
+                      section={{ sectionId, label }}
+                    />
+                  ))}
+                </FieldStack>
+              )}
             </ConfiguratorAccordionItem>
           );
         })}

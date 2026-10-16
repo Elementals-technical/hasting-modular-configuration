@@ -1,0 +1,31 @@
+// Same look as the countertop notices (CountertopDragMode.module.scss: .modeNotice, .message).
+$ink: #282828;
+$refusal: #a02e20;
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 320px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 4px #0002;
+}
+
+.text {
+  margin: 0;
+  color: $refusal;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.close {
+  border: none;
+  background: none;
+  padding: 0;
+  color: $ink;
+  font-size: 16px;
+  line-height: 16px;
+  cursor: pointer;
+}

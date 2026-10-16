@@ -65,11 +65,39 @@ export type MappedValues = {
   unboundValues?: Record<string, string>;
 };
 
+/**
+ * One more place a value goes to, after the binding's own: under another scene key, to other
+ * products, or both. The Urban Duplex lateral panel colour is also the colour of the handle
+ * grooves, and of an open side shelf, whose only colour key is the cabinet's.
+ */
+export type AlsoDelivery = {
+  target: RuntimeTarget;
+  sceneKey: string;
+};
+
 export type BoundRuntimeBinding = {
   attributeId: string;
   status: "bound";
   target: RuntimeTarget | FlowTargets;
   values: IdentityValues | MappedValues;
+  /**
+   * More places the same value goes to, in this order. Identity values only. A product being
+   * placed takes one addressed to a product type only when it is of that type.
+   */
+  also?: readonly AlsoDelivery[];
+  /**
+   * A product placed later is given the value with its config. The scene keeps a value per
+   * product, so without this a new product starts from the scene's own default: it is placed
+   * with the configuration's value, or the collection's starting value while none was chosen.
+   */
+  placedWithNewProducts?: boolean;
+  /**
+   * The scene keeps the value on each product, so a change that names one cabinet and asks for
+   * that cabinet alone (`onlyThisCabinet`) reaches that product only: the side of the lateral
+   * panel of Urban Duplex, which a field sets for all cabinets and the cabinet's menu for one.
+   * Without it a value bound to "all" reaches every product, whatever cabinet a change names.
+   */
+  perProduct?: boolean;
   /**
    * Phase the attribute is sent in: a set runs lowest first, e.g. drawers before the
    * handle and the handle before the height. Equal or missing orders keep C's order;
@@ -102,6 +130,22 @@ export type StateOnlyRuntimeBinding = {
 };
 
 export type RuntimeBinding = BoundRuntimeBinding | UnboundRuntimeBinding | StateOnlyRuntimeBinding;
+
+/**
+ * A scene product that keeps a height of its own beside the taller products of the composition
+ * (Urban Freestanding: the Short-Cabinet, sent `Drawers: "1D"`).
+ * Whatever height the composition is sent, the scene gets this product's own, by its handle: the
+ * scene bridge corrects it after every command that carries a height or a handle, and places it
+ * with it. Built from the cabinet catalog (buildSteppedSceneProducts), so the heights are the table's.
+ */
+export type SteppedSceneProduct = {
+  /** Scene product type, as `productTypes` names it. */
+  productType: string;
+  /** Scene config values that make the product stepped. */
+  match: ScenePatch;
+  /** Handle value (as the scene holds it) -> the scene height the product takes with it. */
+  heightByHandle: Record<string, number>;
+};
 
 export type RuntimeBindingSet = {
   schemaVersion: number;

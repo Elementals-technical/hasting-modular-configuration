@@ -21,8 +21,10 @@ export {
   adoptComposition,
   applyPreset,
   clearComposition,
+  prepareCabinet,
   removeCabinets,
   swapCabinets,
+  toPresetSceneProduct,
 } from "./lib/composition";
 export type {
   AddCabinetRequest,
@@ -32,6 +34,8 @@ export type {
   CompositionDeps,
   CompositionErrorCode,
   CompositionResult,
+  PlacedCabinet,
+  PreparedCabinet,
 } from "./lib/composition";
 export { clearDividers } from "./lib/clearDividers";
 export type { ClearDividersChange, ClearDividersResult } from "./lib/clearDividers";
@@ -59,6 +63,10 @@ export { useAttributeChangeHandler } from "./hooks/useAttributeChangeHandler";
 export { useAvailabilityResets } from "./hooks/useAvailabilityResets";
 export { useFieldAutoSelect } from "./hooks/useFieldAutoSelect";
 export { useRuleDrivenHandleSync } from "./hooks/useRuleDrivenHandleSync";
+export { usePerCabinetAttributeFields } from "./hooks/usePerCabinetAttributeFields";
+export { selectPerCabinetAttributeFields } from "./lib/perCabinetAttributes";
+export { selectOwnCabinetValues } from "./lib/compositionValues";
+export type { PerCabinetAttributeField } from "./lib/perCabinetAttributes";
 export { resolveChangeRequest } from "./lib/resolveChangeRequest";
 export { resolveColorTraits, selectConfiguratorSection } from "./lib/resolveColorTraits";
 export type { ColorTraits } from "./lib/resolveColorTraits";

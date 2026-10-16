@@ -87,6 +87,17 @@ describe("Urban Freestanding cabinet SKU", () => {
     );
   });
 
+  // The cabinet table (590) lists the Floor-Mount Short Cabinet (Short-Cabinet) at 56 cm grooved and
+  // 53 cm push-to-open; the price list has no 1DW row yet, so the price server answers with no price.
+  it("spells the short one-drawer cabinet as the Side Cabinet with 1DW, the table's spelling included", () => {
+    expect(cabinet({ CabinetType: "Short-Cabinet", Drawers: "1", CabinetColor: "Ardesia TKF" }, 60, 56).sku).toBe(
+      "VAN-URFS-SC/1DW/UG/X-23.6W-22H-19.7D-CAB-HPL-TKF-HDL-HPL-TKF",
+    );
+    expect(
+      cabinet({ CabinetType: "Short-Cabinet", Drawers: "1DW", Handle: "PTO", CabinetColor: "Ardesia TKF" }, 60, 53).sku,
+    ).toBe("VAN-URFS-SC/1DW/PTO/X-23.6W-20.9H-19.7D-CAB-HPL-TKF");
+  });
+
   it("spells the open shelf with its own series and without the plinth its cabinets' height includes", () => {
     const openShelf = (heightCm: number) =>
       cabinet({ CabinetType: "Open-Shelf", CabinetColor: "Cemento Cenere 1A1" }, 25, heightCm).sku;

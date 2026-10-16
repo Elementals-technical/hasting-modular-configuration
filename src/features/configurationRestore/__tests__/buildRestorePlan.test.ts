@@ -117,3 +117,42 @@ describe("buildRestorePlan", () => {
     expect(issueCodes(buildRestorePlan("13507", record))).toEqual(["fragment.invalid-values"]);
   });
 });
+
+describe("buildRestorePlan: where the cabinets stood", () => {
+  const savedLayout = () => ({
+    version: 1,
+    document: {
+      presetSchemaVersion: 2,
+      collection: { id: "ULH" },
+      presetProducts: [{ key: "cabinet0" }, { key: "cabinet1" }],
+      presetLayout: { layoutMode: "exact" },
+    },
+    cabinetIds: { cabinet0: "Sink-Base-aaa111", cabinet1: "Sink-Cabinet-bbb222" },
+  });
+
+  it("carries the layout the configuration was saved with", () => {
+    const record = savedRecord();
+    record.metadata.sceneLayout = savedLayout();
+
+    const result = buildRestorePlan("13507", record);
+
+    expect(result).toMatchObject({ ok: true, plan: { sceneLayout: savedLayout(), warnings: [] } });
+  });
+
+  it("has no layout for a configuration saved without one", () => {
+    expect(buildRestorePlan("13507", savedRecord())).toMatchObject({
+      ok: true,
+      plan: { sceneLayout: null, warnings: [] },
+    });
+  });
+
+  it("still restores a configuration whose layout cannot be read, in one row and with a warning", () => {
+    const record = savedRecord();
+    record.metadata.sceneLayout = { ...savedLayout(), version: 7 };
+
+    expect(buildRestorePlan("13507", record)).toMatchObject({
+      ok: true,
+      plan: { sceneLayout: null, warnings: [{ code: "layout.invalid" }] },
+    });
+  });
+});

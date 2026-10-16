@@ -48,6 +48,20 @@ describe("changeDimension", () => {
     expect(runtime.contexts[0]?.cabinetRuntimeIds).toEqual(getCabinetEntries(store.getState()).map(({ runtimeId }) => runtimeId));
   });
 
+  it("broadcasts Height as a composition command and records it as the selected height", async () => {
+    const runtime = createTestRuntimePort();
+    const result = await run({ attributeId: "Height", value: 38, scope: "global" }, runtime);
+
+    expect(result.status).toBe("applied");
+    expect(runtime.calls).toEqual([
+      [expect.objectContaining({ attributeId: "Height", target: { scope: "global" }, value: 38 })],
+    ]);
+    expect(runtime.contexts[0]?.cabinetRuntimeIds).toEqual(
+      getCabinetEntries(store.getState()).map(({ runtimeId }) => runtimeId),
+    );
+    expect(store.getState().rootStateUI.product.selectedDimensions.height).toBe(38);
+  });
+
   it("rejects an unknown target and non-finite values before touching the runtime", async () => {
     const runtime = createTestRuntimePort();
     await expect(run({ attributeId: "Width", value: 80, scope: "cabinet", cabinetId: "cab-99" }, runtime)).resolves.toMatchObject({
@@ -55,6 +69,10 @@ describe("changeDimension", () => {
       code: "unknown-target",
     });
     await expect(run({ attributeId: "Depth", value: Number.NaN, scope: "global" }, runtime)).resolves.toMatchObject({
+      status: "error",
+      code: "runtime-failed",
+    });
+    await expect(run({ attributeId: "Height", value: Number.NaN, scope: "global" }, runtime)).resolves.toMatchObject({
       status: "error",
       code: "runtime-failed",
     });

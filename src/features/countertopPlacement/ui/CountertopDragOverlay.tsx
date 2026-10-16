@@ -1,8 +1,9 @@
-import { useRef, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import clsx from "clsx";
 
 import type {
   CountertopLengthAtPointer,
+  CountertopLengthLimitsM,
   CountertopLengthPreview,
   CountertopOverlayFrame,
   CountertopResizeSide,
@@ -14,6 +15,7 @@ import { formatInches, metresToDisplayInches } from "../lib/countertopLength";
 import type { CountertopOverlayStore } from "../lib/countertopOverlayStore";
 import { describeCountertopValidation } from "../lib/countertopSession";
 import { CloseIcon, EditIcon, MoveIcon } from "./countertopIcons";
+import { CountertopDimensionPopover } from "./CountertopDimensionPopover/CountertopDimensionPopover";
 import { CountertopResizeHandles } from "./CountertopResizeHandles";
 
 import s from "./CountertopDragMode.module.scss";
@@ -29,7 +31,12 @@ type Props = {
   ): Promise<CountertopLengthAtPointer | null>;
   onPreview(preview: CountertopLengthPreview | null): void;
   onResizeFrom(side: CountertopResizeSide, lengthM: number): void;
+  /** The collection's length limits, for a build that publishes none. */
+  lengthLimitsM: CountertopLengthLimitsM;
 };
+
+/** The chip whose popover is open. */
+type DimensionEditor = "length" | "depth";
 
 const visibleFrame = (frame: CountertopOverlayFrame | null) =>
   frame && frame.active !== false && frame.visible && frame.points ? frame : null;
@@ -46,8 +53,9 @@ const actionAnchor = (frame: CountertopOverlayFrame) => {
 /**
  * Countertop Drag & Drop icons at the anchors PlayCanvas publishes: move icon at the centre, the
  * length / depth chips, the resize handles at both ends and Apply + × under the bottom-right corner.
- * The length is read-only on every top: it changes only through the end handles (client §17), which
- * also work on a standard (attached) top and take their limits from `getState().resizeBoundsM`.
+ * The length changes through the end handles (client §17), which also work on a standard (attached)
+ * top and take their limits from `getState().resizeBoundsM`. The ✎ of a chip opens its popover
+ * (`CountertopDimensionPopover`): Length with Align, or Depth alone; one at a time.
  * The tint is drawn by PlayCanvas; the layer takes pointer input only on its controls.
  */
 export function CountertopDragOverlay({
@@ -58,12 +66,18 @@ export function CountertopDragOverlay({
   lengthAtPointer,
   onPreview,
   onResizeFrom,
+  lengthLimitsM,
 }: Props) {
   const frame = visibleFrame(useSyncExternalStore(store.subscribe, store.get));
   const runtime = useCountertopRuntimeState();
   const resizeBoundsM = runtime?.resizeBoundsM;
   const rootRef = useRef<HTMLDivElement>(null);
   const validation = describeCountertopValidation(runtime?.validation, useReasonText());
+  const [openEditor, setOpenEditor] = useState<DimensionEditor | null>(null);
+  // No scene command takes a typed length with an alignment, or a depth, yet: a popover's Apply only
+  // closes it, nothing is sent and the session goes on as it was.
+  const closeEditor = useCallback(() => setOpenEditor(null), []);
+  const toggleEditor = (editor: DimensionEditor) => setOpenEditor((open) => (open === editor ? null : editor));
 
   if (!frame?.points) return null;
   const points = frame.points;
@@ -73,12 +87,20 @@ export function CountertopDragOverlay({
   const center = points.center ?? points.frontCenter;
   const lengthAnchor = points.lengthLabel ?? points.topCenter;
   const depthAnchor = points.depthLabel ?? points.rightEnd;
+  // The depth chip stands beside its anchor.
+  const depthChip = depthAnchor ? { x: depthAnchor.x + 28, y: depthAnchor.y } : null;
+  const depthIn = typeof frame.depthM === "number" ? metresToDisplayInches(frame.depthM) : null;
   const action = actionAnchor(frame);
   const frameReason = !frame.canApply || frame.status === "colliding" ? frame.reasons?.[0]?.message : undefined;
   // Invalid verdict first; else the overlay's reason; else the warning (amber, does not block Apply).
   const reason = invalid ? validation.lines.join(" ") : (frameReason ?? validation?.lines.join(" "));
   const warning = !invalid && !frameReason && validation?.tone === "warning";
   const lengthIn = typeof frame.lengthM === "number" ? metresToDisplayInches(frame.lengthM) : null;
+  // The runtime's effective limits first (raised to fit the basin cut-outs), then the frame's.
+  const effectiveLimits = runtime?.lengthLimitsM ?? frame.limits;
+  const lengthEditLimitsM = effectiveLimits
+    ? { minM: effectiveLimits.minLengthM, maxM: effectiveLimits.maxLengthM }
+    : lengthLimitsM;
   const origin = () => {
     const rect = rootRef.current?.getBoundingClientRect();
     return { left: rect?.left ?? 0, top: rect?.top ?? 0 };
@@ -105,22 +127,62 @@ export function CountertopDragOverlay({
       )}
       {lengthAnchor && lengthIn !== null && (
         <>
-          <span className={s.chip} style={{ left: lengthAnchor.x, top: lengthAnchor.y }} data-testid="countertop-length-chip">
-            {formatInches(lengthIn)}
-          </span>
+          <button
+            type="button"
+            className={s.chip}
+            style={{ left: lengthAnchor.x, top: lengthAnchor.y }}
+            aria-label={`Edit countertop length, ${formatInches(lengthIn)}`}
+            aria-haspopup="dialog"
+            aria-expanded={openEditor === "length"}
+            disabled={pending || frame.dragging}
+            onClick={() => toggleEditor("length")}
+            data-testid="countertop-length-chip"
+          >
+            {formatInches(lengthIn)} <EditIcon />
+          </button>
           <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}>
             Drag the ends to change the length
           </p>
+          {openEditor === "length" && frame.lengthM !== null && (
+            <CountertopDimensionPopover
+              label="Length"
+              anchor={lengthAnchor}
+              overlayRef={rootRef}
+              valueM={frame.lengthM}
+              limitsM={lengthEditLimitsM}
+              alignable
+              onApply={closeEditor}
+              onClose={closeEditor}
+            />
+          )}
         </>
       )}
-      {depthAnchor && typeof frame.depthM === "number" && (
-        <span
-          className={s.chip}
-          style={{ left: depthAnchor.x + 28, top: depthAnchor.y }}
-          data-testid="countertop-depth-chip"
-        >
-          {formatInches(metresToDisplayInches(frame.depthM))} <EditIcon />
-        </span>
+      {depthChip && depthIn !== null && (
+        <>
+          <button
+            type="button"
+            className={s.chip}
+            style={{ left: depthChip.x, top: depthChip.y }}
+            aria-label={`Edit countertop depth, ${formatInches(depthIn)}`}
+            aria-haspopup="dialog"
+            aria-expanded={openEditor === "depth"}
+            disabled={pending || frame.dragging}
+            onClick={() => toggleEditor("depth")}
+            data-testid="countertop-depth-chip"
+          >
+            {formatInches(depthIn)} <EditIcon />
+          </button>
+          {openEditor === "depth" && frame.depthM !== null && (
+            <CountertopDimensionPopover
+              label="Depth"
+              anchor={depthChip}
+              overlayRef={rootRef}
+              valueM={frame.depthM}
+              onApply={closeEditor}
+              onClose={closeEditor}
+            />
+          )}
+        </>
       )}
       <CountertopResizeHandles
         frame={frame}

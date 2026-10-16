@@ -152,16 +152,37 @@ export type ConfiguratorCompactPresetRow = {
   products: ConfiguratorPresetProduct[];
 };
 
-/** Compact preset (format "ulh-compact-v1"); all lengths in cm. See scratch CONTRACT / compact-preset.mjs. */
-export type ConfiguratorCompactPreset = {
-  format: "ulh-compact-v1";
+/**
+ * A place of a row that holds columns (format "urban-compact-v2"): a cabinet hanging from the
+ * countertop plane (`top`) over one standing on the floor (`bottom`); either may be missing. The
+ * bottom's `offsetX` (cm) is its left edge from the top's.
+ */
+export type ConfiguratorCompactColumn = {
+  top?: ConfiguratorPresetProduct;
+  bottom?: ConfiguratorPresetProduct & { offsetX?: number };
+  [key: string]: unknown;
+};
+
+export type ConfiguratorColumnsPresetRow = {
+  offsetX?: number;
+  products: (ConfiguratorPresetProduct | ConfiguratorCompactColumn)[];
+};
+
+type ConfiguratorCompactPresetFields = {
   collection: string;
   shared?: Record<string, unknown>;
-  rows: ConfiguratorCompactPresetRow[];
   top?: { productType: string; positionM?: CabinetPositionM; [key: string]: unknown };
   featureSettings?: Record<string, unknown>;
   [key: string]: unknown;
 };
+
+/**
+ * Compact preset; all lengths in cm. See scratch CONTRACT / compact-preset.mjs. "ulh-compact-v1"
+ * lays rows of cabinets; "urban-compact-v2" (Urban Duplex) lays a row of places, some of them columns.
+ */
+export type ConfiguratorCompactPreset =
+  | (ConfiguratorCompactPresetFields & { format: "ulh-compact-v1"; rows: ConfiguratorCompactPresetRow[] })
+  | (ConfiguratorCompactPresetFields & { format: "urban-compact-v2"; rows: ConfiguratorColumnsPresetRow[] });
 
 export type ConfiguratorImportReceipt = ConfiguratorReceipt & {
   keyToProductId: Record<string, string>;
@@ -277,6 +298,35 @@ export type RoomApi = {
   setCollection?: (collectionId: string | null) => unknown;
   clearCollection?: () => unknown;
   getState?: () => unknown;
+};
+
+/** `ConfiguratorAPI.cabinetCover` (ULH): the thin covers the scene lays on the cabinet tops it leaves bare. */
+export type CabinetCoverApi = {
+  configure?: (settings: { materialId: string }) => unknown;
+  getState?: () => unknown;
+  whenSettled?: () => unknown;
+};
+
+/** Applied cover materials and slab sizes, independent of the upper basin countertop. */
+export type CabinetCoverColorState = {
+  compositionId: string;
+  segments: (CabinetCoverSegment & { materialId: string; thicknessM: number })[];
+  /** The material the composition asks its covers for (`configure`); null when it names none. */
+  requestedMaterialId: string | null;
+};
+
+export type CabinetCoverConfigureResult = {
+  status: "applied" | "unchanged" | "invalid" | "unsupported" | "cancelled" | "error";
+};
+
+/** One cover slab: a run of cabinet tops of one height and depth, in metres. */
+export type CabinetCoverSegment = {
+  productId: string;
+  widthM: number;
+  depthM: number;
+  cabinetIds: string[];
+  /** Actual published finish; null retains the slab as an explicitly unpriced line. */
+  materialId: string | null;
 };
 
 export type CountertopOverlayApi = {
@@ -508,6 +558,8 @@ export interface ConfiguratorApi {
   countertopOverlay?: CountertopOverlayApi;
   /** Room height per open collection (ULH lowers the room). Newer builds only (feature-detect). */
   room?: RoomApi;
+  /** Cabinet covers (ULH). Newer builds only (feature-detect). */
+  cabinetCover?: CabinetCoverApi;
   /** Only the members the typed layer uses; the rest of the namespace is read by the countertop feature. */
   countertop?: {
     setLengthLimits?: (limits: CountertopLengthLimitsM | null) => unknown;

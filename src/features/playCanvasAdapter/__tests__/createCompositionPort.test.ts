@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
+import { parseRuntimeBindings } from "@/entities/collection";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
@@ -11,7 +13,17 @@ import type {
 } from "@/utils/functions/playcanvas/sceneBridge";
 
 import { createCompositionPort, type SceneCompositionBridge } from "../lib/createCompositionPort";
+import type { SceneSlotRequest } from "../lib/sceneSlotPlacement";
 import { createTestSceneReader } from "../lib/testSceneReader";
+
+// As the scene's placement does: each of its calls waits in the batch queue of the bridge.
+vi.mock("../lib/sceneSlotPlacement", async () => {
+  const { runInBatchQueue } = await import("@/utils/functions/playcanvas/setConfigBatch");
+  return {
+    placeInSceneSlot: async () =>
+      runInBatchQueue(async () => ({ status: "applied", runtimeId: "UD-side-cabinet-queued" })),
+  };
+});
 
 type Answers = {
   preset?: ScenePresetResult;
@@ -19,6 +31,7 @@ type Answers = {
   insert?: SceneAddProductResult;
   setConfig?: SceneOperationResult;
   remove?: SceneOperationResult[];
+  swap?: SceneOperationResult;
 };
 
 const createFakeScene = (answers: Answers = {}) => {
@@ -54,7 +67,7 @@ const createFakeScene = (answers: Answers = {}) => {
     },
     async swapProducts(runtimeIdA, runtimeIdB) {
       calls.push(["swap", runtimeIdA, runtimeIdB]);
-      return { status: "applied" };
+      return answers.swap ?? { status: "applied" };
     },
   };
 
@@ -66,6 +79,10 @@ const createFakeScene = (answers: Answers = {}) => {
     },
   };
 };
+
+const parsedUrbanDuplexBindings = parseRuntimeBindings(urbanDuplexBindingsDocument);
+if (!parsedUrbanDuplexBindings.ok) throw new Error("the packaged Urban Duplex bindings must parse");
+const urbanDuplexRuntimeBindings = parsedUrbanDuplexBindings.bindings;
 
 const createPort = (answers?: Answers, bindings: RuntimeBindingSet = ushRuntimeBindings) => {
   const fake = createFakeScene(answers);
@@ -265,6 +282,7 @@ describe("createCompositionPort", () => {
           Handle: "handle_pto",
           Drawers: "1D",
           sinkType: "Top_HPLPrisma",
+          HandleGrooveColor: "Black",
           ProductType: "ULH-sink-cabinet",
           productType: "ULH-sink-cabinet",
         },
@@ -281,11 +299,11 @@ describe("createCompositionPort", () => {
     expect(calls).toEqual([]);
   });
 
-  it("places a Mako preset, a side cabinet on legs in the cabinet colour", async () => {
+  it("places a Mako preset, a side cabinet on legs in the leg colour it names", async () => {
     const { port, calls } = createPort(undefined, makoRuntimeBindings);
 
     await port.replace({
-      products: [{ productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2", LegColor: "None" } }],
+      products: [{ productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2", LegColor: "Antracite 400 MT" } }],
       flow: "prebuilt",
     });
 
@@ -298,7 +316,8 @@ describe("createCompositionPort", () => {
             Drawers: "2D",
             Height: 52,
             ShowLegs: "Enable",
-            LegColor: "None",
+            // The scene material of the legs, so they do not take the cabinet's.
+            LegColor: "Antracite 400 Lacquered MT",
             ProductType: "Mako-side-cabinet",
             productType: "Mako-side-cabinet",
             name: "Mako-side-cabinet",
@@ -307,6 +326,162 @@ describe("createCompositionPort", () => {
         undefined,
       ],
     ]);
+  });
+
+  it("places an Urban Duplex model with its shelves, each product in the colours of its own type", async () => {
+    const { port, calls } = createPort(undefined, urbanDuplexRuntimeBindings);
+    const colours = { BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" };
+
+    const result = await port.replace({
+      products: [
+        { productType: "Side-Shelf", config: { Width: 15, Height: 56, OpenSideShelfSide: "L", ...colours } },
+        {
+          productType: "Sink-Base",
+          config: {
+            Width: 70,
+            Height: 56,
+            Drawers: "2",
+            Handle: "UG",
+            Series: "URDPX",
+            LateralPanelSide: "L",
+            ...colours,
+          },
+        },
+        { productType: "Open-Shelf", config: { Width: 35, Height: 56, ...colours } },
+        {
+          productType: "Sink-Cabinet",
+          config: { Width: 80, Height: 56, Drawers: "2", Handle: "UG", Series: "URSTD", ...colours },
+        },
+      ],
+      flow: "prebuilt",
+    });
+
+    expect(result).toMatchObject({ status: "applied" });
+    const [, products] = calls[0] as [string, Record<string, unknown>[]];
+    expect(products.map(({ name }) => name)).toEqual([
+      "UD-open-shelves-side",
+      "UD-sink-cabinet",
+      "UD-open-shelves",
+      "UD-side-cabinet",
+    ]);
+    // The open side shelf is the lateral panel colour, the open shelf the base panel colour.
+    expect(products[0]).toMatchObject({ CabinetColor: "Pulpis Chiaro TKH" });
+    expect(products[2]).toMatchObject({ CabinetColor: "Bianco Calce DA ST" });
+    // A drawer cabinet: body, lateral part and grooves, its lateral panel on its own side.
+    expect(products[1]).toMatchObject({
+      CabinetColor: "Bianco Calce DA ST",
+      CabinetColorLateral: "Pulpis Chiaro TKH",
+      HandleGrooveColor: "Pulpis Chiaro TKH",
+      HandleStyle: "Duplex",
+      HandleSide: "Left",
+      Drawers: "2D",
+    });
+    // A cabinet of another Urban series has no lateral panel: the full handles.
+    expect(products[3]).toMatchObject({ CabinetColor: "Bianco Calce DA ST", HandleStyle: "Default" });
+    // The attributes themselves are not scene keys.
+    for (const product of products) {
+      expect(product).not.toHaveProperty("BasePanelColor");
+      expect(product).not.toHaveProperty("LateralPanelColor");
+      expect(product).not.toHaveProperty("Series");
+    }
+  });
+
+  it("places an Urban Duplex cabinet at a place the scene offers, translated for its scene type", async () => {
+    const fake = createFakeScene();
+    const requests: SceneSlotRequest[] = [];
+    const port = createCompositionPort({
+      getBindings: () => urbanDuplexRuntimeBindings,
+      scene: fake.scene,
+      reader: createTestSceneReader().reader,
+      placeInSlot: async (request) => {
+        requests.push(request);
+        return { status: "applied", runtimeId: "UD-side-cabinet-placed" };
+      },
+    });
+
+    const result = await port.add(
+      {
+        productType: "Sink-Cabinet",
+        config: { Width: 70, Height: 28, Drawers: "1", Series: "URSTD", LateralPanelSide: "L" },
+      },
+      { kind: "slot", anchorRuntimeId: "UD-sink-cabinet-1", slot: "bottom" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["UD-side-cabinet-placed"] });
+    // Neither an insert nor an add: the scene's own placement does it.
+    expect(fake.calls).toEqual([]);
+    expect(requests).toEqual([
+      {
+        sceneType: "UD-side-cabinet",
+        anchorRuntimeId: "UD-sink-cabinet-1",
+        slot: "bottom",
+        config: expect.objectContaining({
+          Width: 70,
+          Drawers: "1D",
+          HandleStyle: "Default",
+          HandleSide: "Left",
+          ProductType: "UD-side-cabinet",
+        }),
+      },
+    ]);
+  });
+
+  it("passes a place the scene refuses through as rejected", async () => {
+    const issue = { code: "placement-unavailable" as const, message: "DOES_NOT_FIT" };
+    const port = createCompositionPort({
+      getBindings: () => urbanDuplexRuntimeBindings,
+      scene: createFakeScene().scene,
+      reader: createTestSceneReader().reader,
+      placeInSlot: async () => ({ status: "rejected", issues: [issue] }),
+    });
+
+    const result = await port.add(
+      { productType: "Sink-Cabinet", config: { Width: 60, Height: 56 } },
+      { kind: "slot", anchorRuntimeId: "UD-side-cabinet-1", slot: "top" },
+    );
+
+    expect(result).toEqual({ status: "rejected", issues: [issue] });
+  });
+
+  it("leaves the batch queue free for the calls of its own placement", async () => {
+    const port = createCompositionPort({
+      getBindings: () => urbanDuplexRuntimeBindings,
+      scene: createFakeScene().scene,
+      reader: createTestSceneReader().reader,
+    });
+
+    const result = await port.add(
+      { productType: "Sink-Cabinet", config: { Width: 70, Height: 28 } },
+      { kind: "slot", anchorRuntimeId: "UD-sink-cabinet-1", slot: "right" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["UD-side-cabinet-queued"] });
+  });
+
+  it("translates a product for the scene's own tools without a scene call", () => {
+    const { port, calls } = createPort(undefined, urbanDuplexRuntimeBindings);
+
+    const draft = port.toSceneProduct({
+      productType: "Side-Shelf",
+      config: { Width: 15, BasePanelColor: "Bianco Calce DA ST", LateralPanelColor: "Pulpis Chiaro TKH" },
+    });
+
+    // The open side shelf is the lateral panel colour, as when it is placed.
+    expect(draft).toMatchObject({ sceneType: "UD-open-shelves-side", config: { CabinetColor: "Pulpis Chiaro TKH" } });
+    expect(calls).toEqual([]);
+    expect(port.toSceneProduct({ productType: "Unknown-Type", config: {} })).toBeNull();
+  });
+
+  it("sends a shared value under its other keys too, but not the one meant for a single product type", async () => {
+    const { port, calls } = createPort(undefined, urbanDuplexRuntimeBindings);
+
+    await port.replace({
+      products: [{ productType: "Sink-Base", config: { Width: 60 } }],
+      shared: { LateralPanelColor: "Metal bronzo 2MD" },
+      flow: "prebuilt",
+    });
+
+    expect(calls[0]?.[2]).toEqual({ CabinetColorLateral: "Metal bronzo 2MD", HandleGrooveColor: "Metal bronzo 2MD" });
   });
 
   it("reports a cabinet placed without its config as partial", async () => {
@@ -340,6 +515,30 @@ describe("createCompositionPort", () => {
 
     const second = createPort({ remove: [{ status: "applied" }, failed] });
     expect(await second.port.remove(["cab-a", "cab-b"])).toMatchObject({ status: "partial" });
+  });
+
+  it("keeps the scene's refusal code of an insert or a swap (UF height run)", async () => {
+    const refusal: SceneOperationResult = {
+      status: "failed",
+      code: "scene-error",
+      message: "short between tall",
+      sceneCode: "UF_HEIGHT_RUN_VIOLATION",
+    };
+
+    const inserting = createPort({ insert: refusal });
+    expect(
+      await inserting.port.add(
+        { productType: "Side-Cabinet", config: { Width: 40 } },
+        { kind: "beside", anchorRuntimeId: "cab-a", side: "right" },
+      ),
+    ).toEqual({ status: "failed", message: "short between tall", sceneCode: "UF_HEIGHT_RUN_VIOLATION" });
+
+    const swapping = createPort({ swap: refusal });
+    expect(await swapping.port.swap("cab-a", "cab-b")).toEqual({
+      status: "failed",
+      message: "short between tall",
+      sceneCode: "UF_HEIGHT_RUN_VIOLATION",
+    });
   });
 
   it("sends nothing while the scene is not ready", async () => {

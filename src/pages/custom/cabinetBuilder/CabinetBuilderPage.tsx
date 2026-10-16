@@ -69,30 +69,50 @@ import {
   selectCountertopCabinetCompositionConstraint,
   selectOptionImageContext,
 } from "@/entities/product/model/store/derivedSelectors";
+import { selectPlacedSeriesCabinets } from "@/entities/product/model/store/seriesCabinets";
+import {
+  selectHasPlacedCabinetOfCategory,
+  selectSteppedCabinetIds,
+} from "@/entities/product/model/store/steppedCabinets";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
-  hasCapability,
   isDrawerStyleMixingRestricted,
+  perCabinetAttributeId,
   resolveCabinetTypeOfRuntimeId,
   selectDefaultValue,
   selectEffectiveFallback,
+  selectMessageOr,
   selectOption,
   selectOptionsByCapability,
+  useActiveCollection,
   useCollectionPresets,
 } from "@/entities/collection";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
   getCabinetEntries,
+  getDimensionsByCabinet,
 } from "@/entities/configuration/model/store/selectors";
-import { useChangeAttribute } from "@/features/configurationCommands";
+import { selectOwnCabinetValues, useChangeAttribute } from "@/features/configurationCommands";
 import { ensureCabinetHeights, restoreCountertopConfigs } from "@/features/playCanvasAdapter";
 import { clearDividerZones } from "@/features/dividers";
 import {
   formatCompositionLengthReachedReason,
   useCountertopLengthGuard,
 } from "@/features/configurator-rule-core/countertop";
-import { findPlacedCabinetRule, getUniqueCatalogWidths } from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  findPlacedCabinetRule,
+  getUniqueCatalogWidths,
+  isDrawerStyleHeightRestricted,
+  isSideShelfBlockedByHandle,
+  resolveDrawerStyleSwitch,
+} from "@/features/configurator-rule-core/cabinetBuilder";
+import {
+  findCabinetRule,
+  findSeriesVariants,
+  SERIES_ATTRIBUTE_ID,
+  seriesOfConfig,
+} from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { getIsActiveStyleSidebar } from "@/features/sidebar/model/store/selectors";
 
@@ -101,11 +121,13 @@ import s from "./CabinetBuilderPage.module.scss";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
+import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneProducts";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
-import { useHistorySnapshot } from "@/entities/history/lib/useHistorySnapshot";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
+import { clearHistory } from "@/entities/history/model/store/slice";
 import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { store } from "@/app/store";
@@ -211,6 +233,37 @@ const inferCountertopStyleFromSinkType = (sinkType: string): "Vessel" | "Integra
   return "Integrated";
 };
 
+/** Two drawers before one, then the styles a number does not order. */
+const byDrawerCount = (a: string, b: string) => {
+  const aNum = Number.parseFloat(a);
+  const bNum = Number.parseFloat(b);
+  const aIsNum = Number.isFinite(aNum);
+  const bIsNum = Number.isFinite(bNum);
+
+  if (aIsNum && bIsNum && aNum !== bNum) return bNum - aNum;
+  if (aIsNum !== bIsNum) return aIsNum ? -1 : 1;
+  return a.localeCompare(b);
+};
+
+/** A style the user was asked to confirm, because every drawer cabinet switches to it. */
+type PendingMixingStyle = {
+  /** The card. */
+  value: string;
+  title: string;
+  drawers: string;
+  /** The series whose cabinet the card stands for, where the collection offers several. */
+  series: string | null;
+  /** The height the placed cabinets share, and the one they take with the style. */
+  placedHeight: number | null;
+  switchHeight: number | null;
+};
+
+const REASON_STYLE_NOT_WITH_SERIES = "drawers.notWithSeriesCabinet";
+const REASON_STEPPED_NEEDS_CABINET = "drawers.steppedNeedsTallCabinet";
+const STEPPED_NEEDS_CABINET_TEXT =
+  "Add a Sink Base or a 2 Drawer Side Cabinet first: the short cabinet stands beside a taller one.";
+const STYLE_NOT_WITH_SERIES_TEXT = "Not available with the cabinets of another series in this design.";
+
 const readConfigDrawerValue = (config: unknown): string | null => {
   if (!config || typeof config !== "object") return null;
 
@@ -222,7 +275,7 @@ export const CabinetBuilderPage = () => {
   const [isOpenedBuildInfo, setIsOpenedBuildInfo] = useState(() => !sessionStorage.getItem("instractions"));
   const [accordionValue, setAccordionValue] = useState(defaultValue);
   const [activeStyleValue, setActiveStyleValue] = useState<string | null>(null);
-  const [pendingMixingStyle, setPendingMixingStyle] = useState<{ value: string; title: string } | null>(null);
+  const [pendingMixingStyle, setPendingMixingStyle] = useState<PendingMixingStyle | null>(null);
   const [isPtoSwitchPromptOpen, setIsPtoSwitchPromptOpen] = useState(false);
   const [pendingTutorialDefaultCabinetType, setPendingTutorialDefaultCabinetType] = useState(false);
   const [pendingTutorialDefaultCabinetStyle, setPendingTutorialDefaultCabinetStyle] = useState(false);
@@ -240,6 +293,10 @@ export const CabinetBuilderPage = () => {
   const dispatch = useAppDispatch();
   const canvasReady = usePlayCanvasReady();
   const presets = useCollectionPresets();
+  // Cabinet values the style sidebar offers per cabinet (`styleSidebar.attributes`).
+  const cabinetAttributeIds = useActiveCollection(
+    (collection) => collection.catalog.customization?.styleSidebar?.attributes,
+  );
 
   const { search, key: locationKey } = useLocation();
   const navigate = useCollectionNavigate();
@@ -303,6 +360,17 @@ export const CabinetBuilderPage = () => {
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
+  const steppedCabinetIds = useAppSelector(selectSteppedCabinetIds);
+  const placedDimensions = useAppSelector(getDimensionsByCabinet);
+  const placedSeriesCabinets = useAppSelector(selectPlacedSeriesCabinets);
+  // A short cabinet (`ruleData.steppedModules`) stands beside a taller one: the categories of
+  // cabinet it needs placed first, and those that are.
+  const steppedModules = useMemo(() => activeProfile?.ruleData.steppedModules ?? [], [activeProfile]);
+  const placedSteppedCategories = useAppSelector((state) =>
+    [...new Set(steppedModules.map(({ requiresPlacedCategory }) => requiresPlacedCategory))]
+      .filter((category) => selectHasPlacedCabinetOfCategory(state, category))
+      .join("|"),
+  );
   const countertopCompositionConstraint = useAppSelector(selectCountertopCabinetCompositionConstraint);
   // Pictures, labels and the values they depend on all come from the active collection.
   const optionImages = useOptionImages();
@@ -310,7 +378,7 @@ export const CabinetBuilderPage = () => {
   const optionImageContext = useAppSelector(selectOptionImageContext);
 
 
-  const saveSnapshot = useHistorySnapshot();
+  const { run: runStep } = useHistoryStep();
   const hasProducts = selectedProducts.length > 0;
   const hasPendingCabinetBuilderSelection =
     activeCabinetType !== null || drawerProduct.trim().length > 0 || selectedProductConfig !== null;
@@ -343,50 +411,129 @@ export const CabinetBuilderPage = () => {
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
+    // A short cabinet (`ruleData.steppedModules`) mixes with the others, so its style is not the composition's.
+    const placedDrawerValues = Object.entries(placedCabinetStyles)
+      .filter(([runtimeId]) => !steppedCabinetIds.includes(runtimeId))
+      .map(([, drawers]) => drawers);
+    const placedHeights = Object.values(placedDimensions).flatMap(({ height }) =>
+      typeof height === "number" ? [height] : [],
+    );
+    const placedHeight = placedHeights[0] ?? null;
+    const placedSeriesRules = placedSeriesCabinets.map(({ rule }) => rule);
+    const placedSeriesLabels = [
+      ...new Set(
+        placedSeriesRules.map(
+          (rule) => selectOption(activeProfile, SERIES_ATTRIBUTE_ID, rule.series ?? "")?.label ?? rule.series ?? "",
+        ),
+      ),
+    ].join(", ");
+    const canAccommodateWidth = lengthGuard.canAccommodate;
 
-    const activeDrawerValues = Array.from(drawerOptionMap.keys()).sort((a, b) => {
-      const aNum = Number.parseFloat(a);
-      const bNum = Number.parseFloat(b);
-      const aIsNum = Number.isFinite(aNum);
-      const bIsNum = Number.isFinite(bNum);
+    // The collection's own cabinet of the active type, then the ones other series supply of it
+    // (Urban Duplex: the side cabinets of Urban Standard and Urban Low Height). Each stands under
+    // the name of its series; a type only the collection supplies has no headings.
+    const seriesRules = findSeriesVariants(cabinetCatalog, activeCabinetType);
+    const ownSeries = seriesRules.length > 0 ? selectDefaultValue(activeProfile, SERIES_ATTRIBUTE_ID) || null : null;
+    const groups = [
+      {
+        rule: findCabinetRule(cabinetCatalog, activeCabinetType),
+        series: ownSeries,
+        drawerValues: Array.from(drawerOptionMap.keys()).filter(Boolean),
+      },
+      ...seriesRules.map((rule) => ({ rule, series: rule.series ?? null, drawerValues: rule.drawers })),
+    ];
 
-      if (aIsNum && bIsNum && aNum !== bNum) return bNum - aNum;
-      if (aIsNum !== bIsNum) return aIsNum ? -1 : 1;
-      return a.localeCompare(b);
-    });
-    const placedDrawerValues = Object.values(placedCabinetStyles);
+    return groups.flatMap(({ rule, series, drawerValues }) => {
+      const isOfOtherSeries = Boolean(rule?.series);
+      // The rules were run for the cabinet being configured; a cabinet of another series is read
+      // from its own rule.
+      const isConfiguredRule = rule === activeCabinetRule || (!isOfOtherSeries && !activeCabinetRule?.series);
+      const hasAddableWidth = isConfiguredRule
+        ? hasAddableWidthForActiveType
+        : !hasProducts || (rule?.widths ?? []).some((width) => width > 0 && canAccommodateWidth(width));
 
-    return activeDrawerValues.filter(Boolean).map((value) => {
-      const ruleOption = drawerOptionMap.get(String(value));
+      return [...drawerValues].sort(byDrawerCount).map((value) => {
+        const ruleOption = isConfiguredRule ? drawerOptionMap.get(value) : undefined;
+        const isOffered = isConfiguredRule ? !ruleOption?.disabled : Boolean(rule?.drawers.includes(value));
 
-      // Drawer style groups of the collection decide which styles cannot be mixed.
-      const isMixingRestricted = isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, String(value));
-
-      return {
-        title: selectOption(activeProfile, "Drawers", String(value))?.label ?? String(value),
-        value: String(value),
-        isAvailable:
-          countertopCompositionConstraint.canAddCabinet &&
-          (ruleOption ? !ruleOption.disabled : true) &&
-          hasAddableWidthForActiveType,
-        disabledReason:
+        // A short cabinet stands at an end, beside a taller cabinet: it is not the first one.
+        const steppedModule = steppedModules.find(
+          (module) => module.cabinetType === rule?.code && module.drawers === value,
+        );
+        // Drawer style groups of the collection decide which styles cannot be mixed, and so does a
+        // style that does not come in the height of the placed cabinets. A short cabinet's style
+        // mixes with every other (Urban Freestanding: the one 1-drawer product beside 2-drawer ones).
+        const isMixingRestricted =
+          steppedModule === undefined &&
+          (isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, value) ||
+            isDrawerStyleHeightRestricted(rule, value, placedHeights));
+        // Every drawer cabinet switches to such a style, which a placed cabinet of another series
+        // may not come in.
+        const styleSwitch = isMixingRestricted
+          ? resolveDrawerStyleSwitch({ rule, drawers: value, placedHeight, placedSeriesRules })
+          : null;
+        const canSwitch = styleSwitch?.possible ?? true;
+        const seriesLabel = series
+          ? (selectOption(activeProfile, SERIES_ATTRIBUTE_ID, series)?.label ?? series)
+          : undefined;
+        // The length of the countertop comes first, as for a style of the collection.
+        const compositionReason =
           !countertopCompositionConstraint.canAddCabinet && hasProducts
             ? countertopCompositionConstraint.reason
-            : !hasAddableWidthForActiveType && hasProducts
+            : !hasAddableWidth && hasProducts
               ? compositionExceededReason
-              : ruleOption?.reason,
-        isMixingRestricted,
-        isShortDesc: false,
-        metadata: {
-          image: resolveOptionImage({
-            optionImages,
-            variants: optionImageVariants,
-            attributeId: "Drawers",
-            value: String(value),
-            context: optionImageContext,
-          }),
-        },
-      };
+              : undefined;
+        const isHeldBySeries = compositionReason === undefined && !canSwitch;
+        const needsTallerCabinet =
+          compositionReason === undefined &&
+          !isHeldBySeries &&
+          steppedModule !== undefined &&
+          !placedSteppedCategories.split("|").includes(steppedModule.requiresPlacedCategory);
+
+        return {
+          title: selectOption(activeProfile, "Drawers", value)?.label ?? value,
+          value: isOfOtherSeries ? `${series}:${value}` : value,
+          drawers: value,
+          series,
+          group: seriesLabel,
+          detailsQuery: series ? { style: value, series } : undefined,
+          placedHeight,
+          switchHeight: styleSwitch?.possible ? styleSwitch.height : null,
+          isAvailable:
+            countertopCompositionConstraint.canAddCabinet &&
+            isOffered &&
+            hasAddableWidth &&
+            canSwitch &&
+            !needsTallerCabinet,
+          disabledReason:
+            compositionReason ??
+            (isHeldBySeries
+              ? selectMessageOr(activeProfile, REASON_STYLE_NOT_WITH_SERIES, STYLE_NOT_WITH_SERIES_TEXT, {
+                  series: placedSeriesLabels,
+                })
+              : needsTallerCabinet
+                ? selectMessageOr(activeProfile, REASON_STEPPED_NEEDS_CABINET, STEPPED_NEEDS_CABINET_TEXT)
+                : ruleOption?.reason),
+          // Named by its code, so the hint reads the collection's text for it.
+          ...(isHeldBySeries
+            ? { disabledReasonCode: REASON_STYLE_NOT_WITH_SERIES, disabledReasonParams: { series: placedSeriesLabels } }
+            : needsTallerCabinet
+              ? { disabledReasonCode: REASON_STEPPED_NEEDS_CABINET }
+              : {}),
+          isMixingRestricted,
+          isShortDesc: false,
+          metadata: {
+            image: resolveOptionImage({
+              optionImages,
+              variants: optionImageVariants,
+              attributeId: "Drawers",
+              value,
+              // The picture of the series the card stands for, not of the one the composition began with.
+              context: series ? { ...optionImageContext, [SERIES_ATTRIBUTE_ID]: series } : optionImageContext,
+            }),
+          },
+        };
+      });
     });
   }, [
     dimensionOptions.drawers,
@@ -394,21 +541,28 @@ export const CabinetBuilderPage = () => {
     optionImageVariants,
     optionImageContext,
     activeProfile,
+    activeCabinetRule,
+    activeCabinetType,
+    cabinetCatalog,
     placedCabinetStyles,
+    steppedCabinetIds,
+    placedDimensions,
+    placedSeriesCabinets,
+    placedSteppedCategories,
+    steppedModules,
     countertopCompositionConstraint.canAddCabinet,
     countertopCompositionConstraint.reason,
     hasAddableWidthForActiveType,
     hasProducts,
+    lengthGuard.canAccommodate,
     compositionExceededReason,
   ]);
 
   const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
-  // Open/side shelves have no drawer front to cut a groove into, so only a handle without
-  // the groove capability works with them. Read from the profile instead of naming an id.
+  // A side shelf goes with a handle without a groove where the collection has one
+  // (sideShelfHandleRule). Read from the profile instead of naming an id.
   const nonGrooveHandle = selectOptionsByCapability(activeProfile, "Handle", "supportsGrooveColor", false)[0]?.value;
-  const isOssBlockedByHandle = Boolean(
-    selectedHandle && hasCapability(activeProfile, "Handle", selectedHandle, "supportsGrooveColor"),
-  );
+  const isOssBlockedByHandle = isSideShelfBlockedByHandle(activeProfile, selectedHandle);
 
   // The scene names a product after its scene type ("ULH-sink-cabinet-…"), which need not contain
   // the cabinet type; the collection's bindings map it back.
@@ -423,8 +577,10 @@ export const CabinetBuilderPage = () => {
 
   const cabinetTypeOptions = useMemo(
     () =>
-      // Order, label and description of a cabinet type are the collection's, not the page's.
-      [...cabinetCatalog.typeCabinetRules]
+      // Order, label and description of a cabinet type are the collection's, not the page's. A
+      // cabinet another series supplies of a type is a style of that type, not a card of its own.
+      cabinetCatalog.typeCabinetRules
+        .filter((rule) => !rule.series)
         .sort((a, b) => {
           const aOrder = selectOption(activeProfile, "CabinetType", a.code)?.order ?? Number.MAX_SAFE_INTEGER;
           const bOrder = selectOption(activeProfile, "CabinetType", b.code)?.order ?? Number.MAX_SAFE_INTEGER;
@@ -436,9 +592,9 @@ export const CabinetBuilderPage = () => {
           const typeHasFittingWidth =
             !hasProducts ||
             remainingCountertopLength === null ||
-            (rule.widths ?? []).some(
-              (width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01,
-            );
+            [rule, ...findSeriesVariants(cabinetCatalog, rule.code)]
+              .flatMap(({ widths }) => widths ?? [])
+              .some((width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01);
 
           const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
           const isSideShelfDisabled = rule.code === "Side-Shelf" && sideShelfCount >= 2;
@@ -498,7 +654,7 @@ export const CabinetBuilderPage = () => {
           };
         }),
     [
-      cabinetCatalog.typeCabinetRules,
+      cabinetCatalog,
       activeProfile,
       optionImages,
       optionImageVariants,
@@ -518,6 +674,7 @@ export const CabinetBuilderPage = () => {
   const {
     change: changeAttributeValue,
     confirm: confirmAttributeValue,
+    changeDimension,
     getState: getCommandState,
     replay,
     record,
@@ -527,29 +684,33 @@ export const CabinetBuilderPage = () => {
   const handleApprovePtoSwitch = useCallback(async () => {
     setIsPtoSwitchPromptOpen(false);
     if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
-    await saveSnapshot();
     if (!nonGrooveHandle) return;
 
-    const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
+    // The handle switch is one undo step.
+    const switched = await runStep(async () => {
+      const cabinetId = getCabinetEntries(getCommandState())[0]?.stableKey;
 
-    if (cabinetId) {
-      // The prompt the user just approved is the confirmation, so a preview is confirmed at once.
-      const asked = await changeAttributeValue({
-        attributeId: "Handle",
-        value: nonGrooveHandle,
-        scope: "cabinet",
-        cabinetId,
-      });
-      const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
+      if (cabinetId) {
+        // The prompt the user just approved is the confirmation, so a preview is confirmed at once.
+        const asked = await changeAttributeValue({
+          attributeId: "Handle",
+          value: nonGrooveHandle,
+          scope: "cabinet",
+          cabinetId,
+        });
+        const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
 
-      if (result.status !== "applied" && result.status !== "partial") {
-        console.error("[CabinetBuilderPage] Failed to switch to a non-groove handle", result);
-        return;
+        if (result.status !== "applied" && result.status !== "partial") {
+          console.error("[CabinetBuilderPage] Failed to switch to a non-groove handle", result);
+          return false;
+        }
+      } else {
+        // No cabinet placed yet: the handle is the choice for the next cabinet.
+        dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: nonGrooveHandle }));
       }
-    } else {
-      // No cabinet placed yet: the handle is the choice for the next cabinet.
-      dispatch(setSelectedProductConfig({ ...(selectedProductConfig ?? {}), Handle: nonGrooveHandle }));
-    }
+      return true;
+    });
+    if (!switched) return;
 
     dispatch(setActiveCabinetType("Side-Shelf"));
     dispatch(setDrawerProduct("Side-Shelf"));
@@ -562,7 +723,7 @@ export const CabinetBuilderPage = () => {
     getCommandState,
     hasProducts,
     nonGrooveHandle,
-    saveSnapshot,
+    runStep,
     selectedProductConfig,
   ]);
 
@@ -593,18 +754,21 @@ export const CabinetBuilderPage = () => {
       if (!hasProducts) allowNextAutoAddRef.current = true;
       setActiveStyleValue(value);
 
-      const mappedValue = mapDrawerValueToConfig(value);
+      // The card names the drawers and, where several series supply the type, the series.
+      const style = cabinetStyleOptions.find((item) => item.value === value);
+      const mappedValue = mapDrawerValueToConfig(style?.drawers ?? value);
 
       if (mappedValue) {
         dispatch(
           setSelectedProductConfig({
             ...selectedProductConfig,
             Drawers: mappedValue,
+            ...(style?.series ? { [SERIES_ATTRIBUTE_ID]: style.series } : {}),
           }),
         );
       }
     },
-    [countertopCompositionConstraint.canAddCabinet, dispatch, hasProducts, selectedProductConfig],
+    [cabinetStyleOptions, countertopCompositionConstraint.canAddCabinet, dispatch, hasProducts, selectedProductConfig],
   );
 
   const handleResetToDefaultState = useCallback(() => {
@@ -615,7 +779,8 @@ export const CabinetBuilderPage = () => {
     (value: string) => {
       const option = cabinetStyleOptions.find((item) => item.value === value);
       if (!option) return;
-      setPendingMixingStyle({ value, title: option.title });
+      const { title, drawers, series, placedHeight, switchHeight } = option;
+      setPendingMixingStyle({ value, title, drawers, series, placedHeight, switchHeight });
     },
     [cabinetStyleOptions],
   );
@@ -623,7 +788,7 @@ export const CabinetBuilderPage = () => {
   const handleMixingConfirm = useCallback(async () => {
     if (!pendingMixingStyle) return;
 
-    const drawerRawValue = pendingMixingStyle.value;
+    const { drawers: drawerRawValue, series, placedHeight, switchHeight } = pendingMixingStyle;
     const mappedValue = mapDrawerValueToConfig(drawerRawValue);
 
     if (!mappedValue) {
@@ -633,10 +798,12 @@ export const CabinetBuilderPage = () => {
 
     setPendingMixingStyle(null);
 
-    const isDrawerCabinetId = (productId: string) =>
-      cabinetCatalog.typeCabinetRules.some(
-        (rule) => !rule.isOpen && productId.toLowerCase().includes(rule.code.toLowerCase()),
-      );
+    // A placed cabinet is known by its scene product ("UD-side-cabinet-…"), which need not
+    // contain the cabinet type.
+    const isDrawerCabinetId = (productId: string) => {
+      const rule = findPlacedCabinetRule(cabinetCatalog, productId);
+      return rule !== null && !rule.isOpen;
+    };
 
     const cabinetIdsToUpdate = Array.from(
       new Set([...selectedProducts.filter(isDrawerCabinetId), ...Object.keys(placedCabinetStyles)]),
@@ -647,71 +814,111 @@ export const CabinetBuilderPage = () => {
       ?.stableKey;
     if (!cabinetId) return;
 
-    await saveSnapshot();
+    // The drawer switch, the dividers it clears and the height it brings are one undo step.
+    await runStep(async () => {
+      // Cabinets already in the style keep their drawers; only their height is left to change.
+      const switchesDrawers = cabinetIdsToUpdate.some((productId) => placedCabinetStyles[productId] !== drawerRawValue);
 
-    // Cabinets that leave two drawers lose their top dividers, cleared before the drawers change.
-    if (drawerRawValue === "1" && cabinetIdsToUpdate.length > 0) {
-      const configsBeforeDrawerChange = await Promise.all(cabinetIdsToUpdate.map((productId) => getConfig(productId)));
-      const topDividerClearCabinetIds = cabinetIdsToUpdate.filter((productId, index) => {
-        const previousDrawerValue =
-          placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
-        return previousDrawerValue === "2";
-      });
-
-      if (topDividerClearCabinetIds.length > 0) {
-        await clearDividerZones(topDividerClearCabinetIds, ["TopDrawerDividers"]);
-        dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
+      // The cabinet being added is of the series of the card, and the rules judge the switch for it.
+      // Its drawers come with the set, or are set here where no cabinet switches.
+      if (series || !switchesDrawers) {
+        dispatch(
+          setSelectedProductConfig({
+            ...(selectedProductConfig ?? {}),
+            ...(series ? { [SERIES_ATTRIBUTE_ID]: series } : {}),
+            ...(switchesDrawers ? {} : { Drawers: mappedValue }),
+          }),
+        );
       }
-    }
 
-    // Drawers, the handle the new drawers require and the forced height go to the scene as one
-    // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
-    const asked = await changeAttributeValue({
-      attributeId: "Drawers",
-      value: drawerRawValue,
-      scope: "cabinet",
-      cabinetId,
-    });
-    const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
+      // Cabinets that leave two drawers lose their top dividers, cleared before the drawers change.
+      if (drawerRawValue === "1" && cabinetIdsToUpdate.length > 0) {
+        const configsBeforeDrawerChange = await Promise.all(
+          cabinetIdsToUpdate.map((productId) => getConfig(productId)),
+        );
+        const topDividerClearCabinetIds = cabinetIdsToUpdate.filter((productId, index) => {
+          const previousDrawerValue =
+            placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
+          return previousDrawerValue === "2";
+        });
 
-    if (result.status !== "applied" && result.status !== "partial") {
-      console.error("[CabinetBuilderPage] Failed to switch the drawer style", result);
-      return;
-    }
+        if (topDividerClearCabinetIds.length > 0) {
+          await clearDividerZones(topDividerClearCabinetIds, ["TopDrawerDividers"]);
+          dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
+        }
+      }
 
-    setActiveStyleValue(drawerRawValue);
+      let heightAfterSwitch = placedHeight;
 
-    // In some compositions a batch update keeps a stale height until the sidebar is touched. The
-    // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
-    const product = getCommandState().rootStateUI.product;
-    const appliedHeight = product.selectedDimensions.height;
-    if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
+      if (switchesDrawers) {
+        // Drawers, the handle the new drawers require and the forced height go to the scene as one
+        // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
+        const asked = await changeAttributeValue({
+          attributeId: "Drawers",
+          value: drawerRawValue,
+          scope: "cabinet",
+          cabinetId,
+        });
+        const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
 
-    const appliedHandle = product.selectedProductConfig?.Handle;
-    const handleConfig =
-      typeof appliedHandle === "string" && appliedHandle
-        ? buildHandleStyleConfigPatch(appliedHandle, product.productOptions.HandleGrooveColor, product.activeProfile)
-        : null;
-    const depth = product.selectedDimensions.depth;
-    await ensureCabinetHeights({
-      runtimeIds: cabinetIdsToUpdate,
-      height: appliedHeight,
-      bindings: getActiveRuntimeBindings(getCommandState()),
-      patch: {
-        Drawers: mappedValue,
-        ...(handleConfig ?? {}),
-        ...(typeof depth === "number" ? { Depth: depth } : {}),
-      },
+        if (result.status !== "applied" && result.status !== "partial") {
+          console.error("[CabinetBuilderPage] Failed to switch the drawer style", result);
+          return;
+        }
+
+        const settled = result.status === "applied" ? result.plan : result.applied;
+        const plannedHeight = settled.find((change) => change.attributeId === "Height")?.value;
+        if (typeof plannedHeight === "number") heightAfterSwitch = plannedHeight;
+      }
+
+      setActiveStyleValue(pendingMixingStyle.value);
+
+      // The set brings the height the rules require of the cabinet it was judged for. Where several
+      // series supply the type, a style may come in fewer heights: the composition goes on to one
+      // of those. A collection with its own cabinets only is left to the set alone.
+      const seriesHeight = series ? switchHeight : null;
+      if (seriesHeight !== null && heightAfterSwitch !== seriesHeight) {
+        const resized = await changeDimension({ attributeId: "Height", value: seriesHeight, scope: "global" });
+        if (resized.status !== "applied") {
+          console.error("[CabinetBuilderPage] Failed to set the height of the drawer style", resized);
+          return;
+        }
+      }
+
+      // In some compositions a batch update keeps a stale height until the sidebar is touched. The
+      // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
+      const product = getCommandState().rootStateUI.product;
+      const appliedHeight = seriesHeight ?? product.selectedDimensions.height;
+      if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
+
+      const appliedHandle = product.selectedProductConfig?.Handle;
+      const handleConfig =
+        typeof appliedHandle === "string" && appliedHandle
+          ? buildHandleStyleConfigPatch(appliedHandle, product.productOptions.HandleGrooveColor, product.activeProfile)
+          : null;
+      const depth = product.selectedDimensions.depth;
+      await ensureCabinetHeights({
+        runtimeIds: cabinetIdsToUpdate,
+        height: appliedHeight,
+        bindings: getActiveRuntimeBindings(getCommandState()),
+        patch: {
+          Drawers: mappedValue,
+          ...(handleConfig ?? {}),
+          ...(typeof depth === "number" ? { Depth: depth } : {}),
+        },
+      });
     });
   }, [
     cabinetCatalog,
     changeAttributeValue,
+    changeDimension,
     confirmAttributeValue,
     dispatch,
     getCommandState,
     pendingMixingStyle,
     placedCabinetStyles,
-    saveSnapshot,
+    runStep,
+    selectedProductConfig,
     selectedProducts,
   ]);
 
@@ -726,10 +933,10 @@ export const CabinetBuilderPage = () => {
       }
 
       if (hasProducts && remainingCountertopLength !== null) {
-        const targetRule = cabinetCatalog.typeCabinetRules.find((rule) => rule.code === id);
-        const canFitThisType = (targetRule?.widths ?? []).some(
-          (width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01,
-        );
+        const canFitThisType = cabinetCatalog.typeCabinetRules
+          .filter((rule) => rule.code === id)
+          .flatMap(({ widths }) => widths ?? [])
+          .some((width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01);
         if (!canFitThisType) {
           return;
         }
@@ -864,11 +1071,12 @@ export const CabinetBuilderPage = () => {
   );
 
   const resolveCabinetTypeId = useCallback(
-    (productType?: string | null) => {
+    (productType?: string | null, placedDrawers?: string | null) => {
       if (!productType) return null;
 
       // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
-      return findPlacedCabinetRule(cabinetCatalog, productType)?.code ?? null;
+      // The cabinet's drawer style tells a short cabinet from the tall type of its scene product.
+      return findPlacedCabinetRule(cabinetCatalog, productType, placedDrawers)?.code ?? null;
     },
     [cabinetCatalog],
   );
@@ -895,6 +1103,8 @@ export const CabinetBuilderPage = () => {
     bootstrappedRef.current = false;
     dispatch(reset());
     dispatch(resetCabinetBuilderBootstrap());
+    // The builder starts over: nothing placed before can be undone back into it.
+    dispatch(clearHistory());
     record({
       CabinetColor: preservedCabinetColor,
       CountertopColor: preservedCountertopColor,
@@ -935,6 +1145,8 @@ export const CabinetBuilderPage = () => {
         bootstrappedRef.current = false;
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
+        // A model opened in the builder starts the history over, as placing it on the model page does.
+        dispatch(clearHistory());
         await composition.clear({ resetAddOns: false });
 
         if (cancelled) return;
@@ -1123,11 +1335,15 @@ export const CabinetBuilderPage = () => {
               : ({} as Record<string, unknown>);
 
           dispatch(setSelectedSceneProduct(nextSelectedId));
-          dispatch(setSelectedProductConfig(nextConfig));
+          dispatch(
+            setSelectedProductConfig({ ...nextConfig, ...selectOwnCabinetValues(store.getState(), nextSelectedId) }),
+          );
 
           const nextDimensions: { width?: number; height?: number; depth?: number } = {};
           if (typeof nextConfig.Width === "number") nextDimensions.width = nextConfig.Width;
-          if (typeof nextConfig.Height === "number") nextDimensions.height = nextConfig.Height;
+          // The selection's height is the composition's: a short cabinet keeps one of its own.
+          if (typeof nextConfig.Height === "number" && !isSteppedSceneConfig(nextConfig))
+            nextDimensions.height = nextConfig.Height;
           if (typeof nextConfig.Depth === "number") nextDimensions.depth = nextConfig.Depth;
           if (Object.keys(nextDimensions).length) {
             dispatch(setSelectedDimensions(nextDimensions));
@@ -1141,7 +1357,7 @@ export const CabinetBuilderPage = () => {
 
           dispatch(setDrawerProduct(nextProductType));
 
-          const nextTypeId = resolveCabinetTypeId(nextProductType);
+          const nextTypeId = resolveCabinetTypeId(nextProductType, readConfigDrawerValue(nextConfig));
           if (nextTypeId !== null) {
             dispatch(setActiveCabinetType(nextTypeId));
           }
@@ -1445,6 +1661,7 @@ export const CabinetBuilderPage = () => {
         typeof currentSelectedConfig.Drawers === "string" ? currentSelectedConfig.Drawers : undefined;
       const currentHandle =
         typeof currentSelectedConfig.Handle === "string" ? currentSelectedConfig.Handle : undefined;
+      const currentSeries = seriesOfConfig(currentSelectedConfig);
 
       try {
         const newProductRules = applyConfiguratorRules(
@@ -1455,6 +1672,7 @@ export const CabinetBuilderPage = () => {
             height: selectedDimensions.height,
             drawers: mapConfigToDrawerValue(currentDrawers),
             handle: currentHandle,
+            series: currentSeries,
           },
           undefined,
           { selectedProductIds: [] },
@@ -1487,6 +1705,15 @@ export const CabinetBuilderPage = () => {
           Drawers: currentDrawers,
           Thickness: countertopThickness || undefined,
           CountertopStyle: countertopStyle || undefined,
+          // The series whose cabinet this is, where the collection offers those of several.
+          ...(currentSeries ? { [SERIES_ATTRIBUTE_ID]: currentSeries } : {}),
+          // What the style sidebar holds for this cabinet alone, where the user chose it.
+          ...Object.fromEntries(
+            (cabinetAttributeIds ?? []).map(perCabinetAttributeId).flatMap((attributeId) => {
+              const chosen = currentSelectedConfig[attributeId];
+              return typeof chosen === "string" && chosen ? [[attributeId, chosen]] : [];
+            }),
+          ),
         };
 
         if (selectedCabinetRule.hasSink && sinkType) {
@@ -1496,18 +1723,20 @@ export const CabinetBuilderPage = () => {
           }
         }
 
-        await saveSnapshot();
-        if (productName === "Side-Shelf") {
-          await autoRemoveSide(dispatch, "right", selectedProducts.length);
-        }
+        // The cabinet and the side panel a side shelf takes the place of are one undo step.
+        const productId = await runStep(async () => {
+          if (productName === "Side-Shelf") {
+            await autoRemoveSide(dispatch, "right", selectedProducts.length);
+          }
 
-        // Placing the cabinet records it with its drawer style.
-        const added = await composition.addCabinet({
-          product: { productType: productName, config: productConfig },
-          placement: { kind: "end" },
-          record: productConfig.sinkType ? { sinkType: productConfig.sinkType } : undefined,
+          // Placing the cabinet records it with its drawer style.
+          const added = await composition.addCabinet({
+            product: { productType: productName, config: productConfig },
+            placement: { kind: "end" },
+            record: productConfig.sinkType ? { sinkType: productConfig.sinkType } : undefined,
+          });
+          return added.status === "error" ? null : added.placed[0];
         });
-        const productId = added.status === "error" ? null : added.placed[0];
 
         if (!productId) {
           autoAddSignatureRef.current = null;
@@ -1540,6 +1769,7 @@ export const CabinetBuilderPage = () => {
       activeCabinetType,
       activeStyleValue,
       composition,
+      cabinetAttributeIds,
       cabinetCatalog,
       cabinetColor,
       canvasReady,
@@ -1552,7 +1782,7 @@ export const CabinetBuilderPage = () => {
       handleSelectCabinetConfig,
       hasProducts,
       isCabinetBuilderStep,
-      saveSnapshot,
+      runStep,
       selectedDimensions.depth,
       selectedDimensions.height,
       selectedDimensions.width,

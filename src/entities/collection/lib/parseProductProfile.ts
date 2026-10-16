@@ -68,6 +68,13 @@ const isNumberArray = (value: unknown): value is number[] => Array.isArray(value
 const isStringArrayRecord = (value: unknown): value is Record<string, string[]> =>
   isRecord(value) && Object.values(value).every(isStringArray);
 
+/** A map whose every entry lists at least one height in cm. */
+const isHeightListRecord = (value: unknown): value is Record<string, number[]> =>
+  isRecord(value) &&
+  Object.values(value).every(
+    (heights) => isNumberArray(heights) && heights.length > 0 && heights.every((cm) => cm > 0),
+  );
+
 type ValueCheck = (value: unknown) => boolean;
 
 const optional =
@@ -329,6 +336,15 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
     return null;
   }
 
+  if (raw.heightsByDrawers !== undefined && !isHeightListRecord(raw.heightsByDrawers)) {
+    collect.add(
+      "ruleData.invalid_section",
+      `${path}/heightsByDrawers`,
+      "heightsByDrawers must map a drawers value to a non-empty list of heights in cm",
+    );
+    return null;
+  }
+
   return {
     tableId: raw.tableId,
     columns: {
@@ -345,6 +361,7 @@ const parseLegacyAdapter = (raw: unknown, collect: Collector): CabinetMatrixLega
       ...(isNonEmptyString(columns.handleDrawerConfigs) ? { handleDrawerConfigs: columns.handleDrawerConfigs } : {}),
       ...(isStringRecord(columns.heightsByHandle) ? { heightsByHandle: columns.heightsByHandle } : {}),
     },
+    ...(raw.heightsByDrawers !== undefined ? { heightsByDrawers: raw.heightsByDrawers } : {}),
   };
 };
 
@@ -555,6 +572,62 @@ const parseCabinetModules = (raw: unknown, collect: Collector): ProfileRuleData[
   return raw as ProfileRuleData["cabinetModules"];
 };
 
+const parseSeriesModules = (raw: unknown, collect: Collector): ProfileRuleData["seriesModules"] => {
+  if (raw === undefined) return undefined;
+  const numberList = (value: unknown) =>
+    Array.isArray(value) && value.length > 0 && value.every((entry) => isFiniteNumber(entry) && entry > 0);
+  const isModule = (entry: unknown) =>
+    isRecord(entry) &&
+    isNonEmptyString(entry.series) &&
+    isNonEmptyString(entry.cabinetType) &&
+    numberList(entry.widthsCm) &&
+    isHeightListRecord(entry.heightsByDrawers) &&
+    Object.keys(entry.heightsByDrawers).length > 0;
+
+  if (
+    !Array.isArray(raw) ||
+    raw.length === 0 ||
+    !raw.every(isModule) ||
+    // One variant of a cabinet type per series.
+    new Set(raw.map((entry) => `${entry.series}/${entry.cabinetType}`)).size !== raw.length
+  ) {
+    collect.add(
+      "ruleData.invalid_section",
+      "/ruleData/seriesModules",
+      "seriesModules must list, once per series and cabinet type, positive widths and the heights of each drawer style",
+    );
+    return undefined;
+  }
+  return raw as ProfileRuleData["seriesModules"];
+};
+
+const parseSteppedModules = (raw: unknown, collect: Collector): ProfileRuleData["steppedModules"] => {
+  if (raw === undefined) return undefined;
+  const isModule = (entry: unknown) =>
+    isRecord(entry) &&
+    isNonEmptyString(entry.cabinetType) &&
+    isNonEmptyString(entry.drawers) &&
+    entry.placement === "composition-end" &&
+    isNonEmptyString(entry.requiresPlacedCategory) &&
+    (entry.note === undefined || typeof entry.note === "string");
+
+  if (
+    !Array.isArray(raw) ||
+    raw.length === 0 ||
+    !raw.every(isModule) ||
+    // One stepped module per drawer style of a cabinet type.
+    new Set(raw.map((entry) => `${entry.cabinetType}/${entry.drawers}`)).size !== raw.length
+  ) {
+    collect.add(
+      "ruleData.invalid_section",
+      "/ruleData/steppedModules",
+      "steppedModules must list, once per cabinet type and drawer style, the placement and the category required first",
+    );
+    return undefined;
+  }
+  return raw as ProfileRuleData["steppedModules"];
+};
+
 /** Optional rule sections of a profile, without the keys the collection does not declare. */
 const parseRuleSections = (
   ruleData: Record<string, unknown>,
@@ -575,6 +648,8 @@ const parseRuleSections = (
   const sections: Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> = {
     ...(validCompatibility ? { countertopCompatibility: { tableId: compatibility.tableId as number } } : {}),
     cabinetModules: parseCabinetModules(ruleData.cabinetModules, collect),
+    seriesModules: parseSeriesModules(ruleData.seriesModules, collect),
+    steppedModules: parseSteppedModules(ruleData.steppedModules, collect),
     drawerStyleGroups: parseDrawerStyleGroups(ruleData.drawerStyleGroups, collect),
     undeterminedRules: parseUndeterminedRules(ruleData.undeterminedRules, collect),
     fluting: parseRuleSection<FlutingRuleData>(ruleData, "fluting", collect),

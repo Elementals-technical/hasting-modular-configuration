@@ -57,6 +57,8 @@ describe("urban-freestanding runtime bindings", () => {
     expect(ufsRuntimeBindings().productTypes).toEqual({
       "Sink-Base": "UF-sink-cabinet",
       "Sink-Cabinet": "UF-side-cabinet",
+      // The scene draws the short floor cabinet as a side cabinet below 60 cm.
+      "Short-Cabinet": "UF-side-cabinet",
       "Open-Shelf": "UF-open-shelves",
       "Side-Shelf": "UF-open-shelves-side",
     });
@@ -64,13 +66,16 @@ describe("urban-freestanding runtime bindings", () => {
   });
 
   it("read a placed product back as its cabinet type, though one scene type starts the other", () => {
-    const cabinetTypeOf = (runtimeId: string) =>
-      resolveCabinetTypeOfRuntimeId(ufsProfile(), ufsRuntimeBindings(), runtimeId);
+    const cabinetTypeOf = (runtimeId: string, placedDrawers?: string) =>
+      resolveCabinetTypeOfRuntimeId(ufsProfile(), ufsRuntimeBindings(), runtimeId, placedDrawers);
 
     expect(cabinetTypeOf("UF-open-shelves-side-k3j4h5g6f")).toBe("Side-Shelf");
     expect(cabinetTypeOf("UF-open-shelves-k3j4h5g6f")).toBe("Open-Shelf");
     expect(cabinetTypeOf("UF-sink-cabinet-k3j4h5g6f")).toBe("Sink-Base");
     expect(cabinetTypeOf("UF-side-cabinet-k3j4h5g6f")).toBe("Sink-Cabinet");
+    // A UF-side-cabinet with the short cabinet's one drawer is the Short-Cabinet.
+    expect(cabinetTypeOf("UF-side-cabinet-k3j4h5g6f", "2")).toBe("Sink-Cabinet");
+    expect(cabinetTypeOf("UF-side-cabinet-k3j4h5g6f", "1")).toBe("Short-Cabinet");
   });
 
   it("send the catalog sizes as they are, since the player reads them back from the scene", () => {
@@ -80,9 +85,10 @@ describe("urban-freestanding runtime bindings", () => {
     expect(patchOf("Width", 25)).toEqual({ Width: 25 });
   });
 
-  it("send the handle and the one drawer style in the spellings the scene config keeps", () => {
+  it("send the handle and the drawer styles in the spellings the scene config keeps", () => {
     expect(patchOf("Handle", "UG")).toEqual({ Handle: "UG" });
     expect(patchOf("Drawers", "2")).toEqual({ Drawers: "2D" });
+    expect(patchOf("Drawers", "1")).toEqual({ Drawers: "1D" });
   });
 
   it("send the basin and the vessel colour to every UF Sink Base", () => {

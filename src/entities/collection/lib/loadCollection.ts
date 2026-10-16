@@ -38,6 +38,7 @@ import { resolveCollectionImageUrl, resolveCollectionJsonUrl } from "./paths";
 import {
   collectCustomizationAttributeIds,
   validateCollectionRuntimeContract,
+  validatePerCabinetAttributes,
 } from "./runtimeBindings/collectionRuntimeContract";
 import { parseRuntimeBindings } from "./runtimeBindings/parseRuntimeBindings";
 import { validateCollectionManifest, validateCollectionRegistry } from "./validation";
@@ -291,6 +292,7 @@ const validateLocalContracts = (
       ];
       diagnostics.push(
         ...validateCollectionRuntimeContract(local.productProfile, local.runtimeBindings, requiredAttributeIds),
+        ...validatePerCabinetAttributes(local.productProfile, local.runtimeBindings, local.ui),
       );
     }
   }

@@ -1,26 +1,17 @@
 {
   "schemaVersion": 1,
   "collectionId": "urban-duplex",
-  "productTypes": {},
-  "unplacedProductTypes": {
-    "Sink-Base": "Temporarily hidden in the builder: the scene registers no Urban Duplex sink base yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card and the models come back.",
-    "Sink-Cabinet": "Temporarily hidden in the builder: the scene registers no Urban Duplex side cabinet yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card and the models come back.",
-    "Open-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open shelf yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card comes back.",
-    "Side-Shelf": "Temporarily hidden in the builder: the scene registers no Urban Duplex open side shelf yet. Its row is in the cabinet table (table 594, matrix-cabinet-duplex). Move it to productTypes once the scene has it, and its card comes back."
+  "productTypes": {
+    "Sink-Base": "UD-sink-cabinet",
+    "Sink-Cabinet": "UD-side-cabinet",
+    "Open-Shelf": "UD-open-shelves",
+    "Side-Shelf": "UD-open-shelves-side"
   },
   "bindings": [
     {
       "attributeId": "Handle",
-      "status": "bound",
-      "target": {
-        "kind": "all"
-      },
-      "values": {
-        "kind": "identity",
-        "sceneKey": "Handle"
-      },
-      "order": 20,
-      "note": "Upper Groove only. Sent as the Urban products take it, so a scene config keeps the handle once the scene has Urban Duplex products; there are none yet."
+      "status": "state-only",
+      "reason": "Upper Groove only, so there is nothing to tell the scene. Its HandleStyle (RuleHandleCabinetUrbanDuplex: Duplex shows the Base and Lateral Panel handles, Default the full ones) says which series a cabinet is of, and the Series binding sends it to that cabinet alone: a handle sent to every cabinet would take the full handles off the ones Urban Standard Height and Urban Low Height supply. A cabinet placed without it is drawn as Duplex."
     },
     {
       "attributeId": "Height",
@@ -59,7 +50,7 @@
         "sceneKey": "Depth"
       },
       "order": 30,
-      "note": "Number in cm, 50 or 46, one depth for the composition. Not translated, for the reason given for Height."
+      "note": "Number in cm, 50 or 46, one depth for the composition, as cabinet table 594, the Pricing (19.7D, 18.1D) and the product map give it (URBAN-DUPLEX-PRODUCT-MAP-UA: «50 / 46 см», «Ryan пише 50, не 50.5»). RuleDepthCabinetUrbanDuplex lays out 46 and 50.5 only, so the scene keeps 50 at the 46 cm geometry until 3D takes 50."
     },
     {
       "attributeId": "Drawers",
@@ -86,28 +77,112 @@
     },
     {
       "attributeId": "BasePanelColor",
-      "status": "state-only",
-      "reason": "The scene has no Urban Duplex product to paint; recorded for the SKU (BASP) and the rules only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "UD-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColor"
+      },
+      "also": [
+        {
+          "target": {
+            "kind": "productType",
+            "productType": "UD-side-cabinet"
+          },
+          "sceneKey": "CabinetColor"
+        },
+        {
+          "target": {
+            "kind": "productType",
+            "productType": "UD-open-shelves"
+          },
+          "sceneKey": "CabinetColor"
+        }
+      ],
+      "placedWithNewProducts": true,
+      "order": 50,
+      "note": "The Base Panel colour is the scene's CabinetColor of the drawer cabinets (RuleMaterialsCabinetUrbanDuplex: body and the base part of the handles) and of the open shelf (RuleMaterialsUDOpenShelves), under the catalog name, which every one of the 232 colours has as a scene material. Not sent to the open side shelf: its CabinetColor is the Lateral Panel colour. The scene keeps the colour per product, so a product placed later takes it with its config."
     },
     {
       "attributeId": "LateralPanelColor",
-      "status": "state-only",
-      "reason": "The scene has no Urban Duplex product to paint; recorded for the SKU (LTLP and the handle groove) and the rules only."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColorLateral"
+      },
+      "also": [
+        {
+          "target": {
+            "kind": "all"
+          },
+          "sceneKey": "HandleGrooveColor"
+        },
+        {
+          "target": {
+            "kind": "productType",
+            "productType": "UD-open-shelves-side"
+          },
+          "sceneKey": "CabinetColor"
+        }
+      ],
+      "placedWithNewProducts": true,
+      "order": 55,
+      "note": "The Lateral Panel colour is the scene's CabinetColorLateral (RuleMaterialsCabinetLateralUrbanDuplex: the lateral part of the handles). It is also the colour of the handle grooves (HandleGrooveColor), as the SKU spells HNDL until DUP-PNL-02, and the CabinetColor of an open side shelf, as its SKU spells CAB (sku-profile.json, byCabinetType). After the Base Panel colour, so the shelf's own colour wins when it is placed. The shelves do not read the first two keys."
     },
     {
       "attributeId": "LateralPanelSide",
-      "status": "state-only",
-      "reason": "The scene has no Urban Duplex product to mirror; recorded for the SKU (2DWL, 2DWR) only."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "L": {
+            "HandleSide": "Left"
+          },
+          "R": {
+            "HandleSide": "Right"
+          }
+        }
+      },
+      "perProduct": true,
+      "order": 22,
+      "note": "The side the lateral panel stands on (RuleHandleSideCabinetUrbanDuplex), which the scene keeps on each cabinet. The field of the Color step sets it for every cabinet; the style sidebar and the menu of a placed cabinet set it for that cabinet alone (perProduct), and the SKU reads each cabinet's own side (2DWL, 2DWR). The cabinets of a model start with their own sides, which their configs carry. The shelves do not read the key."
     },
     {
       "attributeId": "Series",
-      "status": "state-only",
-      "reason": "Which product a cabinet of a model is, Urban Duplex or an Urban Standard Height or Urban Low Height one without a lateral panel; recorded for the SKU only."
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "URDPX": {
+            "HandleStyle": "Duplex"
+          },
+          "URSTD": {
+            "HandleStyle": "Default"
+          },
+          "URLH": {
+            "HandleStyle": "Default"
+          }
+        }
+      },
+      "order": 25,
+      "note": "A cabinet that is Urban Standard Height's or Urban Low Height's has no lateral panel: the scene shows it with the full handles (HandleStyle Default). Nothing else writes HandleStyle, so the cabinet keeps it whatever is sent to the composition. A product of a hybrid model carries the series, and so does a side cabinet the builder places as a style of another series."
     },
     {
       "attributeId": "CabinetColor",
       "status": "state-only",
-      "reason": "Not an Urban Duplex option: its cabinets take the Base Panel and Lateral Panel colours. Recorded, not sent, so a value carried over from state does not stop a preset."
+      "reason": "Not an Urban Duplex option: its cabinets take the Base Panel and Lateral Panel colours, which reach the scene's CabinetColor through their own bindings. Recorded, not sent, so a value carried over from state does not stop a preset or repaint the cabinets."
     },
     {
       "attributeId": "CountertopColor",
@@ -120,11 +195,13 @@
         "sceneKey": "CountertopColor",
         "overrides": {
           "Bianco Gloss TAN": "Bianco Gloss TAL",
-          "Bianco Matte TAP": "Bianco Matte TAM"
+          "Bianco Matte TAP": "Bianco Matte TAM",
+          "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte",
+          "Matte White": "Solid Surface Matte White"
         }
       },
       "order": 50,
-      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor). The overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP). The countertop table has no Syntesi rows, so those finishes are not offered here."
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor). Two overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP); the countertop table has no Syntesi rows, so those finishes are not offered here. Two follow the scene's own names (export v62): the porcelain Sahara Noir Silky Matte has no TR8 in it, and the Solid Surface Matte White (SSTL) is \"Solid Surface Matte White\"; sent under the configurator names, neither is found and the top keeps its previous colour."
     },
     {
       "attributeId": "Thickness",
@@ -141,13 +218,32 @@
     },
     {
       "attributeId": "sinkType",
-      "status": "state-only",
-      "reason": "The Urban Standard Height basin names. The scene has no Urban Duplex sink base to take them; recorded for the countertop rules and pricing only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "UD-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "sinkType",
+        "emptyValue": "Vessel"
+      },
+      "order": 40,
+      "note": "The Urban Standard Height basins and vessels, sent to every Urban Duplex Sink Base. The ULH-sink-cabinet swaps its basin sub-product on sinkType (RuleChangeSinkType); scene v62 gives the UD-sink-cabinet no such rule, so the basin it was placed with stays and the sinkType sent is kept in its config until the scene adds the rule. \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
     },
     {
       "attributeId": "VesselColor",
-      "status": "state-only",
-      "reason": "The scene has no Urban Duplex sink base to take a vessel; recorded for the rules only. The Master File lists no vessel sinks (excludedFromThisProfile.vesselSinks)."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "UD-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "VesselColor"
+      },
+      "order": 60,
+      "note": "The colour of the vessel on every Sink Base, as Urban Low Height sends it (excludedFromThisProfile.vesselSinks): the scene paints the basin in it (ChangeSlinkColor); \"\" clears it, as in Urban Standard Height."
     },
     {
       "attributeId": "CountertopStyle",
@@ -157,7 +253,7 @@
     {
       "attributeId": "HandleGrooveColor",
       "status": "state-only",
-      "reason": "Not an Urban Duplex option: the groove is priced in the Lateral Panel colour (DUP-PNL-02). Recorded, not sent, so a value carried over from state does not stop a preset."
+      "reason": "Not an Urban Duplex option: the groove takes the Lateral Panel colour (DUP-PNL-02), sent by that binding. Recorded, not sent, so a value carried over from state does not stop a preset or repaint the grooves."
     },
     {
       "attributeId": "FaucetHolesAmount",
@@ -182,7 +278,7 @@
     {
       "attributeId": "CabinetType",
       "status": "unbound",
-      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The scene has no Urban Duplex product yet: every value is in unplacedProductTypes."
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. Sink-Base and Sink-Cabinet are placed as UD-sink-cabinet and UD-side-cabinet, the shelves as UD-open-shelves and UD-open-shelves-side."
     },
     {
       "attributeId": "CabinetColorSku",

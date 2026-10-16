@@ -1,9 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import { getAttributeValue, getCabinetEntries, resetConfiguration, setAttributeValue } from "@/entities/configuration";
+import {
+  getAttributeValue,
+  getCabinetEntries,
+  getRuntimeSyncState,
+  resetConfiguration,
+  setAttributeValue,
+  type SceneLayout,
+} from "@/entities/configuration";
 import { addProductId, reset, setCabinetColor, setTowelBarOption } from "@/entities/product/model/store/slice";
 import { createTestSceneRestorer } from "@/features/playCanvasAdapter/lib/testSceneRestorer";
+import { restoreSidePanelState } from "@/features/sidePanel";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { captureSnapshot } from "../lib/captureSnapshot";
@@ -30,7 +38,7 @@ vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
 
 const HANDLE_FINISH = "TestFinish";
 const getState = () => store.getState();
-const replay = vi.fn(async () => undefined);
+const replay = vi.fn(async (): Promise<{ status: "applied" | "partial" | "error" }> => ({ status: "applied" }));
 
 const placeTwoCabinets = () => {
   store.dispatch(addProductId("rt-a"));
@@ -114,6 +122,26 @@ describe("history snapshot restore", () => {
     expect(setConfigBatch).not.toHaveBeenCalled();
   });
 
+  it("reports a rebuild whose values the scene did not all take as partial, and still puts the side panels back", async () => {
+    placeTwoCabinets();
+    const snapshot = await captureSnapshot(getState);
+    const { restorer } = createTestSceneRestorer();
+    vi.mocked(restoreSidePanelState).mockClear();
+    replay.mockResolvedValueOnce({ status: "error" });
+
+    const result = await restoreSnapshot(snapshot, {
+      dispatch: store.dispatch,
+      getState,
+      getBindings: () => null,
+      restorer,
+      replay,
+    });
+
+    expect(result.status).toBe("partial");
+    expect(getRuntimeSyncState(store.getState()).needsSync).toBe(true);
+    expect(restoreSidePanelState).toHaveBeenCalledTimes(1);
+  });
+
   it("changes neither the scene add-ons nor the state when the restorer rejects the snapshot", async () => {
     placeTwoCabinets();
     const snapshot: SceneSnapshot = { ...(await captureSnapshot(getState)), productConfigs: {} };
@@ -156,5 +184,79 @@ describe("history snapshot restore", () => {
     expect(result.status).toBe("partial");
     expect(store.getState().rootStateUI.product.productIds).toEqual(["new-rt-b"]);
     expect(getCabinetEntries(store.getState())).toEqual([{ stableKey: "cab-2", runtimeId: "new-rt-b", index: 0 }]);
+  });
+
+  describe("with the layout of the scene", () => {
+    const layoutOf = (...ids: string[]): SceneLayout => ({
+      version: 1,
+      document: { presetSchemaVersion: 2, collection: {}, presetProducts: [], presetLayout: {} },
+      cabinetIds: Object.fromEntries(ids.map((id, index) => [`cabinet${index}`, id])),
+    });
+
+    it("keeps the layout the scene reports for the products of the snapshot", async () => {
+      placeTwoCabinets();
+      const layout = layoutOf("rt-b", "rt-a");
+      const captureLayout = vi.fn(async () => layout);
+
+      const snapshot = await captureSnapshot(getState, { captureLayout });
+
+      expect(snapshot.sceneLayout).toBe(layout);
+      expect(buildSnapshotRestoreRequest(snapshot).layout).toBe(layout);
+    });
+
+    it.each([
+      ["the scene has none", async () => null],
+      ["the scene fails to read it", async () => Promise.reject(new Error("busy"))],
+      ["it describes other products", async () => layoutOf("rt-a", "rt-x")],
+      ["it describes fewer products", async () => layoutOf("rt-a")],
+    ])("captures the snapshot without a layout when %s", async (_, captureLayout) => {
+      placeTwoCabinets();
+
+      const snapshot = await captureSnapshot(getState, { captureLayout });
+
+      expect(snapshot.productIds).toEqual(["rt-a", "rt-b"]);
+      expect("sceneLayout" in snapshot).toBe(false);
+      expect("layout" in buildSnapshotRestoreRequest(snapshot)).toBe(false);
+    });
+
+    it("does not ask for a layout of an empty composition", async () => {
+      const captureLayout = vi.fn(async () => layoutOf("rt-a"));
+
+      const snapshot = await captureSnapshot(getState, { captureLayout });
+
+      expect(captureLayout).not.toHaveBeenCalled();
+      expect("sceneLayout" in snapshot).toBe(false);
+    });
+
+    it("gives each cabinet its own key back when the scene lists the rows in another order", async () => {
+      placeTwoCabinets();
+      const snapshot = await captureSnapshot(getState, { captureLayout: async () => layoutOf("rt-a", "rt-b") });
+      const { restorer, answerWith } = createTestSceneRestorer();
+      answerWith({
+        status: "restored",
+        matches: [
+          { sourceId: "rt-b", runtimeId: "new-rt-b" },
+          { sourceId: "rt-a", runtimeId: "new-rt-a" },
+        ],
+        scene: { status: "ready", order: ["new-rt-b", "new-rt-a"], cabinets: [] },
+      });
+
+      await restoreSnapshot(snapshot, {
+        dispatch: store.dispatch,
+        getState,
+        getBindings: () => null,
+        restorer,
+        replay,
+      });
+
+      expect(store.getState().rootStateUI.product.productIds).toEqual(["new-rt-b", "new-rt-a"]);
+      expect(getCabinetEntries(store.getState())).toEqual([
+        { stableKey: "cab-2", runtimeId: "new-rt-b", index: 0 },
+        { stableKey: "cab-1", runtimeId: "new-rt-a", index: 1 },
+      ]);
+      expect(getAttributeValue(store.getState(), HANDLE_FINISH, { scope: "cabinet", cabinetId: "cab-2" })).toBe(
+        "Matte",
+      );
+    });
   });
 });

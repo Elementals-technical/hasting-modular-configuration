@@ -365,6 +365,7 @@ describe("partial production collection packages", () => {
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
       "Sink-Base": "UF-sink-cabinet",
       "Sink-Cabinet": "UF-side-cabinet",
+      "Short-Cabinet": "UF-side-cabinet",
       "Open-Shelf": "UF-open-shelves",
       "Side-Shelf": "UF-open-shelves-side",
     });
@@ -403,6 +404,7 @@ describe("partial production collection packages", () => {
     expect(data.sources.remote.cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
       "Sink-Base",
       "Sink-Cabinet",
+      "Short-Cabinet",
       "Open-Shelf",
       "Side-Shelf",
     ]);
@@ -420,6 +422,20 @@ describe("partial production collection packages", () => {
         hasSink: false,
         sceneProductType: "UF-side-cabinet",
         ...common,
+      }),
+      // The Floor-Mount Short Cabinet (table 590 1DW, ruleData.steppedModules): its own heights stay
+      // out of the forced ones, and it takes the Sink Base's, so the composition keeps the height of
+      // its two-drawer cabinets.
+      expect.objectContaining({
+        code: "Short-Cabinet",
+        widths: [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        hasSink: false,
+        sceneProductType: "UF-side-cabinet",
+        ...common,
+        drawers: ["1"],
+        steppedDrawers: ["1"],
+        forcedHeightByHandle: { UG: { "1": 91 }, PTO: { "1": 88 }, CG: { "1": 91 } },
+        steppedHeightByHandle: { "1": { UG: 56, PTO: 53, CG: 56 } },
       }),
       expect.objectContaining({
         code: "Open-Shelf",
@@ -465,7 +481,7 @@ describe("partial production collection packages", () => {
     expect(data.diagnostics).toEqual([]);
   });
 
-  it("loads Urban Duplex from its local data and its own tables, with no scene product yet", async () => {
+  it("loads Urban Duplex from its local data and its own tables, its cabinets placed by the scene's UD products", async () => {
     const remote = makeRemote();
     const dependencies: CollectionRuntimeDependencies = {
       registryUrl,
@@ -526,14 +542,14 @@ describe("partial production collection packages", () => {
       if (LateralPanelSide !== undefined) expect(optionsOf("LateralPanelSide")).toContain(LateralPanelSide);
     }
     expect(data.catalog.productProfile?.collectionId).toBe("urban-duplex");
-    // The scene has no Urban Duplex product yet (I): every cabinet type waits for one.
-    expect(data.catalog.runtimeBindings?.productTypes).toEqual({});
-    expect(Object.keys(data.catalog.runtimeBindings?.unplacedProductTypes ?? {})).toEqual([
-      "Sink-Base",
-      "Sink-Cabinet",
-      "Open-Shelf",
-      "Side-Shelf",
-    ]);
+    // Every cabinet type has its UD scene product (I), the open shelves included.
+    expect(data.catalog.runtimeBindings?.productTypes).toEqual({
+      "Sink-Base": "UD-sink-cabinet",
+      "Sink-Cabinet": "UD-side-cabinet",
+      "Open-Shelf": "UD-open-shelves",
+      "Side-Shelf": "UD-open-shelves-side",
+    });
+    expect(data.catalog.runtimeBindings?.unplacedProductTypes).toBeUndefined();
     // Priced from its own SKU words (D04), not the USH cabinet mappings.
     expect(data.catalog.skuProfile?.collectionId).toBe("urban-duplex");
     expect(data.catalog.cabinetSkuMappings).toBeUndefined();
@@ -544,9 +560,15 @@ describe("partial production collection packages", () => {
       cabinetMatrixTableId: data.manifest.remote?.cabinetTable?.id,
     });
     expect(data.catalog.productProfile?.ruleData.cabinetMatrixLegacyAdapter.tableId).toBe(594);
+    // The height is chosen where one drawer comes in three: in the style sidebar and the Resize menu.
+    // A new composition starts at the standard 56 cm.
+    expect(selectAttribute(profile, "Height")).toMatchObject({ scope: "cabinet", defaultValue: "56" });
+    expect(optionsOf("Height")).toEqual(["56", "53", "38", "28"]);
+    expect(data.catalog.customization?.styleSidebar?.fields).toEqual(["Width", "Depth", "Height", "Handle"]);
+    expect(data.catalog.customization?.playerMenu?.resize).toEqual(["Width", "Depth", "Height"]);
 
-    // The table has every cabinet type of the price list, but the scene has none yet, so the builder
-    // shows no card (unplacedProductTypes).
+    // The table has every cabinet type of the price list, and the builder shows a card for each:
+    // the scene places them all.
     const cabinetTable = data.sources.remote.cabinetTable;
     expect(cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
       "Sink-Base",
@@ -554,7 +576,20 @@ describe("partial production collection packages", () => {
       "Open-Shelf",
       "Side-Shelf",
     ]);
-    expect(data.catalog.cabinets?.typeCabinetRules).toEqual([]);
+    // After them the side cabinets Urban Standard Height and Urban Low Height supply
+    // (ruleData.seriesModules), each a variant of the Side Cabinet the same scene product draws.
+    expect(
+      data.catalog.cabinets?.typeCabinetRules.map(({ code, sceneProductType, series }) =>
+        series ? [code, sceneProductType, series] : [code, sceneProductType],
+      ),
+    ).toEqual([
+      ["Sink-Base", "UD-sink-cabinet"],
+      ["Sink-Cabinet", "UD-side-cabinet"],
+      ["Open-Shelf", "UD-open-shelves"],
+      ["Side-Shelf", "UD-open-shelves-side"],
+      ["Sink-Cabinet", "UD-side-cabinet", "URSTD"],
+      ["Sink-Cabinet", "UD-side-cabinet", "URLH"],
+    ]);
     if (!cabinetTable || !profile) return;
     const drawerCabinet = {
       depths: [50, 46],
@@ -564,8 +599,10 @@ describe("partial production collection packages", () => {
       isOpen: false,
       handlesAllowed: ["UG"],
       supportsHeight: [56, 53, 38, 28],
-      // The style sets the height: the builder offers the standard ones until the Slim styles exist.
+      // The style sets the height, as the table forces it; one drawer also comes as the Slim
+      // cabinets, which the profile adds (cabinetMatrixLegacyAdapter.heightsByDrawers).
       forcedHeightByDrawers: { "2": 56, "1": 53, "1+inner": 53 },
+      heightsByDrawers: { "1": [53, 38, 28] },
       forcedHeightByHandle: {},
     };
     const openCabinet = { depths: [50, 46], heights: [56, 53, 38, 28], drawers: [], isOpen: true, handlesAllowed: [] };
@@ -585,6 +622,32 @@ describe("partial production collection packages", () => {
       }),
       expect.objectContaining({ code: "Open-Shelf", widths: [25, 35, 50, 60, 70], ...openCabinet }),
       expect.objectContaining({ code: "Side-Shelf", widths: [15], ...openCabinet }),
+      // The side cabinets of the other two series, as their own tables 439 and 580 list them with the
+      // Upper Groove handle: from 25 cm wide, at the heights of their series, in the Duplex depths.
+      expect.objectContaining({
+        code: "Sink-Cabinet",
+        series: "URSTD",
+        widths: [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        depths: [50, 46],
+        heights: [56, 53],
+        supportsHeight: [56, 53],
+        drawers: ["2", "1", "1+inner"],
+        forcedHeightByDrawers: { "2": 56, "1": 53, "1+inner": 53 },
+        heightsByDrawers: {},
+        hasSink: false,
+        isOpen: false,
+        handlesAllowed: ["UG"],
+      }),
+      expect.objectContaining({
+        code: "Sink-Cabinet",
+        series: "URLH",
+        widths: [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        heights: [38, 28],
+        supportsHeight: [38, 28],
+        drawers: ["1"],
+        forcedHeightByDrawers: {},
+        heightsByDrawers: { "1": [38, 28] },
+      }),
     ]);
 
     // The countertops of the Master File as Urban Low Height's table 589 has them, at the cabinet depths:

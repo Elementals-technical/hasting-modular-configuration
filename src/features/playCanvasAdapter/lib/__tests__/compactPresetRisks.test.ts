@@ -27,6 +27,54 @@ describe("compact preset review risks", () => {
     expect(dispose).toHaveBeenCalledTimes(1);
   });
 
+  it("records the imported primary cabinets for pricing before disposing the client", async () => {
+    const state = {
+      cabinets: [
+        {
+          id: "ULH-side-cabinet-lower",
+          definitionId: "ULH-side-cabinet",
+          selection: { Width: 90, Depth: 46, CabinetColor: "Castagno chiaro 1C1" },
+          positionM: { x: 0, y: 0, z: 0 },
+        },
+      ],
+      connections: [],
+      selectedCabinetId: null,
+    };
+    const client = {
+      connect: vi.fn(),
+      importCompactPreset: vi.fn().mockResolvedValue({ keyToProductId: { lower: "ULH-side-cabinet-lower" } }),
+      getCabinetsState: vi.fn().mockResolvedValue(state),
+      dispose: vi.fn(),
+    };
+    const adopt = vi.fn().mockResolvedValue(undefined);
+    await applyCompactPresetWithBridge(compactEntry, () => client, adopt);
+    // With the receipt that names the product each cabinet of the document became.
+    expect(adopt).toHaveBeenCalledWith(state, { keyToProductId: { lower: "ULH-side-cabinet-lower" } });
+    expect(client.importCompactPreset.mock.invocationCallOrder[0]).toBeLessThan(
+      client.getCabinetsState.mock.invocationCallOrder[0],
+    );
+    expect(adopt.mock.invocationCallOrder[0]).toBeLessThan(client.dispose.mock.invocationCallOrder[0]);
+  });
+
+  it("does not silently complete an import whose pricing-state adoption failed", async () => {
+    const client = {
+      connect: vi.fn(),
+      importCompactPreset: vi.fn().mockResolvedValue({}),
+      getCabinetsState: vi.fn().mockResolvedValue({ cabinets: [] }),
+      dispose: vi.fn(),
+    };
+    await expect(
+      applyCompactPresetWithBridge(
+        compactEntry,
+        () => client,
+        async () => {
+          throw new Error("State adoption failed");
+        },
+      ),
+    ).rejects.toThrow("State adoption failed");
+    expect(client.dispose).toHaveBeenCalledOnce();
+  });
+
   it.todo("C2: ModelPage compact branch falls back to flat presetProducts on error");
 
   it("C2b: toCompactPreset ignores globalConfig/user overrides (only preset.shared is sent)", () => {

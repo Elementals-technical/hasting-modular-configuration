@@ -30,6 +30,18 @@ describe("resolvePriceRequest", () => {
     expect(shouldFetch(100)).toBe(true);
   });
 
+  it("asks again for a width already priced once a later request for the SKU was cancelled", () => {
+    const cache = new LatestPriceRequestCache();
+    const shouldFetch = (widthCm: number) => !cache.has(DYNAMIC_TOP, widthCm);
+
+    cache.mark(DYNAMIC_TOP, 150);
+    // The composition passes through another width: the SKU is set loading and a request starts…
+    expect(shouldFetch(149.95)).toBe(true);
+    cache.forget(DYNAMIC_TOP);
+    // …and is cancelled when the first width comes back. Its earlier price no longer stands.
+    expect(shouldFetch(150)).toBe(true);
+  });
+
   it("prices the countertop top per cm, with the width of the composition", () => {
     expect(resolvePriceRequest({ sku: DYNAMIC_TOP, widthCm: 191, ...USH })).toEqual({
       kind: "countertopTop",
@@ -39,6 +51,17 @@ describe("resolvePriceRequest", () => {
 
   it("falls back to the plain request when the top has no width", () => {
     expect(resolvePriceRequest({ sku: DYNAMIC_TOP, widthCm: null, ...USH })).toEqual({ kind: "product" });
+  });
+
+  it("sends Lower's exact segment length to CT pricing, even without a legacy series prefix", () => {
+    expect(resolvePriceRequest({
+      sku: "CT-URLACG-VES-35.4W-.5H-18.1D-LACG-A6",
+      widthCm: 90.0001,
+      countertopPrefix: null,
+      bookMatchingSkuPrefix: null,
+      pricedPerCm: true,
+    })).toEqual({ kind: "countertopTop", widthCm: 90.0001 });
+    expect(resolvePriceFromResponse({ price: null, error: "No best match" })).toBeNull();
   });
 
   it.each([

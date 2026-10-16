@@ -5,6 +5,7 @@ export const DRAFT_HINTS = {
   cabinetCollision: "This cabinet overlaps another cabinet. Move it to a free spot to apply.",
   belowFloor: "This cabinet goes below the floor. Move it up to apply.",
   generic: "This position is not valid. Move the cabinet to apply.",
+  sideShelfAtRowEnd: "A side shelf stands at an end of the row. Move it to an end to apply.",
   /** Prefix for a placement the engine cannot decide yet (an open product question). */
   unsupported: "Awaiting a product decision: ",
   pending: "Checking this position…",

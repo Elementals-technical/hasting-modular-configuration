@@ -35,10 +35,27 @@ export const resolveCustomizationImageUrls = (
       )
     : undefined;
 
-  if (!optionImages && !optionImageVariants) return schema;
+  // The picture of a field's tab, where a section shows one field at a time.
+  const hasTabIcons = Object.values(schema.sections).some(({ fields }) => fields.some(({ tab }) => tab?.icon));
+  const sections: CustomizationSchema["sections"] | undefined = hasTabIcons
+    ? Object.fromEntries(
+        Object.entries(schema.sections).map(([sectionId, section]) => [
+          sectionId,
+          {
+            ...section,
+            fields: section.fields.map((field) =>
+              field.tab?.icon ? { ...field, tab: { ...field.tab, icon: resolve(field.tab.icon) } } : field,
+            ),
+          },
+        ]),
+      )
+    : undefined;
+
+  if (!optionImages && !optionImageVariants && !sections) return schema;
 
   return {
     ...schema,
+    ...(sections ? { sections } : {}),
     ...(optionImages ? { optionImages } : {}),
     ...(optionImageVariants ? { optionImageVariants } : {}),
   };

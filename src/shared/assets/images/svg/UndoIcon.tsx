@@ -1,20 +1,4 @@
-export const UndoIcon = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M3.33337 8.33333H12.5C14.8012 8.33333 16.6667 10.1988 16.6667 12.5C16.6667 14.8012 14.8012 16.6667 12.5 16.6667H10"
-        stroke="#282828"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M6.66667 11.6667L3.33333 8.33333L6.66667 5"
-        stroke="#282828"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-};
+import { Undo2 as LucideUndo2 } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
+
+export const UndoIcon = () => <AppIcon icon={LucideUndo2} size={20} color="#282828" />;

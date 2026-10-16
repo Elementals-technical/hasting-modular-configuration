@@ -35,7 +35,7 @@
     "cabinet": {
       "label": "Color",
       "kind": "fields",
-      "sectionIds": ["base-panel-color", "lateral-panel-color", "lateral-panel-side"]
+      "sectionIds": ["panel-color", "lateral-panel-side"]
     },
     "countertop": {
       "label": "Countertop & Basin",
@@ -56,14 +56,24 @@
       "label": "Cabinet Style",
       "fields": [{ "attributeId": "Drawers", "control": "options-grid" }]
     },
-    "base-panel-color": {
-      "label": "Base Panel Color",
+    "panel-color": {
+      "label": "Panel Color",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "BasePanelColor", "control": "colors", "optionsRef": "BasePanelColor" }]
-    },
-    "lateral-panel-color": {
-      "label": "Lateral Panel Color",
-      "fields": [{ "attributeId": "LateralPanelColor", "control": "colors", "optionsRef": "LateralPanelColor" }]
+      "fieldTabs": { "label": "Select Panel, Then Color" },
+      "fields": [
+        {
+          "attributeId": "BasePanelColor",
+          "control": "colors",
+          "optionsRef": "BasePanelColor",
+          "tab": { "label": "Base Panel", "icon": "images/panel/base-panel.svg" }
+        },
+        {
+          "attributeId": "LateralPanelColor",
+          "control": "colors",
+          "optionsRef": "LateralPanelColor",
+          "tab": { "label": "Lateral Panel", "icon": "images/panel/lateral-panel.svg" }
+        }
+      ]
     },
     "lateral-panel-side": {
       "label": "Lateral Panel",
@@ -146,5 +156,69 @@
         }
       ]
     }
+  },
+  "optionImages": {
+    "CabinetType": {
+      "Sink-Base": "images/cabinet/sink-base-56.png",
+      "Sink-Cabinet": "images/cabinet/side-cabinet-56.png",
+      "Open-Shelf": "images/cabinet/open-shelf.png",
+      "Side-Shelf": "images/cabinet/open-side-shelf.png"
+    },
+    "Drawers": {
+      "2": "images/cabinet-style/2-drawer.png",
+      "1": "images/cabinet-style/1-drawer.png",
+      "1+inner": "images/cabinet-style/1-drawer.png"
+    },
+    "Handle": {
+      "UG": "images/handle/UpperGHandle.png"
+    },
+    "sinkType": {
+      "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
+      "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
+      "Top_HPL/Fenix_Cover_Gres": "images/basin/fenix_Cover.jpg",
+      "Top_HPL/Fenix_Prisma_Gres": "images/basin/fenix_Prisma.jpg",
+      "Top_HPL/Fenix_Quadra_Gres": "images/basin/fenix_Quadra.jpg",
+      "Top_HPLStrip": "images/basin/strip.jpg",
+      "Top_HPLCover": "images/basin/cover.jpg",
+      "Top_HPLPrisma": "images/basin/prisma.jpg",
+      "Top_HPLQuadra": "images/basin/quadro.jpg",
+      "Top_Porcelain_Strip": "images/basin/strip.jpg",
+      "Top_Porcelain_Cover": "images/basin/cover.jpg",
+      "Top_Porcelain_Prisma": "images/basin/prisma.jpg",
+      "Top_Porcelain_Quadra": "images/basin/quadro.jpg",
+      "Vessel_Blade11": "images/vessel/Vessel_Blade11.png",
+      "Vessel_Blade18": "images/vessel/Vessel_Blade18.png",
+      "Vessel_UrbanModo": "images/vessel/Vessel_UrbanModo_Flat.png",
+      "Vessel_UrbanMorris": "images/vessel/Vessel_UrbanMorris.png",
+      "Vessel_Aquarius": "images/vessel/Vessel_Aquarius48.png"
+    }
+  },
+  "optionImageVariants": {
+    "CabinetType": [
+      { "value": "Sink-Base", "when": { "Height": "53" }, "image": "images/cabinet/sink-base-53.png" },
+      { "value": "Sink-Base", "when": { "Height": "38" }, "image": "images/cabinet/sink-base-38.png" },
+      { "value": "Sink-Base", "when": { "Height": "28" }, "image": "images/cabinet/sink-base-28.png" },
+      { "value": "Sink-Cabinet", "when": { "Height": "53" }, "image": "images/cabinet/side-cabinet-53.png" },
+      { "value": "Sink-Cabinet", "when": { "Height": "38" }, "image": "images/cabinet/side-cabinet-38.png" },
+      { "value": "Sink-Cabinet", "when": { "Height": "28" }, "image": "images/cabinet/side-cabinet-28.png" }
+    ],
+    "Drawers": [
+      { "value": "2", "when": { "Series": "URSTD" }, "image": "images/cabinet-style/urban-standard-2-drawer.png" },
+      { "value": "1", "when": { "Series": "URSTD" }, "image": "images/cabinet-style/urban-standard-1-drawer.png" },
+      {
+        "value": "1+inner",
+        "when": { "Series": "URSTD" },
+        "image": "images/cabinet-style/urban-standard-1-drawer.png"
+      },
+      { "value": "1", "when": { "Series": "URLH" }, "image": "images/cabinet-style/urban-low-height-1-drawer.png" }
+    ]
+  },
+  "styleSidebar": {
+    "fields": ["Width", "Depth", "Height", "Handle"],
+    "attributes": [{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }]
+  },
+  "playerMenu": {
+    "resize": ["Width", "Depth", "Height"],
+    "attributes": [{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }]
   }
 }

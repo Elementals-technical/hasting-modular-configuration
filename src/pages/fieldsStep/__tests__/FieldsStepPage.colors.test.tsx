@@ -122,8 +122,8 @@ describe("FieldsStepPage colour fields", () => {
 
     const section = screen.getByRole("region", { name: "Cabinet Color" });
     const pictures = within(section)
-      .getAllByRole("img")
-      .map((image) => image.getAttribute("src"));
+      .getAllByRole("button")
+      .flatMap((button) => Array.from(button.querySelectorAll("img"), (image) => image.getAttribute("src")));
 
     expect(pictures).toContain("https://preview.threekit.com/api/files/hash/sha256-pulpis");
   });
@@ -191,6 +191,17 @@ describe("FieldsStepPage colour fields", () => {
       expect(legColorSection().getAllByText("Gold").length).toBeGreaterThan(0);
     });
 
+    it("are switched on in the colour they start in, shown as chosen", () => {
+      // What the switch and the models record: a leg colour, so the cabinet colour does not repaint them.
+      recordAtFirstCabinet("LegColor", "Antracite 400 MT");
+      renderMakoColorStep();
+
+      expect(isPressed("On")).toBe(true);
+      expect(legColorSection().getAllByText("Antracite 400 MT").some(isChosen)).toBe(true);
+      expect(legColorSection().getAllByText("Gold").some(isChosen)).toBe(false);
+    });
+
+    // "None", the legs in the cabinet colour, is what a configuration saved earlier may still hold.
     it("are switched on in the cabinet colour, with no leg colour of their own chosen", () => {
       recordAtFirstCabinet("LegColor", "None");
       renderMakoColorStep();

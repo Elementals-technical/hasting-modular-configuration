@@ -1,3 +1,5 @@
+import { createSceneIcon } from "@/shared/ui/AppIcon/createSceneIcon";
+
 import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 
@@ -19,7 +21,7 @@ export const installDrawerWidgets = () => {
     if (drawerInfo.hasOccupiedDividers) {
       const indicator = document.createElement("div");
       const iconSize = isMobile ? 12 : 16;
-      indicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${iconSize}" height="${iconSize}" viewBox="0 0 20 20" fill="none"><path d="M16.6667 5L7.50001 14.1667L3.33334 10" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      indicator.appendChild(createSceneIcon(parentEl.ownerDocument, "check", iconSize));
       Object.assign(indicator.style, {
         background: "#262b31",
         color: "#fff",
@@ -39,7 +41,7 @@ export const installDrawerWidgets = () => {
     const label = document.createElement("span");
     label.textContent = "Open Drawer";
     const plus = document.createElement("span");
-    plus.textContent = "+";
+    plus.appendChild(createSceneIcon(parentEl.ownerDocument, "plus", isMobile ? 10 : 14));
     plus.setAttribute("aria-hidden", "true");
     Object.assign(plus.style, {
       width: isMobile ? "10px" : "14px",
