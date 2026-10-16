@@ -4,6 +4,7 @@
   "productTypes": {
     "Sink-Base": "UF-sink-cabinet",
     "Sink-Cabinet": "UF-side-cabinet",
+    "Short-Cabinet": "UF-side-cabinet",
     "Open-Shelf": "UF-open-shelves",
     "Side-Shelf": "UF-open-shelves-side"
   },
@@ -199,7 +200,7 @@
     {
       "attributeId": "CabinetType",
       "status": "unbound",
-      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The UF scene products of each value are in productTypes."
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The UF scene products of each value are in productTypes. The Short-Cabinet is a UF-side-cabinet below 60 cm, as the scene draws it: a placed one reads back as Short-Cabinet by its one-drawer style (ruleData.steppedModules), any other as Sink-Cabinet."
     },
     {
       "attributeId": "HandleGrooveColorSku",

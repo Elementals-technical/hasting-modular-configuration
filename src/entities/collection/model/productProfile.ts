@@ -281,7 +281,7 @@ export type SeriesCabinetModule = {
 
 /**
  * A drawer style of a cabinet type that stands at a height of its own beside the taller cabinets
- * of the composition (Urban Freestanding: the 1 Drawer Short Side Cabinet). The one-height rule of
+ * of the composition (Urban Freestanding: the Short-Cabinet). The one-height rule of
  * the composition does not reach it: the composition keeps the height of its other cabinets, and
  * the scene bridge places this one at the table's height of its style (buildSteppedSceneProducts). Its widths,
  * depths and handle are those of its cabinet type.

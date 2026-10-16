@@ -127,6 +127,7 @@ import {
 } from "@/features/swatchOrder";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
+import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneProducts";
 import { QuotePrintDocument } from "@/features/quotePrint/ui/QuotePrintDocument";
 import { printQuote } from "@/features/quotePrint/lib/printQuote";
 import { captureQuotePreviewImage } from "@/features/quotePrint/lib/captureQuotePreviewImage";
@@ -1236,11 +1237,13 @@ export const CustomSummaryPage = () => {
     // Side panel SKUs — one line item per active side (single-panel pricing)
     const sidePanelSkuItems: SummaryItem[] = [];
     if (sidePanelsOption && sidePanelsOption !== "None") {
+      // The panels are described at the size of the first cabinet with a confirmed one, not a short cabinet's.
+      const panelCabinet = cabinetConfigs.find((config) => !isSteppedSceneConfig(config)) ?? cabinetConfigs[0];
       const dims =
         cabinetConfigs.length > 0
           ? {
-              height: typeof cabinetConfigs[0].Height === "number" ? cabinetConfigs[0].Height : null,
-              depth: typeof cabinetConfigs[0].Depth === "number" ? cabinetConfigs[0].Depth : null,
+              height: typeof panelCabinet.Height === "number" ? panelCabinet.Height : null,
+              depth: typeof panelCabinet.Depth === "number" ? panelCabinet.Depth : null,
             }
           : productsPresets.length > 0
             ? { height: productsPresets[0].Height ?? null, depth: productsPresets[0].Depth ?? null }

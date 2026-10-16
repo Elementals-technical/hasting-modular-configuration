@@ -7,7 +7,7 @@ import { isSteppedDrawers } from "@/shared/config/configurator/typeCabinetCatalo
 
 /**
  * Placed cabinets of a drawer style that stands at a height of its own (`ruleData.steppedModules`:
- * the Urban Freestanding 1 Drawer Short). The composition's height is that of the other cabinets;
+ * the Urban Freestanding Short-Cabinet). The composition's height is that of the other cabinets;
  * these keep their own, so a check that every cabinet has the composition's size leaves them out.
  */
 
@@ -21,9 +21,10 @@ const getProfile = (state: RootState) => state.rootStateUI.product.activeProfile
 export const selectSteppedCabinetIds = createSelector(
   [getCatalog, getPlacedStyles, getProductIds],
   (catalog, placedStyles, productIds): string[] => {
-    const stepped = productIds.filter((runtimeId) =>
-      isSteppedDrawers(findPlacedCabinetRule(catalog, runtimeId), placedStyles[runtimeId] ?? null),
-    );
+    const stepped = productIds.filter((runtimeId) => {
+      const placedDrawers = placedStyles[runtimeId] ?? null;
+      return isSteppedDrawers(findPlacedCabinetRule(catalog, runtimeId, placedDrawers), placedDrawers);
+    });
     return stepped.length > 0 ? stepped : NO_IDS;
   },
 );

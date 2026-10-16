@@ -86,9 +86,7 @@ import {
   findPlacedCabinetRule,
   isLeavingSideShelfHandle,
   REASON_HANDLE_HEIGHT_LOCKED,
-  resolveSteppedEndPlacement,
 } from "@/features/configurator-rule-core/cabinetBuilder";
-import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
@@ -135,7 +133,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const productConfig = useAppSelector(getCabinetBuilderProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const steppedCabinetIds = useAppSelector(selectSteppedCabinetIds);
-  // The style being added stands at a height of its own (the Urban Freestanding 1 Drawer Short).
+  // The style being added stands at a height of its own (the Urban Freestanding Short-Cabinet).
   const selectedDrawers =
     typeof selectedProductConfig?.Drawers === "string"
       ? (normalizeOptionValue(activeProfile, "Drawers", selectedProductConfig.Drawers) ?? null)
@@ -913,6 +911,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
             side,
           }),
         );
+        // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.
+        reportSceneRefusal(added);
         return added.status === "error" ? null : added.placed[0];
       });
       if (!productId) return;

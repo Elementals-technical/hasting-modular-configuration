@@ -53,6 +53,7 @@ import {
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
   getPlacedDividers,
+  getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
@@ -180,7 +181,6 @@ import {
   findPlacedCabinetRule,
   getUniqueCatalogWidths,
   resolveMoveSwaps,
-  resolveSteppedEndPlacement,
   type CabinetSwap,
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
@@ -1389,13 +1389,15 @@ export const PlayCanvasIntegration = ({
   }, [activeMaterialTokens, activeProfile, countertopRules, countertopStyle, activeBasinStyle, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
-    (productType: string | null) => {
+    (productType: string | null, runtimeId: string) => {
       if (!productType) return null;
 
       // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
-      return findPlacedCabinetRule(cabinetCatalog, productType)?.code ?? null;
+      // The cabinet's drawer style tells a short cabinet from the tall type of its scene product.
+      const placedDrawers = getPlacedCabinetStyles(store.getState())[runtimeId];
+      return findPlacedCabinetRule(cabinetCatalog, productType, placedDrawers)?.code ?? null;
     },
-    [cabinetCatalog],
+    [cabinetCatalog, store],
   );
 
   const showDropdownForEntity = useCallback(
@@ -2351,6 +2353,8 @@ export const PlayCanvasIntegration = ({
             placement: placementForPlus(side, entityId),
             afterPlacement: vesselColorRef.current && isVessel ? { VesselColor: vesselColorRef.current } : undefined,
           });
+          // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.
+          reportSceneRefusal(added);
           const productId = added.status === "error" ? null : added.placed[0];
           if (!productId) return;
 
@@ -2482,15 +2486,22 @@ export const PlayCanvasIntegration = ({
 
   /** Swaps cabinets in order, as one step of the history; stops at the first swap the scene refuses. */
   const handleSwapProducts = useCallback(
-    async (idA: string, idB: string) =>
-      runStep(async () => {
-        const swapped = await composition.swapCabinets(idA, idB);
-        if (swapped.status === "error") {
-          console.warn("[PlayCanvasIntegration] The cabinets were not swapped", swapped);
-          return;
+    async (swaps: readonly CabinetSwap[]) => {
+      if (swaps.length === 0) return;
+
+      await runStep(async () => {
+        for (const [idA, idB] of swaps) {
+          const swapped = await composition.swapCabinets(idA, idB);
+          if (swapped.status === "error") {
+            // A refusal of the scene (UF: the swap would split the tall cabinets) is explained to the user.
+            reportSceneRefusal(swapped);
+            console.warn("[PlayCanvasIntegration] The cabinets were not swapped", swapped);
+            return;
+          }
         }
         await enforceSidePanelEligibilityForEdgeCabinets();
-      }),
+      });
+    },
     [composition, enforceSidePanelEligibilityForEdgeCabinets, runStep],
   );
 
@@ -3267,7 +3278,7 @@ export const PlayCanvasIntegration = ({
         (typeof config.productType === "string" && config.productType) ||
         (typeof config.type === "string" && config.type) ||
         null;
-      const resolvedCabinetTypeId = resolveCabinetTypeId(productType ?? selectedSceneProduct);
+      const resolvedCabinetTypeId = resolveCabinetTypeId(productType ?? selectedSceneProduct, selectedSceneProduct);
 
       if (resolvedCabinetTypeId !== null) {
         dispatch(setActiveCabinetType(resolvedCabinetTypeId));

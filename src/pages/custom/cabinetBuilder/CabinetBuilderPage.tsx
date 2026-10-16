@@ -70,7 +70,10 @@ import {
   selectOptionImageContext,
 } from "@/entities/product/model/store/derivedSelectors";
 import { selectPlacedSeriesCabinets } from "@/entities/product/model/store/seriesCabinets";
-import { selectHasPlacedCabinetOfCategory } from "@/entities/product/model/store/steppedCabinets";
+import {
+  selectHasPlacedCabinetOfCategory,
+  selectSteppedCabinetIds,
+} from "@/entities/product/model/store/steppedCabinets";
 import { applyConfiguratorRules, buildHandleStyleConfigPatch } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   isDrawerStyleMixingRestricted,
@@ -357,6 +360,7 @@ export const CabinetBuilderPage = () => {
   const sinkBaseCount = useAppSelector(getSinkBaseCount);
   const sideShelfCount = useAppSelector(getSideShelfCount);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
+  const steppedCabinetIds = useAppSelector(selectSteppedCabinetIds);
   const placedDimensions = useAppSelector(getDimensionsByCabinet);
   const placedSeriesCabinets = useAppSelector(selectPlacedSeriesCabinets);
   // A short cabinet (`ruleData.steppedModules`) stands beside a taller one: the categories of
@@ -407,7 +411,10 @@ export const CabinetBuilderPage = () => {
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
-    const placedDrawerValues = Object.values(placedCabinetStyles);
+    // A short cabinet (`ruleData.steppedModules`) mixes with the others, so its style is not the composition's.
+    const placedDrawerValues = Object.entries(placedCabinetStyles)
+      .filter(([runtimeId]) => !steppedCabinetIds.includes(runtimeId))
+      .map(([, drawers]) => drawers);
     const placedHeights = Object.values(placedDimensions).flatMap(({ height }) =>
       typeof height === "number" ? [height] : [],
     );
@@ -449,11 +456,17 @@ export const CabinetBuilderPage = () => {
         const ruleOption = isConfiguredRule ? drawerOptionMap.get(value) : undefined;
         const isOffered = isConfiguredRule ? !ruleOption?.disabled : Boolean(rule?.drawers.includes(value));
 
+        // A short cabinet stands at an end, beside a taller cabinet: it is not the first one.
+        const steppedModule = steppedModules.find(
+          (module) => module.cabinetType === rule?.code && module.drawers === value,
+        );
         // Drawer style groups of the collection decide which styles cannot be mixed, and so does a
-        // style that does not come in the height of the placed cabinets.
+        // style that does not come in the height of the placed cabinets. A short cabinet's style
+        // mixes with every other (Urban Freestanding: the one 1-drawer product beside 2-drawer ones).
         const isMixingRestricted =
-          isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, value) ||
-          isDrawerStyleHeightRestricted(rule, value, placedHeights);
+          steppedModule === undefined &&
+          (isDrawerStyleMixingRestricted(activeProfile, placedDrawerValues, value) ||
+            isDrawerStyleHeightRestricted(rule, value, placedHeights));
         // Every drawer cabinet switches to such a style, which a placed cabinet of another series
         // may not come in.
         const styleSwitch = isMixingRestricted
@@ -471,10 +484,6 @@ export const CabinetBuilderPage = () => {
               ? compositionExceededReason
               : undefined;
         const isHeldBySeries = compositionReason === undefined && !canSwitch;
-        // A short cabinet stands at an end, beside a taller cabinet: it is not the first one.
-        const steppedModule = steppedModules.find(
-          (module) => module.cabinetType === rule?.code && module.drawers === value,
-        );
         const needsTallerCabinet =
           compositionReason === undefined &&
           !isHeldBySeries &&
@@ -536,6 +545,7 @@ export const CabinetBuilderPage = () => {
     activeCabinetType,
     cabinetCatalog,
     placedCabinetStyles,
+    steppedCabinetIds,
     placedDimensions,
     placedSeriesCabinets,
     placedSteppedCategories,
@@ -1061,11 +1071,12 @@ export const CabinetBuilderPage = () => {
   );
 
   const resolveCabinetTypeId = useCallback(
-    (productType?: string | null) => {
+    (productType?: string | null, placedDrawers?: string | null) => {
       if (!productType) return null;
 
       // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
-      return findPlacedCabinetRule(cabinetCatalog, productType)?.code ?? null;
+      // The cabinet's drawer style tells a short cabinet from the tall type of its scene product.
+      return findPlacedCabinetRule(cabinetCatalog, productType, placedDrawers)?.code ?? null;
     },
     [cabinetCatalog],
   );
@@ -1346,7 +1357,7 @@ export const CabinetBuilderPage = () => {
 
           dispatch(setDrawerProduct(nextProductType));
 
-          const nextTypeId = resolveCabinetTypeId(nextProductType);
+          const nextTypeId = resolveCabinetTypeId(nextProductType, readConfigDrawerValue(nextConfig));
           if (nextTypeId !== null) {
             dispatch(setActiveCabinetType(nextTypeId));
           }

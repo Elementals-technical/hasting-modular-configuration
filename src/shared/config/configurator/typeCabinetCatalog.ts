@@ -34,9 +34,10 @@ export type TypeCabinetRuleConfig = {
   unavailableWithIntegrated?: { widthCm: number; drawers: string }[];
   /**
    * Drawer styles of the type that stand at a height of their own beside the taller cabinets
-   * (`ruleData.steppedModules`: the Urban Freestanding 1 Drawer Short). They force no height (their
-   * table heights are left out of `forcedHeightByHandle`) and no height is judged for them: the
-   * composition keeps the height of its other cabinets.
+   * (`ruleData.steppedModules`: the Urban Freestanding Short-Cabinet). They force no height of their
+   * own (their table heights are left out of `forcedHeightByHandle`): the composition keeps the
+   * height of its other cabinets, which a type with stepped styles only takes as its `heights` and
+   * forced heights.
    */
   steppedDrawers?: string[];
   /**
