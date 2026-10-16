@@ -135,7 +135,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const productConfig = useAppSelector(getCabinetBuilderProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
   const steppedCabinetIds = useAppSelector(selectSteppedCabinetIds);
-  // The style being added stands at a height of its own (the Urban Freestanding 1 Drawer Short).
+  // The style being added stands at a height of its own (the Urban Freestanding Short-Cabinet).
   const selectedDrawers =
     typeof selectedProductConfig?.Drawers === "string"
       ? (normalizeOptionValue(activeProfile, "Drawers", selectedProductConfig.Drawers) ?? null)

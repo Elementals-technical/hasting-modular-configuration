@@ -53,6 +53,7 @@ import {
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
   getPlacedDividers,
+  getPlacedCabinetStyles,
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
@@ -1389,13 +1390,15 @@ export const PlayCanvasIntegration = ({
   }, [activeMaterialTokens, activeProfile, countertopRules, countertopStyle, activeBasinStyle, dimensionOptions.depth]);
 
   const resolveCabinetTypeId = useCallback(
-    (productType: string | null) => {
+    (productType: string | null, runtimeId: string) => {
       if (!productType) return null;
 
       // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
-      return findPlacedCabinetRule(cabinetCatalog, productType)?.code ?? null;
+      // The cabinet's drawer style tells a short cabinet from the tall type of its scene product.
+      const placedDrawers = getPlacedCabinetStyles(store.getState())[runtimeId];
+      return findPlacedCabinetRule(cabinetCatalog, productType, placedDrawers)?.code ?? null;
     },
-    [cabinetCatalog],
+    [cabinetCatalog, store],
   );
 
   const showDropdownForEntity = useCallback(
@@ -3289,7 +3292,7 @@ export const PlayCanvasIntegration = ({
         (typeof config.productType === "string" && config.productType) ||
         (typeof config.type === "string" && config.type) ||
         null;
-      const resolvedCabinetTypeId = resolveCabinetTypeId(productType ?? selectedSceneProduct);
+      const resolvedCabinetTypeId = resolveCabinetTypeId(productType ?? selectedSceneProduct, selectedSceneProduct);
 
       if (resolvedCabinetTypeId !== null) {
         dispatch(setActiveCabinetType(resolvedCabinetTypeId));

@@ -55,6 +55,13 @@
           "label": "Open Side Shelf",
           "order": 40,
           "category": "open-cabinet"
+        },
+        {
+          "value": "Short-Cabinet",
+          "label": "Floor-Mount Short Cabinet",
+          "order": 50,
+          "category": "drawer-cabinet",
+          "legacyDescription": "One drawer, beside a taller cabinet"
         }
       ]
     },
@@ -70,10 +77,9 @@
         },
         {
           "value": "1",
-          "label": "1 Drawer Short",
+          "label": "1 Drawer",
           "order": 20,
-          "aliases": ["1D", "1DW"],
-          "legacyDescription": "New 1DW Floor-Mount Short Cabinet (docx P1097): a Side Cabinet with one drawer that stands at the end of the composition, lower than the cabinets beside it, with a top of its own"
+          "aliases": ["1D", "1DW"]
         }
       ]
     },
@@ -452,14 +458,14 @@
         "forcedHeight": "forced_height_cm"
       }
     },
-    "drawerStyleGroups": [["2"]],
+    "drawerStyleGroups": [["1"], ["2"]],
     "steppedModules": [
       {
-        "cabinetType": "Sink-Cabinet",
+        "cabinetType": "Short-Cabinet",
         "drawers": "1",
         "placement": "composition-end",
         "requiresPlacedCategory": "drawer-cabinet",
-        "note": "New 1DW Floor-Mount Short Cabinet (docx P1097, P1110, image P1112): a Side Cabinet style that stands beside the taller cabinets, aligned to the floor, with a step at the top and a lower top of its own (P1113). Table 590 gives it as drawer config 1DW with its own forced heights (UG/CG 56, PTO 53, plinth included); they stay out of the composition's height (matrixCabinet withSteppedModules), so the one-height rule does not apply to it, and the scene bridge places it at that height (buildSteppedSceneProducts). It is placed at an end of the composition (UFS-CMP-01). Its widths, depths and handle are the Side Cabinet's; its SKU is the 2DW one with 1DW and its own height."
+        "note": "New 1DW Floor-Mount Short Cabinet (docx P1097, P1110, image P1112): a cabinet type of its own in table 590, one drawer only, that stands beside the taller cabinets with a step at the top and a lower top of its own (P1113). Its own heights (UG/CG 56, PTO 53, plinth included) stay out of the composition's height: it takes the composition's heights from the tall drawer cabinets (matrixCabinet withSteppedModules), and the scene bridge places it at its own height (buildSteppedSceneProducts). The scene places it as UF-side-cabinet, so a placed one is told from a Side Cabinet by its drawer style. It mixes with the two-drawer cabinets, the only one-drawer product that does (team, 2026-10-16), and stands at an end of the composition, which the scene enforces (UF_HEIGHT_RUN_VIOLATION). Its SKU is the Side Cabinet's with 1DW and its own height."
       }
     ],
     "materialNormalization": {
@@ -665,6 +671,7 @@
     "drawers.steppedNeedsTallCabinet": "Add a 2 Drawer Sink Base or Side Cabinet first: the short cabinet stands beside a taller one."
   },
   "excludedFromThisProfile": {
+    "shortFloorCabinet": "New 1DW Floor-Mount Short Cabinet: the Short-Cabinet type of table 590 (ruleData.steppedModules), one drawer, 56 cm for Upper and Central Groove and 53 cm for Push-to-Open with the plinth. The price list has no 1DW cabinet, so the price server returns no price for its SKU (UFS-SIZ-01), and its own lower top waits for UFS-TOP-01.",
     "lowerTop": "Countertop of the short cabinet (P1113 -> P0861) and the decorative top of an uncovered lower cabinet: UFS-SIZ-01, UFS-TOP-01, GEN-SKU-03.",
     "handleGrooveColor": "Not in the Master File, although the price list SKU carries HDL-{material}-{colour}. Offered as Urban Standard Height offers it (team, 2026-10-07): the groove of an Upper or Central Groove handle takes the cabinet colours, and stays in the cabinet colour until one is chosen. The client has yet to confirm it.",
     "grainDirectionAndBookMatching": "Not offered until the client answers GEN-STY-01.",

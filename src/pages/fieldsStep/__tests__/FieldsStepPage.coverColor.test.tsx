@@ -226,7 +226,7 @@ it("shows no Lower for a collection without the cover contract, whatever the sce
   expect(mocks.read).not.toHaveBeenCalled();
 });
 
-// Urban Freestanding: Lower is the cover the scene lays on a 1 Drawer Short Side Cabinet, which the
+// Urban Freestanding: Lower is the cover the scene lays on a Floor-Mount Short Cabinet, which the
 // custom flow adds. It takes the palette of the collection's own cabinets.
 const freestandingParsed = parseProductProfile(freestandingProfileDocument);
 if (!freestandingParsed.ok) throw new Error("Invalid Urban Freestanding profile");

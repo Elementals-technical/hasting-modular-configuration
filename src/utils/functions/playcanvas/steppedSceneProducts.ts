@@ -4,7 +4,7 @@ import { updateDimensionDataForProduct } from "./updateDimensionData";
 
 /**
  * Scene products that keep a height of their own beside the taller products of the composition
- * (Urban Freestanding: the 1 Drawer Short Side Cabinet).
+ * (Urban Freestanding: the Short-Cabinet).
  *
  * The composition has one height and every path that changes it sends that height to every
  * product at once: a handle with its forced height, the sidebar's size, the height check after a

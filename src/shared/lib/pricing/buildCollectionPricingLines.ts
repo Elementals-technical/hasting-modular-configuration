@@ -149,9 +149,9 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   const { activeProfile: profile, configurationValues: values, dimensionsByCabinet, placedCabinetStyles } = input;
   const readConfiguratorColor = createConfiguratorColorReader(profile, input.configurator ?? null);
   // The cabinet type the scene placed, read through the collection's scene types (a Mako sink
-  // base is a Mako-sink-cabinet in the scene).
+  // base is a Mako-sink-cabinet in the scene); its drawer style tells a short cabinet apart.
   const cabinetTypeOf = (runtimeId: string) =>
-    resolveCabinetTypeOfRuntimeId(profile, input.runtimeBindings ?? null, runtimeId);
+    resolveCabinetTypeOfRuntimeId(profile, input.runtimeBindings ?? null, runtimeId, placedCabinetStyles[runtimeId]);
   const isSinkBase = (entry: CabinetEntry) => cabinetTypeOf(entry.runtimeId) === "Sink-Base";
   // The Summary of a model reads the model's cabinets by their place in it, as the USH lines
   // name them; a cabinet added on top of the model, or of a custom composition, by its runtime id.
@@ -426,7 +426,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   // 6) Side panels: a collection that reuses Urban Standard Height's orders them as USH does, at the
   // size and in the colours of the first cabinet. A groove without a colour of its own is the cabinet's.
   if (skuProfile.sidePanel && "pricedAs" in skuProfile.sidePanel && cabinets.length > 0) {
-    // A short cabinet (`ruleData.steppedModules`: the Urban Freestanding 1 Drawer Short) stands lower
+    // A short cabinet (`ruleData.steppedModules`: the Urban Freestanding Short-Cabinet) stands lower
     // than the others, and the panel at its end has no confirmed height (P1125: a second panel
     // height, UFS-SP-01). That panel is left out and named a gap; the others take the size of the
     // first cabinet that is not short.
@@ -449,7 +449,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         blocksTotal: true,
         owner: "product",
         reason:
-          "A side panel beside the 1 Drawer Short has no height or SKU: the lower panel height is not given (P1125, UFS-SP-01). It is not priced.",
+          "A side panel beside the Floor-Mount Short Cabinet has no height or SKU: the lower panel height is not given (P1125, UFS-SP-01). It is not priced.",
       });
     }
     const read = readerOf(first);
