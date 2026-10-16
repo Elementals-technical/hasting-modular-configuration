@@ -113,13 +113,26 @@ describe("useHistoryStep", () => {
     expect(history().past[0].productOptions.CabinetColor).toBe("Rox Black TKQ");
   });
 
-  it("writes nothing while a snapshot is being restored", async () => {
+  it("runs an action started during a restore only once the restore is over, as its own step", async () => {
+    await withRedo();
     store.dispatch(setHistoryRestoring(true));
     const step = setUp();
+    const pickColor = vi.fn(recordColor("Castagno chiaro 1C1"));
 
-    await step.run(recordColor("Castagno chiaro 1C1"));
+    const running = step.run(pickColor);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // The restore still owns the scene and the state: the colour is not picked yet.
+    expect(pickColor).not.toHaveBeenCalled();
+    expect(cabinetColor()).toBe("Rox Black TKQ");
+
     store.dispatch(setHistoryRestoring(false));
+    await running;
 
-    expect(history().past).toEqual([]);
+    expect(pickColor).toHaveBeenCalledOnce();
+    expect(cabinetColor()).toBe("Castagno chiaro 1C1");
+    expect(history().past).toHaveLength(1);
+    expect(history().past[0].productOptions.CabinetColor).toBe("Rox Black TKQ");
+    expect(history().future).toEqual([]);
   });
 });

@@ -895,6 +895,19 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           await spAutoRemoveSide(dispatch, rowSide);
         }
 
+        // A short cabinet stays at its end of the composition: a taller one asked for outside it goes
+        // inside it. Only a "+" beside a row end is redirected; a column's place is taken as offered.
+        const placement =
+          side === "left" || side === "right"
+            ? resolveSteppedEndPlacement({
+                anchorRuntimeId: entityId,
+                side,
+                orderedRuntimeIds: getOrderedProductIds(selectedProducts).filter((id) => selectedProducts.includes(id)),
+                steppedRuntimeIds: steppedCabinetIds,
+                addsEndCabinet: isSteppedStyle || activeDrawerProduct === "Side-Shelf",
+              })
+            : { anchorRuntimeId: entityId, side };
+
         // The collection's scene product goes beside the clicked one and is recorded there with its
         // drawer style, as a duplicated cabinet is.
         const added = await composition.addCabinet(
@@ -907,8 +920,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
             countertopStyle,
             vesselColor,
             profile: activeProfile,
-            anchorRuntimeId: entityId,
-            side,
+            anchorRuntimeId: placement.anchorRuntimeId,
+            side: placement.side,
           }),
         );
         // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.

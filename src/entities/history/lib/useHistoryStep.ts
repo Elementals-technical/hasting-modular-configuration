@@ -1,8 +1,10 @@
 import { useMemo } from "react";
 import { useStore } from "react-redux";
+import type { Store } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
 
+import { getIsHistoryRestoring } from "../model/store/selectors";
 import { useDeferredHistorySnapshot } from "./useDeferredHistorySnapshot";
 
 /**
@@ -10,7 +12,8 @@ import { useDeferredHistorySnapshot } from "./useDeferredHistorySnapshot";
  *
  * The state is read before the action, but written to the history only once the action has changed
  * what an undo restores. An action the rules or the scene refuse, or one that picks the value already
- * chosen, leaves the history — and redo — as they were.
+ * chosen, leaves the history — and redo — as they were. An action started while an undo, a redo or a
+ * saved configuration is being restored waits until the restore is over.
  */
 export type HistoryStep = {
   /**
@@ -43,6 +46,23 @@ const configurationFingerprint = (state: RootState): string => {
   ]);
 };
 
+/**
+ * Resolves once no snapshot is being restored (`history.isRestoring` is false): at once when none is,
+ * otherwise when the running undo, redo or saved-configuration restore ends.
+ */
+const whenRestoreEnds = (store: Store<RootState>): Promise<void> => {
+  // Nothing is being restored: the action goes on at once.
+  if (!getIsHistoryRestoring(store.getState())) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const unsubscribe = store.subscribe(() => {
+      if (getIsHistoryRestoring(store.getState())) return;
+      unsubscribe();
+      resolve();
+    });
+  });
+};
+
 // A step started while another runs — a handler that calls another, or two actions at once — is part
 // of the one already open, so an action stays one entry with the state it started from.
 let openSteps = 0;
@@ -55,6 +75,11 @@ export function useHistoryStep(): HistoryStep {
   return useMemo(
     () => ({
       async run(change, applied) {
+        // An undo or redo rebuilds the scene and then shows its snapshot's values on it. An action
+        // run meanwhile would stay in the state but be overwritten in the scene, and leave no history
+        // entry, so the redo of the undone step would still be offered. It waits for the restore instead.
+        await whenRestoreEnds(store);
+
         if (openSteps > 0) return change();
 
         openSteps += 1;

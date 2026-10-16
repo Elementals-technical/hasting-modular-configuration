@@ -2348,9 +2348,22 @@ export const PlayCanvasIntegration = ({
           // The copy goes beside the clicked product and is recorded there with its drawer style; a
           // duplicated vessel sink base shows the vessel colour again.
           const isVessel = typeof mergedConfig.sinkType === "string" && mergedConfig.sinkType.startsWith("Vessel");
+          // A short cabinet stays at its end of the composition: a taller copy asked for outside it goes
+          // inside it. Only a "+" beside a row end is redirected; a column's place is taken as offered.
+          const rowEnd =
+            side === "left" || side === "right"
+              ? resolveSteppedEndPlacement({
+                  anchorRuntimeId: entityId,
+                  side,
+                  orderedRuntimeIds: getOrderedProductIds(productIds).filter((id) => productIds.includes(id)),
+                  steppedRuntimeIds: selectSteppedCabinetIds(store.getState()),
+                  addsEndCabinet:
+                    isSteppedSceneConfig(mergedConfig) || cabinetTypeOf(duplicateSourceId) === "Side-Shelf",
+                })
+              : null;
           const added = await composition.addCabinet({
             product: { productType, config: mergedConfig },
-            placement: placementForPlus(side, entityId),
+            placement: rowEnd ? placementForPlus(rowEnd.side, rowEnd.anchorRuntimeId) : placementForPlus(side, entityId),
             afterPlacement: vesselColorRef.current && isVessel ? { VesselColor: vesselColorRef.current } : undefined,
           });
           // A refusal of the scene (UF: a short cabinet between tall ones) is explained to the user.

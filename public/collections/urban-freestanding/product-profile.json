@@ -77,9 +77,10 @@
         },
         {
           "value": "1",
-          "label": "1 Drawer",
+          "label": "1 Drawer Short",
           "order": 20,
-          "aliases": ["1D", "1DW"]
+          "aliases": ["1D", "1DW"],
+          "legacyDescription": "New 1DW Floor-Mount Short Cabinet (docx P1097): a Side Cabinet with one drawer that stands at the end of the composition, lower than the cabinets beside it, with a top of its own"
         }
       ]
     },
