@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { createElement, createRef } from "react";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { CountertopOverlayFrame } from "@/features/configuratorApi";
@@ -262,7 +262,7 @@ describe("CountertopDragMode", () => {
     expect(f.bridge.setCountertopOverlayActive).toHaveBeenCalledWith(true);
     expect(f.bridge.setCountertopOverlayPlaceholders).toHaveBeenCalledWith(false);
     f.emit(frameOf());
-    expect(screen.getByTestId("countertop-length-chip").textContent).toBe("84″");
+    expect(screen.getByTestId("countertop-length-chip").textContent?.trim()).toBe("84″");
     expect(screen.getByTestId("countertop-depth-chip").textContent).toContain("22″");
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     await waitFor(() => expect(f.onCommitted).toHaveBeenCalled());
@@ -271,6 +271,27 @@ describe("CountertopDragMode", () => {
     await waitFor(() => expect(f.bridge.setCountertopOverlayActive).toHaveBeenLastCalledWith(false));
     expect(f.stopOverlay).toHaveBeenCalled();
     expect(screen.queryByTestId("countertop-drag-overlay")).toBeNull();
+  });
+
+  it("the length popover's Apply sends nothing to the scene and the session goes on", async () => {
+    const f = fixture();
+    await enter(f);
+    f.emit(frameOf());
+    const sceneCalls = () =>
+      [f.api.setDragEnabled, f.api.setOffset, f.api.resetOffset, f.api.setSize].map((method) => method.mock.calls.length);
+    const before = sceneCalls();
+    fireEvent.click(screen.getByRole("button", { name: /^Edit countertop length/ }));
+    const popover = screen.getByRole("dialog", { name: "Countertop length" });
+    expect(within(popover).getByText("Min 48″")).toBeTruthy();
+    fireEvent.click(within(popover).getByRole("button", { name: "Increase length" }));
+    fireEvent.click(within(popover).getByRole("button", { name: "Right" }));
+    fireEvent.click(within(popover).getByRole("button", { name: "Apply" }));
+    expect(screen.queryByRole("dialog", { name: "Countertop length" })).toBeNull();
+    expect(sceneCalls()).toEqual(before);
+    expect(f.bridge.setCountertopLengthLimits).toHaveBeenCalledOnce();
+    expect(f.onCommitted).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
   });
 
   it("blocks Apply on a conflict and shows the reason", async () => {
