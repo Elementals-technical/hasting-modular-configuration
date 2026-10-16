@@ -195,11 +195,13 @@
         "sceneKey": "CountertopColor",
         "overrides": {
           "Bianco Gloss TAN": "Bianco Gloss TAL",
-          "Bianco Matte TAP": "Bianco Matte TAM"
+          "Bianco Matte TAP": "Bianco Matte TAM",
+          "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte",
+          "Matte White": "Solid Surface Matte White"
         }
       },
       "order": 50,
-      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor). The overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP). The countertop table has no Syntesi rows, so those finishes are not offered here."
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor). Two overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP); the countertop table has no Syntesi rows, so those finishes are not offered here. Two follow the scene's own names (export v62): the porcelain Sahara Noir Silky Matte has no TR8 in it, and the Solid Surface Matte White (SSTL) is \"Solid Surface Matte White\"; sent under the configurator names, neither is found and the top keeps its previous colour."
     },
     {
       "attributeId": "Thickness",
