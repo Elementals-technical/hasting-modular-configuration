@@ -184,7 +184,11 @@
               "code": "HDL",
               "attributeId": "LateralPanelColor"
             }
-          ]
+          ],
+          "heightCodes": {
+            "28": "11.0",
+            "38": "15.0"
+          }
         }
       }
     },

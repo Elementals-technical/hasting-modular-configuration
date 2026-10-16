@@ -17,8 +17,10 @@ import { createConfiguratorColorReader } from "../configuratorColors";
 /**
  * Urban Duplex SKUs from its `sku-profile.json`. Each expected SKU is a row of the Pricing sheet of
  * the price workbook, or an example the client gave, as the builder writes it: `22H`, `15H` and `11H`
- * where the sheet writes `22.0H`, `15.0H` and `11.0H`, which the price server prices alike. The
- * handle element is HNDL, as the Pricing rows write it. The price server has not been asked for these.
+ * where the sheet writes `22.0H`, `15.0H` and `11.0H`, which the price server prices alike. An Urban
+ * Low Height cabinet is spelled `15.0H` and `11.0H` as its rows are: the server reads its `11H` as the
+ * `15.0H` row (asked 2026-10-16). The handle element is HNDL, as the Pricing rows write it. The price
+ * server has not been asked for the others.
  */
 
 const parsed = parseProductProfile(urbanDuplexProfileDocument);
@@ -136,13 +138,13 @@ describe("the Urban Standard Height and Urban Low Height cabinets of an Urban Du
     ).toEqual({ sku: "VAN-URSTD-SC/2DW/UG/X-19.7W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH", missing: [] });
     // VAN-URLH-SC/1DW/UG/X-13.8W-11.0H-19.7D-CAB-ST-DA-HDL-HPL-TKH, a client example.
     expect(cabinet({ CabinetType: "Sink-Cabinet", Series: "URLH", Drawers: "1D" }, 35, 28).sku).toBe(
-      "VAN-URLH-SC/1DW/UG/X-13.8W-11H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
+      "VAN-URLH-SC/1DW/UG/X-13.8W-11.0H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
     );
     expect(cabinet({ Series: "URSTD", Drawers: "2D" }, 105, 56).sku).toBe(
       "VAN-URSTD-SB/2DW/UG/X-41.3W-22H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
     );
     expect(cabinet({ Series: "URLH", Drawers: "1D" }, 90, 38).sku).toBe(
-      "VAN-URLH-SB/1DW/UG/X-35.4W-15H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
+      "VAN-URLH-SB/1DW/UG/X-35.4W-15.0H-19.7D-CAB-ST-DA-HDL-HPL-TKH",
     );
   });
 });
