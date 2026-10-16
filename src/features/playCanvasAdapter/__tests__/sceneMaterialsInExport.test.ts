@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
@@ -24,6 +25,8 @@ import tricotRuntimeBindingsDocument from "../../../../public/collections/tricot
 import urbanLowHeightRuntimeBindingsDocument from "../../../../public/collections/urban-low-height/runtime-bindings.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexRuntimeBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
+import urbanFreestandingProfileDocument from "../../../../public/collections/urban-freestanding/product-profile.json";
+import urbanFreestandingRuntimeBindingsDocument from "../../../../public/collections/urban-freestanding/runtime-bindings.json";
 import sceneConfig from "../../../../public/HastingCabinetsParametrization/config.json?raw";
 
 /**
@@ -121,10 +124,11 @@ describe.each([
 /**
  * Every colour a collection's own configurator offers, as its bindings send it: Urban Duplex's panel
  * colours under their scene keys (CabinetColor, CabinetColorLateral, the groove and the side shelf's
- * CabinetColor) and Tricot's lacquers, with the countertop, vessel and towel bar colours of each.
- * Unlike Mako and Class no family is left out, so a configurator name the scene spells differently
- * (Sahara Noir Silky Matte TR8, Tricot's capitals) needs an override. Values a binding declares
- * pending (`unboundValues`, Tricot's woods) are not sent and are left to its own tests.
+ * CabinetColor), Tricot's lacquers and Urban Freestanding's grooves, with the countertop, vessel and
+ * towel bar colours of each. Unlike Mako and Class no family is left out, so a configurator name the
+ * scene spells differently (Sahara Noir Silky Matte TR8, Tricot's capitals, the lacquers Urban
+ * Freestanding shares with Tricot) needs an override. Values a binding declares pending
+ * (`unboundValues`, Tricot's woods) are not sent and are left to its own tests.
  */
 describe.each([
   {
@@ -149,6 +153,17 @@ describe.each([
       "ARDESIA NERA 328": "Ardesia Nera 328",
       "Matte White": "Solid Surface Matte White",
       "Matte White 8cm": "Solid Surface Matte White 8cm",
+    },
+  },
+  {
+    collection: "urban-freestanding",
+    profileDocument: urbanFreestandingProfileDocument,
+    bindingsDocument: urbanFreestandingRuntimeBindingsDocument,
+    configuratorGroups: configurator11.availableOptions,
+    attributeIds: ["CabinetColor", "HandleGrooveColor", "CountertopColor", "VesselColor", "TowelBarColor"],
+    countertopOverrides: {
+      "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte",
+      "Matte White": "Solid Surface Matte White",
     },
   },
 ])(
@@ -179,7 +194,7 @@ describe.each([
 
           return [resolution.patch, ...(resolution.also ?? []).map(({ patch }) => patch)]
             .flatMap((patch) => Object.entries(patch))
-            .filter(([, name]) => !SCENE_MATERIALS.has(String(name)))
+            .filter(([, name]) => !SCENE_MATERIALS.has(String(name)) && !NOT_MATERIALS.includes(String(name)))
             .map(([sceneKey, name]) => `${attributeId}: ${value} -> ${sceneKey} ${String(name)}`);
         }),
       );
