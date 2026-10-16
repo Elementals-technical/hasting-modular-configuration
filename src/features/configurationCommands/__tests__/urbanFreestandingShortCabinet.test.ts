@@ -17,6 +17,7 @@ import {
   applyConfiguratorRules,
   findPlacedCabinetRule,
   resolveMoveSwaps,
+  resolveSteppedEndPlacement,
   type Selection,
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import { findCabinetRule, firstOwnDrawers, isSteppedDrawers } from "@/shared/config/configurator/typeCabinetCatalog";
@@ -172,6 +173,40 @@ describe("Urban Freestanding short cabinet rules", () => {
       plan: [
         { attributeId: "Drawers", value: "1", target: { scope: "cabinet", cabinetId: "short" }, origin: "requested" },
       ],
+    });
+  });
+});
+
+describe("Urban Freestanding short cabinet placement", () => {
+  const ordered = ["UF-side-cabinet-short1", "UF-sink-cabinet-sb1", "UF-side-cabinet-tall2"];
+  const place = (anchorRuntimeId: string, side: "left" | "right", addsEndCabinet = false) =>
+    resolveSteppedEndPlacement({
+      anchorRuntimeId,
+      side,
+      orderedRuntimeIds: ordered,
+      steppedRuntimeIds: ["UF-side-cabinet-short1"],
+      addsEndCabinet,
+    });
+
+  it("puts a taller cabinet asked for outside the short one inside it, so the short one stays at the end", () => {
+    expect(place("UF-side-cabinet-short1", "left")).toEqual({
+      anchorRuntimeId: "UF-side-cabinet-short1",
+      side: "right",
+    });
+    expect(place("UF-side-cabinet-short1", "right")).toEqual({
+      anchorRuntimeId: "UF-side-cabinet-short1",
+      side: "right",
+    });
+    expect(place("UF-side-cabinet-tall2", "right")).toEqual({
+      anchorRuntimeId: "UF-side-cabinet-tall2",
+      side: "right",
+    });
+  });
+
+  it("places a cabinet that stands at an end itself where it was asked to", () => {
+    expect(place("UF-side-cabinet-short1", "left", true)).toEqual({
+      anchorRuntimeId: "UF-side-cabinet-short1",
+      side: "left",
     });
   });
 });
