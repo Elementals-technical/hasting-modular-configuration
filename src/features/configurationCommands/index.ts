@@ -62,6 +62,7 @@ export { useChangeDimension } from "./hooks/useChangeDimension";
 export { useAttributeChangeHandler } from "./hooks/useAttributeChangeHandler";
 export { useAvailabilityResets } from "./hooks/useAvailabilityResets";
 export { useFieldAutoSelect } from "./hooks/useFieldAutoSelect";
+export { useDefaultCountertopThickness } from "./hooks/useDefaultCountertopThickness";
 export { useRuleDrivenHandleSync } from "./hooks/useRuleDrivenHandleSync";
 export { usePerCabinetAttributeFields } from "./hooks/usePerCabinetAttributeFields";
 export { selectPerCabinetAttributeFields } from "./lib/perCabinetAttributes";

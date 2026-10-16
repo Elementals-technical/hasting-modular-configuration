@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 
 import type { CustomizationFieldDefinition, FieldRuntimeState } from "@/entities/collection";
-import { getRestoreState } from "@/entities/configuration";
-import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
+import { getIsRestoreOrUndoRunning } from "@/entities/history/model/store/selectors";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 
@@ -24,9 +23,7 @@ export const useFieldAutoSelect = (
 ) => {
   const { change, getState } = useChangeAttribute();
   const isSceneReady = usePlayCanvasReady();
-  const isRestoring = useAppSelector(
-    (state) => getRestoreState(state).status === "restoring" || getIsHistoryRestoring(state),
-  );
+  const isRestoring = useAppSelector(getIsRestoreOrUndoRunning);
 
   const enabledValues = field.options.filter(({ enabled }) => enabled).map(({ value }) => value);
   const isAllowed = enabledValues.some((value) => value === field.value);

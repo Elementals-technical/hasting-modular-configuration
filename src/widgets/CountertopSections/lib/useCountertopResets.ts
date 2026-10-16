@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 
-import { getRestoreState } from "@/entities/configuration";
-import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
+import { getIsRestoreOrUndoRunning } from "@/entities/history/model/store/selectors";
 import { setActiveBasinStyle } from "@/entities/product/model/store/slice";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { getCountertopMaterialTokensFromBasinType, resolveDefaultBasinForCountertopSelection } from "@/shared/lib/sku";
@@ -38,9 +37,7 @@ export const useCountertopResets = ({
   const dispatch = useAppDispatch();
   const { activeBasinStyle, activeCountertopColor, activeMaterialTokens, activeThickness, isVesselStyle, ruleState } =
     context;
-  const isRestoring = useAppSelector(
-    (state) => getRestoreState(state).status === "restoring" || getIsHistoryRestoring(state),
-  );
+  const isRestoring = useAppSelector(getIsRestoreOrUndoRunning);
 
   // Thickness: the first allowed one when the current is not.
   useEffect(() => {
