@@ -14,6 +14,7 @@ import {
   PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS,
   PREBUILT_MODEL_COUNTERTOP_TRANSFERABLE_FIELDS,
   resolvePrebuiltModelTransferableOverrides,
+  type PrebuiltModelTransferableOverrides,
 } from "@/entities/product/lib/prebuiltModelTransferableFields";
 import { type PresetProduct, type ProductSize, type ProductStyle } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
@@ -37,7 +38,12 @@ import {
   withPreservedCollectionId,
 } from "@/features/collectionCustomization";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
-import { applyCompactPresetWithBridge, hasCompactRows, type CompactPresetSource } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
+import {
+  applyCompactPresetWithBridge,
+  hasCompactRows,
+  mergeCompactPresetOverrides,
+  type CompactPresetSource,
+} from "@/features/playCanvasAdapter/lib/applyCompactPreset";
 import {
   columnsCollectionOf,
   toColumnsCompactPreset,
@@ -575,30 +581,36 @@ export const ModelPage = () => {
   );
 
   const applyAndAdoptCompactPreset = useCallback(
-    async (preset: CompactPresetSource | null | undefined) => {
+    async (preset: CompactPresetSource | null | undefined, overrides: PrebuiltModelTransferableOverrides = {}) => {
+      // The user's colors and basin are carried into the model, as the flat path does.
+      const effectivePreset = preset ? mergeCompactPresetOverrides(preset, overrides) : preset;
       // A collection whose scene lays cabinets in columns imports the model as columns.
       const columnsCollection = columnsCollectionOf(activeCollection.id);
       const columns =
-        preset && columnsCollection && hasCompactRows(preset)
-          ? toColumnsCompactPreset(preset, columnsCollection, composition.toPresetSceneProduct)
+        effectivePreset && columnsCollection && hasCompactRows(effectivePreset)
+          ? toColumnsCompactPreset(effectivePreset, columnsCollection, composition.toPresetSceneProduct)
           : null;
       const imported = await applyCompactPresetWithBridge(
-        preset,
+        effectivePreset,
         undefined,
         (state, receipt) =>
           adoptCompactCabinets(
             state,
             receipt,
-            columns ? { cabinets: columns.cabinets, shared: preset?.shared ?? {} } : undefined,
+            columns ? { cabinets: columns.cabinets, shared: effectivePreset?.shared ?? {} } : undefined,
           ),
         columns ? () => columns.preset : undefined,
       );
       if (!imported) return;
       // The basin of such a model is its sink cabinet's.
-      const sinkType = preset?.rows
+      const sinkType = effectivePreset?.rows
         ?.flatMap(({ products }) => products)
         .find((product) => typeof product.sinkType === "string" && product.sinkType)?.sinkType;
-      const config: Record<string, unknown> = { ...(sinkType ? { sinkType } : {}), ...preset?.shared, ...preset?.top };
+      const config: Record<string, unknown> = {
+        ...(sinkType ? { sinkType } : {}),
+        ...effectivePreset?.shared,
+        ...effectivePreset?.top,
+      };
       const color = typeof config.CountertopColor === "string" ? config.CountertopColor : undefined;
       const sink = typeof config.sinkType === "string" ? config.sinkType : undefined;
       syncCountertopSelectionFromSceneConfig(
@@ -683,7 +695,7 @@ export const ModelPage = () => {
         const selectedPreset = presetId === undefined ? null : (presets.find((preset) => preset.id === presetId) ?? null);
         if (hasCompactRows(selectedPreset)) {
           try {
-            await applyAndAdoptCompactPreset(selectedPreset);
+            await applyAndAdoptCompactPreset(selectedPreset, overrides);
           } catch (error) {
             console.warn("[Prebuilt] The compact preset was not applied", error);
             return;
@@ -1174,7 +1186,7 @@ export const ModelPage = () => {
       // Compact presets (format "ulh-compact-v1") carry rows, not presetProducts: import them via the bridge.
       if (hasCompactRows(presetFromUrl)) {
         try {
-          await applyAndAdoptCompactPreset(presetFromUrl);
+          await applyAndAdoptCompactPreset(presetFromUrl, transferableOverrides);
           sessionStorage.setItem("prebuiltModelInitialized", "1");
           dispatch(clearHistory());
         } catch (error) {

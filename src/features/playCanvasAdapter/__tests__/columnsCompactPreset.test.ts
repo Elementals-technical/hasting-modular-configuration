@@ -109,7 +109,7 @@ describe("Multi-Level models of Urban Duplex as columns", () => {
     expect(preset.rows[0].products).toEqual([
       {
         top: expect.objectContaining({ name: "UD-sink-cabinet", Width: 70, HandleSide: "Right" }),
-        bottom: expect.objectContaining({ name: "UD-side-cabinet", Width: 70, HandleSide: "Left", offsetX: 47 }),
+        bottom: expect.objectContaining({ name: "UD-side-cabinet", Width: 70, HandleSide: "Left", offsetX: 45 }),
       },
       { bottom: expect.objectContaining({ name: "UD-open-shelves", Width: 35 }) },
     ]);
@@ -127,7 +127,7 @@ describe("Multi-Level models of Urban Duplex as columns", () => {
       { top: expect.objectContaining({ name: "UD-open-shelves-side", Width: 15, CabinetColor: "Pulpis Chiaro TKH" }) },
       {
         top: expect.objectContaining({ name: "UD-sink-cabinet", Width: 70 }),
-        bottom: expect.objectContaining({ name: "UD-open-shelves", Width: 35, offsetX: 35.95 }),
+        bottom: expect.objectContaining({ name: "UD-open-shelves", Width: 35, offsetX: 34.95 }),
       },
       { bottom: expect.objectContaining({ name: "UD-side-cabinet", Width: 90 }) },
     ]);

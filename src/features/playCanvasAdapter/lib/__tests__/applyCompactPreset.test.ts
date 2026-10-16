@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { applyCompactPreset, applyCompactPresetWithBridge, hasCompactRows, toCompactPreset } from "../applyCompactPreset";
+import {
+  applyCompactPreset,
+  applyCompactPresetWithBridge,
+  hasCompactRows,
+  mergeCompactPresetOverrides,
+  toCompactPreset,
+} from "../applyCompactPreset";
 
 describe("applyCompactPreset", () => {
   const entry = {
@@ -60,6 +66,39 @@ describe("applyCompactPreset", () => {
       });
       await expect(applyCompactPresetWithBridge(entry, () => client)).rejects.toThrow("boom");
       expect(client.dispose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("mergeCompactPresetOverrides", () => {
+    const multiLevelPreset = {
+      format: "ulh-compact-v1",
+      collection: "ULH",
+      shared: { Width: 90, CountertopColor: "Bianco Male TFA", CabinetColor: "Rox Black TKQ" },
+      rows: [
+        { products: [{ name: "ULH-sink-cabinet", sinkType: "Top_HPL/Fenix_Cover_Gres" }] },
+        { elevation: -38, offsetX: 61, products: [{ name: "ULH-side-cabinet" }] },
+      ],
+      top: { productType: "Top_Solid", CountertopColor: "Bianco Male TFA", sinkType: "Top_HPL/Fenix_Cover_Gres" },
+    };
+
+    it("carries the user's colors and basin into the shared values, the top and the sink cabinet", () => {
+      const snapshot = structuredClone(multiLevelPreset);
+
+      const merged = mergeCompactPresetOverrides(multiLevelPreset, {
+        CabinetColor: "Oak TKQ",
+        CountertopColor: "Nero TFA",
+        sinkType: "Top_Ceramic",
+      });
+
+      expect(merged.shared).toEqual({ Width: 90, CountertopColor: "Nero TFA", CabinetColor: "Oak TKQ" });
+      expect(merged.top).toEqual({ productType: "Top_Solid", CountertopColor: "Nero TFA", sinkType: "Top_Ceramic" });
+      expect(merged.rows?.[0].products[0]).toEqual({ name: "ULH-sink-cabinet", sinkType: "Top_Ceramic" });
+      expect(merged.rows?.[1]).toEqual({ elevation: -38, offsetX: 61, products: [{ name: "ULH-side-cabinet" }] });
+      expect(multiLevelPreset).toEqual(snapshot);
+    });
+
+    it("returns the same preset when there is nothing to carry over", () => {
+      expect(mergeCompactPresetOverrides(multiLevelPreset, {})).toBe(multiLevelPreset);
     });
   });
 });
