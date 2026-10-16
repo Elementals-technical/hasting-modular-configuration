@@ -365,6 +365,7 @@ describe("partial production collection packages", () => {
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
       "Sink-Base": "UF-sink-cabinet",
       "Sink-Cabinet": "UF-side-cabinet",
+      "Short-Cabinet": "UF-side-cabinet",
       "Open-Shelf": "UF-open-shelves",
       "Side-Shelf": "UF-open-shelves-side",
     });
@@ -403,6 +404,7 @@ describe("partial production collection packages", () => {
     expect(data.sources.remote.cabinetTable?.rows.map(({ cabinet_type }) => cabinet_type)).toEqual([
       "Sink-Base",
       "Sink-Cabinet",
+      "Short-Cabinet",
       "Open-Shelf",
       "Side-Shelf",
     ]);
@@ -420,10 +422,20 @@ describe("partial production collection packages", () => {
         hasSink: false,
         sceneProductType: "UF-side-cabinet",
         ...common,
-        // The 1 Drawer Short (table 590 1DW, ruleData.steppedModules): its own heights stay out of
-        // the forced ones, so the composition keeps the height of its two-drawer cabinets.
-        drawers: ["2", "1"],
+      }),
+      // The Floor-Mount Short Cabinet (table 590 1DW, ruleData.steppedModules): its own heights stay
+      // out of the forced ones, and it takes the Sink Base's, so the composition keeps the height of
+      // its two-drawer cabinets.
+      expect.objectContaining({
+        code: "Short-Cabinet",
+        widths: [25, 35, 50, 60, 70, 80, 90, 105, 120],
+        hasSink: false,
+        sceneProductType: "UF-side-cabinet",
+        ...common,
+        drawers: ["1"],
         steppedDrawers: ["1"],
+        forcedHeightByHandle: { UG: { "1": 91 }, PTO: { "1": 88 }, CG: { "1": 91 } },
+        steppedHeightByHandle: { "1": { UG: 56, PTO: 53, CG: 56 } },
       }),
       expect.objectContaining({
         code: "Open-Shelf",

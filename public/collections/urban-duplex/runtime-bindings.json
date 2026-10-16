@@ -195,11 +195,13 @@
         "sceneKey": "CountertopColor",
         "overrides": {
           "Bianco Gloss TAN": "Bianco Gloss TAL",
-          "Bianco Matte TAP": "Bianco Matte TAM"
+          "Bianco Matte TAP": "Bianco Matte TAM",
+          "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte",
+          "Matte White": "Solid Surface Matte White"
         }
       },
       "order": 50,
-      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor). The overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP). The countertop table has no Syntesi rows, so those finishes are not offered here."
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor). Two overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP); the countertop table has no Syntesi rows, so those finishes are not offered here. Two follow the scene's own names (export v62): the porcelain Sahara Noir Silky Matte has no TR8 in it, and the Solid Surface Matte White (SSTL) is \"Solid Surface Matte White\"; sent under the configurator names, neither is found and the top keeps its previous colour."
     },
     {
       "attributeId": "Thickness",
@@ -227,12 +229,21 @@
         "emptyValue": "Vessel"
       },
       "order": 40,
-      "note": "The Urban Standard Height basins, sent to every Urban Duplex Sink Base: the UD-sink-cabinet swaps its basin sub-product on sinkType, as the ULH-sink-cabinet does. \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
+      "note": "The Urban Standard Height basins and vessels, sent to every Urban Duplex Sink Base. The ULH-sink-cabinet swaps its basin sub-product on sinkType (RuleChangeSinkType); scene v62 gives the UD-sink-cabinet no such rule, so the basin it was placed with stays and the sinkType sent is kept in its config until the scene adds the rule. \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
     },
     {
       "attributeId": "VesselColor",
-      "status": "state-only",
-      "reason": "The Master File lists no vessel sinks for Urban Duplex (excludedFromThisProfile.vesselSinks); recorded for the rules only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "UD-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "VesselColor"
+      },
+      "order": 60,
+      "note": "The colour of the vessel on every Sink Base, as Urban Low Height sends it (excludedFromThisProfile.vesselSinks): the scene paints the basin in it (ChangeSlinkColor); \"\" clears it, as in Urban Standard Height."
     },
     {
       "attributeId": "CountertopStyle",

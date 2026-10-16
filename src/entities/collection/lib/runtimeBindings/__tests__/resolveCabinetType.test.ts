@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveCabinetTypeOfRuntimeId } from "../resolveCabinetType";
+import { resolveCabinetTypeOfRuntimeId, resolveCabinetTypeOfSceneId } from "../resolveCabinetType";
 
 import { makoProfile } from "../../../__tests__/makoProfileFixture";
 import { ushProfile } from "../../../__tests__/ushProfileFixture";
@@ -23,6 +23,26 @@ describe("resolveCabinetTypeOfRuntimeId", () => {
       "Sink-Cabinet",
     );
     expect(resolveCabinetTypeOfRuntimeId(ushProfile, ushRuntimeBindings, "Sink-Base-k3j4h5g6f")).toBe("Sink-Base");
+  });
+
+  it("prefers, of the types sharing a scene product, the one whose stepped style the cabinet has", () => {
+    const types = ["Sink-Cabinet", "Short-Cabinet"];
+    const productTypes = { "Sink-Cabinet": "UF-side-cabinet", "Short-Cabinet": "UF-side-cabinet" };
+
+    expect(resolveCabinetTypeOfSceneId(types, productTypes, "UF-side-cabinet-a", ["Short-Cabinet"])).toBe(
+      "Short-Cabinet",
+    );
+    expect(resolveCabinetTypeOfSceneId(types, productTypes, "UF-side-cabinet-a")).toBe("Sink-Cabinet");
+    // A stepped type of another scene product does not count.
+    expect(
+      resolveCabinetTypeOfSceneId(types, { ...productTypes, "Short-Cabinet": "UF-other" }, "UF-side-cabinet-a", [
+        "Short-Cabinet",
+      ]),
+    ).toBe("Sink-Cabinet");
+    // Without stepped modules nothing changes for Urban Standard Height.
+    expect(resolveCabinetTypeOfRuntimeId(ushProfile, ushRuntimeBindings, "Sink-Cabinet-k3j4h5g6f", "1")).toBe(
+      "Sink-Cabinet",
+    );
   });
 
   it("falls back to the cabinet type an id starts with", () => {

@@ -135,7 +135,8 @@ describe("Tricot delivered runtime bindings", () => {
   });
 
   it("sends exactly the patterns the delivered export accepts on both products", () => {
-    const accepted = bundle.match(/valuesCabinetPattern=\[([^\]]*)\]/)?.[1];
+    // The bundle lists Lame's patterns too; Tricot's are the ones of its own rule.
+    const accepted = bundle.match(/name:"RulePatternCabinetTricot"[\s\S]*?valuesCabinetPattern=\[([^\]]*)\]/)?.[1];
     const binding = bindings.bindings.find((b) => b.attributeId === "DrawerPanelFluting");
     if (!accepted || binding?.status !== "bound" || binding.values.kind !== "map") throw new Error("Missing pattern");
     expect(new Set(Object.values(binding.values.patches).map((scenePatch) => scenePatch.CabinetPattern))).toEqual(
@@ -207,11 +208,18 @@ describe("Tricot delivered runtime bindings", () => {
     expect(patch("CountertopColor", "Matte White")).toMatchObject({
       ok: true,
       target: { kind: "all" },
-      patch: { CountertopColor: "Matte White" },
+      patch: { CountertopColor: "Solid Surface Matte White" },
     });
     expect(patch("CountertopColor", "Nebbia 402 MT")).toMatchObject({
       patch: { CountertopColor: "Nebbia 402 Glass MT" },
     });
+    // Configurator 12 writes the HPL and Porcelain names in capitals; the scene in title case.
+    expect(patch("CountertopColor", "ARDESIA NERA 328")).toMatchObject({
+      patch: { CountertopColor: "Ardesia Nera 328" },
+    });
+    expect(configurationValueOf(bindings, "CountertopColor", "Ardesia Nera 328", "ARDESIA NERA 328")).toBe(
+      "ARDESIA NERA 328",
+    );
     expect(patch("Thickness", "4.75")).toMatchObject({
       ok: true,
       target: { kind: "all" },

@@ -12,7 +12,7 @@ export { buildHandleStyleConfigPatch } from "./lib/handleStyleConfig";
 export { REASON_HANDLE_HEIGHT_LOCKED } from "./lib/handleRule";
 export { findPlacedCabinetRule } from "./lib/placedCabinetRule";
 export { isLeavingSideShelfHandle, isSideShelfBlockedByHandle } from "./lib/sideShelfHandleRule";
-export { resolveMoveSwaps, resolveSteppedEndPlacement } from "./lib/steppedPlacement";
+export { resolveMoveSwaps } from "./lib/steppedPlacement";
 export type { CabinetSwap } from "./lib/steppedPlacement";
 import { ruleCore } from "./lib/ruleCore";
 import type { Intent, RuleContext } from "./model/types";

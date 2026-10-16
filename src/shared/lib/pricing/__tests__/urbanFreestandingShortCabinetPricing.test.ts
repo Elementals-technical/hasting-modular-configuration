@@ -10,11 +10,11 @@ const parsedBindings = parseRuntimeBindings(bindingsDocument);
 if (!parsedBindings.ok) throw new Error("Urban Freestanding bindings failed validation");
 
 /**
- * The Urban Freestanding 1 Drawer Short is priced as the two-drawer cabinet of its type (team,
+ * The Urban Freestanding Floor-Mount Short Cabinet (Short-Cabinet) is priced as the Side Cabinet (team,
  * 2026-10-15): the same SKU with 1DW and its own height, 56 cm (22") with the plinth for UG and CG.
  * The side panel beside it has no confirmed height yet (P1125, UFS-SP-01).
  */
-describe("Urban Freestanding 1 Drawer Short pricing", () => {
+describe("Urban Freestanding Floor-Mount Short Cabinet pricing", () => {
   const sinkBase = { stableKey: "sb", runtimeId: "UF-sink-cabinet-sb", size: { width: 60, height: 91, depth: 50 } };
   const short = { stableKey: "short", runtimeId: "UF-side-cabinet-short", size: { width: 90, height: 56, depth: 50 } };
   const order = (
@@ -67,7 +67,7 @@ describe("Urban Freestanding 1 Drawer Short pricing", () => {
       expect.objectContaining({
         group: "sidePanel",
         blocksTotal: true,
-        reason: expect.stringContaining("beside the 1 Drawer Short"),
+        reason: expect.stringContaining("beside the Floor-Mount Short Cabinet"),
       }),
     );
   });

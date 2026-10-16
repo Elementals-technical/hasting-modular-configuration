@@ -1,0 +1,195 @@
+$accent: #ac5331;
+$ink: #282828;
+
+// Covers the page while the popover is open: a press on it closes the popover. The popups' level
+// (PopupOverlay), above the page header that covers the top of the canvas on phones.
+.dismissLayer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+// As wide as its columns: 368 px with Align (the design), 182 px with the field alone.
+.popover {
+  position: fixed;
+  z-index: 201;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  box-sizing: border-box;
+  padding: 14px 16px 16px;
+  border-radius: 12px;
+  background: #fff;
+  color: $ink;
+  box-shadow: 0 4px 16px rgba(40, 40, 40, 0.16);
+  pointer-events: auto;
+}
+
+.tail {
+  position: absolute;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.below .tail {
+  top: -6px;
+  bottom: auto;
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  padding: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: $ink;
+  cursor: pointer;
+}
+
+.columns {
+  display: flex;
+  gap: 26px;
+}
+
+.fieldColumn {
+  display: flex;
+  flex: 0 0 150px;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.alignColumn {
+  display: flex;
+  flex: 0 0 160px;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  margin-bottom: 10px;
+  color: $ink;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  height: 42px;
+  box-sizing: border-box;
+  padding: 0 6px 0 14px;
+  border: 1px solid $accent;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: $ink;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  outline: none;
+}
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+}
+
+.stepButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: $ink;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.limits {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 0 4px;
+  color: $ink;
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.alignOptions {
+  display: flex;
+  gap: 4px;
+}
+
+.alignOption {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: $ink;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f6f2ef;
+  }
+
+  &[aria-pressed="true"] {
+    border-color: $accent;
+  }
+}
+
+.apply {
+  width: 100%;
+  height: 32px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: $accent;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.close,
+.stepButton,
+.alignOption,
+.apply {
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+}

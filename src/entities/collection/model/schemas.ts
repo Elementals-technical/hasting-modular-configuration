@@ -438,8 +438,9 @@ export const collectionSkuProfileSchema = z
     /** The side panels, for a collection that offers them. */
     sidePanel: z.union([pricedAsSchema, ownSidePanelSchema]).optional(),
     /**
-     * The scene's lower covers (Urban Low Height, Urban Duplex, Urban Freestanding), independently coloured and
-     * ordered as `CT-{prefix}{material}-{INTG|VES}-{W}W-{thickness}H-{D}D-{material}-{colour}` in the Upper's style.
+     * The scene's lower covers (Urban Low Height, Urban Duplex, Urban Freestanding), independently coloured
+     * and ordered as `CT-{prefix}{material}-{INTG|VES}-{W}W-{thickness}H-{D}D-{material}-{colour}` in the
+     * Upper's style. Its presence is what offers the Upper / Lower countertop colour picker.
      */
     cabinetCover: z
       .object({

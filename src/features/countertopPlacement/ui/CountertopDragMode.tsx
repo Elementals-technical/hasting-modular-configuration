@@ -434,6 +434,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
           onCancel={cancel}
           onPreview={preview}
           onResizeFrom={resizeFrom}
+          lengthLimitsM={limitsInToMetres(lengthLimitsIn)}
         />
       )}
       <div className={s.toolbar} aria-label="Countertop Drag & Drop">

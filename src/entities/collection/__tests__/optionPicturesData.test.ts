@@ -166,19 +166,22 @@ describe("option pictures are files of the collection", () => {
 });
 
 describe("urban-duplex basin pictures", () => {
-  it("pictures every integrated basin, as Urban Standard Height pictures the same thirteen", () => {
+  it("pictures every integrated basin and vessel, as Urban Standard Height pictures the same ones", () => {
     const duplex = validateCustomizationSchema(urbanDuplexUi);
     const ush = validateCustomizationSchema(ushUi);
     if (!duplex.ok || !ush.ok) throw new Error("ui.json failed validation");
 
-    const basins = selectBasinOptions(profileOf("urban-duplex", urbanDuplexProfileDocument), "integrated").map(
-      ({ value }) => value,
-    );
-    expect(basins).toHaveLength(13);
+    const profile = profileOf("urban-duplex", urbanDuplexProfileDocument);
+    const integrated = selectBasinOptions(profile, "integrated").map(({ value }) => value);
+    // Without the vessel cutout, the none value, which has no picture.
+    const vessels = selectBasinOptions(profile, "vessel").map(({ value }) => value);
+    expect(integrated).toHaveLength(13);
+    expect(vessels).toHaveLength(5);
 
     const pictures = duplex.schema.optionImages?.sinkType ?? {};
-    expect(Object.keys(pictures)).toEqual(basins);
+    expect(Object.keys(pictures)).toEqual([...integrated, ...vessels]);
     // The Master File lists the Urban Standard Height basins (P1064): the same picture for each.
-    for (const basin of basins) expect(pictures[basin], basin).toBe(ush.schema.optionImages?.sinkType?.[basin]);
+    for (const basin of [...integrated, ...vessels])
+      expect(pictures[basin], basin).toBe(ush.schema.optionImages?.sinkType?.[basin]);
   });
 });

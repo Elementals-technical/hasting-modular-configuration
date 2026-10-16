@@ -27,6 +27,7 @@
     "CabinetType": {
       "Sink-Base": "images/cabinet/sink-base-2-drawer.png",
       "Sink-Cabinet": "images/cabinet/side-cabinet-2-drawer.png",
+      "Short-Cabinet": "images/cabinet/side-cabinet-1-drawer.png",
       "Open-Shelf": "images/cabinet/open-shelf.png"
     },
     "Drawers": {
@@ -36,12 +37,6 @@
     "Handle": {
       "UG": "images/handle/UpperGHandle.png"
     }
-  },
-  "optionImageVariants": {
-    "CabinetType": [
-      { "value": "Sink-Base", "when": { "Drawers": "1" }, "image": "images/cabinet/sink-base-1-drawer.png" },
-      { "value": "Sink-Cabinet", "when": { "Drawers": "1" }, "image": "images/cabinet/side-cabinet-1-drawer.png" }
-    ]
   },
   "flows": {
     "prebuilt": {
