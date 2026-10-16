@@ -105,10 +105,16 @@ describe("urban-duplex runtime bindings", () => {
     for (const [attributeId, value] of [
       ["CabinetColor", "Bianco Calce DA ST"],
       ["HandleGrooveColor", "Pulpis Chiaro TKH"],
-      ["VesselColor", "Bianco Gloss TAL"],
     ]) {
       expect(isStateOnlyResolution(resolve(attributeId, value)), attributeId).toBe(true);
     }
+  });
+
+  it("send the vessel colour to the sink base only, under its catalog name", () => {
+    expect(resolve("VesselColor", "Cemento Matte OCD")).toMatchObject({
+      target: { kind: "productType", productType: "UD-sink-cabinet" },
+      patch: { VesselColor: "Cemento Matte OCD" },
+    });
   });
 
   it("send the base panel colour as the cabinet colour of the drawer cabinets and the open shelf", () => {

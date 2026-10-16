@@ -231,3 +231,48 @@ describe("urban freestanding vessels", () => {
     expect(coloursOf("Vessel_UrbanMorris")).toEqual(["Bianco Gloss TAL", "Bianco Matte TAM"]);
   });
 });
+
+describe("urban duplex vessels", () => {
+  const { profile, configurator } = URBAN_DUPLEX;
+  const vesselColours = resolveConfiguratorOptions(profile, "VesselColor", configurator);
+  const coloursOf = (vesselStyle: string) =>
+    vesselColours
+      .filter(({ value, traits }) =>
+        isMaterialCompatibleWithVesselStyle({
+          vesselStyle,
+          materialTokens: traits?.materials ?? [],
+          colorCode: extractColorCode(value),
+          profile,
+        }),
+      )
+      .map(({ value }) => value);
+
+  // The basin rules are Urban Standard Height's (P1064), so are its vessels, as Urban Low Height offers them.
+  it("offers the Urban Standard Height vessels after the cutout without a vessel", () => {
+    const vessels = selectOptions(profile, "sinkType").filter(({ category }) => category === "vessel");
+
+    expect(vessels.map(({ value, label }) => [value, label])).toEqual([
+      ["Vessel", "None"],
+      ["Vessel_Blade11", "Vessel Blade 11"],
+      ["Vessel_Blade18", "Vessel Blade 18"],
+      ["Vessel_UrbanModo", "Vessel Urban Modo"],
+      ["Vessel_UrbanMorris", "Vessel Urban Morris"],
+      ["Vessel_Aquarius", "Vessel Acquarius"],
+    ]);
+  });
+
+  it("colours each vessel from the nine of configurator 13: ceramic Blades, solid surface Modo, Tekorlux others", () => {
+    expect(vesselColours).toHaveLength(9);
+    expect(coloursOf("Vessel_Blade11")).toEqual([
+      "Antracite Matte OCF",
+      "Cemento Matte OCD",
+      "Cenere Matte OCE",
+      "Gloss White OCB",
+      "Matte White OCC",
+    ]);
+    expect(coloursOf("Vessel_Blade18")).toEqual(coloursOf("Vessel_Blade11"));
+    expect(coloursOf("Vessel_UrbanModo")).toEqual(["Matte Black T1D", "Matte White T1C"]);
+    expect(coloursOf("Vessel_UrbanMorris")).toEqual(["Bianco Gloss TAL", "Bianco Matte TAM"]);
+    expect(coloursOf("Vessel_Aquarius")).toEqual(["Bianco Gloss TAL", "Bianco Matte TAM"]);
+  });
+});
