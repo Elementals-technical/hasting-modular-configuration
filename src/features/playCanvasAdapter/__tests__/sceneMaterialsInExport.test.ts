@@ -33,8 +33,12 @@ import sceneConfig from "../../../../public/HastingCabinetsParametrization/confi
  * the scene export and the configurator 9 fixture; how a material looks is the browser's call.
  */
 
-/** Families of configurator 9 the scene has no materials for yet. */
-const NOT_IN_SCENE = ["Porcelain", "Laminate", "HPL", "Solid Surface"];
+/**
+ * Families of configurator 9 Class still sends under the configurator's spelling, which the scene
+ * does not have (Porcelain in capitals, Sahara Noir Silky Matte TR8, the Solid Surface Matte White).
+ * Mako sends every family under the scene's names (its overrides), so it leaves none out.
+ */
+const CLASS_NOT_IN_SCENE = ["Porcelain", "Laminate", "HPL", "Solid Surface"];
 
 /** Leg colours that name no material: "" hides the legs, "None" paints them in the cabinet colour. */
 const NOT_MATERIALS = ["", "None"];
@@ -61,9 +65,19 @@ const sectionOf = (proxyName: string) =>
   configurator9.availableOptions.find((group) => group.proxyName === proxyName) as ConfiguratorAvailableOption;
 
 describe.each([
-  { collection: "mako", profile: makoProfileDocument as ProfileDocument, bindings: makoRuntimeBindings },
-  { collection: "class", profile: classProfileDocument as ProfileDocument, bindings: classRuntimeBindings },
-])("$collection colours in the scene export", ({ profile, bindings }) => {
+  {
+    collection: "mako",
+    profile: makoProfileDocument as ProfileDocument,
+    bindings: makoRuntimeBindings,
+    notInScene: [] as string[],
+  },
+  {
+    collection: "class",
+    profile: classProfileDocument as ProfileDocument,
+    bindings: classRuntimeBindings,
+    notInScene: CLASS_NOT_IN_SCENE,
+  },
+])("$collection colours in the scene export", ({ profile, bindings, notInScene }) => {
   const colours = sceneColours(profile, bindings);
 
   it("sends every offered colour under a scene material name", () => {
@@ -75,7 +89,7 @@ describe.each([
 
     const missing = colours.flatMap(({ attributeId, section }) =>
       buildConfiguratorOptions(sectionOf(section))
-        .filter(({ traits }) => !traits?.materials?.some((material) => NOT_IN_SCENE.includes(material)))
+        .filter(({ traits }) => !traits?.materials?.some((material) => notInScene.includes(material)))
         .flatMap(({ value }) => {
           const name = String(sentName(attributeId, value));
           return SCENE_MATERIALS.has(name) ? [] : [`${attributeId}: ${value} -> ${name}`];
