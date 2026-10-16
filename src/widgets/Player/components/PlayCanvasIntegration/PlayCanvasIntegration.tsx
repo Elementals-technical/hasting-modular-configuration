@@ -181,6 +181,7 @@ import {
   findPlacedCabinetRule,
   getUniqueCatalogWidths,
   resolveMoveSwaps,
+  resolveSteppedEndPlacement,
   type CabinetSwap,
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";

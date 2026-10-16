@@ -86,7 +86,9 @@ import {
   findPlacedCabinetRule,
   isLeavingSideShelfHandle,
   REASON_HANDLE_HEIGHT_LOCKED,
+  resolveSteppedEndPlacement,
 } from "@/features/configurator-rule-core/cabinetBuilder";
+import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
