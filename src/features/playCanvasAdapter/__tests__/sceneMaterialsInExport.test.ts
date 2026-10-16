@@ -21,6 +21,7 @@ import classProfileDocument from "../../../../public/collections/class/product-p
 import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
 import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
 import tricotRuntimeBindingsDocument from "../../../../public/collections/tricot/runtime-bindings.json";
+import urbanLowHeightRuntimeBindingsDocument from "../../../../public/collections/urban-low-height/runtime-bindings.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexRuntimeBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import sceneConfig from "../../../../public/HastingCabinetsParametrization/config.json?raw";
@@ -196,3 +197,29 @@ describe.each([
     });
   },
 );
+
+/**
+ * Urban Low Height reads configurator 4, which the fixtures keep only in part, so the colours the
+ * scene spells differently are named here: the porcelain Sahara Noir Silky Matte has no TR8 in the
+ * export. Every other colour of configurator 4 matched an export material by its own name (v63).
+ */
+describe("urban-low-height colours the scene spells differently", () => {
+  const parsedBindings = parseRuntimeBindings(urbanLowHeightRuntimeBindingsDocument);
+  if (!parsedBindings.ok) throw new Error("Urban Low Height bindings failed validation");
+  const bindings = parsedBindings.bindings;
+
+  it("sends them under the scene's material names", () => {
+    const resolution = resolveRuntimeBinding(bindings, "CountertopColor", "Sahara Noir Silky Matte TR8");
+    if (!resolution.ok || isStateOnlyResolution(resolution)) throw new Error("The countertop colour is not sent");
+
+    expect(resolution.patch).toEqual({ CountertopColor: "Sahara Noir Silky Matte" });
+    expect(SCENE_MATERIALS.has("Sahara Noir Silky Matte TR8")).toBe(false);
+    for (const binding of bindings.bindings) {
+      if (binding.status !== "bound" || binding.values.kind !== "identity") continue;
+      const missing = Object.values(binding.values.overrides ?? {}).filter(
+        (name) => !SCENE_MATERIALS.has(String(name)),
+      );
+      expect(missing, binding.attributeId).toEqual([]);
+    }
+  });
+});

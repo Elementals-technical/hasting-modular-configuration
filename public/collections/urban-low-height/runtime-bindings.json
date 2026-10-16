@@ -100,10 +100,13 @@
       },
       "values": {
         "kind": "identity",
-        "sceneKey": "CountertopColor"
+        "sceneKey": "CountertopColor",
+        "overrides": {
+          "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte"
+        }
       },
       "order": 50,
-      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the ULH cabinets ignore the key."
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the ULH cabinets ignore the key. The porcelain Sahara Noir Silky Matte has no TR8 in its scene name (export v63): sent as configurator 4 spells it, it is not found and the top keeps its previous colour. Configurator 4 already spells the Syntesi whites as the scene does (Bianco Gloss TAL, Bianco Matte TAM)."
     },
     {
       "attributeId": "Thickness",
