@@ -164,7 +164,6 @@ import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
   resolveMaxResizableCabinetWidthCm,
-  resolveDefaultThicknessFromRules,
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -189,6 +188,7 @@ import {
   selectOwnCabinetValues,
   useChangeAttribute,
   useChangeDimension,
+  useDefaultCountertopThickness,
   usePerCabinetAttributeFields,
 } from "@/features/configurationCommands";
 import type {
@@ -1242,39 +1242,12 @@ export const PlayCanvasIntegration = ({
     return getUniqueCatalogWidths(cabinetCatalog);
   }, [cabinetCatalog]);
 
-  // When a countertop material is known but no thickness has been set yet, resolve
-  // the default from the rules matrix and push it into both Redux and PlayCanvas.
-  // This ensures getConfig() returns a non-zero Thickness before the user clicks
-  // the countertop, avoiding the stale-closure "0" shown by the dimension tool.
-  useEffect(() => {
-    if (activeCountertopThickness) return;
-    if (!activeMaterialTokens.length) return;
-    if (!countertopRules.length) return;
-
-    const defaultThickness = resolveDefaultThicknessFromRules({
-      profile: activeProfile,
-      rules: countertopRules,
-      activeMaterialTokens,
-      width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
-      depth: selectedDimensions.depth ?? null,
-      activeCountertopStyle: countertopStyle ?? null,
-    });
-
-    if (defaultThickness) {
-      void changeAttributeValue({ attributeId: "Thickness", value: defaultThickness, scope: "countertop" });
-    }
-  }, [
-    activeProfile,
-    changeAttributeValue,
-    activeCountertopThickness,
+  useDefaultCountertopThickness({
+    rules: countertopRules,
     activeMaterialTokens,
-    countertopRules,
-    countertopStyle,
-    sinkBaseDims.width,
-    selectedDimensions.width,
-    selectedDimensions.depth,
-    dispatch,
-  ]);
+    width: sinkBaseDims.width ?? selectedDimensions.width ?? null,
+    depth: selectedDimensions.depth ?? null,
+  });
 
   const canAddAnotherCabinet = useMemo(() => {
     if (!countertopCompositionConstraint.canAddCabinet) return false;

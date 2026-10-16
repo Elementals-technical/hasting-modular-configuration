@@ -64,8 +64,11 @@ describe("class runtime bindings", () => {
     expect(patchOf("CabinetSideColor", "Nebbia 402 MT")).toEqual({ CabinetSideColor: "Nebbia 402 Lacquered MT" });
     expect(patchOf("FrameColor", "Nebbia 402 MT")).toEqual({ FrameColor: "Nebbia 402 Lacquered MT" });
     expect(patchOf("CountertopColor", "GNero 433 GL")).toEqual({ CountertopColor: "Nero 433 Glass GL" });
-    // The scene has no Solid Surface material yet, so the colour goes as it is.
-    expect(patchOf("CountertopColor", "Matte White")).toEqual({ CountertopColor: "Matte White" });
+    // The export names the Solid Surface white and the Porcelain capitals its own way.
+    expect(patchOf("CountertopColor", "Matte White")).toEqual({ CountertopColor: "Solid Surface Matte White" });
+    expect(patchOf("CabinetColor", "INVISIBLE WHITE LUCIDO 334")).toEqual({
+      CabinetColor: "Invisible White Lucido 334",
+    });
   });
 
   it("broadcast every supported countertop thickness to the countertop and sink mount", () => {
