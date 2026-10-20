@@ -343,24 +343,6 @@
         "forcedHeight": "forced_height_cm"
       }
     },
-    "cabinetModules": [
-      {
-        "cabinetType": "Sink-Base",
-        "widthsCm": [60, 80, 100, 120],
-        "heightsCm": [26, 52],
-        "depthsCm": [52],
-        "drawerValues": ["1", "2"],
-        "hasSink": true
-      },
-      {
-        "cabinetType": "Sink-Cabinet",
-        "widthsCm": [40, 60, 80, 100, 120],
-        "heightsCm": [26, 52],
-        "depthsCm": [52],
-        "drawerValues": ["1", "2"],
-        "hasSink": false
-      }
-    ],
     "drawerStyleGroups": [["1"], ["2"]],
     "vesselCompatibility": {
       "hiddenStyles": [],
@@ -386,7 +368,7 @@
     "vessel.colorUnavailable": "Not available for selected vessel sink style."
   },
   "excludedFromThisProfile": {
-    "sourceRefs": "Configurator 14 (modular-config-phase-2-materials-(Lame)), cabinet table 596 (matrix-cabinet-lame) and countertop table 597 (matrix-coutnertop-lame) come from the manifest. Configurator 14 holds the Lame palettes only (40 cabinet, 22 handle, 70 thin countertop, 40 vessel and 22 leg cap colours); the two tables hold Lame data only. ruleData.cabinetModules repeats the rows of table 596 for the cabinet SKU check (sku-profile requireCompleteInput): a cabinet the scene has not reported a size for yet, or one of a size the table lacks, gets no price request rather than an XW-XH-XD SKU, which the price server would answer with its smallest row. A change to table 596 has to be made here too.",
+    "sourceRefs": "Configurator 14 (modular-config-phase-2-materials-(Lame)), cabinet table 596 (matrix-cabinet-lame) and countertop table 597 (matrix-coutnertop-lame) come from the manifest. Configurator 14 holds the Lame palettes only (40 cabinet, 22 handle, 70 thin countertop, 40 vessel and 22 leg cap colours); the two tables hold Lame data only.",
     "scene": "The PlayCanvas export places Lame-sink-cabinet and Lame-side-cabinet since 2026-10-15 (export v66, its Lame README in files/assets/311408289); the runtime bindings follow its keys. Not in the export yet: Lame side panels, dividers in the Lame drawers, a room offset for Lame and a countertop cover (Lame is not in its countertop collections); Depth changes no geometry.",
     "handle": "Confirmed: one handle, G58, in every cabinet SKU (map section 3, xlsx CabinetPricing!A7-A117). There is no Handle Style option; its 3D model and size are not given (LAME-STY-01).",
     "cabinetPattern": "Confirmed: five patterns, one per composition, no None (Block2 Q0063, Q0069, Q0074; block2#17). A pattern is a token of the cabinet SKU and does not change the price. Oxford starts the composition: the price workbook spells its examples with OXF and the client site names the quilted front of the models Oxford (inference). Pattern pictures and orientation are not given (GEN-STY-01).",

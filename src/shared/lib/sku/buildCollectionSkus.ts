@@ -5,6 +5,7 @@ import {
   selectOption,
 } from "@/entities/collection/lib/productProfileSelectors";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
+import type { TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 import { isPatternMaterialAllowed } from "@/entities/collection/lib/materialEligibility";
 import {
   hasOwnCountertop,
@@ -81,6 +82,12 @@ export type CollectionCabinetSkuInput = {
   widthCm: number | null;
   heightCm: number | null;
   depthCm: number | null;
+  /**
+   * The row of the cabinet's type in the collection's cabinet table, as the builder catalog holds it:
+   * the sizes and drawers a cabinet that must be priced from complete input is checked against,
+   * unless the profile lists modules of its own.
+   */
+  cabinetRule?: Pick<TypeCabinetRuleConfig, "widths" | "heights" | "depths" | "drawers"> | null;
   /** Set when the collection takes its colours from the configurator. */
   readConfiguratorColor?: ConfiguratorColorReader;
 };
@@ -107,7 +114,7 @@ const sizeToken = (cm: number | null, unit: "W" | "H" | "D") =>
 export const buildCollectionCabinetSku = (
   skuProfile: CollectionSkuProfile,
   productProfile: ProductProfile | null,
-  { read, widthCm, heightCm, depthCm, readConfiguratorColor }: CollectionCabinetSkuInput,
+  { read, widthCm, heightCm, depthCm, cabinetRule, readConfiguratorColor }: CollectionCabinetSkuInput,
 ): CollectionCabinetSku => {
   const { cabinet } = skuProfile;
   const missing: CollectionCabinetSkuGap[] = [];
@@ -212,17 +219,21 @@ export const buildCollectionCabinetSku = (
       : null;
     if (pattern && !isPatternMaterialAllowed(productProfile, pattern, material))
       missing.push({ attributeId: "DrawerPanelFluting", cause: "invalid-option" });
+    // The modules the profile lists, else the row of the cabinet table the builder places from.
     const module = productProfile?.ruleData.cabinetModules?.find(({ cabinetType: type }) => type === cabinetType);
-    for (const [attributeId, value, allowed] of [
-      ["Width", widthCm, module?.widthsCm],
-      ["Height", heightCm, module?.heightsCm],
-      ["Depth", depthCm, module?.depthsCm],
+    const allowed = module
+      ? { widths: module.widthsCm, heights: module.heightsCm, depths: module.depthsCm, drawers: module.drawerValues }
+      : cabinetRule;
+    for (const [attributeId, value, sizes] of [
+      ["Width", widthCm, allowed?.widths],
+      ["Height", heightCm, allowed?.heights],
+      ["Depth", depthCm, allowed?.depths],
     ] as const) {
-      if (value === null || !Number.isFinite(value) || value <= 0 || (allowed && !allowed.includes(value)))
+      if (value === null || !Number.isFinite(value) || value <= 0 || (sizes?.length && !sizes.includes(value)))
         missing.push({ attributeId, cause: "invalid-dimension" });
     }
     const drawers = optionOf("Drawers");
-    if (module && drawers && !module.drawerValues.includes(drawers))
+    if (allowed?.drawers.length && drawers && !allowed.drawers.includes(drawers))
       missing.push({ attributeId: "Drawers", cause: "invalid-option" });
   }
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
