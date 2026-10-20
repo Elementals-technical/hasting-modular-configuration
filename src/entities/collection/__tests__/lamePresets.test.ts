@@ -93,6 +93,25 @@ describe("lame model compositions", () => {
     }
   });
 
+  // The scene lays Galles while a model names no pattern; the profile starts the composition at Oxford.
+  it("lays every model in the starting pattern of the profile", () => {
+    for (const { title, presetProducts } of presets) {
+      for (const product of presetProducts) {
+        expect(product.CabinetPattern, title).toBe(profile().defaults.CabinetPattern);
+      }
+    }
+  });
+
+  // The legs are on without a cap colour: the scene paints the caps in the handle colour.
+  it("stands the models whose titles name legs on them, and no other model", () => {
+    for (const { title, presetProducts } of presets) {
+      for (const product of presetProducts) {
+        expect(product.LegColor, title).toBe(titleOf(title).legs ? "None" : undefined);
+      }
+    }
+    expect(presets.filter(({ title }) => titleOf(title).legs)).toHaveLength(18);
+  });
+
   it("tags each model by what its composition holds", () => {
     for (const { title, presetProducts, style } of presets) {
       const sinkBases = presetProducts.filter(({ name }) => name === "Sink-Base").length;

@@ -15,6 +15,9 @@ import {
 import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegCapSku,
+  buildCollectionLegsSku,
+  buildCollectionUndertopSku,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
   type CollectionCountertopSkuInput,
@@ -25,8 +28,9 @@ import { createConfiguratorColorReader } from "../configuratorColors";
 /**
  * Lame SKUs from its `sku-profile.json`. Each expected SKU is a form of the Lame price workbook (SKU
  * Structure, CabinetPricing) or, for the countertop, its basins, the cutout, the faucet holes and the
- * organizers, of the Class workbook the Lame one refers to. The price server has not been asked for
- * the Lame forms.
+ * organizers, of the Class workbook the Lame one refers to. On 2026-10-20 the price server answered every
+ * cabinet form of CabinetPricing (5 patterns, LACM and LACG) with its workbook price, and the undertop
+ * forms per cm ($7.28 metal, $9.25 lacquer).
  */
 
 const parsed = parseProductProfile(lameProfileDocument);
@@ -84,8 +88,44 @@ describe("Lame cabinet SKU", () => {
       26,
       "VAN-LAMEV-SC/1DW/G58/PIQ-47.2W-10.2H-20.5D",
     ],
+    // The scene's spelling of Gessato, as a saved scene config carries it.
+    [
+      { CabinetType: "Sink-Cabinet", Drawers: "2", CabinetPattern: "Gessatto" },
+      60,
+      52,
+      "VAN-LAMEV-SC/2DW/G58/GES-23.6W-20.5H-20.5D",
+    ],
   ])("spells the CabinetPricing row of %o at %i x %i cm", (values, widthCm, heightCm, sku) => {
-    expect(cabinet(values, widthCm, heightCm).sku).toBe(sku);
+    // A cabinet is priced only with both finishes (requireCompleteInput); the row is the SKU before them.
+    const finishes = { CabinetColor: "Antracite 400 MT", HandleColor: "Antracite 400 MT" };
+    expect(cabinet({ ...finishes, ...values }, widthCm, heightCm).sku).toBe(`${sku}-CAB-LACM-400-HDL-LACM-400`);
+  });
+
+  it("spells no SKU before the scene reports a size, for a size table 596 lacks or without a finish", () => {
+    const finishes = { CabinetColor: "Antracite 400 MT", HandleColor: "Antracite 400 MT" };
+    // The sizes are read from the scene a moment after a cabinet is placed: no XW-XH-XD SKU meanwhile.
+    expect(
+      buildCollectionCabinetSku(skuProfile, profile, {
+        read: reader({ CabinetType: "Sink-Base", Drawers: "1", Handle: "G58", CabinetPattern: "Oxford", ...finishes }),
+        widthCm: null,
+        heightCm: null,
+        depthCm: null,
+        readConfiguratorColor,
+      }),
+    ).toEqual({
+      sku: "",
+      missing: [
+        { attributeId: "Width", cause: "invalid-dimension" },
+        { attributeId: "Height", cause: "invalid-dimension" },
+        { attributeId: "Depth", cause: "invalid-dimension" },
+      ],
+    });
+    // A Sink Base is 60 cm wide at least, a cabinet 26 or 52 cm high.
+    expect(cabinet(finishes, 40).sku).toBe("");
+    expect(cabinet(finishes, 60, 40).sku).toBe("");
+    expect(cabinet({ HandleColor: "Antracite 400 MT" }).missing).toEqual([
+      { attributeId: "CabinetColor", cause: "not-chosen" },
+    ]);
   });
 
   it("spells a gloss cabinet as LACG and a metal handle with its colour code", () => {
@@ -168,5 +208,67 @@ describe("Lame vessel and organizer SKUs", () => {
   it("has the Class organizers", () => {
     expect(resolveCollectionDividerSku(skuProfile, "Metal")).toBe("VAN-GBDIV-MTL-3.9W-2H-16.9D");
     expect(resolveCollectionDividerSku(skuProfile, "Oak")).toBe("VAN-GBDIV-OAK-3.8W-2.6H-16.9D");
+  });
+});
+
+// Lame CountertopPricing: CT-GB{MTL|LACM}-UDTP-W-.7H-20.5D, priced per cm of the composition.
+describe("Lame undertop SKU", () => {
+  const undertop = (value: string | null, fallbackColor: string | null = "Nero 433 MT", widthCm: number | null = 120) =>
+    buildCollectionUndertopSku(skuProfile, profile, { value, fallbackColor, widthCm, readConfiguratorColor });
+
+  it.each([
+    ["Gold", "CT-GBMTL-UDTP-47.2W-.7H-20.5D-MTL-GLD"],
+    ["Silver", "CT-GBMTL-UDTP-47.2W-.7H-20.5D-MTL-SLV"],
+    ["Seta 406 MT", "CT-GBLACM-UDTP-47.2W-.7H-20.5D-LACM-406"],
+  ])("spells an undertop in %s along the composition", (value, sku) => {
+    expect(undertop(value)).toBe(sku);
+  });
+
+  it("spells one without a colour of its own in the handle colour, as the scene paints it", () => {
+    expect(undertop("None", "Gold")).toBe("CT-GBMTL-UDTP-47.2W-.7H-20.5D-MTL-GLD");
+    expect(undertop("None", "Nero 433 MT", 160)).toBe("CT-GBLACM-UDTP-63W-.7H-20.5D-LACM-433");
+  });
+
+  it("orders none while it is off, or before the composition has a width", () => {
+    expect(undertop("")).toBeNull();
+    expect(undertop(null)).toBeNull();
+    expect(undertop("Gold", "Gold", null)).toBeNull();
+  });
+});
+
+describe("Lame legs and cap SKUs", () => {
+  const legs = (color: string, drawers: string | null) =>
+    buildCollectionLegsSku(skuProfile, profile, { color, attributeId: "CabinetColor", drawers, readConfiguratorColor });
+  const cap = (value: string | null, fallbackColor: string | null = "Nero 433 MT") =>
+    buildCollectionLegCapSku(skuProfile, profile, { value, fallbackColor, readConfiguratorColor });
+
+  it.each([
+    ["Antracite 400 MT", "1", "VAN-LAMEV-LEG/1DW-22.6H-CAB-LACM-400"],
+    ["Zaffiro 411 GL", "1D", "VAN-LAMEV-LEG/1DW-22.6H-CAB-LACG-411"],
+    ["Latte 417 MT", "2", "VAN-LAMEV-LEG/2DW-12.4H-CAB-LACM-417"],
+    ["Zaffiro 411 GL", "2DW", "VAN-LAMEV-LEG/2DW-12.4H-CAB-LACG-411"],
+  ])(
+    "spells the leg under %s cabinets with Drawers %s as its CabinetPricing row, in their finish",
+    (color, drawers, sku) => {
+      expect(legs(color, drawers)).toBe(sku);
+    },
+  );
+
+  it("spells no leg for a drawer style the workbook has none for", () => {
+    expect(legs("Antracite 400 MT", null)).toBeNull();
+    expect(legs("Antracite 400 MT", "3")).toBeNull();
+  });
+
+  it("spells the cap in its own colour, or in the handle colour while none is chosen, as the scene paints it", () => {
+    expect(cap("Gold")).toBe("VAN-LAMEV-LEGCAP-MTL-GLD");
+    expect(cap("Silver")).toBe("VAN-LAMEV-LEGCAP-MTL-SLV");
+    expect(cap("Seta 406 MT")).toBe("VAN-LAMEV-LEGCAP-LACM-406");
+    expect(cap("None")).toBe("VAN-LAMEV-LEGCAP-LACM-433");
+    expect(cap("None", "Gold")).toBe("VAN-LAMEV-LEGCAP-MTL-GLD");
+  });
+
+  it("spells no cap while the legs are off", () => {
+    expect(cap("")).toBeNull();
+    expect(cap(null)).toBeNull();
   });
 });

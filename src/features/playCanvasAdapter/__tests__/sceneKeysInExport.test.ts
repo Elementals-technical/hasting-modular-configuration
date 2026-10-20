@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
+import { parseRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/parseRuntimeBindings";
 import type { RuntimeBinding } from "@/entities/collection/model/runtimeBindings";
 
 import sceneCode from "../../../../public/HastingCabinetsParametrization/js/esm.mjs?raw";
+import lameRuntimeBindingsDocument from "../../../../public/collections/lame/runtime-bindings.json";
 import urbanDuplexRuntimeBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import ufsRuntimeBindingsDocument from "../../../../public/collections/urban-freestanding/runtime-bindings.json";
 
@@ -122,5 +124,72 @@ describe("Urban Duplex products in the scene code", () => {
     expect(registrationOf("UD-open-shelves")).toContain("rule:RuleMaterialsUDOpenShelves,");
     expect(registrationOf("UD-open-shelves-side")).toContain("rule:RuleMaterialsUDOpenShelvesSide,");
     for (const key of ["CabinetColorLateral", "HandleSide"]) expect(isReadByScene(key), key).toBe(true);
+  });
+});
+
+describe("Lame products in the scene code", () => {
+  const parsed = parseRuntimeBindings(lameRuntimeBindingsDocument);
+  if (!parsed.ok) throw new Error(`the Lame bindings must parse: ${JSON.stringify(parsed.diagnostics)}`);
+  const lameBindings = parsed.bindings;
+
+  const registrationOf = (sceneType: string) =>
+    sceneCode.match(new RegExp(`registerProduct\\("${sceneType}",[\\s\\S]*?registerProduct\\(`))?.[0] ?? "";
+  const patchValuesOf = (attributeId: string, sceneKey: string) => {
+    const binding = lameBindings.bindings.find((candidate) => candidate.attributeId === attributeId);
+    return binding?.status === "bound" && binding.values.kind === "map"
+      ? Object.values(binding.values.patches).map((patch) => patch[sceneKey])
+      : [];
+  };
+
+  it("registers the scene product of both cabinet types, with the rules the bindings send to", () => {
+    for (const sceneType of Object.values(lameBindings.productTypes)) {
+      const registration = registrationOf(sceneType);
+
+      expect(registration, sceneType).not.toBe("");
+      for (const rule of [
+        "RuleWidthCabinetLame",
+        "RuleHeightCabinetLame",
+        "RuleDrawersCabinetLame",
+        "RuleMaterialsCabinetLame",
+        "RuleMaterialsHandleLame",
+        "RuleMaterialsLegCapLame",
+        "RuleMaterialsUndertopLame",
+        "RulePatternCabinetLame",
+      ]) {
+        expect(registration, `${sceneType} ${rule}`).toContain(`rule:${rule},`);
+      }
+    }
+    expect(registrationOf("Lame-sink-cabinet")).toContain("rule:RuleChangeSinkType,");
+  });
+
+  it("finds every bound key in the scene bundle except the ones listed as not read", () => {
+    const keys = [...new Set(lameBindings.bindings.flatMap(sceneKeysOf))];
+
+    expect(keys).toEqual(
+      expect.arrayContaining(["Drawers", "CabinetPattern", "LegCapColor", "ShowLegs", "UndertopColor", "ShowUndertop"]),
+    );
+    expect(keys.filter((key) => !isReadByScene(key))).toEqual(Object.keys(NOT_READ_BY_SCENE));
+  });
+
+  it("sends the drawer styles and the patterns the scene's rules take", () => {
+    expect(sceneCode).toContain('["2D","1D"]');
+    expect(new Set(patchValuesOf("Drawers", "Drawers"))).toEqual(new Set(["2D", "1D"]));
+
+    expect(sceneCode).toContain('["Galles","Gessatto","Oxford","Piquet","Plisse"]');
+    expect(patchValuesOf("CabinetPattern", "CabinetPattern")).toEqual([
+      "Galles",
+      "Gessatto",
+      "Oxford",
+      "Piquet",
+      "Plisse",
+    ]);
+  });
+
+  it("swaps the basin of the sink cabinet for a sink product the scene registers", () => {
+    // "Vessel" is the scene's empty cutout, not a product.
+    for (const sink of new Set(patchValuesOf("sinkType", "sinkType"))) {
+      if (sink === "Vessel") continue;
+      expect(sceneCode, String(sink)).toContain(`registerProduct("${String(sink)}"`);
+    }
   });
 });

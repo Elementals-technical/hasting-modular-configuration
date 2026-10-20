@@ -25,10 +25,14 @@ export type PricingLineGroup =
   | "bookMatching"
   /** The legs a composition stands on (collections priced from their SKU profile). */
   | "legs"
+  /** The cap at the foot of each leg, in a colour of its own (Lame). */
+  | "legCap"
   /** Brackets of a thick countertop (collections priced from their SKU profile). */
   | "bracket"
   /** The thin cover on the cabinet tops under a lifted countertop (Urban Low Height). */
-  | "cabinetCover";
+  | "cabinetCover"
+  /** The undertop under the whole composition, priced per cm of its width (Lame). */
+  | "undertop";
 
 /** One line of the order: what is priced and how many pieces of it. */
 export type PricingLine = {
