@@ -6,7 +6,11 @@ import {
 } from "@/entities/collection/lib/productProfileSelectors";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
 import { isPatternMaterialAllowed } from "@/entities/collection/lib/materialEligibility";
-import type { CollectionCountertop, CollectionSkuProfile } from "@/entities/collection/model/schemas";
+import {
+  hasOwnCountertop,
+  type CollectionCountertop,
+  type CollectionSkuProfile,
+} from "@/entities/collection/model/schemas";
 
 import { formatVesselSku, type VesselDimensionTokens } from "./buildVesselSku";
 import { cmToInches } from "./cmToInches";
@@ -405,4 +409,44 @@ export const buildCollectionLegsSku = (
   const series = `${CABINET_CATEGORY}-${skuProfile.cabinet.series}-${LEGS_ELEMENT}`;
   const colorCode = resolveCollectionColorCode(skuProfile, color);
   return colorCode ? `${series}-${material}-${colorCode}` : `${series}-${material}`;
+};
+
+export type CollectionUndertopSkuInput = {
+  /** The undertop's value: "" off, a colour of its section, or one that names none ("None"). */
+  value: string | null;
+  /** The colour it is painted in while its value names none of its own: the handles'. */
+  fallbackColor: string | null;
+  /** The composition's width, which the undertop runs along. */
+  widthCm: number | null;
+  /** Set when the collection takes its colours from the configurator. */
+  readConfiguratorColor?: ConfiguratorColorReader;
+};
+
+/**
+ * `CT-{series}{material}-UDTP-{W}W-.7H-20.5D-{material}-{colour}`: the undertop under the whole
+ * composition (Lame), priced per cm of its width. Null while it is off, or when its colour names no
+ * material: the price server prices no undertop without one.
+ */
+export const buildCollectionUndertopSku = (
+  skuProfile: CollectionSkuProfile,
+  productProfile: ProductProfile | null,
+  { value, fallbackColor, widthCm, readConfiguratorColor }: CollectionUndertopSkuInput,
+): string | null => {
+  const { undertop } = skuProfile;
+  if (!undertop || !hasOwnCountertop(skuProfile) || !value || widthCm == null) return null;
+
+  const colorOf = (attributeId: string, color: string | null) => {
+    const material = color
+      ? resolveCollectionColorMaterial(skuProfile, productProfile, attributeId, color, readConfiguratorColor)
+      : null;
+    return material && color ? { material, color } : null;
+  };
+  const painted =
+    colorOf(undertop.attributeId, value) ??
+    (undertop.fallbackColorAttributeId ? colorOf(undertop.fallbackColorAttributeId, fallbackColor) : null);
+  if (!painted) return null;
+
+  const colorCode = resolveCollectionColorCode(skuProfile, painted.color);
+  const sku = `${COUNTERTOP_CATEGORY}-${skuProfile.countertop.series}${painted.material}-${undertop.code}-${cmToInches(widthCm)}W-${undertop.heightIn}H-${undertop.depthIn}D`;
+  return colorCode ? `${sku}-${painted.material}-${colorCode}` : sku;
 };

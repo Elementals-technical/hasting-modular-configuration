@@ -15,6 +15,7 @@ import {
 import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionUndertopSku,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
   type CollectionCountertopSkuInput,
@@ -25,8 +26,9 @@ import { createConfiguratorColorReader } from "../configuratorColors";
 /**
  * Lame SKUs from its `sku-profile.json`. Each expected SKU is a form of the Lame price workbook (SKU
  * Structure, CabinetPricing) or, for the countertop, its basins, the cutout, the faucet holes and the
- * organizers, of the Class workbook the Lame one refers to. The price server has not been asked for
- * the Lame forms.
+ * organizers, of the Class workbook the Lame one refers to. On 2026-10-20 the price server answered every
+ * cabinet form of CabinetPricing (5 patterns, LACM and LACG) with its workbook price, and the undertop
+ * forms per cm ($7.28 metal, $9.25 lacquer).
  */
 
 const parsed = parseProductProfile(lameProfileDocument);
@@ -175,5 +177,30 @@ describe("Lame vessel and organizer SKUs", () => {
   it("has the Class organizers", () => {
     expect(resolveCollectionDividerSku(skuProfile, "Metal")).toBe("VAN-GBDIV-MTL-3.9W-2H-16.9D");
     expect(resolveCollectionDividerSku(skuProfile, "Oak")).toBe("VAN-GBDIV-OAK-3.8W-2.6H-16.9D");
+  });
+});
+
+// Lame CountertopPricing: CT-GB{MTL|LACM}-UDTP-W-.7H-20.5D, priced per cm of the composition.
+describe("Lame undertop SKU", () => {
+  const undertop = (value: string | null, fallbackColor: string | null = "Nero 433 MT", widthCm: number | null = 120) =>
+    buildCollectionUndertopSku(skuProfile, profile, { value, fallbackColor, widthCm, readConfiguratorColor });
+
+  it.each([
+    ["Gold", "CT-GBMTL-UDTP-47.2W-.7H-20.5D-MTL-GLD"],
+    ["Silver", "CT-GBMTL-UDTP-47.2W-.7H-20.5D-MTL-SLV"],
+    ["Seta 406 MT", "CT-GBLACM-UDTP-47.2W-.7H-20.5D-LACM-406"],
+  ])("spells an undertop in %s along the composition", (value, sku) => {
+    expect(undertop(value)).toBe(sku);
+  });
+
+  it("spells one without a colour of its own in the handle colour, as the scene paints it", () => {
+    expect(undertop("None", "Gold")).toBe("CT-GBMTL-UDTP-47.2W-.7H-20.5D-MTL-GLD");
+    expect(undertop("None", "Nero 433 MT", 160)).toBe("CT-GBLACM-UDTP-63W-.7H-20.5D-LACM-433");
+  });
+
+  it("orders none while it is off, or before the composition has a width", () => {
+    expect(undertop("")).toBeNull();
+    expect(undertop(null)).toBeNull();
+    expect(undertop("Gold", "Gold", null)).toBeNull();
   });
 });

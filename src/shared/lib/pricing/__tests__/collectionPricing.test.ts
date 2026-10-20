@@ -1417,29 +1417,39 @@ describe("Lame legs, offered before they have a price", () => {
   });
 });
 
-describe("Lame undertop, offered before it has a price", () => {
+describe("Lame undertop, priced per cm of the composition", () => {
   const order = (undertopColor: string) =>
     buildCollectionPricingLines(
       collectionPricingInput(
         LAME,
-        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } }],
+        [
+          { stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } },
+          { stableKey: "sc", runtimeId: "Sink-Cabinet-sc", size: { width: 40, height: 52, depth: 52 } },
+        ],
         {
-          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2"), at({ scope: "cabinet", cabinetId: "sc" }, "2")],
           HandleColor: [at({ scope: "cabinet", cabinetId: "sb" }, "Nero 433 MT")],
           UndertopColor: [at({ scope: "global" }, undertopColor)],
         },
         { cabinetColor: "Latte 417 MT" },
       ),
     );
-  const undertopOf = ({ gaps }: ReturnType<typeof order>) => gaps.filter(({ group }) => group === "undertop");
+  const undertopOf = (result: ReturnType<typeof order>) => result.lines.filter(({ group }) => group === "undertop");
 
-  it("names the missing price of an undertop, with or without its own colour, but leaves the total complete", () => {
-    for (const undertopColor of ["None", "Gold", "Seta 406 MT"]) {
+  it("orders one undertop as wide as the composition, in its own colour or the handles'", () => {
+    for (const [undertopColor, sku] of [
+      ["Gold", "CT-GBMTL-UDTP-39.4W-.7H-20.5D-MTL-GLD"],
+      ["Seta 406 MT", "CT-GBLACM-UDTP-39.4W-.7H-20.5D-LACM-406"],
+      // On without a colour of its own: the scene paints it in the handle colour.
+      ["None", "CT-GBLACM-UDTP-39.4W-.7H-20.5D-LACM-433"],
+    ]) {
       expect(undertopOf(order(undertopColor)), undertopColor).toEqual([
-        expect.objectContaining({ blocksTotal: false, owner: "product" }),
+        { id: "undertop", group: "undertop", sku, quantity: 1 },
       ]);
     }
-    // No undertop: nothing to say.
+  });
+
+  it("orders none while it is off", () => {
     expect(undertopOf(order(""))).toEqual([]);
   });
 });

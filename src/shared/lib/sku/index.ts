@@ -30,6 +30,7 @@ export {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
+  buildCollectionUndertopSku,
   isChosenColor,
   OPEN_SIDE_SHELF_SIDE,
   resolveCollectionColorCode,

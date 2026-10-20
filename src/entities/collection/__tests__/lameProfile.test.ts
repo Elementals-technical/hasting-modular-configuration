@@ -11,6 +11,7 @@ import {
   normalizeOptionValue,
   selectConfiguratorSection,
   selectDefaultValue,
+  selectEffectiveFallback,
   selectOptionValues,
 } from "../lib/productProfileSelectors";
 import { configuratorSchema } from "../model/schemas";
@@ -74,6 +75,8 @@ describe("lame product profile", () => {
   it("has the one G58 handle, which nobody chooses, without a groove colour (map section 3)", () => {
     expect(selectOptionValues(profile(), "Handle")).toEqual(["G58"]);
     expect(attribute("Handle")).toMatchObject({ initialValue: "G58", defaultValue: "G58" });
+    // A cabinet the builder places takes it too: without it the cabinet SKU spells no handle (`/X/`).
+    expect(selectEffectiveFallback(profile(), "Handle")).toBe("G58");
     expect(attribute("Handle")?.confirmation).toBeUndefined();
     expect(attribute("Handle")?.options?.[0]?.capabilities?.supportsGrooveColor).toBe(false);
   });

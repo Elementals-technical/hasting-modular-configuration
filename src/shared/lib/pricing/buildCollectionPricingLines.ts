@@ -20,6 +20,7 @@ import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegsSku,
+  buildCollectionUndertopSku,
   createConfiguratorColorReader,
   extractColorCode,
   isChosenColor,
@@ -307,6 +308,18 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         sku: countertop.bracket.sku,
         quantity: countertop.bracket.quantity,
       });
+    }
+    // The undertop runs along the whole composition, so it is priced per cm of its width; while it
+    // names no colour of its own it is the handles' colour, as the scene paints it.
+    if (skuProfile.undertop && cabinets.length > 0) {
+      const { attributeId, fallbackColorAttributeId } = skuProfile.undertop;
+      const undertopSku = buildCollectionUndertopSku(skuProfile, profile, {
+        value: globalValue(attributeId),
+        fallbackColor: fallbackColorAttributeId ? readerOf(cabinets[0])(fallbackColorAttributeId) : null,
+        widthCm: ownCompositionWidthCm,
+        readConfiguratorColor,
+      });
+      if (undertopSku) add({ id: "undertop", group: "undertop", sku: undertopSku, quantity: 1 });
     }
     // The vessel of each sink base of a vessel top, even before a colour prices the top and its cutout.
     // Sink bases with the same vessel in the same colour order it once, as many pieces as there are;

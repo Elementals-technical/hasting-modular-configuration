@@ -55,6 +55,13 @@
     },
     "thicknessCodes": { "0.5": ".5", "0.75": ".8" }
   },
+  "undertop": {
+    "attributeId": "UndertopColor",
+    "fallbackColorAttributeId": "HandleColor",
+    "code": "UDTP",
+    "heightIn": ".7",
+    "depthIn": "20.5"
+  },
   "dividers": {
     "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
     "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
@@ -92,13 +99,6 @@
       "owner": "product",
       "reason": "Lame legs have no price yet: the price workbook spells them without a colour or width (VAN-LAMEV-LEG/2DW-12.4H, VAN-LAMEV-LEG/1DW-22.6H), gives no vessel heights and does not say whether one is ordered per cabinet; the cap (VAN-LAMEV-LEGCAP-, $0) has no colour suffix (LAME-ACC-01, LAME-ACC-02, LAME-ACC-03, LAME-ACC-05).",
       "appliesWhen": { "attributeId": "LegColor" }
-    },
-    {
-      "group": "undertop",
-      "blocksTotal": false,
-      "owner": "product",
-      "reason": "The Lame undertop has no price yet: it is priced per cm of the composition with its side panels, not with a 60 cm Sink Base (docx P0258), but whether that means the Sink Base or any 60 cm cabinet, and the colour of its matte lacquer, are open (LAME-ACC-04, LAME-ACC-06). The total does not include it.",
-      "appliesWhen": { "attributeId": "UndertopColor" }
     }
   ]
 }

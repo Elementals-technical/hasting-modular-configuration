@@ -28,7 +28,9 @@ export type PricingLineGroup =
   /** Brackets of a thick countertop (collections priced from their SKU profile). */
   | "bracket"
   /** The thin cover on the cabinet tops under a lifted countertop (Urban Low Height). */
-  | "cabinetCover";
+  | "cabinetCover"
+  /** The undertop under the whole composition, priced per cm of its width (Lame). */
+  | "undertop";
 
 /** One line of the order: what is priced and how many pieces of it. */
 export type PricingLine = {

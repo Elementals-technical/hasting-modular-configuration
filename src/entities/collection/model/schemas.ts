@@ -274,7 +274,6 @@ export const pricingGapGroupSchema = z.enum([
   "openSideShelf",
   "sidePanel",
   "towelBar",
-  "undertop",
 ]);
 
 const skuCodesSchema = z.object({ attributeId: z.string(), codes: stringMapSchema }).strict();
@@ -477,6 +476,23 @@ export const collectionSkuProfileSchema = z
       .refine(({ prefix, thicknessIn }) => (prefix === undefined) === (thicknessIn === undefined), {
         message: "cabinetCover.prefix and cabinetCover.thicknessIn are given together",
       })
+      .optional(),
+    /**
+     * The undertop the whole composition stands on (Lame), priced per cm of the composition's width as
+     * `CT-{countertop series}{material}-{code}-{W}W-{H}H-{D}D-{material}-{colour}`. It takes the colour of
+     * `attributeId` or, while that names none of its configurator section ("None": on, no colour of its
+     * own), the colour of `fallbackColorAttributeId`, as the scene paints it then.
+     */
+    undertop: z
+      .object({
+        attributeId: z.string().trim().min(1),
+        fallbackColorAttributeId: z.string().trim().min(1).optional(),
+        code: z.string().trim().min(1),
+        /** Inches, as the SKU spells them (0.7 → `.7H`). */
+        heightIn: z.string().trim().min(1),
+        depthIn: z.string().trim().min(1),
+      })
+      .strict()
       .optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
