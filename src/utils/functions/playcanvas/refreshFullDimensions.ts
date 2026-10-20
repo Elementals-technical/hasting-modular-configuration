@@ -1,6 +1,6 @@
 import { getOrderedProductIds } from "./getOrderedProductIds";
 import { getConfig } from "./getConfig";
-import { showDimensions, hideDimensions, type HeightSegmentsPayload } from "./showDimensions";
+import { showDimensions, hideDimensions, type DimensionsPayload, type HeightSegmentsPayload } from "./showDimensions";
 import { getDimensionTool } from "./getDimensionTool";
 import { cmToInch, inchToCm } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
@@ -98,12 +98,170 @@ const buildHeightSegments = (
   );
 };
 
+/** A placed product and its scene config (`getConfig`), in the composition's order. */
+export type FullDimensionsProduct = { node: string; config: unknown };
+
+export type FullDimensionsPayloadOptions = FullDimensionsOptions & {
+  /** The side panels the scene took, per side (`getRememberedSidePanels`). */
+  sidePanels: { left: string; right: string };
+};
+
+const LINE_OFFSET_M = 0.05;
+/** Bottoms this close (cm) stand on one level: a sink base a few cm above its side shelf is not a second level. */
+const LEVEL_TOLERANCE_CM = 10;
+/** The width lines of each level above the lowest stand this much (m) further below the box, so they do not overlap. */
+const LEVEL_LINE_GAP_M = 0.06;
+
+/** The scene places a product at its position plus its `SpatialOffsetM` (metres). */
+const readScenePositionCm = (config: unknown, key: "positionX" | "positionY", axis: "x" | "y") => {
+  if (!isRecord(config)) return undefined;
+  const position = config[key];
+  if (typeof position !== "number" || !Number.isFinite(position)) return undefined;
+  const offset = isRecord(config.SpatialOffsetM) ? config.SpatialOffsetM[axis] : undefined;
+  return (position + (typeof offset === "number" && Number.isFinite(offset) ? offset : 0)) * 100;
+};
+
+type MeasuredProduct = {
+  node: string;
+  width: number | undefined;
+  height: number | undefined;
+  /** Centre along the wall and bottom, cm. */
+  centreX: number | undefined;
+  bottom: number | undefined;
+};
+
+/**
+ * Level of each product, counted from the lowest; null when the composition stands on one level
+ * or a product has no position. The positions of a packed row can be stale, so only levels use them.
+ */
+const resolveLevels = (products: readonly MeasuredProduct[]): number[] | null => {
+  if (
+    products.some(
+      ({ width, centreX, bottom }) => bottom === undefined || (width !== undefined && centreX === undefined),
+    )
+  )
+    return null;
+
+  const byBottom = products
+    .map(({ bottom }, index) => ({ index, bottom: bottom ?? 0 }))
+    .sort((a, b) => a.bottom - b.bottom);
+  const levels = new Array<number>(products.length).fill(0);
+  let level = 0;
+  let levelBottom = byBottom[0]?.bottom ?? 0;
+  for (const { index, bottom } of byBottom) {
+    if (bottom - levelBottom > LEVEL_TOLERANCE_CM) {
+      level += 1;
+      levelBottom = bottom;
+    }
+    levels[index] = level;
+  }
+  return level > 0 ? levels : null;
+};
+
+/** From the leftmost cabinet edge to the rightmost, and from the lowest bottom to the highest top, cm. */
+const measureLevels = (products: readonly MeasuredProduct[]) => {
+  let left = Infinity;
+  let right = -Infinity;
+  let bottom = Infinity;
+  let top = -Infinity;
+  for (const product of products) {
+    if (product.width !== undefined && product.centreX !== undefined) {
+      left = Math.min(left, product.centreX - product.width / 2);
+      right = Math.max(right, product.centreX + product.width / 2);
+    }
+    if (product.height !== undefined && product.bottom !== undefined) {
+      bottom = Math.min(bottom, product.bottom);
+      top = Math.max(top, product.bottom + product.height);
+    }
+  }
+  // Rounded to whole cm: the scene leaves 0.05 cm between two cabinets of a row.
+  return {
+    width: Number.isFinite(right - left) ? Math.round(right - left) : 0,
+    height: Number.isFinite(top - bottom) ? Math.round(top - bottom) : 0,
+  };
+};
+
+/**
+ * The Full Dimensions overlay of the placed products. One level: the sum of the widths and the tallest
+ * cabinet. Several levels (multi-level compositions): the whole composition, and the width lines of
+ * each level on a row of their own. The countertop's overhang is not counted.
+ */
+export const buildFullDimensionsPayload = (
+  products: readonly FullDimensionsProduct[],
+  options: FullDimensionsPayloadOptions,
+): DimensionsPayload => {
+  const unit = options.unit ?? DEFAULT_FULL_DIMENSIONS_UNIT;
+  const configs = products.map(({ config }) => config);
+  const measured = products.map(
+    ({ node, config }): MeasuredProduct => ({
+      node,
+      width: readNumericConfigValue(config, "Width"),
+      height: readNumericConfigValue(config, "Height"),
+      centreX: readScenePositionCm(config, "positionX", "x"),
+      bottom: readScenePositionCm(config, "positionY", "y"),
+    }),
+  );
+  const levels = resolveLevels(measured);
+  const levelSize = levels ? measureLevels(measured) : null;
+
+  const { sidePanels } = options;
+  const sidePanelsCm =
+    (sidePanels.left !== "None" ? SIDE_PANEL_WIDTH_CM : 0) +
+    (sidePanels.right !== "None" ? SIDE_PANEL_WIDTH_CM : 0);
+  const totalWidth = (levelSize?.width ?? measured.reduce((sum, item) => sum + (item.width ?? 0), 0)) + sidePanelsCm;
+
+  const maxHeight =
+    levelSize?.height ??
+    configs.reduce<number>((max, config) => {
+      const value = readNumericConfigValue(config, "Height");
+      return Math.max(max, value ?? 0);
+    }, 0);
+  const fallbackThicknessInches = parseFiniteNumber(options.countertopThickness);
+  const maxCountertopThicknessInches = configs.reduce<number>((max, config) => {
+    const value = readCountertopThicknessInches(config);
+    return Math.max(max, value ?? 0);
+  }, fallbackThicknessInches ?? 0);
+  const totalHeight = maxHeight + inchToCm(maxCountertopThicknessInches);
+  const heightSegments = buildHeightSegments(maxHeight, maxCountertopThicknessInches, unit);
+
+  const maxDepth = configs.reduce<number>((max, config) => {
+    const value = readNumericConfigValue(config, "Depth");
+    return Math.max(max, value ?? 0);
+  }, 0);
+
+  return {
+    box: {
+      nodes: products.map(({ node }) => node),
+      width: { label: formatDimensionLabel(totalWidth, unit), offset: LINE_OFFSET_M },
+      depth: { label: formatDimensionLabel(maxDepth, unit) },
+      ...(heightSegments
+        ? { heightSegments }
+        : { height: { label: formatDimensionLabel(totalHeight, unit) } }),
+    },
+    lines: measured.map(({ node, width }, index) => {
+      const level = levels?.[index] ?? 0;
+      return {
+        node,
+        axis: "x",
+        label: formatDimensionLabel(width, unit),
+        ...(level > 0 ? { offset: LINE_OFFSET_M + level * LEVEL_LINE_GAP_M } : {}),
+      };
+    }),
+    labelSettings: {
+      offset: LINE_OFFSET_M,
+      labelGap: "auto",
+      labelPosition: "center",
+      units: unit,
+      decimals: 2,
+    },
+  };
+};
+
 /**
  * Computes full dimensions from all products in the scene and calls showDimensions().
  * Returns true if dimensions were shown, false otherwise.
  */
 export async function computeAndShowFullDimensions(options: FullDimensionsOptions = {}): Promise<boolean> {
-  const unit = options.unit ?? DEFAULT_FULL_DIMENSIONS_UNIT;
   const ids = getOrderedProductIds();
   if (!ids.length) {
     hideDimensions();
@@ -112,56 +270,12 @@ export async function computeAndShowFullDimensions(options: FullDimensionsOption
 
   const configs = await Promise.all(ids.map((id) => getConfig(id)));
 
-  const widthByNode = ids.map((id, index) => ({
-    node: id,
-    width: readNumericConfigValue(configs[index], "Width"),
-  }));
-
-  const sidePanels = getRememberedSidePanels();
-  const sidePanelsCm =
-    (sidePanels.left !== "None" ? SIDE_PANEL_WIDTH_CM : 0) +
-    (sidePanels.right !== "None" ? SIDE_PANEL_WIDTH_CM : 0);
-  const totalWidth = widthByNode.reduce((sum, item) => sum + (item.width ?? 0), 0) + sidePanelsCm;
-
-  const maxHeight = configs.reduce((max, config) => {
-    const value = readNumericConfigValue(config, "Height");
-    return Math.max(max, value ?? 0);
-  }, 0);
-  const fallbackThicknessInches = parseFiniteNumber(options.countertopThickness);
-  const maxCountertopThicknessInches = configs.reduce((max, config) => {
-    const value = readCountertopThicknessInches(config);
-    return Math.max(max, value ?? 0);
-  }, fallbackThicknessInches ?? 0);
-  const totalHeight = maxHeight + inchToCm(maxCountertopThicknessInches);
-  const heightSegments = buildHeightSegments(maxHeight, maxCountertopThicknessInches, unit);
-
-  const maxDepth = configs.reduce((max, config) => {
-    const value = readNumericConfigValue(config, "Depth");
-    return Math.max(max, value ?? 0);
-  }, 0);
-
-  const didShow = showDimensions({
-    box: {
-      nodes: ids,
-      width: { label: formatDimensionLabel(totalWidth, unit), offset: 0.05 },
-      depth: { label: formatDimensionLabel(maxDepth, unit) },
-      ...(heightSegments
-        ? { heightSegments }
-        : { height: { label: formatDimensionLabel(totalHeight, unit) } }),
-    },
-    lines: widthByNode.map(({ node, width }) => ({
-      node,
-      axis: "x",
-      label: formatDimensionLabel(width, unit),
-    })),
-    labelSettings: {
-      offset: 0.05,
-      labelGap: "auto",
-      labelPosition: "center",
-      units: unit,
-      decimals: 2,
-    },
-  });
+  const didShow = showDimensions(
+    buildFullDimensionsPayload(
+      ids.map((node, index) => ({ node, config: configs[index] })),
+      { ...options, sidePanels: getRememberedSidePanels() },
+    ),
+  );
 
   if (didShow) {
     const tool = getDimensionTool();
