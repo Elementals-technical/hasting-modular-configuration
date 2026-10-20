@@ -1454,6 +1454,34 @@ describe("Lame undertop, priced per cm of the composition", () => {
   });
 });
 
+describe("Lame cabinet before the scene reports its size", () => {
+  const order = (dimensionsByCabinet: PricingInput["dimensionsByCabinet"]) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        LAME,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 26, depth: 52 } }],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "1")],
+          Handle: [at({ scope: "cabinet", cabinetId: "sb" }, "G58")],
+          HandleColor: [at({ scope: "cabinet", cabinetId: "sb" }, "Antracite 400 MT")],
+        },
+        { cabinetColor: "Antracite 400 MT", dimensionsByCabinet },
+      ),
+    );
+  const cabinetSkusOf = ({ lines }: ReturnType<typeof order>) =>
+    lines.filter(({ group }) => group === "cabinet").map(({ sku }) => sku);
+
+  it("asks no price for an XW-XH-XD SKU, which the server would answer with its smallest row", () => {
+    const waiting = order({});
+
+    expect(cabinetSkusOf(waiting)).toEqual([]);
+    expect(waiting.gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
+    expect(cabinetSkusOf(order({ sb: { width: 60, height: 26, depth: 52 } }))).toEqual([
+      "VAN-LAMEV-SB/1DW/G58/OXF-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+    ]);
+  });
+});
+
 describe("Class and Mako reference orders", () => {
   it.each(Object.keys(EXPECTED) as CollectionPricingScenarioId[])(
     "the server charges the workbook price of every SKU of %s",

@@ -10,6 +10,7 @@
   ],
   "cabinet": {
     "series": "LAMEV",
+    "requireCompleteInput": true,
     "configBlock": [
       { "attributeId": "CabinetType", "codes": { "Sink-Base": "SB", "Sink-Cabinet": "SC" } },
       { "attributeId": "Drawers", "codes": { "1": "1DW", "2": "2DW" } },

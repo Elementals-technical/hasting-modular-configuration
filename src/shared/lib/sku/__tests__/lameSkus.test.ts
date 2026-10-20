@@ -94,7 +94,36 @@ describe("Lame cabinet SKU", () => {
       "VAN-LAMEV-SC/2DW/G58/GES-23.6W-20.5H-20.5D",
     ],
   ])("spells the CabinetPricing row of %o at %i x %i cm", (values, widthCm, heightCm, sku) => {
-    expect(cabinet(values, widthCm, heightCm).sku).toBe(sku);
+    // A cabinet is priced only with both finishes (requireCompleteInput); the row is the SKU before them.
+    const finishes = { CabinetColor: "Antracite 400 MT", HandleColor: "Antracite 400 MT" };
+    expect(cabinet({ ...finishes, ...values }, widthCm, heightCm).sku).toBe(`${sku}-CAB-LACM-400-HDL-LACM-400`);
+  });
+
+  it("spells no SKU before the scene reports a size, for a size table 596 lacks or without a finish", () => {
+    const finishes = { CabinetColor: "Antracite 400 MT", HandleColor: "Antracite 400 MT" };
+    // The sizes are read from the scene a moment after a cabinet is placed: no XW-XH-XD SKU meanwhile.
+    expect(
+      buildCollectionCabinetSku(skuProfile, profile, {
+        read: reader({ CabinetType: "Sink-Base", Drawers: "1", Handle: "G58", CabinetPattern: "Oxford", ...finishes }),
+        widthCm: null,
+        heightCm: null,
+        depthCm: null,
+        readConfiguratorColor,
+      }),
+    ).toEqual({
+      sku: "",
+      missing: [
+        { attributeId: "Width", cause: "invalid-dimension" },
+        { attributeId: "Height", cause: "invalid-dimension" },
+        { attributeId: "Depth", cause: "invalid-dimension" },
+      ],
+    });
+    // A Sink Base is 60 cm wide at least, a cabinet 26 or 52 cm high.
+    expect(cabinet(finishes, 40).sku).toBe("");
+    expect(cabinet(finishes, 60, 40).sku).toBe("");
+    expect(cabinet({ HandleColor: "Antracite 400 MT" }).missing).toEqual([
+      { attributeId: "CabinetColor", cause: "not-chosen" },
+    ]);
   });
 
   it("spells a gloss cabinet as LACG and a metal handle with its colour code", () => {
