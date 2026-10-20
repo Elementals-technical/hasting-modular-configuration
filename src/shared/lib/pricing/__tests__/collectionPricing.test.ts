@@ -1386,7 +1386,7 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
   });
 });
 
-describe("Lame legs, offered before they have a price", () => {
+describe("Lame legs, a pair under the composition in the cabinet finish, with their caps", () => {
   const order = (legColor: string) =>
     buildCollectionPricingLines(
       collectionPricingInput(
@@ -1401,18 +1401,30 @@ describe("Lame legs, offered before they have a price", () => {
       ),
     );
   const legsOf = ({ lines, gaps }: ReturnType<typeof order>) => ({
-    lines: lines.filter(({ group }) => group === "legs"),
-    gaps: gaps.filter(({ group }) => group === "legs"),
+    lines: lines
+      .filter(({ group }) => group === "legs" || group === "legCap")
+      .map(({ id, group, sku, quantity }) => ({ id, group, sku, quantity })),
+    gaps: gaps.filter(({ group }) => group === "legs").map(({ blocksTotal }) => ({ blocksTotal })),
   });
 
-  it("says the price is incomplete while the composition stands on legs, with or without a cap colour", () => {
-    for (const legColor of ["None", "Gold", "Nero 433 MT"]) {
+  it("orders two legs of the drawer style's height and a cap per leg, in its colour or the handles'", () => {
+    for (const [legColor, capSku] of [
+      ["None", "VAN-LAMEV-LEGCAP-LACM-433"],
+      ["Gold", "VAN-LAMEV-LEGCAP-MTL-GLD"],
+      ["Seta 406 MT", "VAN-LAMEV-LEGCAP-LACM-406"],
+    ]) {
       expect(legsOf(order(legColor)), legColor).toEqual({
-        lines: [],
-        gaps: [expect.objectContaining({ blocksTotal: true, owner: "product" })],
+        lines: [
+          { id: "legs", group: "legs", sku: "VAN-LAMEV-LEG/2DW-12.4H-CAB-LACM-417", quantity: 2 },
+          { id: "legCap", group: "legCap", sku: capSku, quantity: 2 },
+        ],
+        // How many legs the workbook price is for is not confirmed yet; the total does not wait for it.
+        gaps: [{ blocksTotal: false }],
       });
     }
-    // Legs off: nothing to price and nothing to say.
+  });
+
+  it("orders nothing while the legs are off", () => {
     expect(legsOf(order(""))).toEqual({ lines: [], gaps: [] });
   });
 });

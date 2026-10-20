@@ -23,7 +23,8 @@ import { configuratorSchema } from "../model/schemas";
  *
  * Lame is built like Mako but is not Mako: one G58 handle, five cabinet patterns, VA030 instead of the
  * VA023 of the Master File, legs in the cabinet colour with a cap colour of their own, and an undertop.
- * Side panels come later, and the legs and the undertop have no price yet (excludedFromThisProfile).
+ * Side panels come later; what the prices of the legs and the undertop leave open is in
+ * excludedFromThisProfile.
  */
 
 const parsed = parseProductProfile(lameProfileDocument);

@@ -67,6 +67,11 @@
     "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
     "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
   },
+  "legs": {
+    "quantity": 2,
+    "byDrawers": { "1": "1DW-22.6H", "2": "2DW-12.4H" },
+    "cap": { "code": "LEGCAP", "fallbackColorAttributeId": "HandleColor" }
+  },
   "vessels": {
     "Iris": { "series": "IRIS", "widthIn": "16.5", "heightIn": "4.3", "depthIn": "16.5" },
     "Frame": { "series": "FRM", "widthIn": "19.7", "heightIn": "4.3", "depthIn": "13.8" },
@@ -96,9 +101,9 @@
     },
     {
       "group": "legs",
-      "blocksTotal": true,
+      "blocksTotal": false,
       "owner": "product",
-      "reason": "Lame legs have no price yet: the price workbook spells them without a colour or width (VAN-LAMEV-LEG/2DW-12.4H, VAN-LAMEV-LEG/1DW-22.6H), gives no vessel heights and does not say whether one is ordered per cabinet; the cap (VAN-LAMEV-LEGCAP-, $0) has no colour suffix (LAME-ACC-01, LAME-ACC-02, LAME-ACC-03, LAME-ACC-05).",
+      "reason": "Two legs per composition, the pair the scene places, each at the workbook price as Mako's team prices one leg (LAME-ACC-03). They take the cabinet finish as the CAB element (LAME-ACC-01), vessel tops the integrated heights, which cost the same (LAME-ACC-02), and the $0 cap is spelled with its colour (LAME-ACC-05).",
       "appliesWhen": { "attributeId": "LegColor" }
     }
   ]

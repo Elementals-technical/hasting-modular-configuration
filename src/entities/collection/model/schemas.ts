@@ -503,6 +503,23 @@ export const collectionSkuProfileSchema = z
         quantity: z.number().int().positive(),
         /** The `LegColor` value that means "in the cabinet's colour" rather than a colour of its own. */
         cabinetColorValue: z.string().trim().min(1).optional(),
+        /**
+         * Legs of a height of their own by the cabinets' `Drawers`, in the cabinets' finish:
+         * `VAN-{series}-LEG/{code}-CAB-{material}-{colour}` (Lame `1DW-22.6H`). `LegColor` then
+         * colours the cap alone.
+         */
+        byDrawers: stringMapSchema.optional(),
+        /**
+         * The cap at the foot of each leg, `VAN-{series}-{code}-{material}-{colour}`: in the leg colour
+         * or, while that names none ("None"), in the colour of the fallback attribute.
+         */
+        cap: z
+          .object({
+            code: z.string().trim().min(1),
+            fallbackColorAttributeId: z.string().trim().min(1),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),

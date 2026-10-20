@@ -15,6 +15,8 @@ import {
 import {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegCapSku,
+  buildCollectionLegsSku,
   buildCollectionUndertopSku,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
@@ -231,5 +233,42 @@ describe("Lame undertop SKU", () => {
     expect(undertop("")).toBeNull();
     expect(undertop(null)).toBeNull();
     expect(undertop("Gold", "Gold", null)).toBeNull();
+  });
+});
+
+describe("Lame legs and cap SKUs", () => {
+  const legs = (color: string, drawers: string | null) =>
+    buildCollectionLegsSku(skuProfile, profile, { color, attributeId: "CabinetColor", drawers, readConfiguratorColor });
+  const cap = (value: string | null, fallbackColor: string | null = "Nero 433 MT") =>
+    buildCollectionLegCapSku(skuProfile, profile, { value, fallbackColor, readConfiguratorColor });
+
+  it.each([
+    ["Antracite 400 MT", "1", "VAN-LAMEV-LEG/1DW-22.6H-CAB-LACM-400"],
+    ["Zaffiro 411 GL", "1D", "VAN-LAMEV-LEG/1DW-22.6H-CAB-LACG-411"],
+    ["Latte 417 MT", "2", "VAN-LAMEV-LEG/2DW-12.4H-CAB-LACM-417"],
+    ["Zaffiro 411 GL", "2DW", "VAN-LAMEV-LEG/2DW-12.4H-CAB-LACG-411"],
+  ])(
+    "spells the leg under %s cabinets with Drawers %s as its CabinetPricing row, in their finish",
+    (color, drawers, sku) => {
+      expect(legs(color, drawers)).toBe(sku);
+    },
+  );
+
+  it("spells no leg for a drawer style the workbook has none for", () => {
+    expect(legs("Antracite 400 MT", null)).toBeNull();
+    expect(legs("Antracite 400 MT", "3")).toBeNull();
+  });
+
+  it("spells the cap in its own colour, or in the handle colour while none is chosen, as the scene paints it", () => {
+    expect(cap("Gold")).toBe("VAN-LAMEV-LEGCAP-MTL-GLD");
+    expect(cap("Silver")).toBe("VAN-LAMEV-LEGCAP-MTL-SLV");
+    expect(cap("Seta 406 MT")).toBe("VAN-LAMEV-LEGCAP-LACM-406");
+    expect(cap("None")).toBe("VAN-LAMEV-LEGCAP-LACM-433");
+    expect(cap("None", "Gold")).toBe("VAN-LAMEV-LEGCAP-MTL-GLD");
+  });
+
+  it("spells no cap while the legs are off", () => {
+    expect(cap("")).toBeNull();
+    expect(cap(null)).toBeNull();
   });
 });

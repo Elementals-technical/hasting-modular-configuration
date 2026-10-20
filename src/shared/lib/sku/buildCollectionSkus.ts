@@ -380,6 +380,8 @@ export type CollectionLegsSkuInput = {
   color: string | null;
   /** The attribute that colour belongs to, so its material is read from the right section. */
   attributeId: string;
+  /** The cabinets' `Drawers`, for legs spelled by drawer style. */
+  drawers?: string | null;
   /** Set when the collection takes its colours from the configurator. */
   readConfiguratorColor?: ConfiguratorColorReader;
 };
@@ -388,14 +390,17 @@ export type CollectionLegsSkuInput = {
  * `VAN-{series}-LEG-{material}-{colour}`: the legs a composition stands on.
  *
  * The same material and colour block a cabinet element carries, as its own SKU — legs have no
- * size of their own. Null when the collection offers no legs or the colour names no material.
+ * size of their own. Legs spelled by drawer style (Lame) are `VAN-{series}-LEG/{code}-{element}-…`,
+ * in the cabinet element whose colour they take. Null when the collection offers no legs, the
+ * colour names no material or the drawer style no leg.
  */
 export const buildCollectionLegsSku = (
   skuProfile: CollectionSkuProfile,
   productProfile: ProductProfile | null,
-  { color, attributeId, readConfiguratorColor }: CollectionLegsSkuInput,
+  { color, attributeId, drawers, readConfiguratorColor }: CollectionLegsSkuInput,
 ): string | null => {
-  if (!skuProfile.legs || !color) return null;
+  const { legs } = skuProfile;
+  if (!legs || !color) return null;
 
   const material = resolveCollectionColorMaterial(
     skuProfile,
@@ -406,9 +411,75 @@ export const buildCollectionLegsSku = (
   );
   if (!material) return null;
 
-  const series = `${CABINET_CATEGORY}-${skuProfile.cabinet.series}-${LEGS_ELEMENT}`;
   const colorCode = resolveCollectionColorCode(skuProfile, color);
-  return colorCode ? `${series}-${material}-${colorCode}` : `${series}-${material}`;
+  const finish = colorCode ? `${material}-${colorCode}` : material;
+  const series = `${CABINET_CATEGORY}-${skuProfile.cabinet.series}-${LEGS_ELEMENT}`;
+  if (!legs.byDrawers) return `${series}-${finish}`;
+
+  const model = drawers ? legs.byDrawers[normalizeOptionValue(productProfile, "Drawers", drawers) ?? drawers] : null;
+  const element = skuProfile.cabinet.elements.find((entry) => entry.attributeId === attributeId)?.code;
+  return model && element ? `${series}/${model}-${element}-${finish}` : null;
+};
+
+/**
+ * The colour a part is priced in: the first of its candidates whose colour names a material, as
+ * its own colour or, while that names none ("None"), the one it is painted in instead.
+ */
+const resolvePaintedColor = (
+  skuProfile: CollectionSkuProfile,
+  productProfile: ProductProfile | null,
+  candidates: readonly (readonly [attributeId: string | undefined, color: string | null])[],
+  readConfiguratorColor?: ConfiguratorColorReader,
+): { material: string; color: string } | null => {
+  for (const [attributeId, color] of candidates) {
+    if (!attributeId || !color) continue;
+    const material = resolveCollectionColorMaterial(
+      skuProfile,
+      productProfile,
+      attributeId,
+      color,
+      readConfiguratorColor,
+    );
+    if (material) return { material, color };
+  }
+  return null;
+};
+
+export type CollectionLegCapSkuInput = {
+  /** `LegColor`: "" off, a colour of its section, or one that names none ("None"). */
+  value: string | null;
+  /** The colour the cap is painted in while its value names none of its own: the handles'. */
+  fallbackColor: string | null;
+  /** Set when the collection takes its colours from the configurator. */
+  readConfiguratorColor?: ConfiguratorColorReader;
+};
+
+/**
+ * `VAN-{series}-LEGCAP-{material}-{colour}`: the cap at the foot of each leg (Lame), in the leg
+ * colour or the handles'. Null while the legs are off or when neither colour names a material.
+ */
+export const buildCollectionLegCapSku = (
+  skuProfile: CollectionSkuProfile,
+  productProfile: ProductProfile | null,
+  { value, fallbackColor, readConfiguratorColor }: CollectionLegCapSkuInput,
+): string | null => {
+  const cap = skuProfile.legs?.cap;
+  if (!cap || !value) return null;
+
+  const painted = resolvePaintedColor(
+    skuProfile,
+    productProfile,
+    [
+      ["LegColor", value],
+      [cap.fallbackColorAttributeId, fallbackColor],
+    ],
+    readConfiguratorColor,
+  );
+  if (!painted) return null;
+
+  const colorCode = resolveCollectionColorCode(skuProfile, painted.color);
+  const sku = `${CABINET_CATEGORY}-${skuProfile.cabinet.series}-${cap.code}-${painted.material}`;
+  return colorCode ? `${sku}-${colorCode}` : sku;
 };
 
 export type CollectionUndertopSkuInput = {
@@ -435,15 +506,15 @@ export const buildCollectionUndertopSku = (
   const { undertop } = skuProfile;
   if (!undertop || !hasOwnCountertop(skuProfile) || !value || widthCm == null) return null;
 
-  const colorOf = (attributeId: string, color: string | null) => {
-    const material = color
-      ? resolveCollectionColorMaterial(skuProfile, productProfile, attributeId, color, readConfiguratorColor)
-      : null;
-    return material && color ? { material, color } : null;
-  };
-  const painted =
-    colorOf(undertop.attributeId, value) ??
-    (undertop.fallbackColorAttributeId ? colorOf(undertop.fallbackColorAttributeId, fallbackColor) : null);
+  const painted = resolvePaintedColor(
+    skuProfile,
+    productProfile,
+    [
+      [undertop.attributeId, value],
+      [undertop.fallbackColorAttributeId, fallbackColor],
+    ],
+    readConfiguratorColor,
+  );
   if (!painted) return null;
 
   const colorCode = resolveCollectionColorCode(skuProfile, painted.color);

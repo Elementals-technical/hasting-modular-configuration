@@ -19,6 +19,7 @@ import {
   buildCabinetCoverSku,
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegCapSku,
   buildCollectionLegsSku,
   buildCollectionUndertopSku,
   createConfiguratorColorReader,
@@ -404,18 +405,29 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   }
 
   // 3) Legs: the collection's own number of them, in their colour or the cabinet's, as the whole
-  // composition holds the leg colour.
+  // composition holds the leg colour. Legs spelled by drawer style (Lame) always take the cabinet's
+  // finish; the leg colour is then their caps', one per leg.
   const legs = skuProfile.legs;
   if (legs) {
     const legColor = asText(compositionValueOf(values.LegColor, cabinets[0]?.stableKey));
-    const takesCabinetColor = legColor !== null && legColor === legs.cabinetColorValue;
+    const takesCabinetColor = legColor !== null && (!!legs.byDrawers || legColor === legs.cabinetColorValue);
     const legsSku = buildCollectionLegsSku(skuProfile, profile, {
       color: takesCabinetColor ? (globalValue("CabinetColor") ?? startingCabinetColor) : legColor,
       attributeId: takesCabinetColor ? "CabinetColor" : "LegColor",
+      drawers: cabinets[0] ? readerOf(cabinets[0])("Drawers") : null,
       readConfiguratorColor,
     });
 
     if (legsSku) add({ id: "legs", group: "legs", sku: legsSku, quantity: legs.quantity });
+    const capSku =
+      legsSku && legs.cap
+        ? buildCollectionLegCapSku(skuProfile, profile, {
+            value: legColor,
+            fallbackColor: cabinets[0] ? readerOf(cabinets[0])(legs.cap.fallbackColorAttributeId) : null,
+            readConfiguratorColor,
+          })
+        : null;
+    if (capSku) add({ id: "legCap", group: "legCap", sku: capSku, quantity: legs.quantity });
   }
 
   // 4) Organizers: one per drawer that has a divider style.
