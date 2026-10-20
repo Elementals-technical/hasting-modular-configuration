@@ -8,6 +8,7 @@ import configurator14Document from "./fixtures/remote/configurator-14.json";
 import { parseProductProfile } from "../lib/parseProductProfile";
 import {
   isDrawerStyleMixingRestricted,
+  normalizeOptionValue,
   selectConfiguratorSection,
   selectDefaultValue,
   selectOptionValues,
@@ -20,8 +21,8 @@ import { configuratorSchema } from "../model/schemas";
  * File. Where the Master File conflicts with the price workbook, the workbook wins.
  *
  * Lame is built like Mako but is not Mako: one G58 handle, five cabinet patterns, VA030 instead of the
- * VA023 of the Master File, legs in the cabinet colour with a cap colour of their own. Side panels and
- * the undertop come later, and the legs have no price yet (excludedFromThisProfile).
+ * VA023 of the Master File, legs in the cabinet colour with a cap colour of their own, and an undertop.
+ * Side panels come later, and the legs and the undertop have no price yet (excludedFromThisProfile).
  */
 
 const parsed = parseProductProfile(lameProfileDocument);
@@ -87,6 +88,8 @@ describe("lame product profile", () => {
     ]);
     expect(attribute("CabinetPattern")?.scope).toBe("global");
     expect(selectDefaultValue(profile(), "CabinetPattern")).toBe("Oxford");
+    // The scene spells it with a double t; a saved scene config reads back as the profile's value.
+    expect(normalizeOptionValue(profile(), "CabinetPattern", "Gessatto")).toBe("Gessato");
   });
 
   it("takes the colour catalogs from its own configurator 14 instead of listing them", () => {
@@ -132,6 +135,7 @@ describe("lame product profile", () => {
 
   it("starts from colours the collection offers", () => {
     expect(offeredColours("CabinetColor")).toContain(selectDefaultValue(profile(), "CabinetColor"));
+    expect(offeredColours("HandleColor")).toContain(selectDefaultValue(profile(), "HandleColor"));
     expect(offeredColours("CountertopColor")).toContain(selectDefaultValue(profile(), "CountertopColor"));
     expect(selectOptionValues(profile(), "sinkType")).toContain(selectDefaultValue(profile(), "sinkType"));
   });
@@ -139,6 +143,17 @@ describe("lame product profile", () => {
   // The leg is in the cabinet colour (docx P0251); what is chosen is the colour of its cap (map section 6.6).
   it("turns the legs on without a cap colour and off with nothing, as the Mako toggle does", () => {
     expect(attribute("LegColor")).toMatchObject({ scope: "cabinet", defaultValue: "None", resetValue: "" });
+  });
+
+  // One undertop under the whole composition, Gold, Silver or a matte lacquer (docx P0258): the handle palette.
+  it("turns the undertop of the composition on and off as the legs, in the colours of the handles", () => {
+    expect(attribute("UndertopColor")).toMatchObject({
+      scope: "global",
+      defaultValue: "None",
+      resetValue: "",
+      optionsSource: "configurator:Select Handle Color",
+    });
+    expect(offeredColours("UndertopColor")).toEqual(offeredColours("HandleColor"));
   });
 
   it("has the ten integrated basins of the price workbook, with VA030 rather than VA023", () => {

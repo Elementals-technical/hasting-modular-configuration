@@ -4,6 +4,7 @@ import configurator9 from "@/entities/collection/__tests__/fixtures/remote/confi
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
+import configurator14 from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import {
@@ -19,6 +20,8 @@ import { buildConfiguratorOptions } from "@/features/collectionCustomization/lib
 import { resolveConfiguratorOptions } from "@/features/collectionCustomization/lib/resolveSectionState";
 
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
+import lameProfileDocument from "../../../../public/collections/lame/product-profile.json";
+import lameRuntimeBindingsDocument from "../../../../public/collections/lame/runtime-bindings.json";
 import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
 import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
 import tricotRuntimeBindingsDocument from "../../../../public/collections/tricot/runtime-bindings.json";
@@ -106,7 +109,8 @@ describe.each([
 /**
  * Every colour a collection's own configurator offers, as its bindings send it: Urban Duplex's panel
  * colours under their scene keys (CabinetColor, CabinetColorLateral, the groove and the side shelf's
- * CabinetColor), Tricot's lacquers and Urban Freestanding's grooves, with the countertop, vessel and
+ * CabinetColor), Tricot's lacquers, Urban Freestanding's grooves and Lame's leg caps and undertop
+ * (sent with the switch that shows them), with the countertop, vessel and
  * towel bar colours of each. Unlike Mako and Class no family is left out, so a configurator name the
  * scene spells differently (Sahara Noir Silky Matte TR8, Tricot's capitals, the lacquers Urban
  * Freestanding shares with Tricot) needs an override. Values a binding declares pending
@@ -148,9 +152,22 @@ describe.each([
       "Matte White": "Solid Surface Matte White",
     },
   },
+  {
+    // The leg caps and the undertop come with the switch that shows them, which is no material.
+    collection: "lame",
+    profileDocument: lameProfileDocument,
+    bindingsDocument: lameRuntimeBindingsDocument,
+    configuratorGroups: configurator14.availableOptions,
+    attributeIds: ["HandleColor", "CabinetColor", "LegColor", "UndertopColor", "CountertopColor", "VesselColor"],
+    countertopOverrides: {
+      "BIANCO KOS 250": "Bianco Kos 250",
+      "Matte White": "Solid Surface Matte White",
+    },
+    switchKeys: ["ShowLegs", "ShowUndertop"],
+  },
 ])(
   "$collection colours of its configurator in the scene export",
-  ({ profileDocument, bindingsDocument, configuratorGroups, attributeIds, countertopOverrides }) => {
+  ({ profileDocument, bindingsDocument, configuratorGroups, attributeIds, countertopOverrides, switchKeys = [] }) => {
     const parsedProfile = parseProductProfile(profileDocument);
     const parsedBindings = parseRuntimeBindings(bindingsDocument);
     if (!parsedProfile.ok || !parsedBindings.ok) throw new Error("The profile or the bindings failed validation");
@@ -176,6 +193,7 @@ describe.each([
 
           return [resolution.patch, ...(resolution.also ?? []).map(({ patch }) => patch)]
             .flatMap((patch) => Object.entries(patch))
+            .filter(([sceneKey]) => !switchKeys.includes(sceneKey))
             .filter(([, name]) => !SCENE_MATERIALS.has(String(name)) && !NOT_MATERIALS.includes(String(name)))
             .map(([sceneKey, name]) => `${attributeId}: ${value} -> ${sceneKey} ${String(name)}`);
         }),

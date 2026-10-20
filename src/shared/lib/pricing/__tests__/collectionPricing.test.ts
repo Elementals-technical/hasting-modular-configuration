@@ -1417,6 +1417,33 @@ describe("Lame legs, offered before they have a price", () => {
   });
 });
 
+describe("Lame undertop, offered before it has a price", () => {
+  const order = (undertopColor: string) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        LAME,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } }],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")],
+          HandleColor: [at({ scope: "cabinet", cabinetId: "sb" }, "Nero 433 MT")],
+          UndertopColor: [at({ scope: "global" }, undertopColor)],
+        },
+        { cabinetColor: "Latte 417 MT" },
+      ),
+    );
+  const undertopOf = ({ gaps }: ReturnType<typeof order>) => gaps.filter(({ group }) => group === "undertop");
+
+  it("names the missing price of an undertop, with or without its own colour, but leaves the total complete", () => {
+    for (const undertopColor of ["None", "Gold", "Seta 406 MT"]) {
+      expect(undertopOf(order(undertopColor)), undertopColor).toEqual([
+        expect.objectContaining({ blocksTotal: false, owner: "product" }),
+      ]);
+    }
+    // No undertop: nothing to say.
+    expect(undertopOf(order(""))).toEqual([]);
+  });
+});
+
 describe("Class and Mako reference orders", () => {
   it.each(Object.keys(EXPECTED) as CollectionPricingScenarioId[])(
     "the server charges the workbook price of every SKU of %s",

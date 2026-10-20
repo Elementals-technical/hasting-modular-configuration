@@ -274,6 +274,7 @@ export const pricingGapGroupSchema = z.enum([
   "openSideShelf",
   "sidePanel",
   "towelBar",
+  "undertop",
 ]);
 
 const skuCodesSchema = z.object({ attributeId: z.string(), codes: stringMapSchema }).strict();

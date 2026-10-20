@@ -23,6 +23,7 @@
   "defaults": {
     "CabinetColor": "Antracite 400 MT",
     "CabinetPattern": "Oxford",
+    "HandleColor": "Antracite 400 MT",
     "CountertopColor": "Matte White",
     "CountertopStyle": "integrated",
     "sinkType": "LB440"
@@ -121,7 +122,8 @@
         {
           "value": "Gessato",
           "label": "Gessato",
-          "order": 20
+          "order": 20,
+          "aliases": ["Gessatto"]
         },
         {
           "value": "Oxford",
@@ -146,6 +148,13 @@
       "defaultValue": "None",
       "resetValue": "",
       "optionsSource": "configurator:Select Leg Cap Color"
+    },
+    {
+      "attributeId": "UndertopColor",
+      "scope": "global",
+      "defaultValue": "None",
+      "resetValue": "",
+      "optionsSource": "configurator:Select Handle Color"
     },
     {
       "attributeId": "CountertopStyle",
@@ -359,12 +368,12 @@
   },
   "excludedFromThisProfile": {
     "sourceRefs": "Configurator 14 (modular-config-phase-2-materials-(Lame)), cabinet table 596 (matrix-cabinet-lame) and countertop table 597 (matrix-coutnertop-lame) come from the manifest. Configurator 14 holds the Lame palettes only (40 cabinet, 22 handle, 70 thin countertop, 40 vessel and 22 leg cap colours); the two tables hold Lame data only.",
-    "scene": "The PlayCanvas export has no Lame product (checked 2026-10-07, also the phase-2/staging export 1307fc13). Lame is registered with runtime bindings that hold both cabinet types back (unplacedProductTypes), so the builder shows no card and the models are not placed until the export places Lame cabinets; the bindings then follow its scene keys.",
+    "scene": "The PlayCanvas export places Lame-sink-cabinet and Lame-side-cabinet since 2026-10-15 (export v66, its Lame README in files/assets/311408289); the runtime bindings follow its keys. Not in the export yet: Lame side panels, dividers in the Lame drawers, a room offset for Lame and a countertop cover (Lame is not in its countertop collections); Depth changes no geometry.",
     "handle": "Confirmed: one handle, G58, in every cabinet SKU (map section 3, xlsx CabinetPricing!A7-A117). There is no Handle Style option; its 3D model and size are not given (LAME-STY-01).",
     "cabinetPattern": "Confirmed: five patterns, one per composition, no None (Block2 Q0063, Q0069, Q0074; block2#17). A pattern is a token of the cabinet SKU and does not change the price. Oxford starts the composition: the price workbook spells its examples with OXF and the client site names the quilted front of the models Oxford (inference). Pattern pictures and orientation are not given (GEN-STY-01).",
-    "legs": "Confirmed: legs for 1DW and 2DW in the cabinet colour, with a cap colour of their own (Gold, Silver or the 20 MT lacquers) and four heights by countertop style and drawers (map section 6.6). Offered as Mako offers its legs (team, 2026-10-07): LegColor turns them on (\"None\" until a cap colour is chosen) and off (\"\"), and holds the colour of the cap, one of the 22 of configurator 14 (Select Leg Cap Color, the Master File's Leg Cap Color); the leg itself has no colour to choose (docx P0251). Not priced yet, and an order on legs says so: their SKU has no colour or width (VAN-LAMEV-LEG/2DW-12.4H), vessel heights have no SKU, whether a SKU is per cabinet is open, and the cap (VAN-LAMEV-LEGCAP-, $0) has no colour suffix (LAME-ACC-01, LAME-ACC-02, LAME-ACC-03, LAME-ACC-05). The models whose titles name legs carry none yet.",
+    "legs": "Confirmed: legs for 1DW and 2DW in the cabinet colour, with a cap colour of their own (Gold, Silver or the 20 MT lacquers) and four heights by countertop style and drawers (map section 6.6). Offered as Mako offers its legs (team, 2026-10-07): LegColor turns them on (\"None\" until a cap colour is chosen) and off (\"\"), and holds the colour of the cap, one of the 22 of configurator 14 (Select Leg Cap Color, the Master File's Leg Cap Color); the leg itself has no colour to choose (docx P0251). Not priced yet, and an order on legs says so: their SKU has no colour or width (VAN-LAMEV-LEG/2DW-12.4H), vessel heights have no SKU, whether a SKU is per cabinet is open, and the cap (VAN-LAMEV-LEGCAP-, $0) has no colour suffix (LAME-ACC-01, LAME-ACC-02, LAME-ACC-03, LAME-ACC-05). The scene stands the whole composition on one pair of legs, the leg chosen by Height, and paints the caps in the handle colour while none is chosen (export v66); the four heights of the map are not modelled. The models whose titles name legs stand on them without a cap colour (LegColor \"None\").",
     "sidePanels": "Confirmed: Yes or No, 5 cm, in the cabinet pattern, own SKU VAN-LAMEV-SP (map section 6.5). Not in this profile yet: one panel or a pair, which side, and the colour token are open (LAME-SP-01, GEN-SP-01).",
-    "undertop": "Confirmed: an optional recessed top, Gold or Silver (MTL) or matte lacquer (LACM), priced per cm of the composition with its side panels, not with a 60 cm Sink Base (docx P0258). Not in this profile yet: whether the 60 cm rule means the Sink Base or any cabinet, and the colour of LACM are open (LAME-ACC-04, LAME-ACC-06).",
+    "undertop": "Confirmed: an optional recessed top, Gold or Silver (MTL) or matte lacquer (LACM), priced per cm of the composition with its side panels, not with a 60 cm Sink Base (docx P0258). Offered as the legs are (team, 2026-10-20): UndertopColor turns it on (\"None\", in the handle colour, until a colour is chosen) and off (\"\"), in the 22 colours of the handle palette, which are the MTL and LACM finishes (inference). Not priced: whether the 60 cm rule means the Sink Base or any cabinet, and the colour of LACM are open (LAME-ACC-04, LAME-ACC-06); an order with it says so (sku-profile gap undertop).",
     "matteWhite8cm": "Listed in the Master File (L128) but Lame has thin countertops only (xlsx CountertopPricing!I5); configurator 14 does not offer it either (LAME-DAT-02).",
     "va023": "Listed in the Master File (L202) but bound to the thick 3.1\" Technomat top; the Lame price workbook has VA030 for SS Texturizzato instead (xlsx Basin StylePricing!A2:A36), which this profile offers.",
     "vesselArtDiamond": "Named in the WebGL Logic (P0274, P0275) but without a picture, size, finish or SKU; hidden until the product gives them (LAME-TOP-01, LAME-TOP-04).",
@@ -373,8 +382,8 @@
     "countertopDepth": "The countertop SKU spells 20.7\" (52.6 cm), the cabinets 20.5\" (52 cm); the table keeps 52 cm (LAME-TOP-02).",
     "compositionLimits": "Confirmed: at most 220 cm, at most two Sink Bases, cabinets abut only, one drawer style per composition (P0223-P0227). Only the drawer style is expressed (drawerStyleGroups).",
     "floating": "Mentioned like Urban Low Height, but it needs a thick countertop and Lame has thin ones only, so no floating option is valid today (GEN-TOP-23).",
-    "defaults": "Not described. The models start in Antracite 400 MT with a white Solid Surface top and an integrated basin, as the pre-render thumbnails show them (inference); LB440 is the first basin the price list gives that top.",
-    "presets": "43 of the 44 Master File models. Their compositions are read from the pre-render thumbnails, since no document describes them (GEN-MOD-01). The thumbnail of Lame 79 2DW w/leg_70 (L37) does not exist in the pre-render, so that model is left out. Lame 63 2DW_60 (L28) and Lame 63 2DW w/leg_60 (L30) are tagged by what the thumbnail shows: one basin and two basins, not the filters the Master File gives them.",
+    "defaults": "Not described. The models start in Antracite 400 MT, with handles in Antracite 400 MT too, with a white Solid Surface top and an integrated basin, as the pre-render thumbnails show them (inference); LB440 is the first basin the price list gives that top. A cabinet of the builder starts in the same handle colour, rather than the scene's Antracite Matte OCF.",
+    "presets": "43 of the 44 Master File models. Their compositions are read from the pre-render thumbnails, since no document describes them (GEN-MOD-01). The thumbnail of Lame 79 2DW w/leg_70 (L37) does not exist in the pre-render, so that model is left out. Lame 63 2DW_60 (L28) and Lame 63 2DW w/leg_60 (L30) are tagged by what the thumbnail shows: one basin and two basins, not the filters the Master File gives them. Every model carries the starting pattern, Oxford, which the scene would otherwise lay as Galles; the models whose titles name legs stand on them.",
     "faucetHolesOnGlass": "0 to 3 holes for every material as GB and the Class price list give them; USH allows 0 or 1 on glass (GEN-TOP-02)."
   }
 }

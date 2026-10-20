@@ -84,6 +84,13 @@ describe("Lame cabinet SKU", () => {
       26,
       "VAN-LAMEV-SC/1DW/G58/PIQ-47.2W-10.2H-20.5D",
     ],
+    // The scene's spelling of Gessato, as a saved scene config carries it.
+    [
+      { CabinetType: "Sink-Cabinet", Drawers: "2", CabinetPattern: "Gessatto" },
+      60,
+      52,
+      "VAN-LAMEV-SC/2DW/G58/GES-23.6W-20.5H-20.5D",
+    ],
   ])("spells the CabinetPricing row of %o at %i x %i cm", (values, widthCm, heightCm, sku) => {
     expect(cabinet(values, widthCm, heightCm).sku).toBe(sku);
   });
