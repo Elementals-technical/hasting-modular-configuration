@@ -43,6 +43,7 @@ const PLAYER_MENU_ITEMS: Record<PlayerMenuItemId, PlayerMenuItemSpec> = {
   delete: {},
   "countertop-color": { leadsTo: { attributeId: "CountertopColor" } },
   "countertop-thickness": { leadsTo: { attributeId: "Thickness" } },
+  "countertop-length": {},
   "countertop-style": { leadsTo: { attributeId: "CountertopStyle" } },
   "basin-style": { leadsTo: { attributeId: "sinkType" } },
   "countertop-position": {},

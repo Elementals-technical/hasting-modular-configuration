@@ -6,7 +6,11 @@ import type { CountertopApi, CountertopState } from "@/features/configuratorApi"
 import { getCountertopRuntimeState, setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
 import { buildCountertopPositionItems } from "../lib/positionMenuItems";
-import { resolveMovementMode, useCountertopMovementMode } from "../lib/useCountertopMovementMode";
+import {
+  isLengthResizableThickness,
+  resolveMovementMode,
+  useCountertopMovementMode,
+} from "../lib/useCountertopMovementMode";
 import { COUNTERTOP_MODE_NOTICE_MS, CountertopModeNotice } from "../ui/CountertopModeNotice";
 
 const thickness = vi.hoisted(() => ({ current: "" }));
@@ -68,6 +72,30 @@ describe("resolveMovementMode", () => {
     expect(resolveMovementMode("", 0.130175)).toBe("free");
     expect(resolveMovementMode("3", null)).toBeNull();
     expect(resolveMovementMode(undefined, null)).toBeNull();
+  });
+});
+
+describe("isLengthResizableThickness", () => {
+  it("4″, 5⅛″ and 5½″ only (2.4″ moves but has no Length); the option first, metres as a fallback", () => {
+    for (const thick of ["4", "5.125", "5-1/8", "5.5", "5-1/2"])
+      expect(isLengthResizableThickness(thick, null)).toBe(true);
+    for (const other of ["2.4", "2.375", "0.375", "0.4", "0.5", "3"])
+      expect(isLengthResizableThickness(other, 0.1016)).toBe(false);
+    expect(isLengthResizableThickness("", 0.1016)).toBe(true);
+    // A 4″ mesh may measure as 0.1 m (3.94″).
+    expect(isLengthResizableThickness(undefined, 0.1)).toBe(true);
+    expect(isLengthResizableThickness(undefined, 0.06096)).toBe(false);
+    expect(isLengthResizableThickness(undefined, null)).toBe(false);
+  });
+
+  it("is what the hook reports for the selected thickness", () => {
+    const { getApi } = fakeApi();
+    thickness.current = "5-1/8";
+    const hook = renderHook(() => useCountertopMovementMode(getApi, true));
+    expect(hook.result.current.lengthResizable).toBe(true);
+    thickness.current = "2.4";
+    hook.rerender();
+    expect(hook.result.current.lengthResizable).toBe(false);
   });
 });
 

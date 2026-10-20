@@ -69,4 +69,27 @@ describe("applyPlayerMenuSupport", () => {
 
     expect(resize.children?.[0].children?.[0].id).toBe("resize-width-60");
   });
+
+  it("filters the countertop's Resize by its own items, not by the cabinets' Resize", () => {
+    const countertopResize: DropdownItem[] = [
+      {
+        id: "countertop-resize",
+        label: "Resize",
+        children: [
+          { id: "countertop-thickness", label: "Thickness", children: [{ id: '4"', label: '4"' }] },
+          { id: "countertop-length", label: "Length" },
+        ],
+      },
+    ];
+    const without = (...hidden: PlayerMenuItemId[]) =>
+      ids(
+        applyPlayerMenuSupport(countertopResize, supporting(PLAYER_MENU_ITEM_IDS.filter((id) => !hidden.includes(id)))),
+      );
+
+    expect(without("resize")).toEqual([
+      { "countertop-resize": [{ "countertop-thickness": ['4"'] }, "countertop-length"] },
+    ]);
+    expect(without("countertop-length")).toEqual([{ "countertop-resize": [{ "countertop-thickness": ['4"'] }] }]);
+    expect(without("countertop-thickness", "countertop-length")).toEqual([]);
+  });
 });

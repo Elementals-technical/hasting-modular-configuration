@@ -144,6 +144,7 @@ import {
   buildCountertopPositionItems,
   isCountertopSettingsMode,
 } from "@/features/countertopPlacement/lib/positionMenuItems";
+import { buildCountertopResizeItems } from "@/features/countertopPlacement/lib/resizeMenuItems";
 import { resolveCountertopLengthLimitsIn } from "@/features/countertopPlacement/lib/countertopLength";
 import {
   resolveCabinetTypeOfRuntimeId,
@@ -692,6 +693,7 @@ export const PlayCanvasIntegration = ({
   }, [activeCollectionId, countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, offersCabinetCovers, publishCabinetCovers, publishCountertopSize]);
   const countertopMovement = useCountertopMovementMode(getCountertopApi, isPlayCanvasReady);
   const countertopMovementMode = countertopMovement.mode;
+  const countertopLengthResizable = countertopMovement.lengthResizable;
   useEffect(() => {
     if (!isPlayCanvasReady || countertopPlacementStatus.editing) return;
     let disposed = false;
@@ -3753,6 +3755,12 @@ export const PlayCanvasIntegration = ({
       },
       countertopMovementMode,
     );
+    // Resize ▸ Thickness | Length: Length opens the Drag & Drop overlay with the top's body held in place.
+    const resizeItems = (thickness: DropdownItem) =>
+      buildCountertopResizeItems(thickness, countertopDragStatus, countertopLengthResizable, () => {
+        closeCountertopMenus();
+        countertopDragRef.current?.enterLength();
+      });
     const placementItems: DropdownItem[] = countertopSettingsMode && countertopPlacementStatus.supported
       ? [
           {
@@ -3777,12 +3785,12 @@ export const PlayCanvasIntegration = ({
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleCountertopColorFromPrebuilt,
         },
-        {
+        ...resizeItems({
           id: "countertop-thickness",
           label: "Thickness",
           trailing: <ArrowTopRight color={"#333"} />,
           onClick: handleCountertopThicknessFromPrebuilt,
-        },
+        }),
         {
           id: "countertop-style",
           label: "Countertop Style",
@@ -3813,7 +3821,7 @@ export const PlayCanvasIntegration = ({
           },
         ],
       },
-      {
+      ...resizeItems({
         id: "countertop-thickness",
         label: "Thickness",
         children: thicknessOptions.map((value) => {
@@ -3824,7 +3832,7 @@ export const PlayCanvasIntegration = ({
             onClick: () => handleCountertopThicknessSelect(value),
           };
         }),
-      },
+      }),
       {
         id: "countertop-style",
         label: "Countertop Style",
@@ -3854,6 +3862,7 @@ export const PlayCanvasIntegration = ({
   }, [
     countertopPlacementStatus,
     countertopDragStatus,
+    countertopLengthResizable,
     countertopMovementMode,
     countertopSettingsMode,
     isPrebuilt,

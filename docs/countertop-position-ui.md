@@ -1,6 +1,7 @@
 # Countertop Position UI (Drag & Drop)
 
-Selected countertop menu: Color, Thickness, Countertop Style, Basin Style, **Position ▸ Standard | Drag & Drop**.
+Selected countertop menu: Color, **Resize ▸ Thickness | Length**, Countertop Style, Basin Style,
+**Position ▸ Standard | Drag & Drop**.
 The metre-based "Position & Size" modal (`CountertopPlacementControls`) is test mode only: it and its
 menu item render only with `?countertopSettings`.
 
@@ -14,6 +15,11 @@ menu item render only with `?countertopSettings`.
   - **Apply** — `setDragEnabled(false)`, `whenSettled()`, sync (`syncCommittedCountertop`), overlay off.
   - **Cancel / ×** — `restoreCountertopSnapshot` (shared with the modal): offset (or attached position),
     custom length, drag flag; each step verified. Overlay off.
+- **Length** (`Resize ▸ Length`, `CountertopDragModeHandle.enterLength`) — the same session and overlay
+  without `setDragEnabled(true)`: the end handles change the length, the top's body stays where it is.
+  No layout intro. Apply, Cancel and the history are those of Drag & Drop. Offered only for a thick top
+  (4″, 5⅛″, 5½″: `isLengthResizableThickness`), and, like Position, only where `CountertopDragMode` runs
+  (Urban Low Height, Urban Duplex), in Prebuilt as in Custom. Elsewhere Resize holds Thickness alone.
 - Cabinet Drag & Drop and countertop Drag & Drop block each other (`externalBusy` / `disabled`).
 
 ## History
@@ -59,9 +65,10 @@ length chip at `lengthLabel` (fallback `topCenter`), depth chip 28 px right of `
 - No scene command takes a typed length with an alignment, or a depth, yet: Apply only closes the
   popover, nothing is sent and the session stays open. The chips are disabled while a command runs or
   the top is dragged.
-- Handles resize symmetrically: `newLength = startLength ± 2·(pointer delta · axiŝ)/pxPerMetre`
-  (`+` right handle, `−` left), where `lengthAxisPx` is the screen vector of one metre along the length
-  axis (fallback: `(rightEnd − leftEnd) / lengthM`). rAF-throttled, clamped to the limits.
+- Handles resize from their own end, the other end fixed: the pointer asks
+  `countertopOverlay.lengthAtPointer(side, point, { snap: true })` (rAF-throttled, one request in flight),
+  the ghost follows `previewLength`, and release sends `countertop.resizeFrom(side, lengthM)` within
+  `getState().resizeBoundsM[side]`. They work on a standard (attached) top too; it then counts as moved.
 - Displayed inches are rounded to 0.1 without a trailing `.0` (1 in = 0.0254 m): 0.6 m → `23.6″`,
   1.2192 m → `48″`, 1.651 m → `65″`. Chip, presets, `Set …″` pill, popover Min/Max and the handle
   tooltip all use `metresToDisplayInches` + `formatInches` from `lib/countertopLength.ts`.
