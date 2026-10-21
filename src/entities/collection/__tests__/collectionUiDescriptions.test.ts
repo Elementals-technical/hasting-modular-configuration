@@ -14,7 +14,7 @@ import ushProfile from "../../../../public/collections/urban-standard-height/pro
 import ushUi from "../../../../public/collections/urban-standard-height/ui.json";
 import { CUSTOMIZATION_FLOW_IDS, type CustomizationSchema } from "../model/customizationSchema";
 import { parseProductProfile } from "../lib/parseProductProfile";
-import { selectAttribute } from "../lib/productProfileSelectors";
+import { selectAttribute, selectOptionValues } from "../lib/productProfileSelectors";
 import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
 
 /**
@@ -87,6 +87,17 @@ describe.each(collections)("%s ui.json", (...documents) => {
         expect(attribute?.defaultValue, `${sectionId}.${attributeId} has no value for On`).toBeDefined();
         expect(attribute?.resetValue, `${sectionId}.${attributeId} has no value for Off`).toBeDefined();
       }
+    }
+  });
+
+  it("gives the models of its cabinet style cards only heights its profile offers", () => {
+    const offered = selectOptionValues(profile, "Height").map(Number);
+
+    for (const { id, heights } of schema.cabinetStyle?.heightStyles ?? []) {
+      expect(
+        heights.filter((height) => !offered.includes(height)),
+        `cabinetStyle.heightStyles.${id}`,
+      ).toEqual([]);
     }
   });
 });

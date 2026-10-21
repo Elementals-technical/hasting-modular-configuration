@@ -497,6 +497,44 @@ describe("validateCustomizationSchema", () => {
     }
   });
 
+  it("accepts the height models of the cabinet style cards", () => {
+    for (const cabinetStyle of [
+      {},
+      {
+        heightStyles: [
+          { id: "standard", heights: [38, 35] },
+          { id: "slim", label: "Slim", heights: [28, 25] },
+        ],
+      },
+    ]) {
+      expect(validateCustomizationSchema({ ...uiJson, cabinetStyle }).ok).toBe(true);
+    }
+  });
+
+  it("rejects a height model without an id, a label or heights of its own", () => {
+    const standard = { id: "standard", heights: [38, 35] };
+
+    for (const [cabinetStyle, dataPath] of [
+      [[], "cabinetStyle"],
+      [{ heightStyles: {} }, "cabinetStyle.heightStyles"],
+      [{ heightStyles: [{ id: "", heights: [38] }] }, "cabinetStyle.heightStyles[0].id"],
+      [{ heightStyles: [standard, { id: "standard", heights: [28] }] }, "cabinetStyle.heightStyles[1].id"],
+      [{ heightStyles: [standard, { id: "slim", label: "", heights: [28] }] }, "cabinetStyle.heightStyles[1].label"],
+      [{ heightStyles: [standard, { id: "slim", label: 3, heights: [28] }] }, "cabinetStyle.heightStyles[1].label"],
+      [{ heightStyles: [{ id: "slim", heights: [] }] }, "cabinetStyle.heightStyles[0].heights"],
+      [{ heightStyles: [{ id: "slim", heights: ["28"] }] }, "cabinetStyle.heightStyles[0].heights"],
+      [{ heightStyles: [{ id: "slim", heights: [0] }] }, "cabinetStyle.heightStyles[0].heights"],
+      // A height stands for one card: the composition at 35 cm cannot be of two models.
+      [{ heightStyles: [standard, { id: "slim", heights: [35, 25] }] }, "cabinetStyle.heightStyles[1].heights[0]"],
+    ] as const) {
+      const result = validateCustomizationSchema({ ...uiJson, cabinetStyle });
+
+      expect(result.ok, dataPath).toBe(false);
+      if (result.ok) return;
+      expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-schema", dataPath }));
+    }
+  });
+
   it("rejects a non-object input", () => {
     const result = validateCustomizationSchema(null);
 
