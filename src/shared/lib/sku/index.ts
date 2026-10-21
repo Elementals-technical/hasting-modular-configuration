@@ -29,7 +29,9 @@ export { createSkuBuilders, type SkuBuilders } from "./createSkuBuilders";
 export {
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegCapSku,
   buildCollectionLegsSku,
+  buildCollectionUndertopSku,
   isChosenColor,
   OPEN_SIDE_SHELF_SIDE,
   resolveCollectionColorCode,

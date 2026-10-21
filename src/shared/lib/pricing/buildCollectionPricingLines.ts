@@ -15,11 +15,14 @@ import {
   type ValueTarget,
 } from "@/entities/configuration";
 import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
+import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
   buildCabinetCoverSku,
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
+  buildCollectionLegCapSku,
   buildCollectionLegsSku,
+  buildCollectionUndertopSku,
   createConfiguratorColorReader,
   extractColorCode,
   isChosenColor,
@@ -222,6 +225,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       widthCm: size?.width ?? null,
       heightCm: size?.height ?? null,
       depthCm: size?.depth ?? null,
+      cabinetRule: findCabinetRule(input.cabinetCatalog, cabinetTypeOf(entry.runtimeId)),
       readConfiguratorColor,
     });
 
@@ -308,6 +312,18 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         quantity: countertop.bracket.quantity,
       });
     }
+    // The undertop runs along the whole composition, so it is priced per cm of its width; while it
+    // names no colour of its own it is the handles' colour, as the scene paints it.
+    if (skuProfile.undertop && cabinets.length > 0) {
+      const { attributeId, fallbackColorAttributeId } = skuProfile.undertop;
+      const undertopSku = buildCollectionUndertopSku(skuProfile, profile, {
+        value: globalValue(attributeId),
+        fallbackColor: fallbackColorAttributeId ? readerOf(cabinets[0])(fallbackColorAttributeId) : null,
+        widthCm: ownCompositionWidthCm,
+        readConfiguratorColor,
+      });
+      if (undertopSku) add({ id: "undertop", group: "undertop", sku: undertopSku, quantity: 1 });
+    }
     // The vessel of each sink base of a vessel top, even before a colour prices the top and its cutout.
     // Sink bases with the same vessel in the same colour order it once, as many pieces as there are;
     // Summary reads the first.
@@ -391,18 +407,29 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
   }
 
   // 3) Legs: the collection's own number of them, in their colour or the cabinet's, as the whole
-  // composition holds the leg colour.
+  // composition holds the leg colour. Legs spelled by drawer style (Lame) always take the cabinet's
+  // finish; the leg colour is then their caps', one per leg.
   const legs = skuProfile.legs;
   if (legs) {
     const legColor = asText(compositionValueOf(values.LegColor, cabinets[0]?.stableKey));
-    const takesCabinetColor = legColor !== null && legColor === legs.cabinetColorValue;
+    const takesCabinetColor = legColor !== null && (!!legs.byDrawers || legColor === legs.cabinetColorValue);
     const legsSku = buildCollectionLegsSku(skuProfile, profile, {
       color: takesCabinetColor ? (globalValue("CabinetColor") ?? startingCabinetColor) : legColor,
       attributeId: takesCabinetColor ? "CabinetColor" : "LegColor",
+      drawers: cabinets[0] ? readerOf(cabinets[0])("Drawers") : null,
       readConfiguratorColor,
     });
 
     if (legsSku) add({ id: "legs", group: "legs", sku: legsSku, quantity: legs.quantity });
+    const capSku =
+      legsSku && legs.cap
+        ? buildCollectionLegCapSku(skuProfile, profile, {
+            value: legColor,
+            fallbackColor: cabinets[0] ? readerOf(cabinets[0])(legs.cap.fallbackColorAttributeId) : null,
+            readConfiguratorColor,
+          })
+        : null;
+    if (capSku) add({ id: "legCap", group: "legCap", sku: capSku, quantity: legs.quantity });
   }
 
   // 4) Organizers: one per drawer that has a divider style.

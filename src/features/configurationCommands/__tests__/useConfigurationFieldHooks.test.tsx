@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
@@ -18,20 +18,27 @@ import {
 } from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
-import { getBookMatching, getFaucetHolesAmount } from "@/entities/product/model/store/selectors";
+import {
+  getActiveCountertopThickness,
+  getBookMatching,
+  getFaucetHolesAmount,
+} from "@/entities/product/model/store/selectors";
 import {
   reset,
   setActiveCabinetType,
+  setActiveCountertopThickness,
   setActiveProfile,
   setBookMatching,
   setCabinetCatalog,
   setCabinetColorMaterial,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
+import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop";
 import { createPlayCanvasRuntimePort, createTestRuntimePort, type SceneBridge } from "@/features/playCanvasAdapter";
 
 import { useAttributeChangeHandler } from "../hooks/useAttributeChangeHandler";
 import { useAvailabilityResets } from "../hooks/useAvailabilityResets";
+import { useDefaultCountertopThickness } from "../hooks/useDefaultCountertopThickness";
 import { resolveChangeRequest } from "../lib/resolveChangeRequest";
 import { readyCollectionFixture } from "./readyCollectionFixture";
 
@@ -96,6 +103,8 @@ beforeEach(() => {
   store.dispatch(setSelectedProductConfig({ Drawers: "1D", Handle: "handle_urban_topcut" }));
   store.dispatch(syncCabinets(["runtime-a", "runtime-b"]));
 });
+
+afterEach(cleanup);
 
 describe("resolveChangeRequest", () => {
   it("addresses a value at the scope its attribute declares", () => {
@@ -253,5 +262,62 @@ describe("useAvailabilityResets", () => {
     await act(async () => Promise.resolve());
 
     expect(runtime.calls).toHaveLength(0);
+  });
+});
+
+describe("useDefaultCountertopThickness", () => {
+  /** One row of the countertop matrix: for HPL its first thickness is the default. */
+  const hplRule: CountertopMatrixRule = {
+    material: "HPL",
+    topThicknesses: ["0.5", "4"],
+    depths: [],
+    depthsByStyle: {},
+    basinStyle: "",
+    minSbCm: null,
+    minVesselCm: null,
+    maxIntegratedCm: null,
+    maxVesselCm: null,
+    maxUndermountCm: null,
+    faucetHoles: [],
+    depthOnlyCm: [],
+    allowedFinishes: [],
+    allowMultiCabinet: null,
+    sidePanelsAction: null,
+    integratedAllowedSizesOnly: [],
+  };
+  const countertop = { rules: [hplRule], activeMaterialTokens: ["HPL"], width: null, depth: null };
+
+  it("sets the thickness the rules give first while none is set", async () => {
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useDefaultCountertopThickness(countertop, { runtime: runtime.port }), { wrapper });
+
+    await waitFor(() => expect(getActiveCountertopThickness(store.getState())).toBe("0.5"));
+    expect(runtime.calls[0][0]).toMatchObject({
+      attributeId: "Thickness",
+      value: "0.5",
+      target: { scope: "countertop" },
+    });
+  });
+
+  it("leaves the thickness to a restore that is running", async () => {
+    // The restore brings the saved thickness with the countertop it was saved with; a default sent
+    // before it lands makes the countertop thin and resets the length the user dragged.
+    store.dispatch(startRestore("saved-1"));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useDefaultCountertopThickness(countertop, { runtime: runtime.port }), { wrapper });
+    await act(async () => Promise.resolve());
+
+    expect(runtime.calls).toHaveLength(0);
+
+    act(() => {
+      store.dispatch(setActiveCountertopThickness("4"));
+      store.dispatch(finishRestore({ status: "restored", reason: null, message: null }));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(runtime.calls).toHaveLength(0);
+    expect(getActiveCountertopThickness(store.getState())).toBe("4");
   });
 });

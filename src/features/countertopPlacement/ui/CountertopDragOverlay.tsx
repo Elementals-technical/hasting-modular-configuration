@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import clsx from "clsx";
 
 import type {
@@ -19,6 +19,9 @@ import { CountertopDimensionPopover } from "./CountertopDimensionPopover/Counter
 import { CountertopResizeHandles } from "./CountertopResizeHandles";
 
 import s from "./CountertopDragMode.module.scss";
+
+/** How long the length hint stays before it fades, unless a drag ends it sooner. */
+export const COUNTERTOP_LENGTH_HINT_MS = 4000;
 
 type Props = {
   store: CountertopOverlayStore;
@@ -55,7 +58,8 @@ const actionAnchor = (frame: CountertopOverlayFrame) => {
  * length / depth chips, the resize handles at both ends and Apply + × under the bottom-right corner.
  * The length changes through the end handles (client §17), which also work on a standard (attached)
  * top and take their limits from `getState().resizeBoundsM`. The ✎ of a chip opens its popover
- * (`CountertopDimensionPopover`): Length with Align, or Depth alone; one at a time.
+ * (`CountertopDimensionPopover`): Length with Align, or Depth alone; one at a time. The hint under the
+ * length chip fades after `COUNTERTOP_LENGTH_HINT_MS`, or at the first drag of the top or of an end.
  * The tint is drawn by PlayCanvas; the layer takes pointer input only on its controls.
  */
 export function CountertopDragOverlay({
@@ -78,6 +82,21 @@ export function CountertopDragOverlay({
   // closes it, nothing is sent and the session goes on as it was.
   const closeEditor = useCallback(() => setOpenEditor(null), []);
   const toggleEditor = (editor: DimensionEditor) => setOpenEditor((open) => (open === editor ? null : editor));
+  const [hintFaded, setHintFaded] = useState(false);
+  // The layer mounts with each session, so the hint shows once per session; the listener sees every
+  // frame, the first one of a drag included.
+  useEffect(() => {
+    const fade = () => setHintFaded(true);
+    const timer = window.setTimeout(fade, COUNTERTOP_LENGTH_HINT_MS);
+    const stop = store.subscribe(() => {
+      const next = store.get();
+      if (next?.dragging || next?.preview) fade();
+    });
+    return () => {
+      window.clearTimeout(timer);
+      stop();
+    };
+  }, [store]);
 
   if (!frame?.points) return null;
   const points = frame.points;
@@ -140,7 +159,11 @@ export function CountertopDragOverlay({
           >
             {formatInches(lengthIn)} <EditIcon />
           </button>
-          <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}>
+          <p
+            className={clsx(s.message, s.lengthHint, hintFaded && s.lengthHintFaded)}
+            style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}
+            aria-hidden={hintFaded || undefined}
+          >
             Drag the ends to change the length
           </p>
           {openEditor === "length" && frame.lengthM !== null && (

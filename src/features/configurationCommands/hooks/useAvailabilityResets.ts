@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 
 import { selectInitialValue } from "@/entities/collection";
-import { getActiveProductProfile, getCabinetEntries, getRestoreState } from "@/entities/configuration";
-import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
+import { getActiveProductProfile, getCabinetEntries } from "@/entities/configuration";
+import { getIsRestoreOrUndoRunning } from "@/entities/history/model/store/selectors";
 import { getBookMatching } from "@/entities/product/model/store/selectors";
 import {
   selectBookMatchingState,
@@ -36,9 +36,7 @@ export const useAvailabilityResets = ({ runtime }: UseChangeAttributeOptions = {
   const { change, getState } = useChangeAttribute({ runtime });
   const isSceneReady = usePlayCanvasReady();
   const profile = useAppSelector(getActiveProductProfile);
-  const isRestoring = useAppSelector(
-    (state) => getRestoreState(state).status === "restoring" || getIsHistoryRestoring(state),
-  );
+  const isRestoring = useAppSelector(getIsRestoreOrUndoRunning);
   const isFlutingAvailable = useAppSelector(selectFlutingState).available;
   const isGrainAvailable = useAppSelector(selectGrainDirectionState).available;
   const isBookMatchingEnabled = useAppSelector(selectBookMatchingState).enabled;

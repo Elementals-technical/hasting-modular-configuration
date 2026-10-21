@@ -17,9 +17,9 @@ import {
   isIntegratedCountertopDepthRestrictedByMaterial,
   REASON_SYNTESI_SINGLE_CABINET,
   REASON_VESSEL_COLOR_UNAVAILABLE,
+  useCountertopLength,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { useSceneTotalWidthWithSidePanels } from "@/features/sidePanel";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 
@@ -50,7 +50,8 @@ export const useCountertopContext = () => {
   const cabinetEntries = useAppSelector(getCabinetEntries);
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const countertopRules = useCountertopRules();
-  const sceneTotalWidth = useSceneTotalWidthWithSidePanels(selectedProducts, null);
+  // The countertop's own length: on a multi-level composition, not the cabinets under cabinet covers.
+  const sceneTotalWidth = useCountertopLength(selectedProducts, null).withSidePanels;
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   const { activeMaterialTokens, ...ruleState } = useCountertopRuleState();
 

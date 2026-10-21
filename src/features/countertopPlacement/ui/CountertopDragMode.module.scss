@@ -150,12 +150,26 @@ button.chip {
   background: $colliding;
 }
 
-// Length chip of a remote top: − value ✎ ▾ + in one pill.
+// Hint under the length chip; `.lengthHintFaded` fades it out for the rest of the session.
 .lengthHint {
   position: absolute;
   color: $ink;
   white-space: nowrap;
   transform: translateX(-50%);
+}
+
+.lengthHintFaded {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s linear 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lengthHintFaded {
+    transition: none;
+  }
 }
 
 .handle {

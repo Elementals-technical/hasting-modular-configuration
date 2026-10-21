@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 
 import { useAppSelector } from "@/shared/hooks/store/redux";
+import { getDimensionsByCabinet } from "@/entities/configuration";
 import {
   getSelectedProducts,
   getSelectedDimensions,
@@ -8,6 +9,7 @@ import {
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
   getActiveCountertopThickness,
+  getCompositionVersion,
 } from "@/entities/product/model/store/selectors";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import {
@@ -29,6 +31,9 @@ export function useFullDimensionsRefresh(
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
+  // A move, a swap or one cabinet's new size changes the overall box without changing the ids.
+  const compositionVersion = useAppSelector(getCompositionVersion);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const productIdsKey = productIds.join("|");
 
   const generationRef = useRef(0);
@@ -58,6 +63,8 @@ export function useFullDimensionsRefresh(
     isEnabled,
     isRestoring,
     productIdsKey,
+    compositionVersion,
+    dimensionsByCabinet,
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,

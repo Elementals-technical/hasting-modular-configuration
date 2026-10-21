@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 import { resetConfiguration } from "@/entities/configuration";
 import { addProductId, reset, setCabinetColor } from "@/entities/product/model/store/slice";
+import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 
 import { captureSnapshot } from "../lib/captureSnapshot";
 import { isApplied, useHistoryStep } from "../lib/useHistoryStep";
@@ -100,17 +101,32 @@ describe("useHistoryStep", () => {
     expect(cabinetColor()).toBe("Castagno chiaro 1C1");
   });
 
-  it("makes an action that runs another one entry, with the state the first started from", async () => {
-    const outer = setUp();
-    const inner = setUp();
+  it("runs an action started while another is still open after it, as a step of its own", async () => {
+    const first = setUp();
+    const second = setUp();
+    const applied: string[] = [];
+    const pick = (color: string) => async () => {
+      applied.push(color);
+      return recordColor(color)();
+    };
+    // The first action is still reading its starting state from the scene.
+    let release: () => void = () => undefined;
+    vi.mocked(getConfig).mockImplementationOnce(
+      () => new Promise((resolve) => (release = () => resolve({ Width: 60 }))),
+    );
 
-    await outer.run(async () => {
-      store.dispatch(setCabinetColor("Castagno chiaro 1C1"));
-      await inner.run(recordColor("Cemento Cenere 1A1"));
-    });
+    const runningFirst = first.run(pick("Castagno chiaro 1C1"));
+    const runningSecond = second.run(pick("Cemento Cenere 1A1"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    release();
+    await Promise.all([runningFirst, runningSecond]);
 
-    expect(history().past).toHaveLength(1);
-    expect(history().past[0].productOptions.CabinetColor).toBe("Rox Black TKQ");
+    expect(applied).toEqual(["Castagno chiaro 1C1", "Cemento Cenere 1A1"]);
+    expect(cabinetColor()).toBe("Cemento Cenere 1A1");
+    expect(history().past.map(({ productOptions }) => productOptions.CabinetColor)).toEqual([
+      "Rox Black TKQ",
+      "Castagno chiaro 1C1",
+    ]);
   });
 
   it("runs an action started during a restore only once the restore is over, as its own step", async () => {

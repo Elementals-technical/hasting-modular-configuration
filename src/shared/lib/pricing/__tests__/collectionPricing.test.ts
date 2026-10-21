@@ -1386,7 +1386,7 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
   });
 });
 
-describe("Lame legs, offered before they have a price", () => {
+describe("Lame legs, a pair under the composition in the cabinet finish, with their caps", () => {
   const order = (legColor: string) =>
     buildCollectionPricingLines(
       collectionPricingInput(
@@ -1401,19 +1401,103 @@ describe("Lame legs, offered before they have a price", () => {
       ),
     );
   const legsOf = ({ lines, gaps }: ReturnType<typeof order>) => ({
-    lines: lines.filter(({ group }) => group === "legs"),
-    gaps: gaps.filter(({ group }) => group === "legs"),
+    lines: lines
+      .filter(({ group }) => group === "legs" || group === "legCap")
+      .map(({ id, group, sku, quantity }) => ({ id, group, sku, quantity })),
+    gaps: gaps.filter(({ group }) => group === "legs").map(({ blocksTotal }) => ({ blocksTotal })),
   });
 
-  it("says the price is incomplete while the composition stands on legs, with or without a cap colour", () => {
-    for (const legColor of ["None", "Gold", "Nero 433 MT"]) {
+  it("orders two legs of the drawer style's height and a cap per leg, in its colour or the handles'", () => {
+    for (const [legColor, capSku] of [
+      ["None", "VAN-LAMEV-LEGCAP-LACM-433"],
+      ["Gold", "VAN-LAMEV-LEGCAP-MTL-GLD"],
+      ["Seta 406 MT", "VAN-LAMEV-LEGCAP-LACM-406"],
+    ]) {
       expect(legsOf(order(legColor)), legColor).toEqual({
-        lines: [],
-        gaps: [expect.objectContaining({ blocksTotal: true, owner: "product" })],
+        lines: [
+          { id: "legs", group: "legs", sku: "VAN-LAMEV-LEG/2DW-12.4H-CAB-LACM-417", quantity: 2 },
+          { id: "legCap", group: "legCap", sku: capSku, quantity: 2 },
+        ],
+        // How many legs the workbook price is for is not confirmed yet; the total does not wait for it.
+        gaps: [{ blocksTotal: false }],
       });
     }
-    // Legs off: nothing to price and nothing to say.
+  });
+
+  it("orders nothing while the legs are off", () => {
     expect(legsOf(order(""))).toEqual({ lines: [], gaps: [] });
+  });
+});
+
+describe("Lame undertop, priced per cm of the composition", () => {
+  const order = (undertopColor: string) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        LAME,
+        [
+          { stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 52, depth: 52 } },
+          { stableKey: "sc", runtimeId: "Sink-Cabinet-sc", size: { width: 40, height: 52, depth: 52 } },
+        ],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2"), at({ scope: "cabinet", cabinetId: "sc" }, "2")],
+          HandleColor: [at({ scope: "cabinet", cabinetId: "sb" }, "Nero 433 MT")],
+          UndertopColor: [at({ scope: "global" }, undertopColor)],
+        },
+        { cabinetColor: "Latte 417 MT" },
+      ),
+    );
+  const undertopOf = (result: ReturnType<typeof order>) => result.lines.filter(({ group }) => group === "undertop");
+
+  it("orders one undertop as wide as the composition, in its own colour or the handles'", () => {
+    for (const [undertopColor, sku] of [
+      ["Gold", "CT-GBMTL-UDTP-39.4W-.7H-20.5D-MTL-GLD"],
+      ["Seta 406 MT", "CT-GBLACM-UDTP-39.4W-.7H-20.5D-LACM-406"],
+      // On without a colour of its own: the scene paints it in the handle colour.
+      ["None", "CT-GBLACM-UDTP-39.4W-.7H-20.5D-LACM-433"],
+    ]) {
+      expect(undertopOf(order(undertopColor)), undertopColor).toEqual([
+        { id: "undertop", group: "undertop", sku, quantity: 1 },
+      ]);
+    }
+  });
+
+  it("orders none while it is off", () => {
+    expect(undertopOf(order(""))).toEqual([]);
+  });
+});
+
+describe("Lame cabinet sizes before a price is asked", () => {
+  const order = (dimensionsByCabinet: PricingInput["dimensionsByCabinet"]) =>
+    buildCollectionPricingLines(
+      collectionPricingInput(
+        LAME,
+        [{ stableKey: "sb", runtimeId: "Sink-Base-sb", size: { width: 60, height: 26, depth: 52 } }],
+        {
+          Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "1")],
+          Handle: [at({ scope: "cabinet", cabinetId: "sb" }, "G58")],
+          HandleColor: [at({ scope: "cabinet", cabinetId: "sb" }, "Antracite 400 MT")],
+        },
+        { cabinetColor: "Antracite 400 MT", dimensionsByCabinet },
+      ),
+    );
+  const cabinetSkusOf = ({ lines }: ReturnType<typeof order>) =>
+    lines.filter(({ group }) => group === "cabinet").map(({ sku }) => sku);
+
+  it("asks no price for an XW-XH-XD SKU, which the server would answer with its smallest row", () => {
+    const waiting = order({});
+
+    expect(cabinetSkusOf(waiting)).toEqual([]);
+    expect(waiting.gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
+    expect(cabinetSkusOf(order({ sb: { width: 60, height: 26, depth: 52 } }))).toEqual([
+      "VAN-LAMEV-SB/1DW/G58/OXF-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
+    ]);
+  });
+
+  it("asks none for a size its row of table 596 does not have", () => {
+    const tooNarrow = order({ sb: { width: 40, height: 26, depth: 52 } });
+
+    expect(cabinetSkusOf(tooNarrow)).toEqual([]);
+    expect(tooNarrow.gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
   });
 });
 

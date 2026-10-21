@@ -477,6 +477,23 @@ export const collectionSkuProfileSchema = z
         message: "cabinetCover.prefix and cabinetCover.thicknessIn are given together",
       })
       .optional(),
+    /**
+     * The undertop the whole composition stands on (Lame), priced per cm of the composition's width as
+     * `CT-{countertop series}{material}-{code}-{W}W-{H}H-{D}D-{material}-{colour}`. It takes the colour of
+     * `attributeId` or, while that names none of its configurator section ("None": on, no colour of its
+     * own), the colour of `fallbackColorAttributeId`, as the scene paints it then.
+     */
+    undertop: z
+      .object({
+        attributeId: z.string().trim().min(1),
+        fallbackColorAttributeId: z.string().trim().min(1).optional(),
+        code: z.string().trim().min(1),
+        /** Inches, as the SKU spells them (0.7 → `.7H`). */
+        heightIn: z.string().trim().min(1),
+        depthIn: z.string().trim().min(1),
+      })
+      .strict()
+      .optional(),
     /** One SKU per organizer, by `DividersStyle` value. */
     dividers: stringMapSchema,
     /** The legs a composition stands on, for a collection that offers them. */
@@ -486,6 +503,23 @@ export const collectionSkuProfileSchema = z
         quantity: z.number().int().positive(),
         /** The `LegColor` value that means "in the cabinet's colour" rather than a colour of its own. */
         cabinetColorValue: z.string().trim().min(1).optional(),
+        /**
+         * Legs of a height of their own by the cabinets' `Drawers`, in the cabinets' finish:
+         * `VAN-{series}-LEG/{code}-CAB-{material}-{colour}` (Lame `1DW-22.6H`). `LegColor` then
+         * colours the cap alone.
+         */
+        byDrawers: stringMapSchema.optional(),
+        /**
+         * The cap at the foot of each leg, `VAN-{series}-{code}-{material}-{colour}`: in the leg colour
+         * or, while that names none ("None"), in the colour of the fallback attribute.
+         */
+        cap: z
+          .object({
+            code: z.string().trim().min(1),
+            fallbackColorAttributeId: z.string().trim().min(1),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),

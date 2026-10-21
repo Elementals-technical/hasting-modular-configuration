@@ -186,11 +186,26 @@
           "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
           "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
           "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
-          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT",
+          "ARDESIA NERA 328": "Ardesia Nera 328",
+          "CALACATTA BLACK 338": "Calacatta Black 338",
+          "CALACATTA ORO OPACO 331": "Calacatta Oro Opaco 331",
+          "EMPERADOR OPACO 322": "Emperador Opaco 322",
+          "INVISIBLE WHITE LUCIDO 334": "Invisible White Lucido 334",
+          "INVISIBLE WHITE OPACO 332": "Invisible White Opaco 332",
+          "MINE GOFFRATO 317": "Mine Goffrato 317",
+          "NERO ATLANTE LUCIDO 326": "Nero Atlante Lucido 326",
+          "PIETRA GREY GOFFRATO 323": "Pietra Grey Goffrato 323",
+          "PIETRA PIASENTINA GOFFRATO 324": "Pietra Piasentina Goffrato 324",
+          "PORFIDO 337": "Porfido 337",
+          "SAHARA NOIR BOCCIARDATO 335": "Sahara Noir Bocciardato 335",
+          "SAHARA NOIR LUCIDO 339": "Sahara Noir Lucido 339",
+          "STATUARIO ALTISSIMO LUCIDO 333": "Statuario Altissimo Lucido 333",
+          "TERRE DI SATURNIA 336": "Terre Di Saturnia 336"
         }
       },
       "order": 50,
-      "note": "The scene looks a material up by its exact name, and its names carry the material: overrides send \"Acqua 419 MT\" as \"Acqua 419 Lacquered MT\", the glass \"GAcqua 419 MT\" as \"Acqua 419 Glass MT\" and \"Fume\" as \"Smoke Glass Fume\". A colour without an override goes as it is; the scene has no Porcelain or Laminate material yet, so the cabinet keeps its material."
+      "note": "The scene looks a material up by its exact name, and its names carry the material: overrides send \"Acqua 419 MT\" as \"Acqua 419 Lacquered MT\", the glass \"GAcqua 419 MT\" as \"Acqua 419 Glass MT\" and \"Fume\" as \"Smoke Glass Fume\". A colour without an override goes as it is. Export v62/v63 has the Laminate and Porcelain materials too; configurator 9 writes the Porcelain names in capitals (\"ARDESIA NERA 328\"), which go under the scene's title case (\"Ardesia Nera 328\"): the scene would find them anyway, but the names sent stay exact."
     },
     {
       "attributeId": "HandleColor",
@@ -320,11 +335,39 @@
           "Zafferano 412 GL": "Zafferano 412 Glass GL",
           "Zafferano 412 MT": "Zafferano 412 Glass MT",
           "Zaffiro 411 GL": "Zaffiro 411 Glass GL",
-          "Zaffiro 411 MT": "Zaffiro 411 Glass MT"
+          "Zaffiro 411 MT": "Zaffiro 411 Glass MT",
+          "ARDESIA NERA 328": "Ardesia Nera 328",
+          "CALACATTA 259": "Calacatta 259",
+          "CALACATTA BLACK 338": "Calacatta Black 338",
+          "CALACATTA ORO OPACO 331": "Calacatta Oro Opaco 331",
+          "EMPERADOR OPACO 322": "Emperador Opaco 322",
+          "IMPERO 260": "Impero 260",
+          "INVISIBLE WHITE LUCIDO 334": "Invisible White Lucido 334",
+          "INVISIBLE WHITE OPACO 332": "Invisible White Opaco 332",
+          "KASPIO ARGENTO 262": "Kaspio Argento 262",
+          "KASPIO ORO 261": "Kaspio Oro 261",
+          "Matte White": "Solid Surface Matte White",
+          "Matte White 8cm": "Solid Surface Matte White 8cm",
+          "MINE GOFFRATO 317": "Mine Goffrato 317",
+          "NERO ATLANTE LUCIDO 326": "Nero Atlante Lucido 326",
+          "NOCE SAVOIA 256": "Noce Savoia 256",
+          "PIETRA GREY GOFFRATO 323": "Pietra Grey Goffrato 323",
+          "PIETRA PIASENTINA GOFFRATO 324": "Pietra Piasentina Goffrato 324",
+          "PORFIDO 337": "Porfido 337",
+          "RIVEL 257": "Rivel 257",
+          "ROVERE PRUSSIA 255": "Rovere Prussia 255",
+          "ROVERE SLAVONIA 254": "Rovere Slavonia 254",
+          "ROVERE TEXAS 264": "Rovere Texas 264",
+          "SAHARA NOIR BOCCIARDATO 335": "Sahara Noir Bocciardato 335",
+          "SAHARA NOIR LUCIDO 339": "Sahara Noir Lucido 339",
+          "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte",
+          "SILVER VOYAGE 263": "Silver Voyage 263",
+          "STATUARIO ALTISSIMO LUCIDO 333": "Statuario Altissimo Lucido 333",
+          "TERRE DI SATURNIA 336": "Terre Di Saturnia 336"
         }
       },
       "order": 50,
-      "note": "The countertop is placed at composition level; the Mako cabinets ignore the key. The scene looks a material up by its exact name: overrides send the glass \"Acqua 419 MT\" and \"GAcqua 419 MT\" as \"Acqua 419 Glass MT\", and the HPL \"BIANCO KOS 250\" as \"Bianco Kos 250\". The scene has no Porcelain, Solid Surface or other HPL material yet."
+      "note": "The countertop is placed at composition level; the Mako cabinets ignore the key. The scene looks a material up by its exact name: overrides send the glass \"Acqua 419 MT\" and \"GAcqua 419 MT\" as \"Acqua 419 Glass MT\", and the HPL \"BIANCO KOS 250\" as \"Bianco Kos 250\". Export v62/v63 has the other HPL and the Porcelain materials too, under title case where configurator 9 writes capitals; \"Sahara Noir Silky Matte TR8\" is \"Sahara Noir Silky Matte\" there, and the Solid Surface \"Matte White\" and \"Matte White 8cm\" are \"Solid Surface Matte White\" and \"Solid Surface Matte White 8cm\": sent under the configurator names, these three are not found and the top keeps its previous colour."
     },
     {
       "attributeId": "Thickness",
@@ -589,11 +632,26 @@
           "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
           "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
           "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
-          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT",
+          "ARDESIA NERA 328": "Ardesia Nera 328",
+          "CALACATTA BLACK 338": "Calacatta Black 338",
+          "CALACATTA ORO OPACO 331": "Calacatta Oro Opaco 331",
+          "EMPERADOR OPACO 322": "Emperador Opaco 322",
+          "INVISIBLE WHITE LUCIDO 334": "Invisible White Lucido 334",
+          "INVISIBLE WHITE OPACO 332": "Invisible White Opaco 332",
+          "MINE GOFFRATO 317": "Mine Goffrato 317",
+          "NERO ATLANTE LUCIDO 326": "Nero Atlante Lucido 326",
+          "PIETRA GREY GOFFRATO 323": "Pietra Grey Goffrato 323",
+          "PIETRA PIASENTINA GOFFRATO 324": "Pietra Piasentina Goffrato 324",
+          "PORFIDO 337": "Porfido 337",
+          "SAHARA NOIR BOCCIARDATO 335": "Sahara Noir Bocciardato 335",
+          "SAHARA NOIR LUCIDO 339": "Sahara Noir Lucido 339",
+          "STATUARIO ALTISSIMO LUCIDO 333": "Statuario Altissimo Lucido 333",
+          "TERRE DI SATURNIA 336": "Terre Di Saturnia 336"
         }
       },
       "order": 60,
-      "note": "The composition sink-material rule paints the active vessel descendant under the Mako sink mount."
+      "note": "The composition sink-material rule paints the active vessel descendant under the Mako sink mount. The colours are the cabinet colours, with the same overrides (the Porcelain capitals in title case)."
     },
     {
       "attributeId": "HandleGrooveColor",

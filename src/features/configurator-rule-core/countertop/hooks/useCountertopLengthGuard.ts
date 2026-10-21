@@ -1,8 +1,6 @@
 import { useMemo } from "react";
 
-import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
-import { useSceneTotalWidthWithSidePanels } from "@/features/sidePanel";
-
+import { useCountertopLength } from "./useCountertopLength";
 import { useMaxCountertopLength } from "./useMaxCountertopLength";
 
 const EPSILON_CM = 0.01;
@@ -10,9 +8,12 @@ const EPSILON_CM = 0.01;
 export type CountertopLengthGuard = {
   /** Resolved max from countertop rules. null when no rule (e.g. plain style). */
   max: number | null;
-  /** Current total countertop width including any active side panels. */
+  /**
+   * Current countertop length including any active side panels (`useCountertopLength`): on a
+   * multi-level composition the run the countertop covers, not the cabinets under cabinet covers.
+   */
   currentWithSp: number | null;
-  /** Cabinet-only sum (without side-panel offset). Use as baseline for SP-toggle math. */
+  /** The same length without the side-panel offset. Use as baseline for SP-toggle math. */
   currentCabinetOnly: number | null;
   /** max − currentWithSp. null if either is null. */
   remaining: number | null;
@@ -46,8 +47,10 @@ export const useCountertopLengthGuard = (
   fallbackWidth: number | null = null,
 ): CountertopLengthGuard => {
   const max = useMaxCountertopLength();
-  const currentWithSp = useSceneTotalWidthWithSidePanels(productIds, fallbackWidth);
-  const currentCabinetOnly = useSceneTotalWidth(productIds, fallbackWidth);
+  const { withSidePanels: currentWithSp, cabinetsOnly: currentCabinetOnly } = useCountertopLength(
+    productIds,
+    fallbackWidth,
+  );
 
   return useMemo(() => {
     const remaining = max !== null && currentWithSp !== null ? max - currentWithSp : null;

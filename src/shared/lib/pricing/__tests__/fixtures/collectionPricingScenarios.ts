@@ -16,11 +16,15 @@ import configurator9 from "@/entities/collection/__tests__/fixtures/remote/confi
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import configurator14 from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
+import cabinetTable596 from "@/entities/collection/__tests__/fixtures/remote/datatable-596.json";
 import { collectionSkuProfileSchema, type CollectionSkuProfile, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import type { CabinetDimensions, CabinetEntry, ScopedValue, ValueTarget } from "@/entities/configuration";
+import type { ProductDatatable } from "@/entities/product/api";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { PricingInput } from "@/shared/lib/pricing/types";
 import { createSkuBuilders } from "@/shared/lib/sku";
 
@@ -107,13 +111,17 @@ export const MAKO = {
 /** Configurator 14, Lame's own. */
 const configurator14Groups = configurator14.availableOptions as unknown as ConfiguratorAvailableOption[];
 
+const lameProfile = parseProfile(lameProfileDocument);
+
 export const LAME = {
-  profile: parseProfile(lameProfileDocument),
+  profile: lameProfile,
   skuProfile: collectionSkuProfileSchema.parse(lameSkuProfileDocument),
   configurator: {
     groups: configurator14Groups,
     groupsByName: Object.fromEntries(configurator14Groups.map((group) => [group.proxyName, group])),
   },
+  // Table 596: the cabinets the builder places, which a Lame cabinet's sizes are checked against.
+  cabinetCatalog: buildCabinetCatalogFromMatrix(cabinetTable596 as ProductDatatable, lameProfile),
 };
 
 /** Configurator 4: the colours Urban Low Height shares with Urban Standard Height. */
@@ -156,6 +164,8 @@ type Collection = {
   profile: ProductProfile;
   skuProfile: CollectionSkuProfile;
   configurator?: ConfiguratorGroupCatalog;
+  /** The collection's cabinet table as the builder holds it; the pricing input's own otherwise. */
+  cabinetCatalog?: ConfiguratorCatalog;
 };
 
 export type CollectionCabinet = { stableKey: string; runtimeId: string; size: CabinetDimensions };
@@ -164,7 +174,7 @@ export const at = (target: ValueTarget, value: string): ScopedValue => ({ target
 
 /** A `PricingInput` of a collection priced from its SKU profile: no scene, no USH options. */
 export const collectionPricingInput = (
-  { profile, skuProfile, configurator }: Collection,
+  { profile, skuProfile, configurator, cabinetCatalog }: Collection,
   cabinets: readonly CollectionCabinet[],
   values: Record<string, ScopedValue[]>,
   overrides: Partial<PricingInput> = {},
@@ -185,6 +195,7 @@ export const collectionPricingInput = (
     countertopStyle: "",
     sinkType: "",
     faucetHolesAmount: "",
+    ...(cabinetCatalog ? { cabinetCatalog } : {}),
     ...overrides,
   });
 

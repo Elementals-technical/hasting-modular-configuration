@@ -1,10 +1,9 @@
 {
   "schemaVersion": 1,
   "collectionId": "lame",
-  "productTypes": {},
-  "unplacedProductTypes": {
-    "Sink-Base": "Temporarily hidden in the builder: the scene registers no Lame sink base yet. Its row is in the cabinet table (table 596, matrix-cabinet-lame). Move it to productTypes once the scene has it, and its card and the models come back.",
-    "Sink-Cabinet": "Temporarily hidden in the builder: the scene registers no Lame side cabinet yet. Its row is in the cabinet table (table 596, matrix-cabinet-lame). Move it to productTypes once the scene has it, and its card and the models come back."
+  "productTypes": {
+    "Sink-Base": "Lame-sink-cabinet",
+    "Sink-Cabinet": "Lame-side-cabinet"
   },
   "bindings": [
     {
@@ -25,7 +24,7 @@
         }
       },
       "order": 30,
-      "note": "26 cm for 1 Drawer and 52 cm for 2 Drawer (cabinet table 596), as the Mako scene takes them. No Lame product takes them yet."
+      "note": "RuleHeightCabinetLame takes 26 and 52 (export v66): 26 cm for 1 Drawer and 52 cm for 2 Drawer (cabinet table 596). Lame styles are never mixed (drawerStyleGroups), so the composition shares one height, as the scene's legs and undertop require."
     },
     {
       "attributeId": "Width",
@@ -55,33 +54,371 @@
     },
     {
       "attributeId": "Drawers",
-      "status": "state-only",
-      "reason": "The scene has no Lame product yet; recorded for the rules and the price. The spelling a Lame product takes is set when the scene has one."
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "1": {
+            "Drawers": "1D",
+            "Height": 26
+          },
+          "2": {
+            "Drawers": "2D",
+            "Height": 52
+          }
+        }
+      },
+      "order": 40,
+      "note": "RuleDrawersCabinetLame reads 1D and 2D and shows or hides the bottom drawer; the scene keeps Height apart, so the style is sent with its height (cabinet table 596: 1:26|2:52), as the scene notes ask (setConfig(cabinet, { Height: 26, Drawers: '1D' })). Sent after Height. Unlike Mako, a style does not take the legs away: Lame has legs for 1 and 2 drawers."
     },
     {
       "attributeId": "Handle",
       "status": "state-only",
-      "reason": "G58 only. The scene has no Lame product yet; recorded for the price only."
+      "reason": "G58 only. The Lame scene has one handle and reads no handle style key (export v66); recorded for the price, the summary and saved configurations."
     },
     {
       "attributeId": "HandleColor",
-      "status": "state-only",
-      "reason": "The scene has no Lame product yet to paint; recorded for the price only."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "HandleColor",
+        "overrides": {
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 50,
+      "note": "RuleMaterialsHandleLame paints both drawer handles. Broadcast, as Mako does, until the sources say whether the handle colour may differ per cabinet. The 20 lacquers of configurator 14 (Select Handle Color) are named as the scene's materials; Gold and Silver are scene names already. The leg caps and the undertop take this colour while none of their own is chosen."
     },
     {
       "attributeId": "CabinetColor",
-      "status": "state-only",
-      "reason": "The scene has no Lame product yet to paint; recorded for the rules and the price only."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Lacquered GL",
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 GL": "Agata 407 Lacquered GL",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 GL": "Ambra 413 Lacquered GL",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 GL": "Antracite 400 Lacquered GL",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 GL": "Asparago 414 Lacquered GL",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 GL": "Creta 416 Lacquered GL",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fumo 401 GL": "Fumo 401 Lacquered GL",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Lacquered GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 GL": "Latte 417 Lacquered GL",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 GL": "Metropoli 404 Lacquered GL",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 GL": "Moka 408 Lacquered GL",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 GL": "Nebbia 402 Lacquered GL",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 GL": "Nero 433 Lacquered GL",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 GL": "Ponente 418 Lacquered GL",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 GL": "Sabbia 405 Lacquered GL",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 GL": "Salvia 415 Lacquered GL",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 GL": "Seta 406 Lacquered GL",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 GL": "Turchese 410 Lacquered GL",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 50,
+      "note": "RuleMaterialsCabinetLame paints the shell and the fronts; the frames and drawer walls stay Antracite Matte OCF. The 40 lacquers of configurator 14 (Select Cabinet Color) are named as the scene's materials, as for Mako."
     },
     {
       "attributeId": "CabinetPattern",
-      "status": "state-only",
-      "reason": "The scene has no Lame product yet to pattern; recorded for the price only."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "Galles": {
+            "CabinetPattern": "Galles"
+          },
+          "Gessato": {
+            "CabinetPattern": "Gessatto"
+          },
+          "Oxford": {
+            "CabinetPattern": "Oxford"
+          },
+          "Piquet": {
+            "CabinetPattern": "Piquet"
+          },
+          "Plisse": {
+            "CabinetPattern": "Plisse"
+          }
+        }
+      },
+      "placedWithNewProducts": true,
+      "order": 70,
+      "note": "RulePatternCabinetLame takes Galles, Gessatto, Oxford, Piquet and Plisse and runs after the cabinet colour (export v66); the scene spells Gessato with a double t, as for Tricot. One pattern per composition, so a cabinet placed later is given it: the scene would start it at Galles, the profile at Oxford."
     },
     {
       "attributeId": "LegColor",
-      "status": "state-only",
-      "reason": "The scene has no Lame product yet to stand on legs; recorded, not sent. On without a cap colour is \"None\", off is \"\"; a colour is the cap's, the legs take the cabinet colour (excludedFromThisProfile.legs)."
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "": {
+            "ShowLegs": "Disable",
+            "LegCapColor": ""
+          },
+          "None": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "None"
+          },
+          "Acqua 419 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Acqua 419 Lacquered MT"
+          },
+          "Agata 407 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Agata 407 Lacquered MT"
+          },
+          "Ambra 413 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Ambra 413 Lacquered MT"
+          },
+          "Antracite 400 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Antracite 400 Lacquered MT"
+          },
+          "Asparago 414 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Asparago 414 Lacquered MT"
+          },
+          "Creta 416 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Creta 416 Lacquered MT"
+          },
+          "Fumo 401 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Fumo 401 Lacquered MT"
+          },
+          "Gold": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Gold"
+          },
+          "Grigio Argento 403 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Grigio Argento 403 Lacquered MT"
+          },
+          "Latte 417 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Latte 417 Lacquered MT"
+          },
+          "Metropoli 404 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Metropoli 404 Lacquered MT"
+          },
+          "Moka 408 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Moka 408 Lacquered MT"
+          },
+          "Nebbia 402 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Nebbia 402 Lacquered MT"
+          },
+          "Nero 433 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Nero 433 Lacquered MT"
+          },
+          "Ponente 418 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Ponente 418 Lacquered MT"
+          },
+          "Sabbia 405 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Sabbia 405 Lacquered MT"
+          },
+          "Salvia 415 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Salvia 415 Lacquered MT"
+          },
+          "Seta 406 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Seta 406 Lacquered MT"
+          },
+          "Silver": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Silver"
+          },
+          "Turchese 410 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Turchese 410 Lacquered MT"
+          },
+          "Zafferano 412 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Zafferano 412 Lacquered MT"
+          },
+          "Zaffiro 411 MT": {
+            "ShowLegs": "Enable",
+            "LegCapColor": "Zaffiro 411 Lacquered MT"
+          }
+        }
+      },
+      "order": 60,
+      "note": "The scene stands the composition on one pair of legs while any Lame cabinet has ShowLegs Enable (RuleLameLegs, LameLegsService), with the leg for its Height; mixed heights hide them. No colour hides them and clears the cap colour; \"None\" shows them with caps in the handle colour (the scene's fallback); a colour is the caps'. The 20 lacquers of configurator 14 (Select Leg Cap Color) are named as the scene's materials, as Mako's leg colours are. Sent to every product, not setConfigBatch({ productType: 'Lame-' }): resolveSceneSelector addresses a product type by its full name only."
+    },
+    {
+      "attributeId": "UndertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "": {
+            "ShowUndertop": "Disable",
+            "UndertopColor": ""
+          },
+          "None": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "None"
+          },
+          "Acqua 419 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Acqua 419 Lacquered MT"
+          },
+          "Agata 407 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Agata 407 Lacquered MT"
+          },
+          "Ambra 413 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Ambra 413 Lacquered MT"
+          },
+          "Antracite 400 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Antracite 400 Lacquered MT"
+          },
+          "Asparago 414 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Asparago 414 Lacquered MT"
+          },
+          "Creta 416 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Creta 416 Lacquered MT"
+          },
+          "Fumo 401 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Fumo 401 Lacquered MT"
+          },
+          "Gold": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Gold"
+          },
+          "Grigio Argento 403 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Grigio Argento 403 Lacquered MT"
+          },
+          "Latte 417 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Latte 417 Lacquered MT"
+          },
+          "Metropoli 404 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Metropoli 404 Lacquered MT"
+          },
+          "Moka 408 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Moka 408 Lacquered MT"
+          },
+          "Nebbia 402 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Nebbia 402 Lacquered MT"
+          },
+          "Nero 433 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Nero 433 Lacquered MT"
+          },
+          "Ponente 418 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Ponente 418 Lacquered MT"
+          },
+          "Sabbia 405 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Sabbia 405 Lacquered MT"
+          },
+          "Salvia 415 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Salvia 415 Lacquered MT"
+          },
+          "Seta 406 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Seta 406 Lacquered MT"
+          },
+          "Silver": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Silver"
+          },
+          "Turchese 410 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Turchese 410 Lacquered MT"
+          },
+          "Zafferano 412 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Zafferano 412 Lacquered MT"
+          },
+          "Zaffiro 411 MT": {
+            "ShowUndertop": "Enable",
+            "UndertopColor": "Zaffiro 411 Lacquered MT"
+          }
+        }
+      },
+      "placedWithNewProducts": true,
+      "order": 65,
+      "note": "The scene lays one undertop under the whole composition while any Lame cabinet has ShowUndertop Enable, in the colour of the first such cabinet, and lifts the countertop and sink points by 0.02 m (RuleLameUndertop, LameUndertopService); mixed heights hide it. No colour hides it; \"None\" shows it in the handle colour (the scene's fallback); a colour is the undertop's, from the handle palette (Gold, Silver or a matte lacquer, excludedFromThisProfile.undertop). Every cabinet is given it, a cabinet placed later too."
     },
     {
       "attributeId": "CountertopColor",
@@ -93,6 +430,7 @@
         "kind": "identity",
         "sceneKey": "CountertopColor",
         "overrides": {
+          "ARDESIA NERA 328": "Ardesia Nera 328",
           "Acqua 419 GL": "Acqua 419 Glass GL",
           "Acqua 419 MT": "Acqua 419 Glass MT",
           "Agata 407 GL": "Agata 407 Glass GL",
@@ -104,8 +442,12 @@
           "Asparago 414 GL": "Asparago 414 Glass GL",
           "Asparago 414 MT": "Asparago 414 Glass MT",
           "BIANCO KOS 250": "Bianco Kos 250",
+          "CALACATTA 259": "Calacatta 259",
+          "CALACATTA BLACK 338": "Calacatta Black 338",
+          "CALACATTA ORO OPACO 331": "Calacatta Oro Opaco 331",
           "Creta 416 GL": "Creta 416 Glass GL",
           "Creta 416 MT": "Creta 416 Glass MT",
+          "EMPERADOR OPACO 322": "Emperador Opaco 322",
           "Fumo 401 GL": "Fumo 401 Glass GL",
           "Fumo 401 MT": "Fumo 401 Glass MT",
           "GAcqua 419 GL": "Acqua 419 Glass GL",
@@ -152,25 +494,46 @@
           "GZaffiro 411 MT": "Zaffiro 411 Glass MT",
           "Grigio Argento 403 GL": "Grigio Argento 403 Glass GL",
           "Grigio Argento 403 MT": "Grigio Argento 403 Glass MT",
+          "IMPERO 260": "Impero 260",
+          "INVISIBLE WHITE LUCIDO 334": "Invisible White Lucido 334",
+          "INVISIBLE WHITE OPACO 332": "Invisible White Opaco 332",
+          "KASPIO ARGENTO 262": "Kaspio Argento 262",
+          "KASPIO ORO 261": "Kaspio Oro 261",
           "Latte 417 GL": "Latte 417 Glass GL",
           "Latte 417 MT": "Latte 417 Glass MT",
+          "MINE GOFFRATO 317": "Mine Goffrato 317",
+          "Matte White": "Solid Surface Matte White",
           "Metropoli 404 GL": "Metropoli 404 Glass GL",
           "Metropoli 404 MT": "Metropoli 404 Glass MT",
           "Moka 408 GL": "Moka 408 Glass GL",
           "Moka 408 MT": "Moka 408 Glass MT",
+          "NERO ATLANTE LUCIDO 326": "Nero Atlante Lucido 326",
           "NERO INGO 251": "Nero Ingo 251",
+          "NOCE SAVOIA 256": "Noce Savoia 256",
           "Nebbia 402 GL": "Nebbia 402 Glass GL",
           "Nebbia 402 MT": "Nebbia 402 Glass MT",
           "Nero 433 GL": "Nero 433 Glass GL",
           "Nero 433 MT": "Nero 433 Glass MT",
+          "PIETRA GREY GOFFRATO 323": "Pietra Grey Goffrato 323",
+          "PIETRA PIASENTINA GOFFRATO 324": "Pietra Piasentina Goffrato 324",
+          "PORFIDO 337": "Porfido 337",
           "Ponente 418 GL": "Ponente 418 Glass GL",
           "Ponente 418 MT": "Ponente 418 Glass MT",
+          "RIVEL 257": "Rivel 257",
+          "ROVERE PRUSSIA 255": "Rovere Prussia 255",
+          "ROVERE SLAVONIA 254": "Rovere Slavonia 254",
+          "ROVERE TEXAS 264": "Rovere Texas 264",
+          "SAHARA NOIR BOCCIARDATO 335": "Sahara Noir Bocciardato 335",
+          "SAHARA NOIR LUCIDO 339": "Sahara Noir Lucido 339",
+          "SILVER VOYAGE 263": "Silver Voyage 263",
+          "STATUARIO ALTISSIMO LUCIDO 333": "Statuario Altissimo Lucido 333",
           "Sabbia 405 GL": "Sabbia 405 Glass GL",
           "Sabbia 405 MT": "Sabbia 405 Glass MT",
           "Salvia 415 GL": "Salvia 415 Glass GL",
           "Salvia 415 MT": "Salvia 415 Glass MT",
           "Seta 406 GL": "Seta 406 Glass GL",
           "Seta 406 MT": "Seta 406 Glass MT",
+          "TERRE DI SATURNIA 336": "Terre Di Saturnia 336",
           "Turchese 410 GL": "Turchese 410 Glass GL",
           "Turchese 410 MT": "Turchese 410 Glass MT",
           "Zafferano 412 GL": "Zafferano 412 Glass GL",
@@ -217,13 +580,119 @@
     },
     {
       "attributeId": "sinkType",
-      "status": "state-only",
-      "reason": "The scene has no Lame product yet sink base to take a basin; recorded for the countertop rules and the price only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "Lame-sink-cabinet"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "": {
+            "sinkType": "Vessel"
+          },
+          "LB440": {
+            "sinkType": "Top_HPLPrisma"
+          },
+          "LB175": {
+            "sinkType": "Top_Tekorlux_Ron"
+          },
+          "LB575": {
+            "sinkType": "Top_Tekorlux_Quadra"
+          },
+          "LB856": {
+            "sinkType": "Top_HPLStrip"
+          },
+          "VA024": {
+            "sinkType": "Top_HPLCover"
+          },
+          "LV890": {
+            "sinkType": "Top_Tekorlux_Trip"
+          },
+          "LV892": {
+            "sinkType": "Top_Ocritech_Orion"
+          },
+          "VA002": {
+            "sinkType": "Top_Ocritech_Oly55"
+          },
+          "VA005": {
+            "sinkType": "Top_Tekorlux_Rectangular"
+          },
+          "None": {
+            "sinkType": "Vessel"
+          },
+          "Iris": {
+            "sinkType": "Vessel_Iris"
+          },
+          "Frame": {
+            "sinkType": "Vessel_Frame"
+          },
+          "Plaza": {
+            "sinkType": "Vessel_Blade11"
+          }
+        },
+        "unboundValues": {
+          "VA030": "The scene export has no sink product for VA030 (SS Texturizzato, export v66). Until it has one, a change to VA030 is refused as unsupported; a VA030 the state already holds (a saved configuration) is kept and priced, and the sink cabinet is placed without it."
+        }
+      },
+      "order": 40,
+      "note": "The Class, Mako and Tricot basins and vessels on the same scene sub-products, under Lame_Sink_Point; RuleChangeSinkType swaps the sub-product (export v66). None and a cleared basin (\"\") are the empty vessel cutout."
     },
     {
       "attributeId": "VesselColor",
-      "status": "state-only",
-      "reason": "The scene has no Lame product yet sink base to take a vessel; recorded for the rules and the price only."
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "Lame-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "VesselColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Lacquered GL",
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 GL": "Agata 407 Lacquered GL",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 GL": "Ambra 413 Lacquered GL",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 GL": "Antracite 400 Lacquered GL",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 GL": "Asparago 414 Lacquered GL",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 GL": "Creta 416 Lacquered GL",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fumo 401 GL": "Fumo 401 Lacquered GL",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Lacquered GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 GL": "Latte 417 Lacquered GL",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 GL": "Metropoli 404 Lacquered GL",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 GL": "Moka 408 Lacquered GL",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 GL": "Nebbia 402 Lacquered GL",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 GL": "Nero 433 Lacquered GL",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 GL": "Ponente 418 Lacquered GL",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 GL": "Sabbia 405 Lacquered GL",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 GL": "Salvia 415 Lacquered GL",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 GL": "Seta 406 Lacquered GL",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 GL": "Turchese 410 Lacquered GL",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 60,
+      "note": "As in Mako, the composition sink-material rule paints the vessel under the sink mount. The 40 lacquers of configurator 14 (Select Vessel Color) are named as the scene's materials."
     },
     {
       "attributeId": "HandleGrooveColor",
@@ -253,7 +722,7 @@
     {
       "attributeId": "CabinetType",
       "status": "unbound",
-      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The scene has no Lame product yet: every value is in unplacedProductTypes."
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key: Sink-Base is Lame-sink-cabinet and Sink-Cabinet Lame-side-cabinet (productTypes)."
     },
     {
       "attributeId": "CabinetColorSku",
@@ -308,12 +777,12 @@
     {
       "attributeId": "DividersOption",
       "status": "unbound",
-      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; there are no Lame drawers in the scene yet."
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Lame products register no divider rule (export v66)."
     },
     {
       "attributeId": "DividersStyle",
       "status": "unbound",
-      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; there are no Lame drawers in the scene yet."
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the Lame products register no divider rule (export v66)."
     },
     {
       "attributeId": "TowelBarOption",

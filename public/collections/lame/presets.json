@@ -13,7 +13,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "24_29",
@@ -33,7 +34,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "24_29",
@@ -53,7 +56,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "24_29",
@@ -73,7 +77,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "24_29",
@@ -93,7 +99,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "30_39",
@@ -113,7 +120,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "30_39",
@@ -133,7 +142,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -143,7 +154,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "40_49",
@@ -163,7 +176,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "40_49",
@@ -183,7 +197,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -193,7 +208,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "40_49",
@@ -213,7 +229,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -223,7 +240,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "40_49",
@@ -243,7 +261,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -253,7 +273,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "40_49",
@@ -273,7 +295,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "40_49",
@@ -293,7 +317,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -303,7 +328,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "40_49",
@@ -323,7 +349,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "40_49",
@@ -343,7 +370,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -353,7 +381,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "40_49",
@@ -373,7 +402,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -383,7 +414,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "40_49",
@@ -403,7 +436,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -413,7 +447,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -423,7 +458,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "50_59",
@@ -443,7 +479,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -453,7 +491,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "50_59",
@@ -473,7 +513,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -483,7 +525,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "50_59",
@@ -503,7 +547,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -513,7 +558,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "50_59",
@@ -533,7 +579,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -543,7 +590,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -553,7 +601,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "50_59",
@@ -573,7 +622,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -583,7 +633,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "50_59",
@@ -603,7 +654,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -613,7 +665,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -623,7 +676,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "60_69",
@@ -643,7 +697,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -653,7 +708,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "60_69",
@@ -673,7 +729,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -683,7 +741,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "60_69",
@@ -703,7 +763,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -713,7 +775,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "60_69",
@@ -733,7 +797,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -743,7 +808,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "60_69",
@@ -763,7 +829,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -773,7 +840,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "60_69",
@@ -793,7 +861,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -803,7 +873,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "60_69",
@@ -823,7 +895,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -833,7 +906,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -843,7 +917,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "70_79",
@@ -863,7 +938,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Cabinet",
@@ -873,7 +950,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -883,7 +962,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "70_79",
@@ -903,7 +984,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Cabinet",
@@ -913,7 +996,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Cabinet",
@@ -923,7 +1008,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "70_79",
@@ -943,7 +1030,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -953,7 +1041,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "70_79",
@@ -973,7 +1062,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -983,7 +1073,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -993,7 +1084,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "70_79",
@@ -1013,7 +1105,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -1023,7 +1116,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "70_79",
@@ -1043,7 +1137,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Cabinet",
@@ -1053,7 +1149,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "70_79",
@@ -1073,7 +1171,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -1083,7 +1182,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -1093,7 +1193,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "80_89",
@@ -1113,7 +1214,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -1123,7 +1225,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -1133,7 +1236,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "80_89",
@@ -1153,7 +1257,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -1163,7 +1268,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -1173,7 +1279,8 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "80_89",
@@ -1193,7 +1300,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Cabinet",
@@ -1203,7 +1312,9 @@
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "80_89",
@@ -1223,7 +1334,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Cabinet",
@@ -1233,7 +1345,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       },
       {
         "name": "Sink-Base",
@@ -1243,7 +1356,8 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford"
       }
     ],
     "size": "80_89",
@@ -1263,7 +1377,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Cabinet",
@@ -1273,7 +1389,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -1283,7 +1401,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "80_89",
@@ -1303,7 +1423,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       },
       {
         "name": "Sink-Base",
@@ -1313,7 +1435,9 @@
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
-        "Handle": "G58"
+        "Handle": "G58",
+        "CabinetPattern": "Oxford",
+        "LegColor": "None"
       }
     ],
     "size": "80_89",
