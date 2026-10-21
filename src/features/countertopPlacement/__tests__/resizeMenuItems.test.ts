@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
 
-import { buildCountertopResizeItems } from "../lib/resizeMenuItems";
+import { buildCountertopResizeItems, buildCountertopThicknessItem } from "../lib/resizeMenuItems";
 
 const thickness: DropdownItem = { id: "countertop-thickness", label: "Thickness", children: [] };
 const ready = { supported: true, available: true, active: false };
@@ -44,5 +44,22 @@ describe("countertop Resize menu", () => {
     expect(buildCountertopResizeItems(null, ready, true, vi.fn())[0].children?.map((item) => item.id)).toEqual([
       "countertop-length",
     ]);
+  });
+});
+
+// Both flows change the thickness from the menu: Prebuilt no longer leads to the Countertop step.
+describe("countertop Thickness menu", () => {
+  it("lists each allowed thickness by its label and picks it in place", () => {
+    const onSelect = vi.fn();
+    const item = buildCountertopThicknessItem([0.5, 4, 5.125], onSelect);
+    expect([item.id, item.label]).toEqual(["countertop-thickness", "Thickness"]);
+    expect(item.onClick).toBeUndefined();
+    expect(item.children?.map((option) => option.label)).toEqual(['0.5"', '4"', '5.1"']);
+    item.children?.[1].onClick?.();
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith(4);
+  });
+
+  it("has no thickness to pick while the rules allow none", () => {
+    expect(buildCountertopThicknessItem([], vi.fn()).children).toEqual([]);
   });
 });

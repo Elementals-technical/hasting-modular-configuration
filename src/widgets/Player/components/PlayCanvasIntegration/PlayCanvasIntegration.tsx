@@ -146,7 +146,10 @@ import {
   buildCountertopPositionItems,
   isCountertopSettingsMode,
 } from "@/features/countertopPlacement/lib/positionMenuItems";
-import { buildCountertopResizeItems } from "@/features/countertopPlacement/lib/resizeMenuItems";
+import {
+  buildCountertopResizeItems,
+  buildCountertopThicknessItem,
+} from "@/features/countertopPlacement/lib/resizeMenuItems";
 import { resolveCountertopLengthLimitsIn } from "@/features/countertopPlacement/lib/countertopLength";
 import {
   resolveCabinetTypeOfRuntimeId,
@@ -2476,42 +2479,6 @@ export const PlayCanvasIntegration = ({
     handleOpenCustomizeModePrompt("duplicate");
   }, [countertopCompositionConstraint.isSingleCabinetOnly, handleOpenCustomizeModePrompt]);
 
-  const handleCountertopColorFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["countertop-color"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
-
-  const handleCountertopThicknessFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["countertop-thickness"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
-
-  const handleCountertopStyleFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["countertop-style"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
-
-  const handleBasinStyleFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["basin-style"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
-
   /** Swaps cabinets in order, as one step of the history; stops at the first swap the scene refuses. */
   const handleSwapProducts = useCallback(
     async (swaps: readonly CabinetSwap[]) => {
@@ -3794,12 +3761,17 @@ export const PlayCanvasIntegration = ({
       },
       countertopMovementMode,
     );
-    // Resize ▸ Thickness | Length: Length opens the Drag & Drop overlay with the top's body held in place.
-    const resizeItems = (thickness: DropdownItem) =>
-      buildCountertopResizeItems(thickness, countertopDragStatus, countertopLengthResizable, () => {
+    // Resize ▸ Thickness | Length: Thickness changes the top in place in both flows; Length opens the
+    // Drag & Drop overlay with the top's body held in place.
+    const resizeItems = buildCountertopResizeItems(
+      buildCountertopThicknessItem(thicknessOptions, handleCountertopThicknessSelect),
+      countertopDragStatus,
+      countertopLengthResizable,
+      () => {
         closeCountertopMenus();
         countertopDragRef.current?.enterLength();
-      });
+      },
+    );
     const placementItems: DropdownItem[] = countertopSettingsMode && countertopPlacementStatus.supported
       ? [
           {
@@ -3815,37 +3787,7 @@ export const PlayCanvasIntegration = ({
           },
         ]
       : [];
-    if (isPrebuilt) {
-      return [
-        ...placementItems,
-        {
-          id: "countertop-color",
-          label: "Color",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleCountertopColorFromPrebuilt,
-        },
-        ...resizeItems({
-          id: "countertop-thickness",
-          label: "Thickness",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleCountertopThicknessFromPrebuilt,
-        }),
-        {
-          id: "countertop-style",
-          label: "Countertop Style",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleCountertopStyleFromPrebuilt,
-        },
-        {
-          id: "basin-style",
-          label: "Basin Style",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleBasinStyleFromPrebuilt,
-        },
-        ...positionItems,
-      ];
-    }
-
+    // One menu in both flows; each "Select …" opens the step of the flow the menu is opened in.
     return [
       ...placementItems,
       {
@@ -3860,18 +3802,7 @@ export const PlayCanvasIntegration = ({
           },
         ],
       },
-      ...resizeItems({
-        id: "countertop-thickness",
-        label: "Thickness",
-        children: thicknessOptions.map((value) => {
-          const label = formatCountertopThicknessLabel(value) ?? String(value);
-          return {
-            id: label,
-            label,
-            onClick: () => handleCountertopThicknessSelect(value),
-          };
-        }),
-      }),
+      ...resizeItems,
       {
         id: "countertop-style",
         label: "Countertop Style",
@@ -3904,15 +3835,10 @@ export const PlayCanvasIntegration = ({
     countertopLengthResizable,
     countertopMovementMode,
     countertopSettingsMode,
-    isPrebuilt,
     handleOpenBasinStyle,
     handleOpenCountertopColor,
     handleOpenCountertopStyle,
     handleCountertopThicknessSelect,
-    handleCountertopColorFromPrebuilt,
-    handleCountertopThicknessFromPrebuilt,
-    handleCountertopStyleFromPrebuilt,
-    handleBasinStyleFromPrebuilt,
     thicknessOptions,
   ]);
   const countertopPopoverItems = useMemo(
