@@ -4,6 +4,7 @@ import { rootReducer } from "@/app/store/reducer";
 import { getCabinetBuilderProductConfig } from "@/entities/product/model/store/selectors";
 import {
   setActiveCountertopColor,
+  setActiveCountertopThickness,
   setCabinetColor,
   setDrawerPanelFluting,
   setGrainDirection,
@@ -75,5 +76,15 @@ describe("getCabinetBuilderProductConfig", () => {
       GrainDirection: "current grain",
     });
     expect(getCabinetBuilderProductConfig(state)).toBe(selected);
+  });
+
+  it("carries the countertop thickness the composition holds, which a sink base mounts its basin by", () => {
+    let state = initialState();
+    // A placed cabinet's scene config, read when it was clicked, holds a thickness of its own.
+    state = rootReducer(state, setSelectedProductConfig({ Drawers: "1D", Thickness: 0.375 }));
+    state = rootReducer(state, setSelectedDimensions({ width: 90, height: 38, depth: 46 }));
+    state = rootReducer(state, setActiveCountertopThickness("0.5"));
+
+    expect(getCabinetBuilderProductConfig(state)?.Thickness).toBe("0.5");
   });
 });

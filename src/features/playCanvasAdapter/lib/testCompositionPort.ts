@@ -78,7 +78,7 @@ export const createTestCompositionPort = (initial: readonly string[] = []): Test
           placement.kind === "beside"
             ? placement.side === "left"
             : placement.slot === "left" || placement.slot === "top";
-        const anchor = order.indexOf(placement.anchorRuntimeId);
+        const anchor = placement.anchorRuntimeId === null ? -1 : order.indexOf(placement.anchorRuntimeId);
         const at = anchor === -1 ? order.length : before ? anchor : anchor + 1;
         order = [...order.slice(0, at), runtimeId, ...order.slice(at)];
       });

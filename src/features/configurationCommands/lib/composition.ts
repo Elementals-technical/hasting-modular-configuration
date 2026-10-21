@@ -486,7 +486,8 @@ export const addCabinet = async (
 
   const [runtimeId] = result.placed;
   const current = productIdsOf(deps.getState()).filter((id) => id !== runtimeId);
-  const anchor = placement.kind === "end" ? -1 : current.indexOf(placement.anchorRuntimeId);
+  const anchor =
+    placement.kind === "end" || placement.anchorRuntimeId === null ? -1 : current.indexOf(placement.anchorRuntimeId);
   // Where the scene does not report its order: beside the anchor, a column's top before its bottom.
   const before =
     placement.kind === "beside"

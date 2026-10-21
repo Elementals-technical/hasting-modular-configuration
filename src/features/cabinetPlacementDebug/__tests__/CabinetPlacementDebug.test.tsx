@@ -759,7 +759,7 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config,
         selectedProductId: "Example-side-cabinet-abcdefghi",
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings: null,
       }),
     ).toEqual({ definitionId: "Example-side-cabinet", selection: config });
@@ -768,13 +768,13 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: null,
         selectedProductId: "Example-side-cabinet-abcdefghi",
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings: null,
       }),
     ).toBeNull();
   });
 
-  it("resolves scene IDs and active cabinet types through the collection's runtime bindings", () => {
+  it("resolves scene IDs and the type the builder adds through the collection's runtime bindings", () => {
     const bindings: RuntimeBindingSet = {
       schemaVersion: 1,
       collectionId: "example",
@@ -785,7 +785,7 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: selection.selection,
         selectedProductId: "Example-side-cabinet-abcdefghi",
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings,
       }),
     ).toEqual(selection);
@@ -793,7 +793,7 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: selection.selection,
         selectedProductId: null,
-        activeCabinetType: "Open-Shelf",
+        addedCabinetType: "Open-Shelf",
         bindings,
       }),
     ).toEqual({ definitionId: "Example-open-shelf", selection: selection.selection });
@@ -801,10 +801,33 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: { ...selection.selection, productType: "Example-open-shelf" },
         selectedProductId: null,
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings,
       })?.definitionId,
     ).toBe("Example-open-shelf");
+  });
+
+  it("resolves the cabinet the builder adds, not the placed one a click in the canvas put in its config", () => {
+    const bindings: RuntimeBindingSet = {
+      schemaVersion: 1,
+      collectionId: "example",
+      bindings: [],
+      productTypes: { "Sink-Base": "Example-sink-cabinet", "Side-Cabinet": "Example-side-cabinet" },
+    };
+    // The builder adds a sink base; the side cabinet clicked in the canvas left its scene config.
+    const placedSideCabinetConfig = {
+      ...selection.selection,
+      ProductType: "Example-side-cabinet",
+      productType: "Example-side-cabinet",
+    };
+    expect(
+      resolveCabinetDebugSelection({
+        config: placedSideCabinetConfig,
+        selectedProductId: "Example-side-cabinet-abcdefghi",
+        addedCabinetType: "Sink-Base",
+        bindings,
+      })?.definitionId,
+    ).toBe("Example-sink-cabinet");
   });
 });
 
@@ -1055,6 +1078,55 @@ describe("Drag to Place", () => {
     await screen.findByRole("button", { name: "Cancel" });
     expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
     expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
+  });
+});
+
+describe("Drag to Place on an empty composition", () => {
+  const renderAdd = (f: ReturnType<typeof fixture>) => {
+    const addFirstCabinet = vi.fn(async () => undefined);
+    const before = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={f.createClient}
+        addFirstCabinet={addFirstCabinet}
+        onBeforeCompositionChange={before}
+      />,
+    );
+    return { addFirstCabinet, before };
+  };
+  const pressAdd = async () => {
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+  };
+
+  it("places the first cabinet as the builder's + does, without a draft: the scene lays its countertop then", async () => {
+    const f = fixture();
+    f.client.getCabinetsState.mockResolvedValue({ cabinets: [], selectedCabinetId: "" });
+    const { addFirstCabinet, before } = renderAdd(f);
+
+    await pressAdd();
+
+    await waitFor(() => expect(addFirstCabinet).toHaveBeenCalledOnce());
+    expect(f.client.beginAdd).not.toHaveBeenCalled();
+    expect(f.client.getPlacementOptions).not.toHaveBeenCalled();
+    expect(before).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("opens a draft as before once the composition holds a cabinet", async () => {
+    const f = fixture();
+    const { addFirstCabinet } = renderAdd(f);
+
+    await pressAdd();
+
+    await screen.findByRole("button", { name: "Apply" });
+    expect(f.client.beginAdd).toHaveBeenCalledOnce();
+    expect(addFirstCabinet).not.toHaveBeenCalled();
   });
 });
 
