@@ -1,7 +1,9 @@
 import type { CountertopOverlayFrame, PlacementOverlayPoint } from "@/features/configuratorApi";
 
+import { overlaps, within } from "./screenGeometry";
+import type { ScreenBox } from "./screenGeometry";
+
 type Size = { width: number; height: number };
-export type ScreenBox = { left: number; top: number; right: number; bottom: number };
 
 /**
  * The length hint's box. Its text is fixed and stays on one line (12 px on a 16 px line, 4 × 10 px
@@ -16,16 +18,10 @@ const GAP_PX = 8;
 /** Kept clear of the viewport's edges. */
 const EDGE_PX = 8;
 /** Half the move marker (a 29 px icon centred on `center`): it sticks out under a thin top. */
-const MOVE_MARKER_HALF_PX = 15;
+export const MOVE_MARKER_HALF_PX = 15;
 /** "Apply" at 12 px with 12 px side padding, rounded up; 16 px line with 3 px padding. */
 const APPLY_SIZE_PX: Size = { width: 60, height: 22 };
 const DISCARD_SIZE_PX = 22;
-
-/** `value` kept within `[min, max]`; `min` wins when the range is empty. */
-const within = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
-
-const overlaps = (a: ScreenBox, b: ScreenBox) =>
-  a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
 
 const boxAround = (points: readonly PlacementOverlayPoint[]): ScreenBox | null =>
   points.length > 0

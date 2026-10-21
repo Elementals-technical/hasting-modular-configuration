@@ -14,6 +14,7 @@ import { useReasonText } from "@/shared/lib/reasonText";
 import { formatInches, metresToDisplayInches } from "../lib/countertopLength";
 import type { CountertopOverlayStore } from "../lib/countertopOverlayStore";
 import { describeCountertopValidation } from "../lib/countertopSession";
+import { clearEditSizeButton } from "../lib/editSizeButtonClearance";
 import {
   actionRowBox,
   actionRowPositions,
@@ -21,6 +22,7 @@ import {
   placeLengthHint,
   REASON_FALLBACK_SIZE_PX,
 } from "../lib/lengthHintPlacement";
+import { readEditSizeButtonRect } from "../lib/readEditSizeButtonRect";
 import { CloseIcon, EditIcon, MoveIcon } from "./countertopIcons";
 import { CountertopDimensionPopover } from "./CountertopDimensionPopover/CountertopDimensionPopover";
 import { CountertopResizeHandles } from "./CountertopResizeHandles";
@@ -102,8 +104,12 @@ export function CountertopDragOverlay({
   // Red: the overlay's own conflict, or the runtime's verdict (state.validation) is invalid.
   const invalid = validation?.tone === "invalid";
   const colliding = frame.status === "colliding" || invalid;
-  const center = points.center ?? points.frontCenter;
-  const lengthAnchor = points.lengthLabel ?? points.topCenter;
+  // The scene draws its Edit size button over the top under the same flag (`canResize`: a lifted top);
+  // the move marker and the length chip step off it, and the length popover follows the chip.
+  const { marker: center, chip: lengthAnchor } = clearEditSizeButton(
+    runtime?.canResize === true ? readEditSizeButtonRect() : null,
+    { marker: points.center ?? points.frontCenter ?? null, chip: points.lengthLabel ?? points.topCenter ?? null },
+  );
   const depthAnchor = points.depthLabel ?? points.rightEnd;
   // The depth chip stands beside its anchor.
   const depthChip = depthAnchor ? { x: depthAnchor.x + 28, y: depthAnchor.y } : null;
@@ -120,7 +126,7 @@ export function CountertopDragOverlay({
     topBox &&
     placeLengthHint({
       top: topBox,
-      marker: center ?? null,
+      marker: center,
       actionRow: action ? actionRowBox(action, reason ? (reasonSize ?? REASON_FALLBACK_SIZE_PX) : null) : null,
       viewport: frame.viewport,
     });
