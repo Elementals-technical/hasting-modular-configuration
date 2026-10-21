@@ -88,6 +88,16 @@ describe("CountertopDragOverlay length chip", () => {
     expect(screen.queryByRole("spinbutton")).toBeNull();
   });
 
+  it.each([
+    ["under the top's lower edge", { x: 700, y: 450 }, "428px"],
+    ["below Apply / × when they stand under it", { x: 600, y: 425 }, "460px"],
+  ])("places the drag hint %s, centred on the top", (_, bottomRight, top) => {
+    const bounds = { left: 300, top: 380, right: 700, bottom: 420, width: 400, height: 40 };
+    renderOverlay(frameOf({ bounds, points: { ...frameOf().points, bottomRight } }));
+    const hint = screen.getByText("Drag the ends to change the length");
+    expect([hint.style.left, hint.style.top]).toEqual(["500px", top]);
+  });
+
   it("renders the resize handles for a remote top", () => {
     const props = renderOverlay(frameOf());
     expect(handlesProps).toHaveBeenCalled();

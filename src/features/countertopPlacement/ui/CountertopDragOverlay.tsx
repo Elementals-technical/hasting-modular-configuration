@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import clsx from "clsx";
 
 import type {
@@ -14,6 +14,13 @@ import { useReasonText } from "@/shared/lib/reasonText";
 import { formatInches, metresToDisplayInches } from "../lib/countertopLength";
 import type { CountertopOverlayStore } from "../lib/countertopOverlayStore";
 import { describeCountertopValidation } from "../lib/countertopSession";
+import {
+  actionRowBox,
+  actionRowPositions,
+  countertopScreenBox,
+  placeLengthHint,
+  REASON_FALLBACK_SIZE_PX,
+} from "../lib/lengthHintPlacement";
 import { CloseIcon, EditIcon, MoveIcon } from "./countertopIcons";
 import { CountertopDimensionPopover } from "./CountertopDimensionPopover/CountertopDimensionPopover";
 import { CountertopResizeHandles } from "./CountertopResizeHandles";
@@ -78,6 +85,17 @@ export function CountertopDragOverlay({
   // closes it, nothing is sent and the session goes on as it was.
   const closeEditor = useCallback(() => setOpenEditor(null), []);
   const toggleEditor = (editor: DimensionEditor) => setOpenEditor((open) => (open === editor ? null : editor));
+  // The reason text wraps by its length and position; the length hint keeps clear of its rendered box.
+  const [reasonElement, setReasonElement] = useState<HTMLParagraphElement | null>(null);
+  const [reasonSize, setReasonSize] = useState<{ width: number; height: number } | null>(null);
+  useEffect(() => {
+    if (!reasonElement || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() =>
+      setReasonSize({ width: reasonElement.offsetWidth, height: reasonElement.offsetHeight }),
+    );
+    observer.observe(reasonElement);
+    return () => observer.disconnect();
+  }, [reasonElement]);
 
   if (!frame?.points) return null;
   const points = frame.points;
@@ -91,10 +109,21 @@ export function CountertopDragOverlay({
   const depthChip = depthAnchor ? { x: depthAnchor.x + 28, y: depthAnchor.y } : null;
   const depthIn = typeof frame.depthM === "number" ? metresToDisplayInches(frame.depthM) : null;
   const action = actionAnchor(frame);
+  const actionRow = action ? actionRowPositions(action) : null;
   const frameReason = !frame.canApply || frame.status === "colliding" ? frame.reasons?.[0]?.message : undefined;
   // Invalid verdict first; else the overlay's reason; else the warning (amber, does not block Apply).
   const reason = invalid ? validation.lines.join(" ") : (frameReason ?? validation?.lines.join(" "));
   const warning = !invalid && !frameReason && validation?.tone === "warning";
+  const topBox = countertopScreenBox(frame);
+  // Under the top's lower edge, off the move marker and the scene's Edit size button at its centre.
+  const lengthHint =
+    topBox &&
+    placeLengthHint({
+      top: topBox,
+      marker: center ?? null,
+      actionRow: action ? actionRowBox(action, reason ? (reasonSize ?? REASON_FALLBACK_SIZE_PX) : null) : null,
+      viewport: frame.viewport,
+    });
   const lengthIn = typeof frame.lengthM === "number" ? metresToDisplayInches(frame.lengthM) : null;
   // The runtime's effective limits first (raised to fit the basin cut-outs), then the frame's.
   const effectiveLimits = runtime?.lengthLimitsM ?? frame.limits;
@@ -140,9 +169,11 @@ export function CountertopDragOverlay({
           >
             {formatInches(lengthIn)} <EditIcon />
           </button>
-          <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthAnchor.x, top: lengthAnchor.y + 16 }}>
-            Drag the ends to change the length
-          </p>
+          {lengthHint && (
+            <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthHint.x, top: lengthHint.y }}>
+              Drag the ends to change the length
+            </p>
+          )}
           {openEditor === "length" && frame.lengthM !== null && (
             <CountertopDimensionPopover
               label="Length"
@@ -193,12 +224,12 @@ export function CountertopDragOverlay({
         onPreview={onPreview}
         onCommit={onResizeFrom}
       />
-      {action && (
+      {actionRow && (
         <>
           <button
             type="button"
             className={s.applyChip}
-            style={{ left: action.x - 3, top: action.y + 5 }}
+            style={{ left: actionRow.apply.x, top: actionRow.apply.y }}
             disabled={pending || !frame.canApply || frame.dragging || invalid}
             title={reason}
             onClick={onApply}
@@ -208,7 +239,7 @@ export function CountertopDragOverlay({
           <button
             type="button"
             className={s.discardChip}
-            style={{ left: action.x + 3, top: action.y + 3 }}
+            style={{ left: actionRow.discard.x, top: actionRow.discard.y }}
             aria-label="Discard countertop changes"
             disabled={pending}
             onClick={onCancel}
@@ -217,8 +248,9 @@ export function CountertopDragOverlay({
           </button>
           {reason && (
             <p
+              ref={setReasonElement}
               className={clsx(s.message, s.reason, warning && s.warning)}
-              style={{ left: action.x + 25, top: action.y + 34 }}
+              style={{ left: actionRow.reason.x, top: actionRow.reason.y }}
               role={warning ? "status" : "alert"}
               data-validation={invalid ? "invalid" : warning ? "warning" : undefined}
             >
