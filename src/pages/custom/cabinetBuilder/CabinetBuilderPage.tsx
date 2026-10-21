@@ -55,6 +55,7 @@ import {
   getSelectedProducts,
   getDrawerProduct,
   getDimensionOptions,
+  getHeightChoices,
   getSelectedProductConfig,
   getSelectedDimensions,
   getSinkType,
@@ -106,6 +107,8 @@ import {
   isDrawerStyleHeightRestricted,
   isSideShelfBlockedByHandle,
   resolveDrawerStyleSwitch,
+  resolveHeightStyleCards,
+  type HeightStyleCard,
 } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   findCabinetRule,
@@ -256,6 +259,8 @@ type PendingMixingStyle = {
   /** The height the placed cabinets share, and the one they take with the style. */
   placedHeight: number | null;
   switchHeight: number | null;
+  /** The height of the card's model, where the collection shows a drawer style as models by height. */
+  height: number | null;
 };
 
 const REASON_STYLE_NOT_WITH_SERIES = "drawers.notWithSeriesCabinet";
@@ -296,6 +301,10 @@ export const CabinetBuilderPage = () => {
   // Cabinet values the style sidebar offers per cabinet (`styleSidebar.attributes`).
   const cabinetAttributeIds = useActiveCollection(
     (collection) => collection.catalog.customization?.styleSidebar?.attributes,
+  );
+  // The models a drawer style comes in by height, a card each (`cabinetStyle.heightStyles`).
+  const heightStyles = useActiveCollection(
+    (collection) => collection.catalog.customization?.cabinetStyle?.heightStyles,
   );
 
   const { search, key: locationKey } = useLocation();
@@ -353,6 +362,7 @@ export const CabinetBuilderPage = () => {
   const sinkType = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const dimensionOptions = useAppSelector(getDimensionOptions);
+  const heightChoices = useAppSelector(getHeightChoices);
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
   const productsPresets = useAppSelector(getProductsPresets);
@@ -419,6 +429,10 @@ export const CabinetBuilderPage = () => {
       typeof height === "number" ? [height] : [],
     );
     const placedHeight = placedHeights[0] ?? null;
+    // The cabinets share a height: the one the commands record at once and the next cabinet takes,
+    // else the one the scene last reported.
+    const compositionHeight = hasProducts ? (selectedDimensions.height ?? placedHeight) : null;
+    const heightCards = resolveHeightStyleCards({ heightStyles, heightChoices, compositionHeight });
     const placedSeriesRules = placedSeriesCabinets.map(({ rule }) => rule);
     const placedSeriesLabels = [
       ...new Set(
@@ -452,7 +466,7 @@ export const CabinetBuilderPage = () => {
         ? hasAddableWidthForActiveType
         : !hasProducts || (rule?.widths ?? []).some((width) => width > 0 && canAccommodateWidth(width));
 
-      return [...drawerValues].sort(byDrawerCount).map((value) => {
+      return [...drawerValues].sort(byDrawerCount).flatMap((value) => {
         const ruleOption = isConfiguredRule ? drawerOptionMap.get(value) : undefined;
         const isOffered = isConfiguredRule ? !ruleOption?.disabled : Boolean(rule?.drawers.includes(value));
 
@@ -490,49 +504,70 @@ export const CabinetBuilderPage = () => {
           steppedModule !== undefined &&
           !placedSteppedCategories.split("|").includes(steppedModule.requiresPlacedCategory);
 
-        return {
-          title: selectOption(activeProfile, "Drawers", value)?.label ?? value,
-          value: isOfOtherSeries ? `${series}:${value}` : value,
-          drawers: value,
-          series,
-          group: seriesLabel,
-          detailsQuery: series ? { style: value, series } : undefined,
-          placedHeight,
-          switchHeight: styleSwitch?.possible ? styleSwitch.height : null,
-          isAvailable:
-            countertopCompositionConstraint.canAddCabinet &&
-            isOffered &&
-            hasAddableWidth &&
-            canSwitch &&
-            !needsTallerCabinet,
-          disabledReason:
-            compositionReason ??
-            (isHeldBySeries
-              ? selectMessageOr(activeProfile, REASON_STYLE_NOT_WITH_SERIES, STYLE_NOT_WITH_SERIES_TEXT, {
-                  series: placedSeriesLabels,
-                })
+        const title = selectOption(activeProfile, "Drawers", value)?.label ?? value;
+        const cardValue = isOfOtherSeries ? `${series}:${value}` : value;
+        // The picture of the series the card stands for, not of the one the composition began with.
+        const imageContext = series ? { ...optionImageContext, [SERIES_ATTRIBUTE_ID]: series } : optionImageContext;
+        // A style whose models differ by height alone is a card per model (`cabinetStyle.heightStyles`).
+        const models: (HeightStyleCard | null)[] = isConfiguredRule && heightCards.length > 0 ? heightCards : [null];
+
+        return models.map((model) => {
+          // A model's details show the cabinet at the model's own height.
+          const detailsQuery: Record<string, string> | undefined = model
+            ? { style: value, height: String(model.height), ...(series ? { series } : {}) }
+            : series
+              ? { style: value, series }
+              : undefined;
+
+          return {
+            title: model?.label ? `${title} ${model.label}` : title,
+            value: model ? `${cardValue}@${model.id}` : cardValue,
+            drawers: value,
+            series,
+            group: seriesLabel,
+            detailsQuery,
+            // A model takes the cabinets from the height they share to its own.
+            placedHeight: model ? compositionHeight : placedHeight,
+            switchHeight: styleSwitch?.possible ? styleSwitch.height : null,
+            height: model?.height ?? null,
+            isAvailable:
+              countertopCompositionConstraint.canAddCabinet &&
+              isOffered &&
+              hasAddableWidth &&
+              canSwitch &&
+              !needsTallerCabinet,
+            disabledReason:
+              compositionReason ??
+              (isHeldBySeries
+                ? selectMessageOr(activeProfile, REASON_STYLE_NOT_WITH_SERIES, STYLE_NOT_WITH_SERIES_TEXT, {
+                    series: placedSeriesLabels,
+                  })
+                : needsTallerCabinet
+                  ? selectMessageOr(activeProfile, REASON_STEPPED_NEEDS_CABINET, STEPPED_NEEDS_CABINET_TEXT)
+                  : ruleOption?.reason),
+            // Named by its code, so the hint reads the collection's text for it.
+            ...(isHeldBySeries
+              ? {
+                  disabledReasonCode: REASON_STYLE_NOT_WITH_SERIES,
+                  disabledReasonParams: { series: placedSeriesLabels },
+                }
               : needsTallerCabinet
-                ? selectMessageOr(activeProfile, REASON_STEPPED_NEEDS_CABINET, STEPPED_NEEDS_CABINET_TEXT)
-                : ruleOption?.reason),
-          // Named by its code, so the hint reads the collection's text for it.
-          ...(isHeldBySeries
-            ? { disabledReasonCode: REASON_STYLE_NOT_WITH_SERIES, disabledReasonParams: { series: placedSeriesLabels } }
-            : needsTallerCabinet
-              ? { disabledReasonCode: REASON_STEPPED_NEEDS_CABINET }
-              : {}),
-          isMixingRestricted,
-          isShortDesc: false,
-          metadata: {
-            image: resolveOptionImage({
-              optionImages,
-              variants: optionImageVariants,
-              attributeId: "Drawers",
-              value,
-              // The picture of the series the card stands for, not of the one the composition began with.
-              context: series ? { ...optionImageContext, [SERIES_ATTRIBUTE_ID]: series } : optionImageContext,
-            }),
-          },
-        };
+                ? { disabledReasonCode: REASON_STEPPED_NEEDS_CABINET }
+                : {}),
+            // Another model than the composition's switches every cabinet to its height, after asking.
+            isMixingRestricted: isMixingRestricted || Boolean(model?.switchesComposition),
+            isShortDesc: false,
+            metadata: {
+              image: resolveOptionImage({
+                optionImages,
+                variants: optionImageVariants,
+                attributeId: "Drawers",
+                value,
+                context: model ? { ...imageContext, Height: String(model.height) } : imageContext,
+              }),
+            },
+          };
+        });
       });
     });
   }, [
@@ -556,6 +591,9 @@ export const CabinetBuilderPage = () => {
     hasProducts,
     lengthGuard.canAccommodate,
     compositionExceededReason,
+    heightStyles,
+    heightChoices,
+    selectedDimensions.height,
   ]);
 
   const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
@@ -767,8 +805,21 @@ export const CabinetBuilderPage = () => {
           }),
         );
       }
+
+      // A model by height sets the height of the first cabinet. Once cabinets stand, the card of their
+      // height is the one chosen here, and another one asks first.
+      if (!hasProducts && typeof style?.height === "number" && style.height !== selectedDimensions.height) {
+        dispatch(setSelectedDimensions({ height: style.height }));
+      }
     },
-    [cabinetStyleOptions, countertopCompositionConstraint.canAddCabinet, dispatch, hasProducts, selectedProductConfig],
+    [
+      cabinetStyleOptions,
+      countertopCompositionConstraint.canAddCabinet,
+      dispatch,
+      hasProducts,
+      selectedDimensions.height,
+      selectedProductConfig,
+    ],
   );
 
   const handleResetToDefaultState = useCallback(() => {
@@ -779,8 +830,8 @@ export const CabinetBuilderPage = () => {
     (value: string) => {
       const option = cabinetStyleOptions.find((item) => item.value === value);
       if (!option) return;
-      const { title, drawers, series, placedHeight, switchHeight } = option;
-      setPendingMixingStyle({ value, title, drawers, series, placedHeight, switchHeight });
+      const { title, drawers, series, placedHeight, switchHeight, height } = option;
+      setPendingMixingStyle({ value, title, drawers, series, placedHeight, switchHeight, height });
     },
     [cabinetStyleOptions],
   );
@@ -788,7 +839,7 @@ export const CabinetBuilderPage = () => {
   const handleMixingConfirm = useCallback(async () => {
     if (!pendingMixingStyle) return;
 
-    const { drawers: drawerRawValue, series, placedHeight, switchHeight } = pendingMixingStyle;
+    const { drawers: drawerRawValue, series, placedHeight, switchHeight, height } = pendingMixingStyle;
     const mappedValue = mapDrawerValueToConfig(drawerRawValue);
 
     if (!mappedValue) {
@@ -809,10 +860,11 @@ export const CabinetBuilderPage = () => {
       new Set([...selectedProducts.filter(isDrawerCabinetId), ...Object.keys(placedCabinetStyles)]),
     );
     // The command addresses a drawer cabinet: the rules are judged for its type, and the set
-    // reaches every drawer cabinet. Without one there is nothing to switch.
+    // reaches every drawer cabinet. Without one there is no drawer style to switch, but a model by
+    // height still takes every cabinet to its height.
     const cabinetId = getCabinetEntries(getCommandState()).find(({ runtimeId }) => isDrawerCabinetId(runtimeId))
       ?.stableKey;
-    if (!cabinetId) return;
+    if (!cabinetId && height === null) return;
 
     // The drawer switch, the dividers it clears and the height it brings are one undo step.
     await runStep(async () => {
@@ -850,7 +902,7 @@ export const CabinetBuilderPage = () => {
 
       let heightAfterSwitch = placedHeight;
 
-      if (switchesDrawers) {
+      if (switchesDrawers && cabinetId) {
         // Drawers, the handle the new drawers require and the forced height go to the scene as one
         // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
         const asked = await changeAttributeValue({
@@ -873,12 +925,13 @@ export const CabinetBuilderPage = () => {
 
       setActiveStyleValue(pendingMixingStyle.value);
 
-      // The set brings the height the rules require of the cabinet it was judged for. Where several
-      // series supply the type, a style may come in fewer heights: the composition goes on to one
-      // of those. A collection with its own cabinets only is left to the set alone.
-      const seriesHeight = series ? switchHeight : null;
-      if (seriesHeight !== null && heightAfterSwitch !== seriesHeight) {
-        const resized = await changeDimension({ attributeId: "Height", value: seriesHeight, scope: "global" });
+      // The set brings the height the rules require of the cabinet it was judged for. A model by
+      // height takes every cabinet to its own height, and where several series supply the type, a
+      // style may come in fewer heights: the composition goes on to one of those. Otherwise the set
+      // alone decides.
+      const targetHeight = height ?? (series ? switchHeight : null);
+      if (targetHeight !== null && heightAfterSwitch !== targetHeight) {
+        const resized = await changeDimension({ attributeId: "Height", value: targetHeight, scope: "global" });
         if (resized.status !== "applied") {
           console.error("[CabinetBuilderPage] Failed to set the height of the drawer style", resized);
           return;
@@ -888,7 +941,7 @@ export const CabinetBuilderPage = () => {
       // In some compositions a batch update keeps a stale height until the sidebar is touched. The
       // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
       const product = getCommandState().rootStateUI.product;
-      const appliedHeight = seriesHeight ?? product.selectedDimensions.height;
+      const appliedHeight = targetHeight ?? product.selectedDimensions.height;
       if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
 
       const appliedHandle = product.selectedProductConfig?.Handle;
@@ -1865,6 +1918,19 @@ export const CabinetBuilderPage = () => {
     if (target) setAccordionValue(target);
   }, [searchParams, locationKey]);
 
+  // A model by height is the active card while the next cabinet takes its height, whichever set it:
+  // the sidebar's Height, a handle or an approved switch.
+  const activeStyleOption = cabinetStyleOptions.find((item) => item.value === activeStyleValue);
+  const shownStyleValue =
+    typeof activeStyleOption?.height === "number"
+      ? (cabinetStyleOptions.find(
+          (item) =>
+            item.drawers === activeStyleOption.drawers &&
+            item.series === activeStyleOption.series &&
+            item.height === selectedDimensions.height,
+        )?.value ?? activeStyleValue)
+      : activeStyleValue;
+
   const accordions: AccordionConfig[] = [
     {
       id: CABINET_TYPE_ID,
@@ -1898,7 +1964,7 @@ export const CabinetBuilderPage = () => {
             detailsTo={(query) => withPreservedCollectionId(`${cabinetStyleDetailsPath}?${query}`, search)}
             requiresActiveCabinet
             isActive={isStyleDrawerActive}
-            activeValue={activeStyleValue}
+            activeValue={shownStyleValue}
             onSelectStyle={handleSelectDrawerStyle}
             onMixingRestrictedSelect={handleMixingRestrictedSelect}
           />

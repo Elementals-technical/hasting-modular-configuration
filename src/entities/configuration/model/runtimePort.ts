@@ -205,11 +205,12 @@ export type ScenePlacementSlot = "left" | "right" | "top" | "bottom";
 
 /**
  * Where one product goes: after the last one, next to a placed one, or at a place the scene
- * offers by a placed one (`slot`).
+ * offers by a placed one (`slot`). Beside no product (`anchorRuntimeId` null) is the first one of
+ * an empty composition, as the scene's "+" of an empty scene places it.
  */
 export type SceneCompositionPlacement =
   | { kind: "end" }
-  | { kind: "beside"; anchorRuntimeId: string; side: "left" | "right" }
+  | { kind: "beside"; anchorRuntimeId: string | null; side: "left" | "right" }
   | { kind: "slot"; anchorRuntimeId: string; slot: ScenePlacementSlot };
 
 /** A product as the scene places it: its scene type, and its config in the scene's keys. */

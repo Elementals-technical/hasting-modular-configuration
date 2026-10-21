@@ -7,24 +7,29 @@ export const DRAG_DROP_COLLECTION_IDS: readonly string[] = ["urban-low-height", 
 export const isDragDropCollection = (collectionId: string | null | undefined): boolean =>
   typeof collectionId === "string" && DRAG_DROP_COLLECTION_IDS.includes(collectionId);
 
-/** Reuse the active collection's type/value translation, preserving the current scene config. */
+/**
+ * Reuse the active collection's type/value translation, preserving the current scene config. The
+ * type the builder adds comes first: a click on a placed cabinet puts its scene config, with its
+ * own type, in the builder's config.
+ */
 export const resolveCabinetDebugSelection = ({
   config,
   selectedProductId,
-  activeCabinetType,
+  addedCabinetType,
   bindings,
 }: {
   config: Record<string, unknown> | null;
   selectedProductId: string | null;
-  activeCabinetType: string | null;
+  /** The cabinet type the builder adds, the one its "+" adds. */
+  addedCabinetType: string | null;
   bindings: RuntimeBindingSet | null;
 }): { definitionId: string; selection: Record<string, unknown> } | null => {
   if (!config) return null;
   const definitionIds = [...new Set(Object.values(bindings?.productTypes ?? {}))]
     .sort((left, right) => right.length - left.length);
   const candidates = [
+    addedCabinetType ? bindings?.productTypes[addedCabinetType] : null,
     config.ProductType, config.productType, config.type, config.name,
-    activeCabinetType ? bindings?.productTypes[activeCabinetType] : null,
     selectedProductId,
   ];
   const explicitType = [config.ProductType, config.productType, config.type, config.name]

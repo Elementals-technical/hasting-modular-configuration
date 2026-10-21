@@ -175,6 +175,20 @@ describe("createCompositionPort", () => {
     ]);
   });
 
+  it("places the first cabinet of an empty composition beside no product, as the scene's + of an empty scene", async () => {
+    const { port, calls } = createPort();
+
+    const result = await port.add(
+      { productType: "Sink-Base", config: { Width: 60 } },
+      { kind: "beside", anchorRuntimeId: null, side: "right" },
+    );
+
+    expect(result).toMatchObject({ status: "applied", placed: ["Sink-Base-inserted"] });
+    expect(calls).toEqual([
+      ["insert", "Sink-Base", null, "right", { Width: 60, ProductType: "Sink-Base", productType: "Sink-Base" }],
+    ]);
+  });
+
   it("falls back to a follow-up config when the scene placed the cabinet with its defaults", async () => {
     const { port, calls } = createPort({ insert: { status: "applied", runtimeId: "Sink-Base-inserted" } });
 

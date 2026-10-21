@@ -99,14 +99,19 @@ card із builder. Повернення card потребує scene product і �
 `cabinetMatrixLegacyAdapter.columns.heightsByHandle`, тому builder пропонує лише висоти вибраного handle,
 а зміна handle пересуває висоту до найближчої дозволеної (38 ↔ 35, 28 ↔ 25).
 
-Користувач обирає висоту у двох місцях; обидва показують лише дві висоти вибраного handle
+Користувач обирає висоту у трьох місцях; кожне показує лише дві висоти вибраного handle
 (Upper Groove — 28 і 38 cm, Push-to-Open — 25 і 35 cm):
 
+- акордеон Cabinet Style — дві моделі one-drawer шафи: «1 Drawer» (38 / 35 cm) і «1 Drawer Slim»
+  (28 / 25 cm);
 - right sidebar Cabinet Builder — selector Height поруч із Width / Depth / Handle;
 - меню поставленої шафи — Resize ▸ Height.
 
-Обидва місця вмикає `ui.json` колекції, а не код:
+Усі три місця вмикає `ui.json` колекції, а не код:
 
+- `cabinetStyle.heightStyles` — моделі drawer style за висотою, по картці на модель у заданому порядку.
+  ULH оголошує `standard` (38, 35) і `slim` з `label: "Slim"` (28, 25); картка стоїть на першій висоті
+  моделі, яку дозволяє handle. Без ключа style має одну картку.
 - `styleSidebar.fields` — selectors правого sidebar у заданому порядку. Без нього sidebar показує
   Width, Depth, Handle; ULH оголошує `["Width", "Depth", "Height", "Handle"]`.
 - `playerMenu.resize` — розміри пункту Resize у заданому порядку. Без нього — Width і Depth; ULH
@@ -119,6 +124,14 @@ card із builder. Повернення card потребує scene product і �
 Висота спільна для композиції. Поки шаф немає, вибір стосується наступної шафи; після розміщення зміна
 йде через `changeDimension` (`{ attributeId: "Height", scope: "global" }`) і змінює всі шафи одразу, як
 Depth. Порожній builder стартує з 38 cm — це `defaultValue` атрибута `Height` у `product-profile.json`.
+
+Картки моделей Cabinet Style. У порожньому builder обидві звичайні, і вибір задає висоту першої шафи.
+Після розміщення картка висоти, на якій стоять шафи, додає шафу; інша показана сірою (як style, що не
+змішується) з підказкою `drawers.mixingRestricted` із `messages` профілю. Після підтвердження
+«Update Design?» вона переводить усі шафи на свою висоту одним кроком історії — тим самим
+`changeDimension`, що й Height у sidebar. Slim-рендерів ще немає, тому обидві картки показують ту саму
+картинку. Рядки `optionImageVariants.Drawers` з `Height: "28"` / `"25"` треба ставити перед загальним
+рядком `{ "CabinetType": "Sink-Base" }`: перемагає перший збіг.
 
 Висоти іншого handle Height не пропонує: щоб їх отримати, користувач змінює Handle. Зміна handle
 (`{ attributeId: "Handle" }`) пересуває висоту до найближчої, яку приймає новий handle: з поставленими
@@ -232,7 +245,10 @@ scene first-import cache та save/history featureSettings — окремі пи
   композиції змінюють через Sink Base або Side Cabinet.
 - Зміна висоти не пересуває ряди по вертикалі: нижній ряд дворядної композиції лишається на своїй
   позначці. Перевірено в браузері 12.10.2026 на моделі 60″ Multi-Level у Custom: після 38 → 28 cm між
-  рядами лишається зазор 10 cm (верх нижньої шафи −10 cm, низ верхньої 0).
+  рядами лишається зазор 10 cm (верх нижньої шафи −10 cm, низ верхньої 0). Так само після перемикання
+  на «1 Drawer Slim» у Cabinet Style.
+- Ціна Slim (28 / 25 cm) не перевірена: SKU пише `11H` / `9.8H`, а за коментарем у
+  `urbanDuplexSkus.test.ts` сервер може читати URLH `11H` як рядок `15.0H`.
 - Open Shelf ширше 70 cm (80–120 cm при висоті 28/25 cm) не пропонується: колонку `widths_cm_by_height`
   table 580 ніхто не читає.
 - Countertop/basin contract частково позичений у USH; table 589 не є доказом повної ULH семантики.

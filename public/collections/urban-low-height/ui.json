@@ -305,6 +305,12 @@
   "styleSidebar": {
     "fields": ["Width", "Depth", "Height", "Handle"]
   },
+  "cabinetStyle": {
+    "heightStyles": [
+      { "id": "standard", "heights": [38, 35] },
+      { "id": "slim", "label": "Slim", "heights": [28, 25] }
+    ]
+  },
   "playerMenu": {
     "resize": ["Width", "Depth", "Height"]
   }

@@ -13,7 +13,10 @@ the cabinet placement API of the configurator iframe (`cabinetPlacement.*`) and 
    passed as `offerAdd`). A press calls `beginAdd` with the configured cabinet right away; like any
    press outside the sidebar it also closes the sidebar, so its "+" go away for the drag. There is no
    modal: the cabinet appears in the scene next to the selected (or last) cabinet and can be dragged
-   at once. On every other step a cabinet draft opens only from the cabinet menu.
+   at once. On an empty composition the press places the first cabinet as the empty scene's "+" does,
+   without a draft (`addFirstCabinet`): the scene lays a countertop only for a cabinet its own add
+   places, never for one a draft commits. On every other step a cabinet draft opens only from the
+   cabinet menu.
 2. While the draft is open the toolbar in the top-right corner shows **Cancel**. PlayCanvas tints the cabinet
    **green** on a free spot and **red** when it overlaps another cabinet (and outlines the cabinets
    it overlaps). A red draft cannot be applied: `canApply` is false, the runtime would refuse with

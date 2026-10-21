@@ -42,6 +42,7 @@ import {
   getIsDrawerOpen,
   getSelectedSceneProduct,
   getCabinetBuilderProductConfig,
+  getDrawerProduct,
   getSelectedProductConfig,
   getActiveCabinetRule,
   getSinkBaseCount,
@@ -60,6 +61,7 @@ import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import { occupiedWidthCm, type PlacedWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { getIsActiveStyleSidebar, getPlacementButtonsVisible } from "@/features/sidebar/model/store/selectors";
 import { placementForPlus, plusFilterFor, rowEndSideOf } from "@/features/sidebar/lib/plusPlacement";
+import { buildAddedCabinet } from "@/features/sidebar/lib/buildAddedCabinetRequest";
 import {
   autoRemoveSide as spAutoRemoveSide,
   deleteSide as spDeleteSide,
@@ -524,7 +526,10 @@ export const PlayCanvasIntegration = ({
       runtimeId ? resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, runtimeId) : null,
     [activeProfile, runtimeBindings],
   );
-  const activeCabinetType = useAppSelector((state) => state.rootStateUI.product.activeCabinetType);
+  // The cabinet type the builder adds, the one its "+" adds; a click on a placed cabinet leaves it as it is.
+  const activeDrawerProduct = useAppSelector(getDrawerProduct);
+  const countertopStyle = useAppSelector(getCountertopStyle);
+  const activeBasinStyle = useAppSelector(getSinkType);
   // Cabinet & countertop Drag & Drop: ULH and Urban Duplex; other collections keep the classic menus.
   const cabinetPlacementDebugEnabled = isDragDropCollection(activeCollectionId);
   // Engineering tools of the Drag & Drop (Move selected, add side, Save/Restore JSON): ?placementDebug
@@ -575,22 +580,27 @@ export const PlayCanvasIntegration = ({
   const cabinetDebugSelection = resolveCabinetDebugSelection({
     config: cabinetBuilderProductConfig,
     selectedProductId: selectedSceneProduct,
-    activeCabinetType,
+    addedCabinetType: activeDrawerProduct,
     bindings: runtimeBindings,
   });
   // Resolved when a Drag & Drop Add starts: the cabinet as the "+" would place it (with the
   // composition's values, its config in the scene's keys), kept to record its own values once placed.
   const prepareCabinetPlacement = useCallback((): CabinetPlacementSelection | null => {
     preparedCabinetRef.current = null;
-    if (!cabinetDebugSelection || !cabinetBuilderProductConfig) return null;
+    if (!cabinetBuilderProductConfig) return null;
 
-    const prepared = composition.prepare({
-      productType: cabinetDebugSelection.definitionId,
-      config: cabinetBuilderProductConfig,
-    });
+    const prepared = composition.prepare(
+      buildAddedCabinet({
+        cabinetType: activeDrawerProduct,
+        config: cabinetBuilderProductConfig,
+        width: null,
+        sinkType: activeBasinStyle,
+        countertopStyle,
+      }).product,
+    );
     preparedCabinetRef.current = prepared;
     return prepared ? { definitionId: prepared.definitionId, selection: prepared.selection } : null;
-  }, [cabinetBuilderProductConfig, cabinetDebugSelection, composition]);
+  }, [activeBasinStyle, activeDrawerProduct, cabinetBuilderProductConfig, composition, countertopStyle]);
   // The side shelf keeps to a row end in Drag & Drop as in the classic menus.
   const isSideShelfSceneType = useCallback(
     (definitionId: string) => definitionId === runtimeBindings?.productTypes["Side-Shelf"],
@@ -822,9 +832,7 @@ export const PlayCanvasIntegration = ({
   const isDrawerOpen = useAppSelector(getIsDrawerOpen);
   const activeCountertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
-  const countertopStyle = useAppSelector(getCountertopStyle);
   const activeCountertopThickness = useAppSelector(getActiveCountertopThickness);
-  const activeBasinStyle = useAppSelector(getSinkType);
   const vesselColor = useAppSelector(getVesselColor);
   const vesselColorRef = useRef(vesselColor);
   const { enforce: enforceSidePanelEligibilityForEdgeCabinets } = useSidePanelEnforce(productIds.length);
@@ -846,6 +854,37 @@ export const PlayCanvasIntegration = ({
 
   // Each action of the player menu is one undo step, written once it changed the configuration.
   const { run: runStep } = useHistoryStep();
+
+  // The first cabinet of an empty composition goes in as the empty scene's "+" puts it: the scene lays the
+  // countertop only for a cabinet its own add places, never for one a Drag & Drop draft commits.
+  const addFirstCabinet = useCallback(async () => {
+    if (!cabinetBuilderProductConfig) return;
+
+    const added = await runStep(() =>
+      composition.addCabinet({
+        ...buildAddedCabinet({
+          cabinetType: activeDrawerProduct,
+          config: cabinetBuilderProductConfig,
+          width: null,
+          sinkType: activeBasinStyle,
+          countertopStyle,
+          vesselColor,
+          profile: activeProfile,
+        }),
+        placement: { kind: "beside", anchorRuntimeId: null, side: "right" },
+      }),
+    );
+    reportSceneRefusal(added);
+  }, [
+    activeBasinStyle,
+    activeDrawerProduct,
+    activeProfile,
+    cabinetBuilderProductConfig,
+    composition,
+    countertopStyle,
+    runStep,
+    vesselColor,
+  ]);
 
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
 
@@ -3934,6 +3973,7 @@ export const PlayCanvasIntegration = ({
           ready={isPlayCanvasReady}
           selection={cabinetDebugSelection}
           prepareSelection={prepareCabinetPlacement}
+          addFirstCabinet={addFirstCabinet}
           selectedProductId={selectedSceneProduct}
           offerAdd={placementButtonsVisible}
           onCompositionCommitted={adoptCommittedCabinetPlacement}

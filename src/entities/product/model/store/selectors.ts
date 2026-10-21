@@ -110,6 +110,7 @@ export const getCabinetBuilderProductConfig = createSelector(
     getHandleGrooveColor,
     getDrawerPanelFluting,
     getGrainDirection,
+    getActiveCountertopThickness,
   ],
   (
     selectedProductConfig,
@@ -119,6 +120,7 @@ export const getCabinetBuilderProductConfig = createSelector(
     handleGrooveColor,
     drawerPanelFluting,
     grainDirection,
+    countertopThickness,
   ) => {
     if (
       selectedDimensions.width === null ||
@@ -138,6 +140,8 @@ export const getCabinetBuilderProductConfig = createSelector(
       HandleGrooveColor: handleGrooveColor,
       DrawerPanelFluting: drawerPanelFluting,
       GrainDirection: grainDirection,
+      // The countertop's, which every cabinet holds: a sink base mounts its basin by it.
+      ...(countertopThickness ? { Thickness: countertopThickness } : {}),
     };
   },
 );

@@ -91,6 +91,29 @@ export type CustomizationStyleSidebar = {
   attributes?: PerCabinetAttribute[];
 };
 
+/**
+ * One model of a drawer style that differs from the others by height alone (Urban Low Height: the
+ * 1 Drawer at 38 or 35 cm, the Slim at 28 or 25 cm). The card stands at the first of its `heights`
+ * the rules allow the cabinet being added, so a handle that changes the heights moves it with them.
+ * `label` follows the drawers label on the card ("1 Drawer Slim"); without it the card keeps that label.
+ */
+export type CabinetHeightStyle = {
+  id: string;
+  label?: string;
+  /** In cm; each belongs to one model. */
+  heights: number[];
+};
+
+/** The collection's choices for the cabinet style cards of the builder; every field is optional. */
+export type CustomizationCabinetStyle = {
+  /**
+   * The models of a drawer style whose heights the handle decides (`heightsByHandle`), a card each
+   * in this order. The card of the composition's height adds a cabinet; another one switches every
+   * cabinet to its height after asking. Without it a drawer style has one card.
+   */
+  heightStyles?: CabinetHeightStyle[];
+};
+
 export type CustomizationFlowStepRef = {
   stepId: string;
   path: string;
@@ -216,6 +239,8 @@ export type CustomizationSchema = {
   playerMenu?: CustomizationPlayerMenu;
   /** Style sidebar of the cabinet builder: the selectors the collection shows. */
   styleSidebar?: CustomizationStyleSidebar;
+  /** Cabinet style cards of the cabinet builder: the models a drawer style comes in by height. */
+  cabinetStyle?: CustomizationCabinetStyle;
 };
 
 /**

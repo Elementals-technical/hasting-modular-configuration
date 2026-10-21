@@ -543,6 +543,7 @@
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.requiredHeight": "Required for selected handle",
     "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
+    "drawers.mixingRestricted": "Cannot mix 1 Drawer and 1 Drawer Slim cabinet styles in one vanity configuration.",
     "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
     "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
     "fluting.notInCollection": "Fluting is not available in this collection.",
