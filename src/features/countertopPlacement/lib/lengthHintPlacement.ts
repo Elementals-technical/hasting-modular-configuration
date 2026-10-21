@@ -1,9 +1,7 @@
 import type { CountertopOverlayFrame, PlacementOverlayPoint } from "@/features/configuratorApi";
 
 import { overlaps, within } from "./screenGeometry";
-import type { ScreenBox } from "./screenGeometry";
-
-type Size = { width: number; height: number };
+import type { ScreenBox, Size } from "./screenGeometry";
 
 /**
  * The length hint's box. Its text is fixed and stays on one line (12 px on a 16 px line, 4 × 10 px

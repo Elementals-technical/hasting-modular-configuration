@@ -23,6 +23,7 @@ import {
   REASON_FALLBACK_SIZE_PX,
 } from "../lib/lengthHintPlacement";
 import { readEditSizeButtonRect } from "../lib/readEditSizeButtonRect";
+import type { Size } from "../lib/screenGeometry";
 import { CloseIcon, EditIcon, MoveIcon } from "./countertopIcons";
 import { CountertopDimensionPopover } from "./CountertopDimensionPopover/CountertopDimensionPopover";
 import { CountertopResizeHandles } from "./CountertopResizeHandles";
@@ -89,7 +90,7 @@ export function CountertopDragOverlay({
   const toggleEditor = (editor: DimensionEditor) => setOpenEditor((open) => (open === editor ? null : editor));
   // The reason text wraps by its length and position; the length hint keeps clear of its rendered box.
   const [reasonElement, setReasonElement] = useState<HTMLParagraphElement | null>(null);
-  const [reasonSize, setReasonSize] = useState<{ width: number; height: number } | null>(null);
+  const [reasonSize, setReasonSize] = useState<Size | null>(null);
   useEffect(() => {
     if (!reasonElement || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(() =>

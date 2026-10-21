@@ -1,6 +1,9 @@
 /** An axis-aligned box in CSS px; the caller says which viewport (the iframe's or the window's). */
 export type ScreenBox = { left: number; top: number; right: number; bottom: number };
 
+/** A width and height in CSS px. */
+export type Size = { width: number; height: number };
+
 /** `value` kept within `[min, max]`; `min` wins when the range is empty. */
 export const within = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
