@@ -172,6 +172,10 @@
     "Handle": {
       "UG": "images/handle/UpperGHandle.png"
     },
+    "CountertopStyle": {
+      "integrated": "images/countertop-style/Integrated.png",
+      "vessel": "images/countertop-style/Vessel.png"
+    },
     "sinkType": {
       "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
       "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
