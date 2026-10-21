@@ -44,8 +44,11 @@ export type CountertopOverlayBridge = Pick<
   | "countertopLengthAtPointer"
   | "resizeCountertopFrom"
 >;
-/** `apply` also ends a session from outside (a committed sink move replaces the composition under it). */
-export type CountertopDragModeHandle = { enter(): void; standard(): void; apply(): void };
+/**
+ * `enterLength` opens the same session for the length alone: the overlay and its handles, the top's body
+ * not draggable. `apply` also ends a session from outside (a committed sink move replaces the composition under it).
+ */
+export type CountertopDragModeHandle = { enter(): void; enterLength(): void; standard(): void; apply(): void };
 export type CountertopDragStatus = { supported: boolean; available: boolean; active: boolean; busy: boolean };
 
 type Props = {
@@ -204,7 +207,8 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
 
   const canEnter = () => available && !pendingRef.current && !sessionRef.current;
 
-  const startSession = () => {
+  /** `drag`: the top's body can be dragged (Drag & Drop); false for Length, where only its ends change. */
+  const startSession = (drag: boolean) => {
     void run(async () => {
       const api = getApi();
       if (!api) throw new Error("The countertop API is not available");
@@ -215,7 +219,8 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       sessionRef.current = session;
       setActive(true);
       try {
-        await api.setDragEnabled(true);
+        // The overlay, its handles and `resizeFrom` do not need the drag: it only lets the body move.
+        if (drag) await api.setDragEnabled(true);
         await quiet(session.bridge.setCountertopLengthLimits?.(limitsInToMetres(lengthLimitsIn)), false);
         session.stopOverlay = await quiet(
           session.bridge.subscribeCountertopOverlay?.((frame) => {
@@ -247,14 +252,19 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       setIsIntroOpen(true);
       return;
     }
-    startSession();
+    startSession(true);
+  };
+
+  /** Length: no layout intro, which shows moving the top. */
+  const enterLength = () => {
+    if (canEnter()) startSession(false);
   };
 
   // Enters past the flag, so a blocked storage cannot bounce the user back into the intro.
   const handleIntroContinue = () => {
     setCountertopLayoutIntroSeen();
     setIsIntroOpen(false);
-    if (canEnter()) startSession();
+    if (canEnter()) startSession(true);
   };
 
   const handleIntroClose = () => setIsIntroOpen(false);
@@ -313,7 +323,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     });
   };
 
-  useImperativeHandle(ref, () => ({ enter, standard, apply }));
+  useImperativeHandle(ref, () => ({ enter, enterLength, standard, apply }));
 
   /** `getState().resizeBoundsM[side]` first (phase-1 §6a); older builds: frame, then collection limits. */
   const resizeLimits = (side: CountertopResizeSide) => {

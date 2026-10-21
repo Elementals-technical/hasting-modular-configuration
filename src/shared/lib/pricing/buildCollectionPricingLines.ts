@@ -15,6 +15,7 @@ import {
   type ValueTarget,
 } from "@/entities/configuration";
 import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
+import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
   buildCabinetCoverSku,
   buildCollectionCabinetSku,
@@ -224,6 +225,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       widthCm: size?.width ?? null,
       heightCm: size?.height ?? null,
       depthCm: size?.depth ?? null,
+      cabinetRule: findCabinetRule(input.cabinetCatalog, cabinetTypeOf(entry.runtimeId)),
       readConfiguratorColor,
     });
 

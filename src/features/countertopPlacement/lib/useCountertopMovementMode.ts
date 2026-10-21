@@ -24,6 +24,8 @@ const THICKNESS_TOLERANCE_IN = 0.25;
 const THIN_BELOW_IN = 1;
 const OFFSET_ONLY_IN = 4;
 const FREE_THICKNESSES_IN = [2.4, 5.125, 5.5];
+/** The thick tops whose menu offers Resize ▸ Length (client spec, 20.10): 2.4″ moves, but has no Length. */
+const LENGTH_RESIZABLE_THICKNESSES_IN = [4, 5.125, 5.5];
 
 const MODE_NOTICE: Record<CountertopMovementMode, string> = {
   none: "countertop.mode.none",
@@ -31,25 +33,38 @@ const MODE_NOTICE: Record<CountertopMovementMode, string> = {
   free: "countertop.mode.free",
 };
 
-/**
- * Movement mode of the top by its thickness: the selected `Thickness` option (inches) first,
- * the runtime `state.thickness` (metres) when the option is unset. `null` when unknown.
- */
-export const resolveMovementMode = (
-  thicknessOption: string | null | undefined,
-  runtimeThicknessM?: number | null,
-): CountertopMovementMode | null => {
+/** The selected `Thickness` option (inches) first, the runtime `state.thickness` (metres) when the option is unset. */
+const resolveThicknessIn = (thicknessOption: string | null | undefined, runtimeThicknessM?: number | null) => {
   const selectedIn = thicknessOption ? parseThicknessValue(thicknessOption) : null;
   const runtimeIn =
     typeof runtimeThicknessM === "number" && Number.isFinite(runtimeThicknessM) && runtimeThicknessM > 0
       ? runtimeThicknessM / METRES_PER_INCH
       : null;
-  const thicknessIn = selectedIn !== null && selectedIn > 0 ? selectedIn : runtimeIn;
+  return selectedIn !== null && selectedIn > 0 ? selectedIn : runtimeIn;
+};
+
+const nearThickness = (thicknessIn: number, value: number) => Math.abs(thicknessIn - value) < THICKNESS_TOLERANCE_IN;
+
+/** Movement mode of the top by its thickness (`resolveThicknessIn`). `null` when unknown. */
+export const resolveMovementMode = (
+  thicknessOption: string | null | undefined,
+  runtimeThicknessM?: number | null,
+): CountertopMovementMode | null => {
+  const thicknessIn = resolveThicknessIn(thicknessOption, runtimeThicknessM);
   if (thicknessIn === null) return null;
   if (thicknessIn < THIN_BELOW_IN) return "none";
-  const near = (value: number) => Math.abs(thicknessIn - value) < THICKNESS_TOLERANCE_IN;
+  const near = (value: number) => nearThickness(thicknessIn, value);
   if (near(OFFSET_ONLY_IN)) return "offset";
   return FREE_THICKNESSES_IN.some(near) ? "free" : null;
+};
+
+/** A thick top (4″, 5⅛″ or 5½″, read as `resolveMovementMode` reads it): its length changes from the menu. */
+export const isLengthResizableThickness = (
+  thicknessOption: string | null | undefined,
+  runtimeThicknessM?: number | null,
+): boolean => {
+  const thicknessIn = resolveThicknessIn(thicknessOption, runtimeThicknessM);
+  return thicknessIn !== null && LENGTH_RESIZABLE_THICKNESSES_IN.some((value) => nearThickness(thicknessIn, value));
 };
 
 export type CountertopModeNoticeState = {
@@ -99,6 +114,7 @@ export const useCountertopMovementMode = (getApi: () => CountertopApi | null, re
   const standard = useCountertopRuntimeValue((state) => isStandardCountertop(state));
   const dragging = useCountertopRuntimeValue((state) => state?.dragging === true);
   const mode = resolveMovementMode(thicknessOption, thicknessM);
+  const lengthResizable = isLengthResizableThickness(thicknessOption, thicknessM);
 
   const [notice, setNotice] = useState<CountertopModeNoticeState | null>(null);
   const show = useCallback(
@@ -180,5 +196,5 @@ export const useCountertopMovementMode = (getApi: () => CountertopApi | null, re
     );
   }, [correction, correctionKey, dragging, getApi, show, topReady]);
 
-  return { mode, notice, dismissNotice };
+  return { mode, lengthResizable, notice, dismissNotice };
 };

@@ -34,6 +34,7 @@ export const PLAYER_MENU_ITEM_IDS = [
   "delete",
   "countertop-color",
   "countertop-thickness",
+  "countertop-length",
   "countertop-style",
   "basin-style",
   "countertop-position",

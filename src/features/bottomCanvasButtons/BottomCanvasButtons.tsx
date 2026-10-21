@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useStore } from "react-redux";
 import { useCollectionNavigation } from "@/features/collectionCustomization";
 
 import { BaseButton } from "@/shared";
@@ -29,18 +30,10 @@ import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreensh
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import { hideDimensions } from "@/utils/functions/playcanvas/showDimensions";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
-import {
-  getCanUndo,
-  getCanRedo,
-  getLastPastSnapshot,
-  getLastFutureSnapshot,
-} from "@/entities/history/model/store/selectors";
-import { undo, redo, setHistoryRestoring } from "@/entities/history/model/store/slice";
-import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
-import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
+import { getCanUndo, getCanRedo } from "@/entities/history/model/store/selectors";
+import { moveInHistory, type HistoryDirection } from "@/entities/history/lib/moveInHistory";
 import { useActiveCollection } from "@/entities/collection";
-import type { SceneRestoreResult } from "@/entities/configuration";
-import { store, type RootState } from "@/app/store";
+import type { RootState } from "@/app/store";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
 import { captureOrbitCameraState, restoreOrbitCameraState } from "@/utils/functions/playcanvas/orbitCamera";
@@ -57,19 +50,6 @@ const FULL_DIMENSION_UNIT_OPTIONS: ReadonlyArray<{ unit: FullDimensionsUnit; lab
   { unit: "cm", label: "Metric" },
 ];
 
-/** Whether the scene took the snapshot. History moves only when it did; a partial rebuild is reported. */
-const isSceneRebuilt = (label: string, result: SceneRestoreResult): boolean => {
-  if (result.status === "restored") return true;
-
-  if (result.status === "partial") {
-    console.error(`${label}: the scene was only partly rebuilt`, result.failed);
-    return true;
-  }
-
-  console.error(`${label}: the scene was not rebuilt`, result);
-  return false;
-};
-
 export const BottomCanvasButtons = () => {
   const [isFullDimensionsEnabled, setIsFullDimensionsEnabled] = useState(false);
   const [fullDimensionsUnit, setFullDimensionsUnit] = useState<FullDimensionsUnit>("in");
@@ -83,6 +63,7 @@ export const BottomCanvasButtons = () => {
   const [shareValue, setShareValue] = useState("");
 
   const dispatch = useAppDispatch();
+  const store = useStore<RootState>();
 
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
@@ -91,8 +72,6 @@ export const BottomCanvasButtons = () => {
 
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
-  const lastPastSnapshot = useAppSelector(getLastPastSnapshot);
-  const lastFutureSnapshot = useAppSelector(getLastFutureSnapshot);
 
   const [isRestoring, setIsRestoring] = useState(false);
 
@@ -144,56 +123,25 @@ export const BottomCanvasButtons = () => {
     setIsFullDimensionsMenuOpen((prev) => !prev);
   };
 
-  const handleUndo = async () => {
-    if (!canUndo || !lastPastSnapshot || isRestoring) return;
+  const moveHistory = async (direction: HistoryDirection) => {
+    if (isRestoring) return;
     setIsRestoring(true);
-    dispatch(setHistoryRestoring(true));
     const cameraState = captureOrbitCameraState();
     try {
-      const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
-      dispatch(setOpenStyleSidebar(false));
-      dispatch(setIsDrawerOpen(false));
-      dispatch(setSelectedSceneProduct(""));
-      const result = await restoreSnapshot(lastPastSnapshot, {
+      const moved = await moveInHistory(direction, {
         dispatch,
-        getState: () => store.getState() as RootState,
+        getState: () => store.getState(),
         getBindings: () => runtimeBindings,
         replay: replaySnapshotValues,
+        // The rebuilt products get new ids: nothing may stay selected or open on the replaced ones.
+        beforeRebuild: () => {
+          dispatch(setOpenStyleSidebar(false));
+          dispatch(setIsDrawerOpen(false));
+          dispatch(setSelectedSceneProduct(""));
+        },
       });
-      if (!isSceneRebuilt("[History] Undo", result)) return;
-      dispatch(undo(currentSnapshot));
-      restoreOrbitCameraState(cameraState);
-    } catch (error) {
-      console.error("[History] Undo failed", error);
+      if (moved) restoreOrbitCameraState(cameraState);
     } finally {
-      dispatch(setHistoryRestoring(false));
-      setIsRestoring(false);
-    }
-  };
-
-  const handleRedo = async () => {
-    if (!canRedo || !lastFutureSnapshot || isRestoring) return;
-    setIsRestoring(true);
-    dispatch(setHistoryRestoring(true));
-    const cameraState = captureOrbitCameraState();
-    try {
-      const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
-      dispatch(setOpenStyleSidebar(false));
-      dispatch(setIsDrawerOpen(false));
-      dispatch(setSelectedSceneProduct(""));
-      const result = await restoreSnapshot(lastFutureSnapshot, {
-        dispatch,
-        getState: () => store.getState() as RootState,
-        getBindings: () => runtimeBindings,
-        replay: replaySnapshotValues,
-      });
-      if (!isSceneRebuilt("[History] Redo", result)) return;
-      dispatch(redo(currentSnapshot));
-      restoreOrbitCameraState(cameraState);
-    } catch (error) {
-      console.error("[History] Redo failed", error);
-    } finally {
-      dispatch(setHistoryRestoring(false));
       setIsRestoring(false);
     }
   };
@@ -365,7 +313,9 @@ export const BottomCanvasButtons = () => {
               variant="ghost"
               className={!canUndo || isRestoring ? s.disabledButton : undefined}
               disabled={!canUndo || isRestoring}
-              onClick={handleUndo}
+              onClick={() => {
+                void moveHistory("undo");
+              }}
             >
               <UndoIcon />
             </BaseButton>
@@ -374,7 +324,9 @@ export const BottomCanvasButtons = () => {
               variant="ghost"
               className={!canRedo || isRestoring ? s.disabledButton : undefined}
               disabled={!canRedo || isRestoring}
-              onClick={handleRedo}
+              onClick={() => {
+                void moveHistory("redo");
+              }}
             >
               <RedoIcon />
             </BaseButton>

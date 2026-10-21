@@ -1466,7 +1466,7 @@ describe("Lame undertop, priced per cm of the composition", () => {
   });
 });
 
-describe("Lame cabinet before the scene reports its size", () => {
+describe("Lame cabinet sizes before a price is asked", () => {
   const order = (dimensionsByCabinet: PricingInput["dimensionsByCabinet"]) =>
     buildCollectionPricingLines(
       collectionPricingInput(
@@ -1491,6 +1491,13 @@ describe("Lame cabinet before the scene reports its size", () => {
     expect(cabinetSkusOf(order({ sb: { width: 60, height: 26, depth: 52 } }))).toEqual([
       "VAN-LAMEV-SB/1DW/G58/OXF-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400",
     ]);
+  });
+
+  it("asks none for a size its row of table 596 does not have", () => {
+    const tooNarrow = order({ sb: { width: 40, height: 26, depth: 52 } });
+
+    expect(cabinetSkusOf(tooNarrow)).toEqual([]);
+    expect(tooNarrow.gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
   });
 });
 

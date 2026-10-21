@@ -4,6 +4,7 @@ import lameProfileDocument from "../../../../../public/collections/lame/product-
 import lameSkuProfileDocument from "../../../../../public/collections/lame/sku-profile.json";
 
 import configurator14Document from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
+import cabinetTable596 from "@/entities/collection/__tests__/fixtures/remote/datatable-596.json";
 import {
   collectionSkuProfileSchema,
   configuratorSchema,
@@ -11,6 +12,9 @@ import {
   parseProductProfile,
   type ConfiguratorGroupCatalog,
 } from "@/entities/collection";
+import type { ProductDatatable } from "@/entities/product/api";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import {
   buildCollectionCabinetSku,
@@ -50,14 +54,20 @@ const reader =
   (attributeId) =>
     values[attributeId] ?? null;
 
-const cabinet = (values: Record<string, string>, widthCm = 60, heightCm = 52) =>
-  buildCollectionCabinetSku(skuProfile, profile, {
-    read: reader({ CabinetType: "Sink-Base", Drawers: "2", Handle: "G58", CabinetPattern: "Oxford", ...values }),
+// The rows of table 596 the builder places Lame cabinets from, which their sizes are checked against.
+const cabinetCatalog = buildCabinetCatalogFromMatrix(cabinetTable596 as ProductDatatable, profile);
+
+const cabinet = (values: Record<string, string>, widthCm = 60, heightCm = 52) => {
+  const all = { CabinetType: "Sink-Base", Drawers: "2", Handle: "G58", CabinetPattern: "Oxford", ...values };
+  return buildCollectionCabinetSku(skuProfile, profile, {
+    read: reader(all),
     widthCm,
     heightCm,
     depthCm: 52,
+    cabinetRule: findCabinetRule(cabinetCatalog, all.CabinetType),
     readConfiguratorColor,
   });
+};
 
 describe("Lame cabinet SKU", () => {
   it("spells the example of the price workbook: the pattern in the model, both finishes as elements", () => {
@@ -110,6 +120,7 @@ describe("Lame cabinet SKU", () => {
         widthCm: null,
         heightCm: null,
         depthCm: null,
+        cabinetRule: findCabinetRule(cabinetCatalog, "Sink-Base"),
         readConfiguratorColor,
       }),
     ).toEqual({
