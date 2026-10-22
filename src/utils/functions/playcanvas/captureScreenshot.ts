@@ -32,6 +32,8 @@ type RgbaColor = {
 type CapturedImageSource = {
   src: string;
   revoke?: () => void;
+  /** The image's alpha already marks the product (see isAlphaProductMask). */
+  alphaIsProductMask: boolean;
 };
 
 type WindowWithContainerRef = Window & {
@@ -519,12 +521,17 @@ const createTransparentOutputCanvas = (
   outputCanvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   transparentContentPaddingRatio: number,
+  alphaIsProductMask: boolean,
 ) => {
   const croppedCanvas = createCanvasContext(sourceCanvas.width, sourceCanvas.height);
   if (!croppedCanvas) return null;
 
   croppedCanvas.ctx.drawImage(sourceCanvas, 0, 0);
-  makeEdgeBackgroundTransparent(croppedCanvas.ctx, croppedCanvas.canvas.width, croppedCanvas.canvas.height);
+  // Clearing the background by colour is only for opaque sources. On a product mask it would
+  // also clear light product pixels touching the frame edge.
+  if (!alphaIsProductMask) {
+    makeEdgeBackgroundTransparent(croppedCanvas.ctx, croppedCanvas.canvas.width, croppedCanvas.canvas.height);
+  }
 
   const sourceBounds = getOpaqueBounds(croppedCanvas.ctx, croppedCanvas.canvas.width, croppedCanvas.canvas.height);
   if (sourceBounds) {
@@ -546,7 +553,9 @@ const createTransparentOutputCanvas = (
 const createUnbrandedCaptureCanvas = (
   sourceCanvas: HTMLCanvasElement,
   contentSize: Required<OutputSize>,
-  options: Pick<CaptureScreenshotOptions, "outputSize" | "transparentBackground" | "transparentContentPaddingRatio">,
+  options: Pick<CaptureScreenshotOptions, "outputSize" | "transparentBackground" | "transparentContentPaddingRatio"> & {
+    alphaIsProductMask: boolean;
+  },
 ) => {
   const outputCanvas = createCanvasContext(contentSize.width, contentSize.height);
   if (!outputCanvas) return null;
@@ -560,6 +569,7 @@ const createUnbrandedCaptureCanvas = (
       canvas,
       ctx,
       options.transparentContentPaddingRatio ?? 0,
+      options.alphaIsProductMask,
     );
   }
 
@@ -570,7 +580,7 @@ const createUnbrandedCaptureCanvas = (
 
   ctx.drawImage(sourceCanvas, 0, 0);
 
-  if (options.transparentBackground) {
+  if (options.transparentBackground && !options.alphaIsProductMask) {
     makeEdgeBackgroundTransparent(ctx, canvas.width, canvas.height);
   }
 
@@ -633,25 +643,40 @@ const resolveHQSnapshotOptions = (overrides?: CameraHQSnapshotOptions): CameraHQ
   ...overrides,
 });
 
+/**
+ * True when the HQ image's alpha already separates the product from everything else:
+ * `bg: null` keeps the background transparent and `includeRoom: false` took the room out.
+ * PlayCanvas builds before room hiding do not report `hiddenEntities` and keep the room in the
+ * frame, so for them the background is still cleared by colour (makeEdgeBackgroundTransparent).
+ * @example isAlphaProductMask({ bg: null, includeRoom: false }, { hiddenEntities: ["Room1_Point"] }) // true
+ * @example isAlphaProductMask({ bg: null, includeRoom: false }, {}) // false: older build
+ */
+export const isAlphaProductMask = (options: CameraHQSnapshotOptions, shot: Pick<CameraHQSnapshotResult, "hiddenEntities">) =>
+  options.bg === null && options.includeRoom === false && Array.isArray(shot.hiddenEntities);
+
 const captureCurrentViewHQSnapshotImageSource = async (
   options?: CameraHQSnapshotOptions,
 ): Promise<CapturedImageSource | null> => {
+  const resolvedOptions = resolveHQSnapshotOptions(options);
   const shot = await withTimeout(
-    captureSharedHQSnapshot(resolveHQSnapshotOptions(options)),
+    captureSharedHQSnapshot(resolvedOptions),
     HQ_SNAPSHOT_TIMEOUT_MS,
     "[PlayCanvas] HQ snapshot timed out; using visible canvas fallback",
   );
   if (!shot) return null;
+
+  const alphaIsProductMask = isAlphaProductMask(resolvedOptions, shot);
 
   if (shot.blob) {
     const objectUrl = URL.createObjectURL(shot.blob);
     return {
       src: objectUrl,
       revoke: () => URL.revokeObjectURL(objectUrl),
+      alphaIsProductMask,
     };
   }
 
-  return typeof shot.dataUrl === "string" && shot.dataUrl ? { src: shot.dataUrl } : null;
+  return typeof shot.dataUrl === "string" && shot.dataUrl ? { src: shot.dataUrl, alphaIsProductMask } : null;
 };
 
 const canvasToBlob = (canvas: HTMLCanvasElement, format = "image/png", quality?: number): Promise<Blob | null> =>
@@ -718,6 +743,8 @@ const captureScreenshotCanvasWithOptions = async (
     const snapshot = snapshotImageSource?.src ?? null;
     const snapshotCanvas = snapshot ? await createCanvasFromImageSource(snapshot) : null;
     const sourceCanvas = snapshotCanvas ?? visibleCanvas;
+    // Only the HQ render can carry a product mask; the visible-canvas fallback is opaque.
+    const alphaIsProductMask = Boolean(snapshotCanvas) && snapshotImageSource?.alphaIsProductMask === true;
     const normalizedOutputSize = renderSourceSize ?? normalizeOutputSize(sourceCanvas, outputSize);
 
     if (includeLogo) {
@@ -729,6 +756,7 @@ const captureScreenshotCanvasWithOptions = async (
         outputSize,
         transparentBackground,
         transparentContentPaddingRatio,
+        alphaIsProductMask,
       }) ?? sourceCanvas
     );
   } catch (e) {
