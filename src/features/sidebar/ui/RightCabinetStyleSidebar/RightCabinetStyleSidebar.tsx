@@ -774,7 +774,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
     setVisibleButtons(shouldShowPlacementButtons, isOpenedStyleSidebar ? options : undefined);
     // A row that holds columns shows only the "+" that fit this cabinet (a shelf never goes in a column),
-    // and only by a row with room for it. The scene applies this to the "+" that carry their place.
+    // and only by a row with room for it. The scene applies this to the "+" that carry their place, the
+    // bridge to the row ends of a composition in rows (ULH: no Sink Base "+" by the lower level).
     const widthValues = widthOptions.map((option) => Number(option.value)).filter(Number.isFinite);
     setScenePlusFilter(
       shouldShowPlacementButtons
