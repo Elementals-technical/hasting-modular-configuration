@@ -1,6 +1,12 @@
 {
   "collectionId": "urban-freestanding",
   "optionImages": {
+    "DrawerPanelFluting": {
+      "FlutingVerticalA": "images/drawer-panel/Fluting_Vertical_TypeA.png",
+      "FlutingVerticalB": "images/drawer-panel/Fluting_Vertical_TypeB.png",
+      "FlutingHorizontalA": "images/drawer-panel/Fluting_Horizontal_TypeA.png",
+      "FlutingHorizontalB": "images/drawer-panel/Fluting_Horizontal_TypeB.png"
+    },
     "sinkType": {
       "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
       "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
@@ -71,7 +77,7 @@
       "kind": "cabinet-builder",
       "sectionIds": ["cabinet-type", "cabinet-style"]
     },
-    "cabinet": { "label": "Color", "kind": "fields", "sectionIds": ["cabinet-color", "handle-groove"] },
+    "cabinet": { "label": "Color", "kind": "fields", "sectionIds": ["cabinet-color", "handle-groove", "drawer-panel"] },
     "countertop": {
       "label": "Countertop & Basin",
       "kind": "fields",
@@ -104,6 +110,16 @@
           "control": "colors",
           "optionsRef": "HandleGrooveColor",
           "availabilityRef": "Handle.supportsGrooveColor"
+        }
+      ]
+    },
+    "drawer-panel": {
+      "label": "Drawer Panel Fluting",
+      "fields": [
+        {
+          "attributeId": "DrawerPanelFluting",
+          "control": "options-grid",
+          "availabilityRef": "DrawerPanelFluting.available"
         }
       ]
     },
