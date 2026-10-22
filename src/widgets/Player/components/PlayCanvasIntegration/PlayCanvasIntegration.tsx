@@ -58,6 +58,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
+import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
 import { occupiedWidthCm, type PlacedWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { getIsActiveStyleSidebar, getPlacementButtonsVisible } from "@/features/sidebar/model/store/selectors";
 import { placementForPlus, plusFilterFor, rowEndSideOf } from "@/features/sidebar/lib/plusPlacement";
@@ -125,7 +126,12 @@ import {
   resolveCabinetDebugSelection,
 } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import { inCompositionOrder } from "@/features/cabinetPlacementDebug/lib/compositionOrder";
-import { createConfiguratorBridge, type CabinetsState, type ConfiguratorReceipt } from "@/features/configuratorApi";
+import {
+  createConfiguratorBridge,
+  isSinkOffSinkBase,
+  type CabinetsState,
+  type ConfiguratorReceipt,
+} from "@/features/configuratorApi";
 import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
 import { setCabinetCoverRuntime } from "@/shared/lib/cabinetCoverRuntime";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
@@ -1307,6 +1313,9 @@ export const PlayCanvasIntegration = ({
     return selectedDimensions.width <= remainingCountertopLength + 0.01;
   }, [canAddAnotherCabinet, remainingCountertopLength, selectedDimensions.width]);
 
+  // No Sink Base under the basin: the thicknesses that need one there are out.
+  const sinkOffSinkBase = useCountertopRuntimeValue(isSinkOffSinkBase);
+
   const ruleState = useMemo(
     () =>
       buildCountertopRuleState({
@@ -1320,6 +1329,7 @@ export const PlayCanvasIntegration = ({
         activeBasinStyle,
         activeThickness: activeCountertopThickness ?? null,
         profile: activeProfile,
+        sinkOffSinkBase,
       }),
     [
       activeProfile,
@@ -1333,6 +1343,7 @@ export const PlayCanvasIntegration = ({
       selectedDimensions.depth,
       selectedDimensions.width,
       sceneTotalWidth,
+      sinkOffSinkBase,
     ],
   );
 

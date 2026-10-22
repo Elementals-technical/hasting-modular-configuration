@@ -6,11 +6,14 @@ import type {
   SyntesiRuleData,
   VesselCompatibilityRuleData,
 } from "@/entities/collection";
+import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { countertopDatatableSchema } from "@/entities/collection/model/schemas";
 
 import { resolveCountertopCabinetCompositionConstraint } from "../compositionConstraints";
-import { getMaterialAliases, materialMatchesRule } from "../parse";
+import { getMaterialAliases, materialMatchesRule, parseCountertopMatrix } from "../parse";
+import { buildCountertopRuleState } from "../rules";
 import {
   isIntegratedCountertopDepthRestrictedByBasin,
   isIntegratedCountertopDepthRestrictedByMaterial,
@@ -316,5 +319,30 @@ describe("material aliases", () => {
     ["HPL", "Fenix", false],
   ])("matches %j against the rule material %j: %j", (optionMaterial, ruleMaterial, matches) => {
     expect(materialMatchesRule(optionMaterial, ruleMaterial)).toBe(matches);
+  });
+});
+
+// Client rule (22.10): a 4″ top only where a Sink Base stands under its basin, whatever the basin.
+describe("a basin with no Sink Base under it", () => {
+  const rules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable438));
+  // Table 438: an HPL top 46 cm deep is 1/2", 4" or 5-1/8", integrated or vessel.
+  const thicknessesOf = (activeCountertopStyle: string, sinkOffSinkBase?: boolean) =>
+    [
+      ...buildCountertopRuleState({
+        rules,
+        activeMaterialTokens: ["HPL"],
+        width: 80,
+        depth: 46,
+        activeCountertopStyle,
+        activeBasinStyle: null,
+        activeThickness: null,
+        profile: ushProfile,
+        sinkOffSinkBase,
+      }).allowedThicknesses,
+    ].sort((left, right) => left - right);
+
+  it.each(["integrated", "vessel"])("takes no 4″ top over a %s sink off its Sink Base", (style) => {
+    expect(thicknessesOf(style)).toEqual([0.5, 4, 5.125]);
+    expect(thicknessesOf(style, true)).toEqual([0.5, 5.125]);
   });
 });
