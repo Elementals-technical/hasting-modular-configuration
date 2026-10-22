@@ -2,8 +2,11 @@
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { parseProductProfile, type ProductProfile } from "@/entities/collection";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { CountertopApi, CountertopState } from "@/features/configuratorApi";
 import { getCountertopRuntimeState, setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
+import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 
 import { buildCountertopPositionItems } from "../lib/positionMenuItems";
 import {
@@ -15,6 +18,13 @@ import { COUNTERTOP_MODE_NOTICE_MS, CountertopModeNotice } from "../ui/Counterto
 
 const thickness = vi.hoisted(() => ({ current: "" }));
 vi.mock("@/shared/hooks/store/redux", () => ({ useAppSelector: () => thickness.current }));
+
+/** Urban Low Height's shipped profile: its Thickness options say how each top moves. */
+const profile: ProductProfile = (() => {
+  const parsed = parseProductProfile(ulhProfileDocument);
+  if (!parsed.ok) throw new Error("The Urban Low Height profile failed validation");
+  return parsed.profile;
+})();
 
 const readyState = (patch: Partial<CountertopState> = {}): CountertopState => ({
   readiness: "ready",
@@ -49,7 +59,7 @@ const switchThickness = (
   setup(api);
   thickness.current = from;
   act(() => setCountertopRuntimeState(readyState(state)));
-  const hook = renderHook(() => useCountertopMovementMode(getApi, true));
+  const hook = renderHook(() => useCountertopMovementMode(getApi, true, profile));
   expect(hook.result.current.notice).toBeNull();
   thickness.current = to;
   hook.rerender();
@@ -64,34 +74,44 @@ afterEach(() => {
 });
 
 describe("resolveMovementMode", () => {
-  it("thin → none, 4″ → offset, 2.4 / 5⅛ / 5½ → free, unknown → null; the option first, metres as a fallback", () => {
-    for (const thin of ["0.375", "0.4", "0.5"]) expect(resolveMovementMode(thin, 0.1016)).toBe("none");
-    expect(resolveMovementMode("4", null)).toBe("offset");
-    for (const free of ["2.4", "2.375", "2.5", "5-1/8", "5.125", "5-1/2"]) expect(resolveMovementMode(free, 0.1016)).toBe("free");
-    expect(resolveMovementMode("", 0.1016)).toBe("offset");
-    expect(resolveMovementMode("", 0.130175)).toBe("free");
-    expect(resolveMovementMode("3", null)).toBeNull();
-    expect(resolveMovementMode(undefined, null)).toBeNull();
+  it("thin → none, 2.4″ / 4″ → offset, 5⅛ / 5½ → free, unknown → null; the option first, metres as a fallback", () => {
+    for (const thin of ["0.375", "0.4", "0.5"]) expect(resolveMovementMode(profile, thin, 0.1016)).toBe("none");
+    for (const sliding of ["4", "2.4", "2.375", "2.5"])
+      expect(resolveMovementMode(profile, sliding, null)).toBe("offset");
+    for (const free of ["5-1/8", "5.125", "5-1/2", "5.5"])
+      expect(resolveMovementMode(profile, free, 0.1016)).toBe("free");
+    expect(resolveMovementMode(profile, "", 0.1016)).toBe("offset");
+    expect(resolveMovementMode(profile, "", 0.06096)).toBe("offset");
+    expect(resolveMovementMode(profile, "", 0.130175)).toBe("free");
+    expect(resolveMovementMode(profile, "3", null)).toBeNull();
+    expect(resolveMovementMode(profile, undefined, null)).toBeNull();
+  });
+
+  it("reads the capabilities from the collection: without them no top moves, without a profile none is known", () => {
+    for (const value of ["0.5", "2.4", "4", "5.125", "5.5"])
+      expect(resolveMovementMode(ushProfile, value, null)).toBe("none");
+    expect(resolveMovementMode(null, "5.125", null)).toBeNull();
   });
 });
 
 describe("isLengthResizableThickness", () => {
-  it("4″, 5⅛″ and 5½″ only (2.4″ moves but has no Length); the option first, metres as a fallback", () => {
+  it("4″, 5⅛″ and 5½″ only (2.4″ slides but has no Length); the option first, metres as a fallback", () => {
     for (const thick of ["4", "5.125", "5-1/8", "5.5", "5-1/2"])
-      expect(isLengthResizableThickness(thick, null)).toBe(true);
+      expect(isLengthResizableThickness(profile, thick, null)).toBe(true);
     for (const other of ["2.4", "2.375", "0.375", "0.4", "0.5", "3"])
-      expect(isLengthResizableThickness(other, 0.1016)).toBe(false);
-    expect(isLengthResizableThickness("", 0.1016)).toBe(true);
+      expect(isLengthResizableThickness(profile, other, 0.1016)).toBe(false);
+    expect(isLengthResizableThickness(profile, "", 0.1016)).toBe(true);
     // A 4″ mesh may measure as 0.1 m (3.94″).
-    expect(isLengthResizableThickness(undefined, 0.1)).toBe(true);
-    expect(isLengthResizableThickness(undefined, 0.06096)).toBe(false);
-    expect(isLengthResizableThickness(undefined, null)).toBe(false);
+    expect(isLengthResizableThickness(profile, undefined, 0.1)).toBe(true);
+    expect(isLengthResizableThickness(profile, undefined, 0.06096)).toBe(false);
+    expect(isLengthResizableThickness(profile, undefined, null)).toBe(false);
+    expect(isLengthResizableThickness(ushProfile, "5.125", null)).toBe(false);
   });
 
   it("is what the hook reports for the selected thickness", () => {
     const { getApi } = fakeApi();
     thickness.current = "5-1/8";
-    const hook = renderHook(() => useCountertopMovementMode(getApi, true));
+    const hook = renderHook(() => useCountertopMovementMode(getApi, true, profile));
     expect(hook.result.current.lengthResizable).toBe(true);
     thickness.current = "2.4";
     hook.rerender();
@@ -118,8 +138,8 @@ describe("useCountertopMovementMode", () => {
     expect(getCountertopRuntimeState()?.verticalLocked).toBe(true);
   });
 
-  it("lowers a lifted top switched to 4″ at the same x, and says so", async () => {
-    const { api, hook } = switchThickness("5-1/2", "4", { offset: { x: 0.25, y: 0.3 } });
+  it.each(["4", "2.4"])("lowers a lifted top switched to %s″ at the same x, and says so", async (to) => {
+    const { api, hook } = switchThickness("5-1/2", to, { offset: { x: 0.25, y: 0.3 } });
     await waitFor(() => expect(api.setOffset).toHaveBeenCalledWith({ x: 0.25, y: 0 }));
     await waitFor(() => expect(hook.result.current.notice?.codes).toEqual(["countertop.mode.offset", "countertop.mode.lowered"]));
     expect(api.resetOffset).not.toHaveBeenCalled();
@@ -169,7 +189,7 @@ describe("useCountertopMovementMode", () => {
     const { api, getApi } = fakeApi();
     thickness.current = "5-1/2";
     act(() => setCountertopRuntimeState(readyState()));
-    const hook = renderHook(() => useCountertopMovementMode(getApi, true));
+    const hook = renderHook(() => useCountertopMovementMode(getApi, true, profile));
     thickness.current = "4";
     patchState({ productId: "top-2" });
     await waitFor(() => expect(api.setVerticalLocked).toHaveBeenLastCalledWith(true));

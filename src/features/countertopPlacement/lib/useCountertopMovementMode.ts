@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { ProductProfile } from "@/entities/collection";
 import { getActiveCountertopThickness } from "@/entities/product/model/store/selectors";
-import { parseThicknessValue } from "@/features/configurator-rule-core/countertop";
+import { findThicknessOption, parseThicknessValue } from "@/features/configurator-rule-core/countertop";
 import {
   classifyCountertopError,
   isLiftedCountertop,
@@ -18,14 +19,8 @@ import { commitHostedSinkLanding } from "./hostedSinkLanding";
 export type CountertopMovementMode = "none" | "offset" | "free";
 
 const METRES_PER_INCH = 0.0254;
-// The options are far apart; a 4″ mesh may measure as 0.1 m (3.94″).
+// A mesh may measure off its option (a 4″ top as 0.1 m, 3.94″): the nearest option this close is the top's.
 const THICKNESS_TOLERANCE_IN = 0.25;
-/** Thin slabs (0.375 / 0.4 / 0.5″) never move. */
-const THIN_BELOW_IN = 1;
-const OFFSET_ONLY_IN = 4;
-const FREE_THICKNESSES_IN = [2.4, 5.125, 5.5];
-/** The thick tops whose menu offers Resize ▸ Length (client spec, 20.10): 2.4″ moves, but has no Length. */
-const LENGTH_RESIZABLE_THICKNESSES_IN = [4, 5.125, 5.5];
 
 const MODE_NOTICE: Record<CountertopMovementMode, string> = {
   none: "countertop.mode.none",
@@ -43,29 +38,38 @@ const resolveThicknessIn = (thicknessOption: string | null | undefined, runtimeT
   return selectedIn !== null && selectedIn > 0 ? selectedIn : runtimeIn;
 };
 
-const nearThickness = (thicknessIn: number, value: number) => Math.abs(thicknessIn - value) < THICKNESS_TOLERANCE_IN;
+/** The collection's Thickness option of the top (`resolveThicknessIn`), whose capabilities say how it moves. */
+const resolveThicknessOption = (
+  profile: ProductProfile | null | undefined,
+  thicknessOption: string | null | undefined,
+  runtimeThicknessM?: number | null,
+) => {
+  const thicknessIn = resolveThicknessIn(thicknessOption, runtimeThicknessM);
+  return thicknessIn === null ? null : findThicknessOption(profile, thicknessIn, THICKNESS_TOLERANCE_IN);
+};
 
-/** Movement mode of the top by its thickness (`resolveThicknessIn`). `null` when unknown. */
+/**
+ * Movement mode of the top by its Thickness option's capabilities: `countertopLifts` → free, `countertopSlides`
+ * → offset, neither → none. `null` when the thickness is unknown or no option of the collection is near it.
+ */
 export const resolveMovementMode = (
+  profile: ProductProfile | null | undefined,
   thicknessOption: string | null | undefined,
   runtimeThicknessM?: number | null,
 ): CountertopMovementMode | null => {
-  const thicknessIn = resolveThicknessIn(thicknessOption, runtimeThicknessM);
-  if (thicknessIn === null) return null;
-  if (thicknessIn < THIN_BELOW_IN) return "none";
-  const near = (value: number) => nearThickness(thicknessIn, value);
-  if (near(OFFSET_ONLY_IN)) return "offset";
-  return FREE_THICKNESSES_IN.some(near) ? "free" : null;
+  const option = resolveThicknessOption(profile, thicknessOption, runtimeThicknessM);
+  if (!option) return null;
+  if (option.capabilities?.countertopLifts) return "free";
+  return option.capabilities?.countertopSlides ? "offset" : "none";
 };
 
-/** A thick top (4″, 5⅛″ or 5½″, read as `resolveMovementMode` reads it): its length changes from the menu. */
+/** A top whose Thickness option declares `countertopLengthResize`: its length changes from the menu. */
 export const isLengthResizableThickness = (
+  profile: ProductProfile | null | undefined,
   thicknessOption: string | null | undefined,
   runtimeThicknessM?: number | null,
-): boolean => {
-  const thicknessIn = resolveThicknessIn(thicknessOption, runtimeThicknessM);
-  return thicknessIn !== null && LENGTH_RESIZABLE_THICKNESSES_IN.some((value) => nearThickness(thicknessIn, value));
-};
+): boolean =>
+  resolveThicknessOption(profile, thicknessOption, runtimeThicknessM)?.capabilities?.countertopLengthResize === true;
 
 export type CountertopModeNoticeState = {
   /** UI_REASON_TEXTS codes, joined into one message. */
@@ -79,7 +83,7 @@ const isTransient = (error: unknown) => {
   return kind === "not-ready" || kind === "busy";
 };
 
-/** Lower an offset-only top (falls back to Standard), or reset a thin one. */
+/** Lower an offset-only top (falls back to Standard), or reset one that never moves. */
 const correctPose = async (api: CountertopApi, mode: "offset" | "none"): Promise<"lowered" | "reset"> => {
   if (mode === "offset") {
     try {
@@ -101,9 +105,14 @@ const correctPose = async (api: CountertopApi, mode: "offset" | "none"): Promise
 /**
  * Keeps the top's movement in step with its thickness, in one place: `setVerticalLocked`,
  * the auto-correction of a pose the mode forbids (one attempt per violation, never mid-drag)
- * and a short notice on every switch between two known modes of the same top.
+ * and a short notice on every switch between two known modes of the same top. What each
+ * thickness may do comes from the collection's profile (`profile`).
  */
-export const useCountertopMovementMode = (getApi: () => CountertopApi | null, ready: boolean) => {
+export const useCountertopMovementMode = (
+  getApi: () => CountertopApi | null,
+  ready: boolean,
+  profile: ProductProfile | null,
+) => {
   const thicknessOption = useAppSelector(getActiveCountertopThickness);
   // Primitives only: this hook runs in PlayCanvasIntegration, which must not re-render on drag frames.
   const thicknessM = useCountertopRuntimeValue((state) => state?.thickness ?? null);
@@ -113,8 +122,8 @@ export const useCountertopMovementMode = (getApi: () => CountertopApi | null, re
   const lifted = useCountertopRuntimeValue((state) => isLiftedCountertop(state));
   const standard = useCountertopRuntimeValue((state) => isStandardCountertop(state));
   const dragging = useCountertopRuntimeValue((state) => state?.dragging === true);
-  const mode = resolveMovementMode(thicknessOption, thicknessM);
-  const lengthResizable = isLengthResizableThickness(thicknessOption, thicknessM);
+  const mode = resolveMovementMode(profile, thicknessOption, thicknessM);
+  const lengthResizable = isLengthResizableThickness(profile, thicknessOption, thicknessM);
 
   const [notice, setNotice] = useState<CountertopModeNoticeState | null>(null);
   const show = useCallback(

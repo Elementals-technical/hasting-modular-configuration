@@ -77,7 +77,7 @@ export const CountertopPlacementControls = forwardRef<CountertopPlacementHandle,
       !editing;
     const dragging = state?.dragging === true || state?.moving === true;
     const blocked = disabled || pending || state?.readiness !== "ready" || !targetCurrent || dragging;
-    // Offset-only (4″) top: no lift from this panel either; the label keeps the tooltip on a disabled field.
+    // Offset-only (2.4″ / 4″) top: no lift from this panel either; the label keeps the tooltip on a disabled field.
     const verticalLocked = state?.verticalLocked === true;
     const verticalLockedText = reasonText({ code: "COUNTERTOP_VERTICAL_LOCKED" });
 

@@ -134,17 +134,34 @@ describe("urban-low-height product profile", () => {
     expect(selectOptionValues(profile(), "CabinetType")).not.toContain("Side-Shelf");
   });
 
-  it("declares the rule sections the product map confirms, and the side panels and vessel compatibility added on request", () => {
+  it("declares the rule sections the product map confirms, and the side panels, vessel compatibility and Drag & Drop added on request", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual(
       [
         "cabinetColorTraits",
         "cabinetMatrixLegacyAdapter",
         "countertopFallbacks",
+        "dragDrop",
         "fluting",
         "sidePanels",
         "vesselCompatibility",
       ].sort(),
     );
+  });
+
+  it("says what each countertop thickness can do: thin tops stay, 2.4″ and 4″ slide, 5⅛″ and 5½″ also lift", () => {
+    const capabilitiesOf = (value: string) =>
+      selectOptions(profile(), "Thickness").find((option) => option.value === value)?.capabilities;
+
+    for (const thin of ["0.375", "0.4", "0.5"]) expect(capabilitiesOf(thin)).toBeUndefined();
+    expect(capabilitiesOf("2.4")).toMatchObject({ countertopSlides: true });
+    expect(capabilitiesOf("2.4")?.countertopLifts).toBeUndefined();
+    expect(capabilitiesOf("4")).toMatchObject({ countertopSlides: true, countertopLengthResize: true });
+    for (const floating of ["5.125", "5.5"])
+      expect(capabilitiesOf(floating)).toMatchObject({
+        countertopSlides: true,
+        countertopLifts: true,
+        countertopLengthResize: true,
+      });
   });
 
   it("hides the countertop materials of configurator 4 that Urban Low Height does not offer (§11)", () => {

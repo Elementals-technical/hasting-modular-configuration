@@ -45,7 +45,7 @@ import {
 import s from "./RightCabinetStyleSidebar.module.scss";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setVisibleButtons, type VisibleButtonsOptions } from "@/utils/functions/playcanvas/setVisibleButtons";
-import { reportSceneRefusal } from "@/features/sceneRefusalNotice";
+import { reportAddRefusal, reportSceneRefusal } from "@/features/sceneRefusalNotice";
 import { setHandleButtonClick } from "@/utils/functions/playcanvas/setHandleButtonClick";
 import { showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { setScenePlusFilter, type ScenePlusKind } from "@/utils/functions/playcanvas/sceneBridge";
@@ -58,6 +58,7 @@ import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
 import { isSteppedDrawers } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
+  isDragDropEnabled,
   normalizeOptionValue,
   resolveCabinetTypeOfRuntimeId,
   selectEffectiveFallback,
@@ -79,6 +80,7 @@ import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
   resolveMaxAddableCabinetWidthCm,
+  useCabinetRowCapacity,
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -93,7 +95,6 @@ import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
 import { plusFilterFor, rowEndSideOf } from "../../lib/plusPlacement";
-import { isDragDropCollection } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import { resolveStyleSidebarFields } from "../../lib/resolveStyleSidebarFields";
 
 interface RightCabinetStyleSidebarProps {
@@ -151,10 +152,13 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
   const sceneTotalWidth = lengthGuard.currentWithSp;
   const maxCountertopLength = lengthGuard.max;
+  // A cabinet may also go in a row the countertop does not rest on, judged by that row's own length.
+  const rowCapacity = useCabinetRowCapacity(lengthGuard);
 
   const { run: runStep } = useHistoryStep();
-  // A collection with Drag & Drop also places cabinets at the places the scene offers (columns).
-  const placesInColumns = useActiveCollection((collection) => isDragDropCollection(collection.id));
+  // A collection with Drag & Drop (`ruleData.dragDrop`) also places cabinets at the places the scene offers
+  // (columns): their layout is captured for undo and saves.
+  const placesInColumns = isDragDropEnabled(activeProfile);
   const configuratorGroups = useActiveCollection((collection) => collection.catalog.configurator.groups);
   const styleSidebarFields = resolveStyleSidebarFields(
     useActiveCollection((collection) => collection.catalog.customization ?? null),
@@ -341,7 +345,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     [maxCountertopLength, sceneTotalWidth],
   );
 
-  const widthOptions = useMemo(() => {
+  // The widths some row has room for, and whether one fits the countertop's own row (Drag to Place keeps to it).
+  const { widthOptions, fitsCountertopRow } = useMemo(() => {
     const values = dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value);
     const filteredValues = filterWidthValuesByCountertopRules({
       profile: activeProfile,
@@ -356,16 +361,21 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       activeBasinStyle: sinkType ?? null,
       activeThickness: countertopThickness ?? null,
     });
-    const maxAddableWidth = selectedProducts.length ? maxAddableCabinetWidth : null;
-
-    return dimensionOptions.width.filter((option) => {
-      if (option.disabled) return false;
-      if (!filteredValues.includes(option.value)) return false;
-      if (maxAddableWidth === null) return true;
+    const offered = dimensionOptions.width.filter(
+      (option) => !option.disabled && filteredValues.includes(option.value),
+    );
+    const upTo = (maxWidth: number | null) => (option: (typeof offered)[number]) => {
+      if (maxWidth === null) return true;
       const numericWidth = Number(option.value);
       if (!Number.isFinite(numericWidth)) return false;
-      return numericWidth <= maxAddableWidth + 0.01;
-    });
+      return numericWidth <= maxWidth + 0.01;
+    };
+    const hasProducts = selectedProducts.length > 0;
+
+    return {
+      widthOptions: offered.filter(upTo(hasProducts ? rowCapacity.maxWidth(activeDrawerProduct) : null)),
+      fitsCountertopRow: offered.some(upTo(hasProducts ? maxAddableCabinetWidth : null)),
+    };
   }, [
     activeProfile,
     activeCabinetRule?.code,
@@ -374,6 +384,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     countertopRules,
     dimensionOptions.width,
     maxAddableCabinetWidth,
+    rowCapacity,
     selectedDimensions.depth,
     activeCabinetRule?.isOpen,
     countertopStyle,
@@ -762,13 +773,20 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     };
 
     setVisibleButtons(shouldShowPlacementButtons, isOpenedStyleSidebar ? options : undefined);
-    // A row that holds columns shows only the "+" that fit this cabinet (a shelf never goes in a column).
+    // A row that holds columns shows only the "+" that fit this cabinet (a shelf never goes in a column),
+    // and only by a row with room for it. The scene applies this to the "+" that carry their place.
+    const widthValues = widthOptions.map((option) => Number(option.value)).filter(Number.isFinite);
     setScenePlusFilter(
       shouldShowPlacementButtons
         ? plusFilterFor(
             activeDrawerProduct,
             (id) => resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, id),
-            { columns: placesInColumns },
+            {
+              columns: placesInColumns,
+              fits: selectedProducts.length
+                ? (plus) => rowCapacity.allowsPlus(plus, activeDrawerProduct, widthValues)
+                : undefined,
+            },
           )
         : null,
     );
@@ -780,22 +798,25 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     // change of the cabinet being added, so it shows it again, on the same condition as the page.
     const isEmptyComposition = selectedProducts.length === 0;
     if (isOpenedStyleSidebar && isEmptyComposition) showEmptyButton();
-    // The player offers Drag to Place beside them.
-    dispatch(setPlacementButtonsVisible(shouldShowPlacementButtons));
+    // The player offers Drag to Place beside them, while a width fits the countertop's own row: its draft
+    // is not judged by length, so a cabinet that only fits another row goes there by its "+".
+    dispatch(setPlacementButtonsVisible(shouldShowPlacementButtons && fitsCountertopRow));
   }, [
     activeCabinetRule,
     activeDrawerProduct,
     activeProfile,
     dispatch,
+    fitsCountertopRow,
     isOpenedStyleSidebar,
     isSteppedStyle,
     placesInColumns,
+    rowCapacity,
     runtimeBindings,
     selectedDimensions.height,
     selectedDrawers,
     selectedProducts.length,
     shownCabinetAttributeValues,
-    widthOptions.length,
+    widthOptions,
   ]);
 
   useEffect(
@@ -854,29 +875,17 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         .map((value) => Number(value))
         .filter((value) => Number.isFinite(value) && value > 0);
 
-      // A cabinet under a hanging one does not lengthen the countertop above it.
-      const addableWidthLimit = side === "bottom" ? null : maxAddableCabinetWidth;
-      const fittingAddWidths =
-        addableWidthLimit === null
-          ? availableAddWidths
-          : availableAddWidths.filter((width) => width <= addableWidthLimit + 0.01);
-
-      if (
-        addableWidthLimit !== null &&
-        maxCountertopLength !== null &&
-        sceneTotalWidth !== null &&
-        selectedProducts.length > 0 &&
-        !fittingAddWidths.length
-      ) {
-        console.warn("[RightCabinetStyleSidebar] Add blocked by countertop max length", {
-          maxCountertopLength,
-          sceneTotalWidth,
-          requestedWidth: selectedDimensions.width,
-          availableAddWidths,
-          fittingAddWidths,
-        });
+      // The row the "+" adds to decides: the countertop's by its remaining length, a row the countertop
+      // does not rest on by its own length, a column's bottom place (under a hanging cabinet) by none.
+      const check = selectedProducts.length
+        ? rowCapacity.checkPlus({ cabinetId: entityId, kind: side }, activeDrawerProduct, availableAddWidths)
+        : null;
+      if (check?.status === "refused") {
+        reportAddRefusal(check.reason);
         return;
       }
+      const addableWidthLimit = check?.limitCm ?? null;
+      const fittingAddWidths = check?.widths ?? availableAddWidths;
 
       const selectedWidthIsFitting =
         typeof selectedDimensions.width === "number" &&
@@ -948,13 +957,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     isPlayCanvasReady,
     activeDrawerProduct,
     composition,
-    maxCountertopLength,
-    maxAddableCabinetWidth,
     onProductAdded,
     productConfig,
+    rowCapacity,
     shownCabinetAttributeValues,
     runStep,
-    sceneTotalWidth,
     selectedDimensions.width,
     selectedProducts,
     steppedCabinetIds,

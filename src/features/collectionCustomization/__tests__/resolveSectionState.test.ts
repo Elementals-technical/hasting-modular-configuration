@@ -173,6 +173,28 @@ describe("resolveSectionFields", () => {
     expect(options.find((option) => option.value === "UpperG")?.reason).toBe("Too long.");
   });
 
+  it("gives each refused option the reason of its own where the availability names one, and the field's otherwise", () => {
+    const resolved = resolveSectionFields(
+      schema,
+      "side-panels",
+      profile,
+      {},
+      {
+        "SidePanels.available": {
+          available: true,
+          reasonCode: "field.reason",
+          isOptionAllowed: (option) => option.value === "None",
+          optionReason: (option) => (option.value === "NoG" ? { reasonCode: "own.reason" } : undefined),
+        },
+      },
+    );
+    const reasonOf = (value: string) => resolved[0]?.field.options.find((option) => option.value === value)?.reasonCode;
+
+    expect(reasonOf("None")).toBeUndefined();
+    expect(reasonOf("NoG")).toBe("own.reason");
+    expect(reasonOf("UpperG")).toBe("field.reason");
+  });
+
   it("hides a field whose availability result says it is not visible", () => {
     const resolved = resolveSectionFields(
       schema,

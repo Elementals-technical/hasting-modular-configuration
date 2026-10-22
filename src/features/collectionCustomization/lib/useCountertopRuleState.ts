@@ -50,7 +50,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   // The countertop's own length: on a multi-level composition, not the cabinets under cabinet covers.
   const sceneTotalWidth = useCountertopLength(selectedProducts, null).withSidePanels;
-  // No Sink Base under the basin: the thicknesses that need one there are out.
+  // No Sink Base under the basin: the thicknesses, and the colours, that need one there are out.
   const sinkOffSinkBase = useCountertopRuntimeValue(isSinkOffSinkBase);
 
   return useMemo(() => {
@@ -89,6 +89,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
       countertopRules: rules,
       depth: depth ?? null,
       sinkBaseWidth,
+      sinkOffSinkBase,
       totalWidth,
     };
 

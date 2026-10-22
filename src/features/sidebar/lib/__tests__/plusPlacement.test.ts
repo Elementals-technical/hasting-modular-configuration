@@ -53,4 +53,18 @@ describe("plus placement", () => {
     // A sink base never goes under a hanging cabinet.
     expect(shown(plusFilterFor("Sink-Base", typeOf, { columns: true }))).not.toContain("bottom");
   });
+
+  it("also hides a '+' whose row has no room, and never shows one the placement rules hide", () => {
+    const onlyBottom = (candidate: ScenePlus) => candidate.kind === "bottom" || candidate.kind === "top";
+
+    expect(shown(plusFilterFor("Sink-Cabinet", typeOf, { columns: true, fits: onlyBottom }))).toEqual([
+      "top",
+      "bottom",
+    ]);
+    expect(shown(plusFilterFor("Sink-Base", typeOf, { columns: true, fits: onlyBottom }))).toEqual(["top"]);
+    expect(shown(plusFilterFor("Sink-Cabinet", typeOf, { columns: false, fits: () => true }))).toEqual([
+      "left",
+      "right",
+    ]);
+  });
 });

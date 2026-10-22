@@ -4,12 +4,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ConfiguratorClient } from "@/features/configuratorApi";
-import type { RuntimeBindingSet } from "@/entities/collection";
+import { isDragDropEnabled, parseProductProfile, type RuntimeBindingSet } from "@/entities/collection";
 import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
-import {
-  isDragDropCollection,
-  resolveCabinetDebugSelection,
-} from "../lib/resolveCabinetDebugSelection";
+import { resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
 
 const selection = {
   definitionId: "Example-side-cabinet",
@@ -1131,11 +1128,22 @@ describe("Drag to Place on an empty composition", () => {
 });
 
 describe("Drag & Drop collections", () => {
-  it("enables cabinet/countertop Drag & Drop for ULH and Urban Duplex only", () => {
-    expect(isDragDropCollection("urban-low-height")).toBe(true);
-    expect(isDragDropCollection("urban-duplex")).toBe(true);
-    for (const id of ["urban-standard-height", "class", "mako", "", null, undefined]) {
-      expect(isDragDropCollection(id)).toBe(false);
-    }
+  const profiles = Object.values(
+    import.meta.glob("/public/collections/*/product-profile.json", { eager: true, import: "default" }),
+  ).map((document) => {
+    const parsed = parseProductProfile(document);
+    if (!parsed.ok) throw new Error("a shipped profile failed validation");
+    return parsed.profile;
+  });
+
+  it("enables cabinet/countertop Drag & Drop where the profile says so: ULH and Urban Duplex only", () => {
+    expect(profiles.length).toBeGreaterThanOrEqual(8);
+    expect(
+      profiles
+        .filter(isDragDropEnabled)
+        .map(({ collectionId }) => collectionId)
+        .sort(),
+    ).toEqual(["urban-duplex", "urban-low-height"]);
+    expect(isDragDropEnabled(null)).toBe(false);
   });
 });

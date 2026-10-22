@@ -33,6 +33,13 @@ export type FieldAvailability = {
   allowedValues?: readonly string[];
   /** When set, only the options it accepts stay enabled: options that share a value can differ. */
   isOptionAllowed?: (option: FieldOptionState) => boolean;
+  /**
+   * The reason of one refused option, where options are refused for reasons of their own (a colour by its
+   * material); an option it gives none keeps the field's `reason` / `reasonCode`.
+   */
+  optionReason?: (
+    option: FieldOptionState,
+  ) => Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> | undefined;
   /** When set, only these option values are shown; a hidden one keeps its stored value. */
   visibleValues?: readonly string[];
   /** The option shown as chosen while nothing is stored, e.g. None for a vessel without a basin. */
@@ -147,13 +154,15 @@ export const resolveSectionFields = (
       const enabled =
         (!availability.allowedValues || availability.allowedValues.includes(option.value)) &&
         (!availability.isOptionAllowed || availability.isOptionAllowed(option));
+      // A refused option says its own reason where the availability gives it one, else the field's.
+      const refusal = enabled ? undefined : (availability.optionReason?.(option) ?? availability);
       return {
         ...option,
         enabled,
         image: option.image ?? declaredImages?.[option.value],
-        reason: enabled ? undefined : availability.reason,
-        reasonCode: enabled ? undefined : availability.reasonCode,
-        reasonParams: enabled ? undefined : availability.reasonParams,
+        reason: refusal?.reason,
+        reasonCode: refusal?.reasonCode,
+        reasonParams: refusal?.reasonParams,
       };
     });
 

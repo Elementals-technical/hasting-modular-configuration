@@ -1,19 +1,19 @@
 import { useSyncExternalStore } from "react";
 
-import { UI_REASON_TEXTS } from "@/shared/lib/reasonText";
+import { UI_REASON_TEXTS, type Reason } from "@/shared/lib/reasonText";
 
 /**
- * Scene refusals the user is told about, reported from wherever a command runs (the sidebar's "+",
+ * Refused adds the user is told about, reported from wherever a command runs (the sidebar's "+",
  * the player's duplicate and swap) and shown by SceneRefusalNotice in the player. One notice at a
- * time: a newer refusal replaces the one shown. The scene's code is the reason code: its text comes
+ * time: a newer refusal replaces the one shown. A scene's code is the reason code: its text comes
  * from UI_REASON_TEXTS (shared/lib/reasonText) or the collection's `messages`.
  */
 
-let shownCode: string | null = null;
+let shownReason: Reason | null = null;
 const listeners = new Set<() => void>();
 
-const show = (code: string | null) => {
-  shownCode = code;
+const show = (reason: Reason | null) => {
+  shownReason = reason;
   listeners.forEach((listener) => listener());
 };
 
@@ -23,9 +23,12 @@ const show = (code: string | null) => {
  */
 export const reportSceneRefusal = (result: { status: string; sceneCode?: string }) => {
   if (result.status === "error" && result.sceneCode && Object.hasOwn(UI_REASON_TEXTS, result.sceneCode)) {
-    show(result.sceneCode);
+    show({ code: result.sceneCode });
   }
 };
+
+/** Shows why the interface itself did not add a cabinet: a "+" the length or Sink Base rules refuse. */
+export const reportAddRefusal = (reason: Reason) => show(reason);
 
 export const dismissSceneRefusal = () => show(null);
 
@@ -34,5 +37,5 @@ const subscribe = (listener: () => void) => {
   return () => listeners.delete(listener);
 };
 
-/** The refusal code shown now, or null. */
-export const useSceneRefusal = (): string | null => useSyncExternalStore(subscribe, () => shownCode);
+/** The refusal shown now, or null. */
+export const useSceneRefusal = (): Reason | null => useSyncExternalStore(subscribe, () => shownReason);

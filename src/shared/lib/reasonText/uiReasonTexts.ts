@@ -26,7 +26,7 @@ export const UI_REASON_TEXTS: Record<string, string> = {
   COUNTERTOP_VERTICAL_LOCKED: "This countertop can only slide left or right.",
   COUNTERTOP_BELOW_COVER: "The countertop can't go lower than the cabinet top here.",
   /* Countertop movement mode by thickness (shown when the mode switches). */
-  "countertop.mode.offset": "4″ countertop: it can only slide left or right.",
+  "countertop.mode.offset": "This countertop can only slide left or right.",
   "countertop.mode.free": "This countertop can be moved and lifted.",
   "countertop.mode.none": "This countertop stays in the standard position.",
   /** Appended when the switch auto-corrected the pose. */

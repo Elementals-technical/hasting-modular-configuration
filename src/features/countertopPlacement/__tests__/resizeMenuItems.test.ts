@@ -62,4 +62,13 @@ describe("countertop Thickness menu", () => {
   it("has no thickness to pick while the rules allow none", () => {
     expect(buildCountertopThicknessItem([], vi.fn()).children).toEqual([]);
   });
+
+  it("names each thickness as the collection does, and falls back to the number for one it does not name", () => {
+    const labelOf = (value: number) => (value === 4.75 ? '4.7"' : null);
+    const item = buildCountertopThicknessItem([0.5, 4.75], vi.fn(), labelOf);
+    expect(item.children?.map((option) => [option.id, option.label])).toEqual([
+      ["0.5", "0.5"],
+      ['4.7"', '4.7"'],
+    ]);
+  });
 });
