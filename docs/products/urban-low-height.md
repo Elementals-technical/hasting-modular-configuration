@@ -81,6 +81,25 @@ Continue входить у Drag & Drop і позначає intro як побач
 раковиною, довжина, Cancel, Standard); Side Panels і Towel Bar без дублів; збереження й відкриття
 посилання з двома рядами. Urban Standard Height: Undo / Redo без змін, збереження layout не несе.
 
+## Ряди: «+» Cabinet Builder
+
+Sink Base стоїть лише в ряду стільниці, поруч з іншими Sink Base (клієнт, 22.10.2026). Інший ряд
+(нижній рівень Multi-Level) міряє свою довжину сам, проти того самого максимуму
+(`configurator-rule-core/countertop/cabinetRows.ts`). «+», куди обрана шафа стати не може, сховано:
+фільтр будує sidebar (`plusFilterFor` з `useCabinetRowCapacity`), а клік по «+» перевіряється ще раз
+(`checkPlus`) і пояснює відмову. Duplicate — так само.
+
+Сцена питає фільтр лише про «+», що несуть своє місце (`plus`: колонки Urban Duplex). Рядові «+» ULH
+(`setAnchors(..., { multiRow: true })`) його не несуть, тож сцена показувала їх усі. Поки вона не питає
+й про них, це робить `filterRowEndPlus` у `utils/functions/playcanvas/sceneBridge.ts`: обгортає
+`_isPlusVisible` менеджера «+» і називає рядовий «+» так, як сцена свої (`left:<cabinet>`). Лише для
+композиції в рядах; один ряд і колонки — як було. Sink Base, перетягнутий на нижній рівень (Drag to
+Place), не пускає сама сцена: `SINK_BASES_SPLIT`, «All sink bases must be in one row.».
+
+Перевірено в браузері 22.10.2026 на моделі 61″ Multi-Level у Custom: для Sink Base «+» лише біля
+верхнього рівня, для Side Cabinet — біля обох; Duplicate Sink Base — лише біля верхнього. Urban Duplex
+і Urban Standard Height показують ті самі «+», що й сцена.
+
 ## Cabinet catalog
 
 Table 580 описує:

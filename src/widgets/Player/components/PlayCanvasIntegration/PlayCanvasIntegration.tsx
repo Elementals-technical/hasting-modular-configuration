@@ -2354,7 +2354,7 @@ export const PlayCanvasIntegration = ({
     };
     setVisibleButtons(true, options);
     // A row that holds columns shows only the "+" that fit the copy (a shelf never goes in a column), and
-    // only by a row with room for it.
+    // only by a row with room for it; so do the row ends of a composition in rows (ULH).
     const copyWidths = typeof selectedDimensions.width === "number" ? [selectedDimensions.width] : null;
     setScenePlusFilter(
       plusFilterFor(cabinetTypeOf(sourceId), cabinetTypeOf, {
