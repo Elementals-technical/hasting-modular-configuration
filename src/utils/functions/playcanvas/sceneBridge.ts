@@ -214,6 +214,38 @@ export const readSceneProducts = (productIds: readonly string[]): Promise<SceneP
     return { status: "ready", order, configs };
   });
 
+type SceneRoot = { findByName?: (name: string) => unknown };
+type SceneEntity = { getPosition?: () => unknown };
+
+/** Where the scene shows a product, in metres: the centre along the wall and the bottom. */
+export type ScenePositionM = { x: number; y: number };
+
+/**
+ * Where the scene shows each product now, read from its entity: the place the layout gave it plus its
+ * `SpatialOffsetM`. A resize lays the row out again without rewriting the config's `positionX`/`positionY`,
+ * so the scene's own export reads the entity too. A product without an entity is left out.
+ */
+export const readScenePositionsM = (productIds: readonly string[]): Record<string, ScenePositionM> => {
+  const app = getConfiguratorApi()?.config;
+  const root = isRecord(app) ? (app.root as SceneRoot | undefined) : undefined;
+  if (!isRecord(root) || typeof root.findByName !== "function") return {};
+
+  const positions: Record<string, ScenePositionM> = {};
+
+  for (const productId of productIds) {
+    const entity = root.findByName(productId) as SceneEntity | null | undefined;
+    const position = isRecord(entity) && typeof entity.getPosition === "function" ? entity.getPosition() : null;
+    if (!isRecord(position)) continue;
+
+    const { x, y } = position;
+    if (typeof x === "number" && Number.isFinite(x) && typeof y === "number" && Number.isFinite(y)) {
+      positions[productId] = { x, y };
+    }
+  }
+
+  return positions;
+};
+
 /**
  * Answer of one scene operation used to rebuild a composition. `sceneCode`: the scene's own code of a
  * refusal, e.g. "UF_HEIGHT_RUN_VIOLATION" (the change would split the block of tall UF cabinets).

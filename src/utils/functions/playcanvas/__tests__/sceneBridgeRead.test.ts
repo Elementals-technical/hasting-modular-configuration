@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { readSceneProducts } from "../sceneBridge";
+import { readSceneProducts, readScenePositionsM } from "../sceneBridge";
 
 vi.mock("../apiLogger", () => ({ installConfiguratorApiLogger: vi.fn() }));
 vi.mock("../updateDimensionData", () => ({ updateDimensionDataForProduct: vi.fn() }));
@@ -13,8 +13,13 @@ const host = window as unknown as Host;
 const installScene = (
   configs: Record<string, unknown>,
   orderMap: Record<string, number> | null = { "rt-b": 0, "rt-a": 1 },
+  entityPositions: Record<string, { x: number; y: number; z: number }> = {},
 ) => {
   const composition = orderMap ? { getOrderProductIds: () => orderMap } : null;
+  const findByName = (name: string) => {
+    const position = entityPositions[name];
+    return position ? { getPosition: () => position } : null;
+  };
 
   host.containerRef = {
     current: {
@@ -22,7 +27,7 @@ const installScene = (
         ConfiguratorAPI: {
           setConfigBatch: vi.fn(),
           getConfig: vi.fn(async (productId: string) => configs[productId] ?? null),
-          config: { compositionManager: { getActiveComposition: () => composition } },
+          config: { compositionManager: { getActiveComposition: () => composition }, root: { findByName } },
         },
       },
     },
@@ -78,5 +83,27 @@ describe("readSceneProducts", () => {
 
     installScene({ "rt-a": { Width: 60 } }, null);
     expect(await readSceneProducts(["rt-a"])).toEqual({ status: "not-ready" });
+  });
+});
+
+describe("readScenePositionsM", () => {
+  afterEach(() => {
+    delete host.containerRef;
+    delete host.playCanvasReady;
+  });
+
+  it("reads where each product's entity stands, which a resize moves while the config keeps its position", () => {
+    installScene({ "rt-a": { Width: 105, positionX: 0.45, positionY: 0 } }, undefined, {
+      "rt-a": { x: 0.525, y: 0, z: 0.23 },
+    });
+
+    expect(readScenePositionsM(["rt-a"])).toEqual({ "rt-a": { x: 0.525, y: 0 } });
+  });
+
+  it("leaves out a product without an entity, and reads nothing without a scene", () => {
+    expect(readScenePositionsM(["rt-a"])).toEqual({});
+
+    installScene({}, undefined, { "rt-a": { x: 0.3, y: -0.38, z: 0.23 } });
+    expect(readScenePositionsM(["rt-a", "rt-missing"])).toEqual({ "rt-a": { x: 0.3, y: -0.38 } });
   });
 });

@@ -5,6 +5,7 @@ import { getDimensionTool } from "./getDimensionTool";
 import { cmToInch, inchToCm } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
 import { getRememberedSidePanels } from "./sidePanels";
+import { readScenePositionsM, type ScenePositionM } from "./sceneBridge";
 
 type FullDimensionsOptions = {
   countertopThickness?: string | number | null;
@@ -98,8 +99,8 @@ const buildHeightSegments = (
   );
 };
 
-/** A placed product and its scene config (`getConfig`), in the composition's order. */
-export type FullDimensionsProduct = { node: string; config: unknown };
+/** A placed product: its scene config (`getConfig`) and where the scene shows it, in the composition's order. */
+export type FullDimensionsProduct = { node: string; config: unknown; positionM: ScenePositionM | null };
 
 export type FullDimensionsPayloadOptions = FullDimensionsOptions & {
   /** The side panels the scene took, per side (`getRememberedSidePanels`). */
@@ -112,15 +113,6 @@ const LEVEL_TOLERANCE_CM = 10;
 /** The width lines of each level above the lowest stand this much (m) further below the box, so they do not overlap. */
 const LEVEL_LINE_GAP_M = 0.06;
 
-/** The scene places a product at its position plus its `SpatialOffsetM` (metres). */
-const readScenePositionCm = (config: unknown, key: "positionX" | "positionY", axis: "x" | "y") => {
-  if (!isRecord(config)) return undefined;
-  const position = config[key];
-  if (typeof position !== "number" || !Number.isFinite(position)) return undefined;
-  const offset = isRecord(config.SpatialOffsetM) ? config.SpatialOffsetM[axis] : undefined;
-  return (position + (typeof offset === "number" && Number.isFinite(offset) ? offset : 0)) * 100;
-};
-
 type MeasuredProduct = {
   node: string;
   width: number | undefined;
@@ -132,7 +124,7 @@ type MeasuredProduct = {
 
 /**
  * Level of each product, counted from the lowest; null when the composition stands on one level
- * or a product has no position. The positions of a packed row can be stale, so only levels use them.
+ * or a product has no position.
  */
 const resolveLevels = (products: readonly MeasuredProduct[]): number[] | null => {
   if (
@@ -193,12 +185,12 @@ export const buildFullDimensionsPayload = (
   const unit = options.unit ?? DEFAULT_FULL_DIMENSIONS_UNIT;
   const configs = products.map(({ config }) => config);
   const measured = products.map(
-    ({ node, config }): MeasuredProduct => ({
+    ({ node, config, positionM }): MeasuredProduct => ({
       node,
       width: readNumericConfigValue(config, "Width"),
       height: readNumericConfigValue(config, "Height"),
-      centreX: readScenePositionCm(config, "positionX", "x"),
-      bottom: readScenePositionCm(config, "positionY", "y"),
+      centreX: positionM ? positionM.x * 100 : undefined,
+      bottom: positionM ? positionM.y * 100 : undefined,
     }),
   );
   const levels = resolveLevels(measured);
@@ -269,10 +261,11 @@ export async function computeAndShowFullDimensions(options: FullDimensionsOption
   }
 
   const configs = await Promise.all(ids.map((id) => getConfig(id)));
+  const positions = readScenePositionsM(ids);
 
   const didShow = showDimensions(
     buildFullDimensionsPayload(
-      ids.map((node, index) => ({ node, config: configs[index] })),
+      ids.map((node, index) => ({ node, config: configs[index], positionM: positions[node] ?? null })),
       { ...options, sidePanels: getRememberedSidePanels() },
     ),
   );
