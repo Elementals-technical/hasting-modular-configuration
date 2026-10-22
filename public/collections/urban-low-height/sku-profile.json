@@ -213,7 +213,8 @@
   "cabinetCover": {
     "prefix": "UR",
     "thicknessIn": 0.5,
-    "materialSkus": ["3D", "LACM", "LACG", "ST", "BM", "ESS", "HPL"]
+    "materialSkus": ["3D", "LACM", "LACG", "ST", "BM", "ESS", "HPL"],
+    "flows": ["prebuilt", "custom"]
   },
   "dividers": {},
   "gaps": [
