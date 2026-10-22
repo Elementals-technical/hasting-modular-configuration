@@ -1,6 +1,12 @@
 {
   "collectionId": "urban-low-height",
   "optionImages": {
+    "DrawerPanelFluting": {
+      "FlutingVerticalA": "images/drawer-panel/Fluting_Vertical_TypeA.png",
+      "FlutingVerticalB": "images/drawer-panel/Fluting_Vertical_TypeB.png",
+      "FlutingHorizontalA": "images/drawer-panel/Fluting_Horizontal_TypeA.png",
+      "FlutingHorizontalB": "images/drawer-panel/Fluting_Horizontal_TypeB.png"
+    },
     "CabinetType": {
       "Sink-Base": "images/cabinet/sink-base-upper-groove.png",
       "Side-Cabinet": "images/cabinet/side-cabinet-upper-groove.png",
@@ -211,7 +217,6 @@
     },
     "drawer-panel": {
       "label": "Drawer Panel Fluting",
-      "enabled": false,
       "fields": [
         {
           "attributeId": "DrawerPanelFluting",

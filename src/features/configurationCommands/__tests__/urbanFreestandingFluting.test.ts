@@ -22,8 +22,8 @@ import bindingsDocument from "../../../../public/collections/urban-freestanding/
 import { changeAttribute } from "../lib/changeAttribute";
 
 /**
- * Urban Freestanding flutes Lacquer Matte cabinets only. The UF scene products have no fluting rule,
- * so the pattern is recorded for the SKU and never sent; a colour of another material clears it.
+ * Urban Freestanding flutes Lacquer Matte cabinets only. The pattern is recorded for the SKU and sent to
+ * the scene (RuleOverlayFluting draws it on the UF overlays); a colour of another material clears it.
  */
 
 const profileResult = parseProductProfile(profileDocument);
@@ -50,6 +50,9 @@ const first = () => getCabinetEntries(store.getState())[0].stableKey;
 const fluting = () =>
   getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: first() });
 const changeColor = (value: string) => changeAttribute({ attributeId: "CabinetColor", scope: "global", value }, deps());
+/** DrawerPanelFluting values sent to the scene, in order. */
+const sentFlutings = () =>
+  apply.mock.calls.flatMap(([, patch]) => ("DrawerPanelFluting" in patch ? [patch.DrawerPanelFluting] : []));
 const changeFluting = (value: string) =>
   changeAttribute({ attributeId: "DrawerPanelFluting", scope: "cabinet", cabinetId: first(), value }, deps());
 
@@ -64,17 +67,18 @@ beforeEach(() => {
 });
 
 describe("Urban Freestanding drawer panel fluting", () => {
-  it("is refused on the default brushed steel and recorded on Lacquer Matte without reaching the scene", async () => {
+  it("is refused on the default brushed steel and sent to the scene on Lacquer Matte", async () => {
     expect((await changeColor("Metal acciaio 2MA")).status).toBe("applied");
     expect(await changeFluting("FlutingVerticalA")).toMatchObject({
       status: "blocked",
       reasonCode: "fluting.notAvailable",
     });
+    expect(sentFlutings()).not.toContain("FlutingVerticalA");
 
     expect((await changeColor("Bianco 0B MT")).status).toBe("applied");
     expect((await changeFluting("FlutingVerticalA")).status).toBe("applied");
     expect(fluting()).toBe("FlutingVerticalA");
-    expect(apply.mock.calls.some(([, patch]) => "DrawerPanelFluting" in patch)).toBe(false);
+    expect(sentFlutings().at(-1)).toBe("FlutingVerticalA");
   });
 
   it("keeps the pattern on another Lacquer Matte and clears it on a colour of another material", async () => {
@@ -86,5 +90,6 @@ describe("Urban Freestanding drawer panel fluting", () => {
 
     expect((await changeColor("Metal acciaio 2MA")).status).toBe("applied");
     expect(fluting()).toBe("None");
+    expect(sentFlutings().at(-1)).toBe("None");
   });
 });
