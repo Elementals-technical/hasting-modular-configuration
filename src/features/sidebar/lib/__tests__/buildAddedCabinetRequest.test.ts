@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { tricotProfile } from "@/entities/collection/__tests__/tricotFixtures";
 
-import { buildAddedCabinetRequest } from "../buildAddedCabinetRequest";
+import { buildAddedCabinet, buildAddedCabinetRequest } from "../buildAddedCabinetRequest";
 
 const config = { Width: 60, Height: 52, Depth: 52, Drawers: "2D", Handle: "G57", CabinetColor: "Antracite Matte OCF" };
 
@@ -124,6 +124,30 @@ describe("buildAddedCabinetRequest", () => {
     });
 
     expect(request.afterPlacement).toBeUndefined();
+  });
+
+  it("adds the cabinet a Drag & Drop Add places as its + does: the basin, the countertop style, a vessel's colour", () => {
+    const sinkBase = {
+      cabinetType: "Sink-Base",
+      config,
+      width: null,
+      sinkType: "Top_HPL/Fenix_Prisma_Gres",
+      countertopStyle: "Top",
+    };
+    const vessel = { ...sinkBase, sinkType: null, countertopStyle: "Vessel", vesselColor: "Bianco" };
+
+    expect(buildAddedCabinet(sinkBase)).toEqual({
+      product: {
+        productType: "Sink-Base",
+        config: { ...config, sinkType: "Top_HPL/Fenix_Prisma_Gres", CountertopStyle: "Top" },
+      },
+      afterPlacement: undefined,
+    });
+    expect(buildAddedCabinet(vessel).afterPlacement).toEqual({ VesselColor: "Bianco" });
+    for (const cabinet of [sinkBase, vessel]) {
+      const request = buildAddedCabinetRequest({ ...cabinet, anchorRuntimeId: "cab-a", side: "right" });
+      expect(buildAddedCabinet(cabinet)).toEqual({ product: request.product, afterPlacement: request.afterPlacement });
+    }
   });
 
   it("builds a config from the width alone before the builder's size is known", () => {

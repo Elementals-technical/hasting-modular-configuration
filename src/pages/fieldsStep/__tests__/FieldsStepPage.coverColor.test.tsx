@@ -180,11 +180,14 @@ const duplexCollection = {
   },
 };
 
-const renderDuplexCountertopStep = (value: typeof duplexCollection) => {
+const renderDuplexCountertopStep = (
+  value: typeof duplexCollection,
+  path = "/prebuilt/countertop?collectionId=urban-duplex",
+) => {
   store.dispatch(setActiveProfile(duplexParsed.profile));
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={["/prebuilt/countertop?collectionId=urban-duplex"]}>
+      <MemoryRouter initialEntries={[path]}>
         <ReadyCollectionContext.Provider value={value}>
           <FieldsStepPage stepId="countertop" />
         </ReadyCollectionContext.Provider>
@@ -282,8 +285,44 @@ it("shows no Lower on Urban Freestanding while the scene lays no cover", async (
   expect(screen.queryByRole("tab", { name: "Lower" })).toBeNull();
 });
 
-it("keeps Urban Low Height's Lower to the prebuilt flow, as its contract names no other", async () => {
+// Urban Low Height and Urban Duplex name both flows: a model switched to Custom keeps its covers.
+it("offers Upper and Lower in the Urban Low Height custom flow, as in prebuilt", async () => {
   renderCountertopStep("/custom/countertop?collectionId=urban-low-height", collection);
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  await act(async () => {
+    fireEvent.click(colors.getByRole("button", { name: "Castagno Chiaro 1C1" }));
+  });
+
+  expect(mocks.lower).toHaveBeenCalledWith("Castagno chiaro 1C1");
+  expect(mocks.upper).not.toHaveBeenCalled();
+});
+
+it("offers Upper and Lower in the Urban Duplex custom flow, as in prebuilt", async () => {
+  renderDuplexCountertopStep(duplexCollection, "/custom/countertop?collectionId=urban-duplex");
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  await act(async () => {
+    fireEvent.click(colors.getByRole("button", { name: "Bianco Male TFA" }));
+  });
+
+  expect(mocks.lower).toHaveBeenCalledWith("Bianco Male TFA");
+  expect(mocks.upper).not.toHaveBeenCalled();
+});
+
+it("keeps Lower to the prebuilt flow when the cover contract names no flows", async () => {
+  const cover = collection.catalog.skuProfile.cabinetCover;
+  renderCountertopStep("/custom/countertop?collectionId=urban-low-height", {
+    ...collection,
+    catalog: {
+      ...collection.catalog,
+      skuProfile: { ...collection.catalog.skuProfile, cabinetCover: cover && { ...cover, flows: undefined } },
+    },
+  });
 
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
   await waitFor(() => expect(colors.getByRole("button", { name: "Pulpis Chiaro TKH" })).toBeTruthy());

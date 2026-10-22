@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ulhManifest from "../../../../../public/collections/urban-low-height/manifest.json";
@@ -116,7 +116,9 @@ describe("Urban Low Height cabinet style details", () => {
     store.dispatch(setSelectedDimensions({ height: 38 }));
     renderBuilder();
 
-    expect(screen.getByText("Product Details").closest("a")?.getAttribute("href")).toBe(
+    // The taller model; the Slim one has details of its own.
+    const details = within(card("1 Drawer") as HTMLElement).getByText("Product Details");
+    expect(details.closest("a")?.getAttribute("href")).toBe(
       "/custom/cabinet-builder/details/style?style=1&title=1+Drawer&cabinetType=Sink-Base&height=38&collectionId=urban-low-height",
     );
   });

@@ -9,6 +9,8 @@ export {
   resolveDrawerStyleSwitch,
 } from "./lib/drawerStyleHeightRule";
 export { buildHandleStyleConfigPatch } from "./lib/handleStyleConfig";
+export { resolveHeightStyleCards } from "./lib/heightStyles";
+export type { HeightStyleCard } from "./lib/heightStyles";
 export { REASON_HANDLE_HEIGHT_LOCKED } from "./lib/handleRule";
 export { findPlacedCabinetRule } from "./lib/placedCabinetRule";
 export { isLeavingSideShelfHandle, isSideShelfBlockedByHandle } from "./lib/sideShelfHandleRule";

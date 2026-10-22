@@ -28,6 +28,11 @@ type Props = {
    * composition commands would place them. Without it, `selection` is placed as it is.
    */
   prepareSelection?: () => CabinetPlacementSelection | null;
+  /**
+   * Places the first cabinet of an empty composition as the builder's "+" there does: the scene lays a
+   * countertop only for a cabinet its own add places, never for one a draft commits.
+   */
+  addFirstCabinet?: () => Promise<void>;
   selectedProductId: string | null;
   /** The builder shows its "+" buttons for the cabinet being added: "Drag to Place" is offered with them. */
   offerAdd?: boolean;
@@ -84,6 +89,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     ready,
     selection,
     prepareSelection,
+    addFirstCabinet,
     selectedProductId,
     offerAdd = false,
     createClient = createConfiguratorClient,
@@ -109,6 +115,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   onAbandonedRef.current = onCompositionChangeAbandoned;
   const prepareSelectionRef = useRef(prepareSelection);
   prepareSelectionRef.current = prepareSelection;
+  const addFirstCabinetRef = useRef(addFirstCabinet);
+  addFirstCabinetRef.current = addFirstCabinet;
   const receiptSyncRef = useRef(new Map<string, Promise<void>>());
   const refreshCapabilitiesRef = useRef<(() => Promise<void>) | null>(null);
   const [connected, setConnected] = useState(false);
@@ -364,6 +372,11 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     let announced = false;
     void command(async (client) => {
       if (!client) return;
+      // No draft for the first cabinet: its place is the only one, and the host's add lays the countertop.
+      if (kind === "add" && addFirstCabinetRef.current && (await client.getCabinetsState()).cabinets.length === 0) {
+        await addFirstCabinetRef.current();
+        return;
+      }
       await onBeforeChangeRef.current?.();
       announced = true;
       let next: CabinetDraftState;

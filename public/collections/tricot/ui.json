@@ -30,6 +30,13 @@
     },
     "Handle": {
       "UG": "images/handle/UpperGHandle.png"
+    },
+    "DrawerPanelFluting": {
+      "Loden": "images/cabinet-pattern/Loden.png",
+      "Cannette": "images/cabinet-pattern/Cannette.png",
+      "Twill": "images/cabinet-pattern/Twill.png",
+      "Gessato": "images/cabinet-pattern/Gessato.png",
+      "Satin": "images/cabinet-pattern/Satin.png"
     }
   },
   "optionImageVariants": {

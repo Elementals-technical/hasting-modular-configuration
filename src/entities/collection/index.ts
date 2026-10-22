@@ -156,6 +156,8 @@ export {
 
 // Customization schema — owned by B: the UI description of steps, sections and fields.
 export type {
+  CabinetHeightStyle,
+  CustomizationCabinetStyle,
   CustomizationFieldControl,
   CustomizationFieldDefinition,
   CustomizationFlow,

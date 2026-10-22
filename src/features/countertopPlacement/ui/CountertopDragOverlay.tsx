@@ -30,6 +30,9 @@ import { CountertopResizeHandles } from "./CountertopResizeHandles";
 
 import s from "./CountertopDragMode.module.scss";
 
+/** How long the length hint stays before it fades, unless a drag ends it sooner. */
+export const COUNTERTOP_LENGTH_HINT_MS = 4000;
+
 type Props = {
   store: CountertopOverlayStore;
   pending: boolean;
@@ -65,7 +68,8 @@ const actionAnchor = (frame: CountertopOverlayFrame) => {
  * length / depth chips, the resize handles at both ends and Apply + × under the bottom-right corner.
  * The length changes through the end handles (client §17), which also work on a standard (attached)
  * top and take their limits from `getState().resizeBoundsM`. The ✎ of a chip opens its popover
- * (`CountertopDimensionPopover`): Length with Align, or Depth alone; one at a time.
+ * (`CountertopDimensionPopover`): Length with Align, or Depth alone; one at a time. The hint under the
+ * top fades after `COUNTERTOP_LENGTH_HINT_MS`, or at the first drag of the top or of an end.
  * The tint is drawn by PlayCanvas; the layer takes pointer input only on its controls.
  */
 export function CountertopDragOverlay({
@@ -99,6 +103,21 @@ export function CountertopDragOverlay({
     observer.observe(reasonElement);
     return () => observer.disconnect();
   }, [reasonElement]);
+  const [hintFaded, setHintFaded] = useState(false);
+  // The layer mounts with each session, so the hint shows once per session; the listener sees every
+  // frame, the first one of a drag included.
+  useEffect(() => {
+    const fade = () => setHintFaded(true);
+    const timer = window.setTimeout(fade, COUNTERTOP_LENGTH_HINT_MS);
+    const stop = store.subscribe(() => {
+      const next = store.get();
+      if (next?.dragging || next?.preview) fade();
+    });
+    return () => {
+      window.clearTimeout(timer);
+      stop();
+    };
+  }, [store]);
 
   if (!frame?.points) return null;
   const points = frame.points;
@@ -177,7 +196,11 @@ export function CountertopDragOverlay({
             {formatInches(lengthIn)} <EditIcon />
           </button>
           {lengthHint && (
-            <p className={clsx(s.message, s.lengthHint)} style={{ left: lengthHint.x, top: lengthHint.y }}>
+            <p
+              className={clsx(s.message, s.lengthHint, hintFaded && s.lengthHintFaded)}
+              style={{ left: lengthHint.x, top: lengthHint.y }}
+              aria-hidden={hintFaded || undefined}
+            >
               Drag the ends to change the length
             </p>
           )}

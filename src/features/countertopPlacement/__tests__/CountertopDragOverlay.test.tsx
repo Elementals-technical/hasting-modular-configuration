@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CountertopOverlayFrame } from "@/features/configuratorApi";
@@ -7,8 +7,8 @@ import type { CountertopOverlayFrame } from "@/features/configuratorApi";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
 import { METRES_PER_INCH } from "../lib/countertopLength";
-import { createCountertopOverlayStore } from "../lib/countertopOverlayStore";
-import { CountertopDragOverlay } from "../ui/CountertopDragOverlay";
+import { createCountertopOverlayStore, type CountertopOverlayStore } from "../lib/countertopOverlayStore";
+import { COUNTERTOP_LENGTH_HINT_MS, CountertopDragOverlay } from "../ui/CountertopDragOverlay";
 
 const handlesProps = vi.fn();
 vi.mock("../ui/CountertopResizeHandles", () => ({
@@ -20,11 +20,13 @@ vi.mock("../ui/CountertopResizeHandles", () => ({
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   handlesProps.mockClear();
   setCountertopRuntimeState(null);
 });
 
 const inches = (value: number) => value * METRES_PER_INCH;
+const HINT = "Drag the ends to change the length";
 
 const frameOf = (overrides: Partial<CountertopOverlayFrame> = {}): CountertopOverlayFrame => ({
   active: true,
@@ -52,8 +54,13 @@ const frameOf = (overrides: Partial<CountertopOverlayFrame> = {}): CountertopOve
   ...overrides,
 });
 
-const renderOverlay = (frame: CountertopOverlayFrame, { pending = false }: { pending?: boolean } = {}) => {
-  const store = createCountertopOverlayStore();
+const renderOverlay = (
+  frame: CountertopOverlayFrame,
+  {
+    pending = false,
+    store = createCountertopOverlayStore(),
+  }: { pending?: boolean; store?: CountertopOverlayStore } = {},
+) => {
   store.set(frame);
   const props = {
     onApply: vi.fn(),
@@ -77,7 +84,7 @@ describe("CountertopDragOverlay length chip", () => {
   it.each([false, true])("shows the length with ✎ and the drag hint (attached: %s)", (attached) => {
     renderOverlay(frameOf({ attached, lengthM: inches(40) }));
     expect(screen.getByTestId("countertop-length-chip").textContent?.trim()).toBe("40″");
-    expect(screen.getByText("Drag the ends to change the length")).toBeTruthy();
+    expect(screen.getByText(HINT).getAttribute("aria-hidden")).toBeNull();
     expect(screen.queryByText("Move the countertop off the cabinets to change its length")).toBeNull();
     expect(screen.queryAllByRole("button").map((button) => button.getAttribute("aria-label") ?? button.textContent)).toEqual([
       "Edit countertop length, 40″",
@@ -96,6 +103,27 @@ describe("CountertopDragOverlay length chip", () => {
     renderOverlay(frameOf({ bounds, points: { ...frameOf().points, bottomRight } }));
     const hint = screen.getByText("Drag the ends to change the length");
     expect([hint.style.left, hint.style.top]).toEqual(["500px", top]);
+  });
+
+  it("fades the drag hint after COUNTERTOP_LENGTH_HINT_MS", () => {
+    vi.useFakeTimers();
+    renderOverlay(frameOf());
+    act(() => vi.advanceTimersByTime(COUNTERTOP_LENGTH_HINT_MS - 1));
+    expect(screen.getByText(HINT).getAttribute("aria-hidden")).toBeNull();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.getByText(HINT).getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it.each<[string, Partial<CountertopOverlayFrame>]>([
+    ["the top", { dragging: true }],
+    ["an end", { preview: { side: "right", lengthM: inches(90) } }],
+  ])("fades the drag hint at once when %s is dragged, for the rest of the session", (_, drag) => {
+    const store = createCountertopOverlayStore();
+    renderOverlay(frameOf(), { store });
+    act(() => store.set(frameOf(drag)));
+    expect(screen.getByText(HINT).getAttribute("aria-hidden")).toBe("true");
+    act(() => store.set(frameOf()));
+    expect(screen.getByText(HINT).getAttribute("aria-hidden")).toBe("true");
   });
 
   it("renders the resize handles for a remote top", () => {
