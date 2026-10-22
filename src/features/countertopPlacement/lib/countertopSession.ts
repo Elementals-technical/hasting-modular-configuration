@@ -81,7 +81,7 @@ export const restoreCountertopSnapshot = async (
       await api.setOffset({ ...target }, { validation: "skip" });
     } catch (error) {
       if (classifyCountertopError(error).kind !== "vertical-locked") throw error;
-      // The top got locked meanwhile (now 4″): it cannot return to a lifted pose, so Cancel lowers it.
+      // The top got locked meanwhile (now 2.4″ or 4″): it cannot return to a lifted pose, so Cancel lowers it.
       target = { x: original.offset.x, y: 0 };
       await api.setOffset({ ...target }, { validation: "skip" });
     }

@@ -420,7 +420,7 @@ export type CountertopState = {
   resizeBoundsM?: { left: CountertopResizeBoundsSide | null; right: CountertopResizeBoundsSide | null } | null;
   validation?: CountertopValidation;
   sink?: CountertopSinkState;
-  /** Offset-only mode (4″ tops): no lift by the API or the pointer. */
+  /** Offset-only mode (a top that slides but does not lift, e.g. 2.4″ or 4″): no lift by the API or the pointer. */
   verticalLocked?: boolean;
   /** Locked, but a restored pose is lifted (kept, not rejected): offer "lower" / "reset". */
   verticalLockViolated?: boolean;

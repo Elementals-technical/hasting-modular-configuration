@@ -246,6 +246,104 @@ export const readScenePositionsM = (productIds: readonly string[]): Record<strin
   return positions;
 };
 
+/** How the scene lays the cabinets out: one row, several rows (ULH Multi-Level), or columns (UD). */
+export type SceneCabinetLayout = "single" | "rows" | "columns";
+
+/** A placed cabinet, with the support group the scene gave it and its width (null when unreadable). */
+export type SceneSupportCabinet = { id: string; supportGroupId: string; widthCm: number | null };
+
+export type SceneSupportGroups = {
+  layout: SceneCabinetLayout;
+  countertopGroupId: string;
+  cabinets: SceneSupportCabinet[];
+  /** Side panels the scene placed at the ends of a group ("group-edge" panels), counted by group. */
+  sidePanelsByGroup: Record<string, number>;
+};
+
+/** The scene's DEFAULT_COUNTERTOP_SUPPORT_GROUP_ID: a product without `SupportGroupId` belongs to it. */
+const SCENE_DEFAULT_SUPPORT_GROUP_ID = "group-1";
+
+type SceneLayoutManager = SceneCompositionManager & { preserveCabinetPositions?: unknown; freeLayoutPolicy?: unknown };
+type SceneProductsComposition = { getAllProducts?: () => unknown };
+
+const isThenable = (value: unknown): boolean => isRecord(value) && typeof value.then === "function";
+
+const supportGroupOf = (config: Record<string, unknown>): string =>
+  typeof config.SupportGroupId === "string" && config.SupportGroupId
+    ? config.SupportGroupId
+    : SCENE_DEFAULT_SUPPORT_GROUP_ID;
+
+const layoutOf = (manager: SceneLayoutManager): SceneCabinetLayout => {
+  if (isRecord(manager.freeLayoutPolicy) && manager.freeLayoutPolicy.columns === true) return "columns";
+  return manager.preserveCabinetPositions === true ? "rows" : "single";
+};
+
+/**
+ * The support groups of the placed cabinets, read synchronously as the scene holds them now. The scene
+ * measures the countertop's auto length over the cabinets of the countertop's `SupportGroupId` only: ULH
+ * gives every other row a group of its own and UD gives column bottoms `<group>~under`, and a "+" puts a
+ * new cabinet in the group of the cabinet it stands by. Null without a scene, an active composition or the
+ * countertop's config, or when the scene answers asynchronously.
+ */
+export const readSceneSupportGroups = (countertopId: string): SceneSupportGroups | null => {
+  const api = getConfiguratorApi();
+  const getConfig = api?.getConfig;
+  const app = api?.config;
+  const manager = isRecord(app) ? (app.compositionManager as SceneLayoutManager | undefined) : undefined;
+  if (typeof getConfig !== "function" || !isRecord(manager) || typeof manager.getActiveComposition !== "function") {
+    return null;
+  }
+
+  const order = readSceneOrder();
+  if (!order) return null;
+
+  let answeredAsync = false;
+  const readConfig = (productId: string): Record<string, unknown> | null => {
+    try {
+      const answer: unknown = (getConfig as SceneConfigApi)(productId);
+      if (isThenable(answer)) {
+        answeredAsync = true;
+        return null;
+      }
+      return toConfigValues(answer);
+    } catch {
+      return null;
+    }
+  };
+
+  const countertop = readConfig(countertopId);
+  if (answeredAsync || !countertop) return null;
+
+  const cabinets: SceneSupportCabinet[] = [];
+  for (const id of order) {
+    const config = readConfig(id);
+    if (answeredAsync) return null;
+    if (!config || (typeof config.category === "string" && config.category !== "cabinets")) continue;
+
+    const width = config.Width;
+    cabinets.push({
+      id,
+      supportGroupId: supportGroupOf(config),
+      widthCm: typeof width === "number" && Number.isFinite(width) ? width : null,
+    });
+  }
+
+  const composition = manager.getActiveComposition() as SceneProductsComposition | undefined;
+  const allProducts =
+    isRecord(composition) && typeof composition.getAllProducts === "function" ? composition.getAllProducts() : null;
+  const sidePanelsByGroup: Record<string, number> = {};
+  for (const id of isRecord(allProducts) ? Object.keys(allProducts) : []) {
+    const config = readConfig(id);
+    if (answeredAsync) return null;
+    if (config?.SidePanelLayout !== "group-edge") continue;
+
+    const groupId = supportGroupOf(config);
+    sidePanelsByGroup[groupId] = (sidePanelsByGroup[groupId] ?? 0) + 1;
+  }
+
+  return { layout: layoutOf(manager), countertopGroupId: supportGroupOf(countertop), cabinets, sidePanelsByGroup };
+};
+
 /**
  * Answer of one scene operation used to rebuild a composition. `sceneCode`: the scene's own code of a
  * refusal, e.g. "UF_HEIGHT_RUN_VIOLATION" (the change would split the block of tall UF cabinets).

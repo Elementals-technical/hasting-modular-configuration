@@ -218,6 +218,10 @@ export const selectRuleData = <K extends keyof ProfileRuleData>(
   section: K,
 ): ProfileRuleData[K] | undefined => profile?.ruleData[section];
 
+/** Whether the collection offers cabinet and countertop Drag & Drop (`ruleData.dragDrop`). */
+export const isDragDropEnabled = (profile: ProductProfile | null | undefined): boolean =>
+  selectRuleData(profile ?? null, "dragDrop")?.enabled === true;
+
 /**
  * Whether a drawer style may not be placed with the cabinets already placed.
  *

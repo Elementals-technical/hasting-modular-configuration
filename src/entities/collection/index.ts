@@ -30,6 +30,7 @@ export type {
   CabinetColorTraitsRuleData,
   CabinetMatrixLegacyAdapter,
   CountertopFallbacksRuleData,
+  DragDropRuleData,
   DrawerStyleGroups,
   UndeterminedRule,
   FlutingRuleData,
@@ -60,6 +61,7 @@ export type { ParseProductProfileResult, ProfileDiagnostic, ProfileDiagnosticCod
 
 export {
   hasCapability,
+  isDragDropEnabled,
   isDrawerStyleMixingRestricted,
   isKnownOption,
   isVesselBasin,

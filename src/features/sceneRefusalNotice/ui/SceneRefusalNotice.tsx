@@ -12,21 +12,21 @@ type Props = { style?: CSSProperties };
 
 /** Why the scene did not take the last add / duplicate / swap; closes itself. */
 export const SceneRefusalNotice = ({ style }: Props) => {
-  const code = useSceneRefusal();
+  const reason = useSceneRefusal();
   const reasonText = useReasonText();
 
   useEffect(() => {
-    if (!code) return;
+    if (!reason) return;
     const timer = window.setTimeout(dismissSceneRefusal, SCENE_REFUSAL_NOTICE_MS);
     return () => window.clearTimeout(timer);
-  }, [code]);
+  }, [reason]);
 
-  if (!code) return null;
+  if (!reason) return null;
 
   return (
     <div className={s.notice} style={style}>
       <p className={s.text} role="alert">
-        {reasonText({ code })}
+        {reasonText(reason)}
       </p>
       <button type="button" className={s.close} aria-label="Close" onClick={dismissSceneRefusal}>
         ×

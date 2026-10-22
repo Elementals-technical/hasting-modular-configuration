@@ -215,6 +215,53 @@ describe("parseProductProfile", () => {
     });
   });
 
+  it("reads the Drag & Drop section and rejects a flag that is not a boolean", () => {
+    const raw = clone(ushProfile) as { ruleData: Record<string, unknown> };
+    raw.ruleData.dragDrop = { enabled: true };
+
+    const result = parseProductProfile(raw);
+    if (!result.ok) throw new Error("a profile with Drag & Drop must parse");
+    expect(result.profile.ruleData.dragDrop).toEqual({ enabled: true });
+
+    raw.ruleData.dragDrop = { enabled: "yes" };
+    const rejected = parseProductProfile(raw);
+
+    expect(rejected.ok).toBe(false);
+    expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+      code: "ruleData.invalid_section",
+      dataPath: "/ruleData/dragDrop/enabled",
+      message: "enabled must be a boolean",
+    });
+  });
+
+  it("keeps the countertop capabilities a Thickness option declares and rejects one that is not a boolean", () => {
+    const raw = clone(ushProfile) as { attributes: { attributeId: string; options?: Record<string, unknown>[] }[] };
+    const thickness = raw.attributes.find(({ attributeId }) => attributeId === "Thickness");
+    const lifting = thickness?.options?.find(({ value }) => value === "5.125");
+    if (!thickness?.options || !lifting) throw new Error("the USH profile must list a 5.125 thickness");
+    lifting.capabilities = { countertopSlides: true, countertopLifts: true };
+
+    const result = parseProductProfile(raw);
+    if (!result.ok) throw new Error("a profile with countertop capabilities must parse");
+    const options = result.profile.attributes.find(({ attributeId }) => attributeId === "Thickness")?.options ?? [];
+    expect(options.find(({ value }) => value === "5.125")?.capabilities).toEqual({
+      supportsGrooveColor: false,
+      countertopSlides: true,
+      countertopLifts: true,
+    });
+    expect(options.find(({ value }) => value === "4")?.capabilities).toBeUndefined();
+
+    lifting.capabilities = { countertopLifts: "yes" };
+    const rejected = parseProductProfile(raw);
+
+    expect(rejected.ok).toBe(false);
+    expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+      code: "profile.invalid_field_type",
+      dataPath: `/attributes/Thickness/options/${thickness.options.indexOf(lifting)}/capabilities/countertopLifts`,
+      message: "countertopLifts must be a boolean",
+    });
+  });
+
   it("reads drawer style groups and rejects a malformed one", () => {
     const raw = clone(ushProfile) as { ruleData: Record<string, unknown> };
     raw.ruleData.drawerStyleGroups = [["1", "1+inner"], ["2"]];

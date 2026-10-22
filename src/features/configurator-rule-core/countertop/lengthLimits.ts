@@ -9,6 +9,7 @@ import {
 } from "./parse";
 import type { ProductProfile } from "@/entities/collection";
 import { selectMessageOr } from "@/entities/collection";
+import type { Reason } from "@/shared/lib/reasonText";
 import { cmToInches } from "@/shared/lib/sku/cmToInches";
 
 export const REASON_COMPOSITION_LENGTH_REACHED = "countertop.compositionLengthReached";
@@ -32,6 +33,12 @@ export const formatCompositionLengthReachedReason = (maxCm: number | null, profi
         `Maximum composition length reached for the selected countertop setup (${maxCm} cm / ${cmToInches(maxCm)}").`,
         { maxCm, maxIn: cmToInches(maxCm) },
       );
+
+/** The same reason as a code and its params, for a resolver that reads the collection's `messages`. */
+export const compositionLengthReachedReason = (maxCm: number | null): Reason =>
+  maxCm === null
+    ? { code: REASON_COMPOSITION_LENGTH_REACHED_NO_MAX }
+    : { code: REASON_COMPOSITION_LENGTH_REACHED, params: { maxCm, maxIn: cmToInches(maxCm) } };
 
 export const formatSidePanelsExceedMaxReason = (
   withPanelsCm: number,

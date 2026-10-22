@@ -13,6 +13,7 @@ import {
   scopeCountertopRulesByBasinStyle,
   selectMaterialAliasTable,
 } from "./parse";
+import { canThicknessFloat } from "./thicknessCapabilities";
 
 export type CountertopRuleInput = {
   rules: CountertopMatrixRule[];
@@ -24,11 +25,11 @@ export type CountertopRuleInput = {
   activeCountertopStyle?: string | null;
   activeBasinStyle: string | null;
   activeThickness: string | null;
-  /** Active collection: the reason texts come from its `messages`. */
+  /** Active collection: the reason texts come from its `messages`, the thickness capabilities from its options. */
   profile?: ProductProfile | null;
   /**
    * No Sink Base stands where the basin is (the scene's top hosts the sink or carries it off its Sink Base):
-   * a thickness that needs its basin over a Sink Base is not allowed then.
+   * only a thickness whose profile option lifts (`countertopLifts`) is allowed then.
    */
   sinkOffSinkBase?: boolean;
 };
@@ -94,15 +95,6 @@ const resolveIntegratedWidthContext = (context: IntegratedWidthContext) => {
 };
 
 const STYLE_WIDTH_EPSILON = 0.01;
-
-/**
- * Thicknesses a top takes only while a Sink Base stands where its basin is (client rule, 22.10): a 4″
- * top never carries an integrated basin or a vessel off its cabinet.
- */
-const SINK_BASE_ONLY_THICKNESSES_IN = [4];
-
-const needsBasinOverSinkBase = (thickness: number): boolean =>
-  SINK_BASE_ONLY_THICKNESSES_IN.some((value) => Math.abs(value - thickness) < 0.001);
 
 export const REASON_COUNTERTOP_STYLE_UNAVAILABLE = "countertop.styleUnavailable";
 export const REASON_COUNTERTOP_MAX_COMPATIBLE_WIDTH = "countertop.maxCompatibleWidth";
@@ -406,7 +398,8 @@ export const buildCountertopRuleState = ({
     .forEach((rule) => {
       rule.topThicknesses.forEach((value) => {
         const parsed = parseThicknessValue(value);
-        if (parsed !== null && !(sinkOffSinkBase && needsBasinOverSinkBase(parsed))) allowedThicknesses.add(parsed);
+        // Off its Sink Base the basin rides a top that lifts only (a 5⅛″ or 5½″ one): no thin, 2⅜″ or 4″ there.
+        if (parsed !== null && (!sinkOffSinkBase || canThicknessFloat(profile, parsed))) allowedThicknesses.add(parsed);
       });
     });
 

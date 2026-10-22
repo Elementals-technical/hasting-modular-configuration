@@ -141,6 +141,8 @@ The saved collection is read with `readSavedCollectionIdentity`: no field anywhe
 | `SYNTESI_MATERIAL`, `SYNTESI_MATERIAL_SKU`, `SYNTESI_FINISH_CONFIGS`, `SYNTESI_MAX_CABINET_COUNT`, "Syntesi without side panels" | `ruleData.syntesi` |
 | Depth `46`, restricted materials and basins in `sizeFilters.ts`; `lacqueredmt/lacqueredgl` filters in both countertop pages | `ruleData.countertopFallbacks` |
 | Hidden vessel styles in `vesselCompatibility.ts`; `vesselAllowedMaterialsMap`, colour-code maps and `vesselDefaultFinishMap` in `shared/lib/sku/vesselSkuMaps.ts` | `ruleData.vesselCompatibility` (the SKU maps of D stay in `vesselSkuMaps.ts`) |
+| `DRAG_DROP_COLLECTION_IDS = ["urban-low-height", "urban-duplex"]` in `resolveCabinetDebugSelection.ts` | `ruleData.dragDrop`, read by `isDragDropEnabled` (the scene still lists its modular collections itself) |
+| `THIN_BELOW_IN`, `OFFSET_ONLY_IN`, `FREE_THICKNESSES_IN`, `LENGTH_RESIZABLE_THICKNESSES_IN` in `useCountertopMovementMode.ts`; the 4″ `SINK_BASE_ONLY_THICKNESSES_IN` in countertop `rules.ts` | `capabilities.countertopSlides`, `countertopLifts`, `countertopLengthResize` on each `Thickness` option, read through `findThicknessOption` / `canThicknessFloat` |
 | Rule reason strings in fluting, grain, book matching, side panels, Syntesi, vessels | `profile.messages`, with `{name}` params where a value is part of the text |
 
 Two duplicated implementations of the same handle auto-change — one in the product reducer, one in `CabinetBuilderPage` — now share `resolveHandleAfterRules.ts`.

@@ -99,6 +99,7 @@ import { ensureCabinetHeights, restoreCountertopConfigs } from "@/features/playC
 import { clearDividerZones } from "@/features/dividers";
 import {
   formatCompositionLengthReachedReason,
+  useCabinetRowCapacity,
   useCountertopLengthGuard,
 } from "@/features/configurator-rule-core/countertop";
 import {
@@ -393,6 +394,8 @@ export const CabinetBuilderPage = () => {
   const hasPendingCabinetBuilderSelection =
     activeCabinetType !== null || drawerProduct.trim().length > 0 || selectedProductConfig !== null;
   const lengthGuard = useCountertopLengthGuard(selectedProducts, selectedDimensions.width ?? null);
+  // A cabinet may also go in a row the countertop does not rest on, judged by that row's own length.
+  const rowCapacity = useCabinetRowCapacity(lengthGuard);
   const maxCountertopLength = lengthGuard.max;
   const remainingCountertopLength = lengthGuard.remaining;
   const compositionExceededReason = formatCompositionLengthReachedReason(maxCountertopLength, activeProfile);
@@ -404,8 +407,8 @@ export const CabinetBuilderPage = () => {
   const canAddCabinetByLength = useMemo(() => {
     if (!hasProducts) return true;
     if (!addableCatalogWidths.length) return true;
-    return addableCatalogWidths.some(lengthGuard.canAccommodate);
-  }, [addableCatalogWidths, hasProducts, lengthGuard.canAccommodate]);
+    return addableCatalogWidths.some((width) => rowCapacity.fits(null, width));
+  }, [addableCatalogWidths, hasProducts, rowCapacity]);
 
   const hasAddableWidthForActiveType = useMemo(() => {
     if (!hasProducts) return true;
@@ -416,8 +419,8 @@ export const CabinetBuilderPage = () => {
       .filter((value) => Number.isFinite(value) && value > 0);
 
     if (!activeTypeWidths.length) return false;
-    return activeTypeWidths.some(lengthGuard.canAccommodate);
-  }, [dimensionOptions.width, hasProducts, lengthGuard.canAccommodate]);
+    return activeTypeWidths.some((width) => rowCapacity.fits(activeCabinetType, width));
+  }, [activeCabinetType, dimensionOptions.width, hasProducts, rowCapacity]);
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
@@ -441,7 +444,6 @@ export const CabinetBuilderPage = () => {
         ),
       ),
     ].join(", ");
-    const canAccommodateWidth = lengthGuard.canAccommodate;
 
     // The collection's own cabinet of the active type, then the ones other series supply of it
     // (Urban Duplex: the side cabinets of Urban Standard and Urban Low Height). Each stands under
@@ -464,7 +466,8 @@ export const CabinetBuilderPage = () => {
       const isConfiguredRule = rule === activeCabinetRule || (!isOfOtherSeries && !activeCabinetRule?.series);
       const hasAddableWidth = isConfiguredRule
         ? hasAddableWidthForActiveType
-        : !hasProducts || (rule?.widths ?? []).some((width) => width > 0 && canAccommodateWidth(width));
+        : !hasProducts ||
+          (rule?.widths ?? []).some((width) => width > 0 && rowCapacity.fits(rule?.code ?? null, width));
 
       return [...drawerValues].sort(byDrawerCount).flatMap((value) => {
         const ruleOption = isConfiguredRule ? drawerOptionMap.get(value) : undefined;
@@ -589,7 +592,7 @@ export const CabinetBuilderPage = () => {
     countertopCompositionConstraint.reason,
     hasAddableWidthForActiveType,
     hasProducts,
-    lengthGuard.canAccommodate,
+    rowCapacity,
     compositionExceededReason,
     heightStyles,
     heightChoices,
@@ -632,7 +635,7 @@ export const CabinetBuilderPage = () => {
             remainingCountertopLength === null ||
             [rule, ...findSeriesVariants(cabinetCatalog, rule.code)]
               .flatMap(({ widths }) => widths ?? [])
-              .some((width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01);
+              .some((width) => Number.isFinite(width) && width > 0 && rowCapacity.fits(rule.code, width));
 
           const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
           const isSideShelfDisabled = rule.code === "Side-Shelf" && sideShelfCount >= 2;
@@ -705,6 +708,7 @@ export const CabinetBuilderPage = () => {
       hasBaseOrSideCabinetOnScene,
       hasProducts,
       remainingCountertopLength,
+      rowCapacity,
       compositionExceededReason,
     ],
   );
@@ -989,7 +993,7 @@ export const CabinetBuilderPage = () => {
         const canFitThisType = cabinetCatalog.typeCabinetRules
           .filter((rule) => rule.code === id)
           .flatMap(({ widths }) => widths ?? [])
-          .some((width) => Number.isFinite(width) && width > 0 && width <= remainingCountertopLength + 0.01);
+          .some((width) => Number.isFinite(width) && width > 0 && rowCapacity.fits(id, width));
         if (!canFitThisType) {
           return;
         }
@@ -1019,6 +1023,7 @@ export const CabinetBuilderPage = () => {
       hasBaseOrSideCabinetOnScene,
       hasProducts,
       remainingCountertopLength,
+      rowCapacity,
     ],
   );
 

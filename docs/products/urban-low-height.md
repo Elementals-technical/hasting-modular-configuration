@@ -61,7 +61,8 @@ Continue входить у Drag & Drop і позначає intro як побач
 
 - **Де це живе.** Читання й запис документа — лише `features/playCanvasAdapter/lib/sceneLayout.ts`.
   `captureFreeLayout` (`features/cabinetPlacementDebug/lib/`) вмикає це тільки для Drag & Drop
-  колекцій; `main.tsx` реєструє його для історії (`setSceneLayoutCapture`).
+  колекцій (`ruleData.dragDrop` у профілі колекції); `main.tsx` реєструє його для історії
+  (`setSceneLayoutCapture`).
 - **Коли layout немає.** Інша колекція, відкритий чернетковий drag шафи (сцена відповідає
   `COMPOSITION_BUSY`), збереження, зроблене до цієї зміни, або документ, який сцена не прийняла, —
   композиція відновлюється старим шляхом, в один ряд. Дія користувача через це не блокується.
