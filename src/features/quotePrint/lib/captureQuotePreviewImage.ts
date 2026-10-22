@@ -41,6 +41,10 @@ export const captureQuotePreviewImage = async () => {
         ss: 1,
         cameraFrame: false,
         ssao: false,
+        // Product only: no room behind it and a transparent background around it,
+        // so the crop follows the product's own alpha.
+        includeRoom: false,
+        bg: null,
       },
       outputSize: QUOTE_PREVIEW_SIZE,
       renderSourceAtOutputSize: true,

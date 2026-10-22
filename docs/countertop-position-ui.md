@@ -88,6 +88,17 @@ length chip at `lengthLabel` (fallback `topCenter`), depth chip 28 px right of `
 `rightEnd`), handles at `leftEnd` / `rightEnd`, Apply + × under `bottomRight` (clamped into the viewport).
 `status: "colliding"` / `canApply: false` disables Apply and shows `reasons[0].message`.
 
+- The hint "Drag the ends to change the length" is centred under the top's lower edge, clear of the move
+  marker (`lib/lengthHintPlacement.ts`). The top's box is the frame's `bounds`, else the box around its
+  `hull`, else the box around its `points`. The hint goes below the Apply / × / reason row when it would
+  overlap that row, left of the row when the viewport has no room below it, and always inside the viewport.
+- While the top is lifted (`canResize` in the runtime state), the scene draws its own "Edit size" button
+  over the top. The overlay reads that button's rect from the scene document
+  (`lib/readEditSizeButtonRect.ts`) and keeps clear of it (`lib/editSizeButtonClearance.ts`): the length
+  chip moves right above the button and the move marker right below it, both at the same `x`. The length
+  popover and the hint follow the moved points. Without the button the elements stay at their anchors.
+  The click on the button does nothing in the normal flow.
+
 - The ✎ of a chip opens its popover, one at a time (`ui/CountertopDimensionPopover/`: the component,
   its styles, its placement and their tests):
   - **Length**: a length field in inches with a 1″ stepper (↑ / ↓ keys too), Min / Max of the effective
