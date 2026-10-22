@@ -20,7 +20,7 @@
         "sceneKey": "Handle"
       },
       "order": 20,
-      "note": "No UF rule reads the key: RuleHandleCabinetUrbanFreestanding shows the grooves from Height (82 without, 88 with), so the handle reaches the scene as the height it forces (cabinet table). Sent so the scene config keeps the handle, which the player reads back for the selected cabinet. UF_Cabinet has no Central Groove mesh (UF_HandleBotCut_Top)."
+      "note": "RuleHandleCabinetUrbanFreestanding reads it for Central Groove only: CG on the 91 cabinet shows UF_HandleBotCut_Top and the taller bottom groove (NEW sheet D66); every other style follows Height (91 Upper Groove, 88 Push-to-Open, 56 / 53 the short cabinet). Sent so the scene config keeps the handle, which the player reads back for the selected cabinet."
     },
     {
       "attributeId": "Height",
@@ -33,7 +33,7 @@
         "sceneKey": "Height"
       },
       "order": 30,
-      "note": "Number in cm, plinth included: 91 for Upper and Central Groove, 88 for Push-to-Open (cabinet table), and the open shelves at the height of the cabinets beside them. The UF rules lay out 50, 53, 82 and 88 only, for the drawer cabinets (grooves at 88, none at 82) and the open shelves (RuleHeightUFOpenShelves, RuleHeightUFOpenShelvesSide) alike: at 91 they do nothing, so every UF product keeps its 88 cm template shape, and 88 shows grooves. Not translated: the player and the scene state reader take the height back from the scene config (I04), so a scene number would replace the catalog height in state and pricing. Waits for the scene to take 88 and 91."
+      "note": "Number in cm, plinth included: 91 for Upper and Central Groove, 88 for Push-to-Open (cabinet table), 56 / 53 for the short cabinet, and the open shelves at the height of the cabinets beside them. The UF rules lay out 53, 56, 88 and 91, for the drawer cabinets and the open shelves (RuleHeightUFOpenShelves, RuleHeightUFOpenShelvesSide) alike. Not translated: the player and the scene state reader take the height back from the scene config (I04), so a scene number would replace the catalog height in state and pricing."
     },
     {
       "attributeId": "Width",
@@ -59,7 +59,7 @@
         "sceneKey": "Depth"
       },
       "order": 30,
-      "note": "Number in cm, one depth for the composition. The UF depth rules of the drawer cabinets and the open shelves lay out 45 and 50 only, and the shared UF leg is drawn only while every UF product has the same depth, 45 or 50. The cabinet table lists 46 (price list): the scene leaves the products at the 50 cm geometry and removes the leg (console \"[UFBaseboard] unsupported-depth\") until it takes 46. Not translated, for the reason given for Height."
+      "note": "Number in cm, one depth for the composition. The UF depth rules of the drawer cabinets and the open shelves lay out 46 and 50, and the shared UF leg is drawn only while every UF product has the same depth. Not translated, for the reason given for Height."
     },
     {
       "attributeId": "Drawers",
@@ -204,8 +204,23 @@
     },
     {
       "attributeId": "DrawerPanelFluting",
-      "status": "state-only",
-      "reason": "A Freestanding option priced in the SKU, but the UF scene products have no fluting rule or drawer overlays yet; recorded for the rules and pricing only."
+      "status": "bound",
+      "target": {
+        "kind": "byFlow",
+        "prebuilt": {
+          "kind": "all"
+        },
+        "custom": {
+          "kind": "cabinets"
+        }
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "DrawerPanelFluting",
+        "emptyValue": "None"
+      },
+      "order": 50,
+      "note": "RuleOverlayFluting puts the pattern's normal and AO maps on the five UF_Overlay_* over CabinetColor; RuleHandleCabinetUrbanFreestanding shows only the overlays of the current handle while a fluting is set, and None hides them. Prebuilt sends to every product, custom only to the placed cabinets, as Urban Standard Height; a cleared fluting (\"\") is sent as None. Only Lacquer Matte cabinets offer it (flutingRule)."
     },
     {
       "attributeId": "HandleGrooveColor",
