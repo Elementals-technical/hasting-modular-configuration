@@ -3,7 +3,7 @@
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
 import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/entities/collection";
@@ -27,7 +27,9 @@ import {
   setCountertopStyle,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
+import type { CountertopSinkLandingStatus, CountertopState } from "@/features/configuratorApi";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
@@ -308,6 +310,40 @@ describe("Urban Low Height offers the thicknesses the countertop matrix gives, a
 
     expect(shownValues("thickness")?.length).toBeGreaterThan(0);
     expect(enabledValues("thickness")).toEqual([]);
+  });
+
+  // Client rule (22.10): a 4″ top only where a Sink Base stands under its basin.
+  describe("while the top carries the sink", () => {
+    afterEach(() => setCountertopRuntimeState(null));
+
+    const carried = (status: CountertopSinkLandingStatus, hosted: boolean): CountertopState => ({
+      readiness: "ready",
+      productId: "top",
+      sink: {
+        owner: "countertop",
+        shiftM: 0,
+        landing: { status, cabinetId: null, fromCabinetId: null, reason: null, snapDxM: 0 },
+        pending: null,
+        hosted,
+      },
+    });
+
+    it.each([
+      ["hosting it", carried("fits", true)],
+      // As a lift the UI did not commit leaves it: the Sink Base still stands, beside the basin.
+      ["beside the row", carried("none", false)],
+    ])("keeps 4″ on the step but disables it, %s", (_where, state) => {
+      setCountertopRuntimeState(state);
+
+      expect(shownValues("thickness")).toContain("4");
+      expect(enabledValues("thickness")).toEqual(["0.5", "5.125"]);
+    });
+
+    it("enables 4″ over the sink's own Sink Base", () => {
+      setCountertopRuntimeState(carried("home", false));
+
+      expect(enabledValues("thickness")).toEqual(["0.5", "4", "5.125"]);
+    });
   });
 });
 

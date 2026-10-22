@@ -199,7 +199,8 @@ URSTD SKU лише тому, що ULH ділить configurator 4 з USH.
 
 ### Lower / CoverCountertop: колір, SKU і pricing (2026-10-12)
 
-Prebuilt Countertop Color має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`.
+Countertop Color у Prebuilt і Custom має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`
+(`sku-profile.cabinetCover.flows`; з 2026-10-22 обидва flow, як у Urban Duplex).
 Upper використовує наявний CountertopColor flow; Lower викликає native
 `ConfiguratorAPI.cabinetCover.configure({ materialId })`, без зміни кольору Upper або тумб.
 Lower бере палітру Cabinet Color, але лише підтверджені Ryan матеріали **3D, LACM, LACG, ST, BM, ESS** і

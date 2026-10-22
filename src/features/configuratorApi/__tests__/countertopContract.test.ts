@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { UI_REASON_TEXTS } from "@/shared/lib/reasonText/uiReasonTexts";
 
-import { COUNTERTOP_REASON_SLUGS, classifyCountertopError, isStandardCountertop } from "../countertop";
+import {
+  COUNTERTOP_REASON_SLUGS,
+  classifyCountertopError,
+  isSinkOffSinkBase,
+  isStandardCountertop,
+} from "../countertop";
+import type { CountertopSinkLandingStatus, CountertopSinkState } from "../types";
 
 describe("countertop API contract (phase 1)", () => {
   it("reads a rejected pose with its string reasons", () => {
@@ -36,6 +42,29 @@ describe("countertop API contract (phase 1)", () => {
   it("keeps a top standard within the runtime's ±2e-6 m drift and no custom length", () => {
     expect(isStandardCountertop({ customLength: null, offset: { x: 2e-6, y: -2e-6 } })).toBe(true);
     expect(isStandardCountertop({ customLength: 1.2, offset: { x: 0, y: 0 } })).toBe(false);
+  });
+
+  it("tells a basin no Sink Base stands under: hosted, or carried anywhere but home", () => {
+    const sink = (
+      owner: CountertopSinkState["owner"],
+      status: CountertopSinkLandingStatus,
+      hosted = false,
+    ): { sink: CountertopSinkState } => ({
+      sink: {
+        owner,
+        shiftM: 0,
+        landing: { status, cabinetId: null, fromCabinetId: null, reason: null, snapDxM: 0 },
+        pending: null,
+        hosted,
+      },
+    });
+
+    expect(isSinkOffSinkBase(sink("countertop", "fits", true))).toBe(true);
+    // Carried beside the row while no `liftSink` went through: the Sink Base is still there, not under the basin.
+    expect(isSinkOffSinkBase(sink("countertop", "none"))).toBe(true);
+    expect(isSinkOffSinkBase(sink("countertop", "home"))).toBe(false);
+    expect(isSinkOffSinkBase(sink("cabinet", "none"))).toBe(false);
+    expect(isSinkOffSinkBase(null)).toBe(false);
   });
 
   it("has a UI text for every reason slug", () => {

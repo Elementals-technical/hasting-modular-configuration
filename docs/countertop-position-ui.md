@@ -2,6 +2,10 @@
 
 Selected countertop menu: Color, **Resize ▸ Thickness | Length**, Countertop Style, Basin Style,
 **Position ▸ Standard | Drag & Drop**.
+While no Sink Base stands under the basin (`isSinkOffSinkBase`: the top hosts the sink after `liftSink`, or
+carries it anywhere but back home), 4″ is not offered: Resize ▸ Thickness leaves it out and the Countertop
+step disables it (client rule 22.10: a 4″ top only where a Sink Base stands under its basin, integrated or
+vessel).
 The metre-based "Position & Size" modal (`CountertopPlacementControls`) is test mode only: it and its
 menu item render only with `?countertopSettings`.
 
