@@ -1,5 +1,8 @@
 import type { PlacementOverlayPoint } from "@/features/configuratorApi";
 
+import { within } from "../../lib/screenGeometry";
+import type { ScreenBox, Size } from "../../lib/screenGeometry";
+
 /** Half the height of the dimension chip the popover points at (16 px line, 2 px padding). */
 const CHIP_HALF_HEIGHT_PX = 10;
 /** Between the chip and the popover; the tail sits in it. */
@@ -9,17 +12,12 @@ const TAIL_INSET_PX = 48;
 const TAIL_EDGE_PX = 16;
 const EDGE_PX = 8;
 
-type Size = { width: number; height: number };
-type Bounds = { left: number; top: number; right: number; bottom: number };
 export type DimensionPopoverPlacement = {
   left: number;
   top: number;
   side: "above" | "below" | "over";
   tailLeft: number;
 };
-
-/** `value` kept within `[min, max]`; `min` wins when the range is empty. */
-const within = (value: number, min: number, max: number) => Math.max(min, Math.min(value, max));
 
 /**
  * Where the dimension popover goes, in window px: above the chip, else below it, else over it
@@ -29,7 +27,7 @@ const within = (value: number, min: number, max: number) => Math.max(min, Math.m
 export const placeDimensionPopover = (
   chip: PlacementOverlayPoint,
   popover: Size,
-  bounds: Bounds,
+  bounds: ScreenBox,
 ): DimensionPopoverPlacement => {
   const left = within(chip.x - TAIL_INSET_PX, bounds.left + EDGE_PX, bounds.right - popover.width - EDGE_PX);
   const topAbove = chip.y - CHIP_HALF_HEIGHT_PX - GAP_PX - popover.height;
