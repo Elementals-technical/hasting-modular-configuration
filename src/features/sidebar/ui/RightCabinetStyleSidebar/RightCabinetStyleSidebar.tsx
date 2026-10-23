@@ -56,6 +56,7 @@ import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 import { autoRemoveSide as spAutoRemoveSide } from "@/features/sidePanel";
 import { selectSteppedCabinetIds } from "@/entities/product/model/store/steppedCabinets";
+import { selectOptionImageContext } from "@/entities/product/model/store/derivedSelectors";
 import { isSteppedDrawers } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
   isDragDropEnabled,
@@ -66,7 +67,7 @@ import {
   useActiveCollection,
   type StyleSidebarFieldId,
 } from "@/entities/collection";
-import { useOptionImages } from "@/features/collectionCustomization";
+import { resolveOptionImage, useOptionImages, useOptionImageVariants } from "@/features/collectionCustomization";
 import {
   getActiveProductProfile,
   getActiveRuntimeBindings,
@@ -122,6 +123,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const activeProfile = useAppSelector(getActiveProductProfile);
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
   const optionImages = useOptionImages();
+  const optionImageVariants = useOptionImageVariants();
+  const optionImageContext = useAppSelector(selectOptionImageContext);
   const isOpenedStyleSidebar = useAppSelector(getIsActiveStyleSidebar);
   const isPlayCanvasReady = usePlayCanvasReady();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
@@ -220,12 +223,23 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     [dimensionOptions.handles, handlesDisabled, activeProfile],
   );
 
-  // The picture of a handle is the collection's; an id it declares none for falls back to the
-  // generic image instead of gating behaviour, so a new handle renders without a change here.
+  // The picture of a handle is the collection's, a variant row first (ULH shows the Slim cabinet at
+  // its heights); an id it declares none for falls back to the generic image instead of gating
+  // behaviour, so a new handle renders without a change here.
   const handleImage = useMemo(() => {
     const value = selectedProductConfig?.Handle;
-    return (typeof value === "string" ? optionImages?.Handle?.[value] : undefined) ?? image;
-  }, [optionImages, selectedProductConfig?.Handle]);
+    const declared =
+      typeof value === "string"
+        ? resolveOptionImage({
+            optionImages,
+            variants: optionImageVariants,
+            attributeId: "Handle",
+            value,
+            context: optionImageContext,
+          })
+        : undefined;
+    return declared ?? image;
+  }, [optionImages, optionImageVariants, optionImageContext, selectedProductConfig?.Handle]);
 
   useEffect(
     () =>

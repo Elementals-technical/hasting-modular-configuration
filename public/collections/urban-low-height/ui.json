@@ -63,9 +63,19 @@
   "optionImageVariants": {
     "CabinetType": [
       { "value": "Sink-Base", "when": { "Height": "35" }, "image": "images/cabinet/sink-base-pto.png" },
-      { "value": "Sink-Base", "when": { "Height": "25" }, "image": "images/cabinet/sink-base-pto.png" },
+      { "value": "Sink-Base", "when": { "Height": "28" }, "image": "images/cabinet/sink-base-upper-groove-slim.png" },
+      { "value": "Sink-Base", "when": { "Height": "25" }, "image": "images/cabinet/sink-base-pto-slim.png" },
       { "value": "Side-Cabinet", "when": { "Height": "35" }, "image": "images/cabinet/side-cabinet-pto.png" },
-      { "value": "Side-Cabinet", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto.png" }
+      {
+        "value": "Side-Cabinet",
+        "when": { "Height": "28" },
+        "image": "images/cabinet/side-cabinet-upper-groove-slim.png"
+      },
+      { "value": "Side-Cabinet", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto-slim.png" },
+      { "value": "Open-Shelf", "when": { "Height": "28" }, "image": "images/cabinet/open-shelf-slim.png" },
+      { "value": "Open-Shelf", "when": { "Height": "25" }, "image": "images/cabinet/open-shelf-slim.png" },
+      { "value": "Open-Side-Shelf", "when": { "Height": "28" }, "image": "images/cabinet/open-side-shelf-slim.png" },
+      { "value": "Open-Side-Shelf", "when": { "Height": "25" }, "image": "images/cabinet/open-side-shelf-slim.png" }
     ],
     "Drawers": [
       {
@@ -76,7 +86,17 @@
       {
         "value": "1",
         "when": { "CabinetType": "Sink-Base", "Height": "25" },
-        "image": "images/cabinet/sink-base-pto.png"
+        "image": "images/cabinet/sink-base-pto-slim.png"
+      },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base", "Height": "28", "CountertopStyle": "vessel" },
+        "image": "images/countertop-style/Vessel-slim.png"
+      },
+      {
+        "value": "1",
+        "when": { "CabinetType": "Sink-Base", "Height": "28" },
+        "image": "images/cabinet/sink-base-upper-groove-slim.png"
       },
       {
         "value": "1",
@@ -85,7 +105,20 @@
       },
       { "value": "1", "when": { "CabinetType": "Sink-Base" }, "image": "images/cabinet/sink-base-upper-groove.png" },
       { "value": "1", "when": { "Height": "35" }, "image": "images/cabinet/side-cabinet-pto.png" },
-      { "value": "1", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto.png" }
+      { "value": "1", "when": { "Height": "25" }, "image": "images/cabinet/side-cabinet-pto-slim.png" },
+      { "value": "1", "when": { "Height": "28" }, "image": "images/cabinet-style/1-drawer-slim.png" }
+    ],
+    "Handle": [
+      { "value": "handle_urban_topcut", "when": { "Height": "28" }, "image": "images/handle/UpperGHandle-slim.png" },
+      { "value": "handle_urban_topcut", "when": { "Height": "25" }, "image": "images/handle/UpperGHandle-slim.png" },
+      { "value": "handle_pto", "when": { "Height": "28" }, "image": "images/handle/PTOHandle-slim.png" },
+      { "value": "handle_pto", "when": { "Height": "25" }, "image": "images/handle/PTOHandle-slim.png" }
+    ],
+    "CountertopStyle": [
+      { "value": "integrated", "when": { "Height": "28" }, "image": "images/countertop-style/Integrated-slim.png" },
+      { "value": "integrated", "when": { "Height": "25" }, "image": "images/countertop-style/Integrated-slim.png" },
+      { "value": "vessel", "when": { "Height": "28" }, "image": "images/countertop-style/Vessel-slim.png" },
+      { "value": "vessel", "when": { "Height": "25" }, "image": "images/countertop-style/Vessel-slim.png" }
     ]
   },
   "flows": {
