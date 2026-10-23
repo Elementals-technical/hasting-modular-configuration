@@ -12,6 +12,7 @@ import {
   selectBookMatchingState,
   selectFlutingState,
   selectGrainDirectionState,
+  selectOptionImageContext,
 } from "@/entities/product/model/store/derivedSelectors";
 import {
   getActiveCountertopColor,
@@ -327,12 +328,13 @@ const useSectionInputs = () => {
   // colours) is shown as the composition holds it; the typed options keep their own values.
   const values = useMemo(() => ({ ...compositionValues, ...productOptions }), [compositionValues, productOptions]);
   const availabilityResults = useFieldAvailabilityResults(configurator);
+  const imageContext = useAppSelector(selectOptionImageContext);
 
-  return { schema, configurator, profile, values, availabilityResults };
+  return { schema, configurator, profile, values, availabilityResults, imageContext };
 };
 
 export const useCustomizationStepSections = (stepId: string): ResolvedCustomizationSection[] => {
-  const { schema, configurator, profile, values, availabilityResults } = useSectionInputs();
+  const { schema, configurator, profile, values, availabilityResults, imageContext } = useSectionInputs();
 
   return useMemo(
     () =>
@@ -347,10 +349,18 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
             ...(section.labelWhenVessel ? { labelWhenVessel: section.labelWhenVessel } : {}),
             defaultOpen: section.defaultOpen ?? false,
             ...(section.fieldTabs ? { fieldTabs: section.fieldTabs } : {}),
-            fields: resolveSectionFields(schema, sectionId, profile, values, availabilityResults, configurator),
+            fields: resolveSectionFields(
+              schema,
+              sectionId,
+              profile,
+              values,
+              availabilityResults,
+              configurator,
+              imageContext,
+            ),
           },
         ];
       }),
-    [availabilityResults, configurator, values, profile, schema, stepId],
+    [availabilityResults, configurator, values, profile, schema, stepId, imageContext],
   );
 };

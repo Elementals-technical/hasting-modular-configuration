@@ -59,7 +59,8 @@ const renderOverlay = (
   {
     pending = false,
     store = createCountertopOverlayStore(),
-  }: { pending?: boolean; store?: CountertopOverlayStore } = {},
+    movable = true,
+  }: { pending?: boolean; store?: CountertopOverlayStore; movable?: boolean } = {},
 ) => {
   store.set(frame);
   const props = {
@@ -72,6 +73,7 @@ const renderOverlay = (
   render(
     <CountertopDragOverlay
       store={store}
+      movable={movable}
       pending={pending}
       lengthLimitsM={{ minM: inches(36), maxM: inches(96) }}
       {...props}

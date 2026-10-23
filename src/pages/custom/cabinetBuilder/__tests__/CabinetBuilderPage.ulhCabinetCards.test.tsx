@@ -137,12 +137,43 @@ describe("Urban Low Height cabinet pictures", () => {
     store.dispatch(setActiveCabinetType("Side-Cabinet"));
     // The height follows the handle: without one chosen, the heights are the upper groove's.
     store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
-    store.dispatch(setSelectedDimensions({ height: 25 }));
+    store.dispatch(setSelectedDimensions({ height: 35 }));
     renderBuilder();
 
     expect(cardImage("Sink Base")).toBe(`${IMAGES}/cabinet/sink-base-pto.png`);
     expect(cardImage("Side Cabinet")).toBe(`${IMAGES}/cabinet/side-cabinet-pto.png`);
     expect(cardImage("1 Drawer")).toBe(`${IMAGES}/cabinet/side-cabinet-pto.png`);
+    // Each style card shows its own model.
+    expect(cardImage("1 Drawer Slim")).toBe(`${IMAGES}/cabinet/side-cabinet-pto-slim.png`);
+  });
+
+  it("shows the Slim push-to-open cabinets at the Slim push-to-open height", () => {
+    store.dispatch(setActiveCabinetType("Side-Cabinet"));
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
+    store.dispatch(setSelectedDimensions({ height: 25 }));
+    renderBuilder();
+
+    expect(cardImage("Sink Base")).toBe(`${IMAGES}/cabinet/sink-base-pto-slim.png`);
+    expect(cardImage("Side Cabinet")).toBe(`${IMAGES}/cabinet/side-cabinet-pto-slim.png`);
+    expect(cardImage("Open Shelf")).toBe(`${IMAGES}/cabinet/open-shelf-slim.png`);
+  });
+
+  it("shows the Slim upper-groove cabinets at the Slim height", () => {
+    store.dispatch(setActiveCabinetType("Side-Cabinet"));
+    store.dispatch(setSelectedDimensions({ height: 28 }));
+    renderBuilder();
+
+    expect(cardImage("Sink Base")).toBe(`${IMAGES}/cabinet/sink-base-upper-groove-slim.png`);
+    expect(cardImage("Side Cabinet")).toBe(`${IMAGES}/cabinet/side-cabinet-upper-groove-slim.png`);
+    expect(cardImage("Open Shelf")).toBe(`${IMAGES}/cabinet/open-shelf-slim.png`);
+  });
+
+  it("shows the Slim Sink Base on the Slim drawer card", () => {
+    store.dispatch(setActiveCabinetType("Sink-Base"));
+    store.dispatch(setSelectedDimensions({ height: 38 }));
+    renderBuilder();
+
+    expect(cardImage("1 Drawer Slim")).toBe(`${IMAGES}/cabinet/sink-base-upper-groove-slim.png`);
   });
 
   it("shows the upper-groove Sink Base on the drawer card once Sink Base is chosen", () => {

@@ -42,19 +42,20 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
       // splits it. Configurator 9 keeps one option named after the attribute and puts the material on
       // the variant, so there the name says nothing and the variant is the only source.
       const optionMaterial = group.options.length > 1 ? option.name : undefined;
+      const hex = pick(nested.hex, meta.hex)?.trim();
 
       return [
         {
           value,
           label,
           enabled: true,
-          // Configurator 4 leaves some colours without a picture (the Ceramic vessels) or without a picture
-          // and a hex (the white Tekorlux and Mineralmarmo ones); their colour code names the swatch or the
-          // colour the countertop pages show for it.
+          // The configurators leave some colours without a picture and a hex (the Ceramic vessels, the
+          // metallics' GL and ST finishes, the white Tekorlux and Mineralmarmo ones); their colour code
+          // names the swatch or the colour the countertop pages show for it.
           image:
             overrides.image ??
             pick(nested.image, meta.image, variant.image) ??
-            resolveCountertopFallbackTexture(variant.name),
+            resolveCountertopFallbackTexture(variant.name, hex),
           desc: optionMaterial ?? materials[0] ?? group.proxyName,
           traits: {
             sku: pick(meta.sku, nested.sku),
@@ -62,7 +63,7 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
             materials: [...new Set(optionMaterial ? [optionMaterial, ...materials] : materials)],
             colors: fromCsv(pick(nested.Color, meta.Color)),
             looks: fromCsv(pick(nested.Look, meta.Look)),
-            hex: pick(nested.hex, meta.hex)?.trim() ?? resolveCountertopFallbackHex(variant.name),
+            hex: hex ?? resolveCountertopFallbackHex(variant.name),
           },
         },
       ];

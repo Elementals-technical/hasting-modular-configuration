@@ -8,6 +8,7 @@ import {
 } from "@/entities/collection";
 
 import { buildConfiguratorOptions } from "./buildConfiguratorOptions";
+import { resolveOptionImage } from "./optionImageVariants";
 
 import type {
   CustomizationFieldDefinition,
@@ -19,6 +20,8 @@ import type {
   ProductProfile,
 } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+
+import type { OptionImageContext } from "./optionImageVariants";
 
 export type FieldAvailability = {
   available: boolean;
@@ -127,6 +130,8 @@ export const resolveSectionFields = (
   values: Record<string, unknown>,
   availabilityResults: FieldAvailabilityResults,
   configurator: ConfiguratorGroupCatalog | null = null,
+  /** Values the collection's `optionImageVariants` rows are matched against (the selected height among them). */
+  imageContext: OptionImageContext = {},
 ): ResolvedCustomizationField[] => {
   const definitions = schema?.sections[sectionId]?.fields ?? [];
 
@@ -143,8 +148,16 @@ export const resolveSectionFields = (
           desc: category,
         }));
 
-    // Pictures the collection declares for this attribute; a configurator option keeps its own.
-    const declaredImages = schema?.optionImages?.[definition.attributeId];
+    // Pictures the collection declares for this attribute, a variant row first; a configurator
+    // option keeps its own.
+    const declaredImage = (value: string) =>
+      resolveOptionImage({
+        optionImages: schema?.optionImages,
+        variants: schema?.optionImageVariants,
+        attributeId: definition.attributeId,
+        value,
+        context: imageContext,
+      });
 
     const shownOptions = availability.visibleValues
       ? declaredOptions.filter((option) => availability.visibleValues?.includes(option.value))
@@ -159,7 +172,7 @@ export const resolveSectionFields = (
       return {
         ...option,
         enabled,
-        image: option.image ?? declaredImages?.[option.value],
+        image: option.image ?? declaredImage(option.value),
         reason: refusal?.reason,
         reasonCode: refusal?.reasonCode,
         reasonParams: refusal?.reasonParams,

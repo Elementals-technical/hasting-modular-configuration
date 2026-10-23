@@ -79,6 +79,17 @@ describe("adaptThreekitConfig", () => {
     ]);
   });
 
+  it("gives every swatch a picture or a colour, as the colour steps do", () => {
+    const result = adaptThreekitConfig(configurator11.availableOptions as unknown as ConfiguratorAvailableOption[], {
+      profile: null,
+    });
+    const blank = result.allMaterialValues.filter(
+      ({ metadata }) => !metadata?.image && !metadata?.Image && !metadata?.hex && !metadata?.Hex,
+    );
+
+    expect(blank.map(({ parentName, value }) => `${parentName}: ${value}`)).toEqual([]);
+  });
+
   it("offers each colour of Urban Duplex's two panel options once", () => {
     const result = adaptThreekitConfig(configurator13.availableOptions as unknown as ConfiguratorAvailableOption[], {
       profile: null,

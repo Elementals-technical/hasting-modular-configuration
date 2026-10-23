@@ -6,7 +6,27 @@ import {
   type TypeCabinetRuleConfig,
 } from "@/shared/config/configurator/typeCabinetCatalog";
 
+import { findPlacedCabinetRule } from "./placedCabinetRule";
+
 export { parseHeightMapping };
+
+/**
+ * The heights each handle gives a cabinet of the rule (Urban Low Height: upper groove 38/28 cm,
+ * push-to-open 35/25 cm). The cabinets of a composition share one height, so a type whose own
+ * handle decides none (the open shelf, which has no handle) takes those of the placed cabinets.
+ */
+export const resolveHeightsByHandle = (
+  catalog: ConfiguratorCatalog,
+  rule: TypeCabinetRuleConfig | null | undefined,
+  placedProductIds: readonly string[] = [],
+): Record<string, number[]> => {
+  const decides = (heights: Record<string, number[]> | undefined) => Object.keys(heights ?? {}).length > 0;
+  if (decides(rule?.heightsByHandle)) return rule?.heightsByHandle ?? {};
+
+  return (
+    placedProductIds.map((runtimeId) => findPlacedCabinetRule(catalog, runtimeId)?.heightsByHandle).find(decides) ?? {}
+  );
+};
 
 /**
  * Adapts a catalog rule to the generic handle relations.

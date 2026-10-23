@@ -112,6 +112,8 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
   const [supported, setSupported] = useState(false);
   const [active, setActive] = useState(false);
   const [overlay, setOverlay] = useState(false);
+  /** The session lets the top's body be dragged: Drag & Drop, not Length. */
+  const [movable, setMovable] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reasonText = useReasonText();
@@ -218,6 +220,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       const session: Session = { api, snapshot, bridge: createBridge(), stopOverlay: null, overlay: false };
       sessionRef.current = session;
       setActive(true);
+      setMovable(drag);
       try {
         // The overlay, its handles and `resizeFrom` do not need the drag: it only lets the body move.
         if (drag) await api.setDragEnabled(true);
@@ -438,6 +441,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       {overlay && (
         <CountertopDragOverlay
           store={store}
+          movable={movable}
           lengthAtPointer={lengthAtPointer}
           pending={pending}
           onApply={apply}
