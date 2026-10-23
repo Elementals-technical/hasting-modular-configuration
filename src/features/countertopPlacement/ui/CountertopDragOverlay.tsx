@@ -35,6 +35,8 @@ export const COUNTERTOP_LENGTH_HINT_MS = 4000;
 
 type Props = {
   store: CountertopOverlayStore;
+  /** The top's body can be dragged (Drag & Drop), which the move marker shows; Length leaves it in place. */
+  movable: boolean;
   pending: boolean;
   onApply(): void;
   onCancel(): void;
@@ -64,8 +66,8 @@ const actionAnchor = (frame: CountertopOverlayFrame) => {
 };
 
 /**
- * Countertop Drag & Drop icons at the anchors PlayCanvas publishes: move icon at the centre, the
- * length / depth chips, the resize handles at both ends and Apply + × under the bottom-right corner.
+ * Countertop Drag & Drop icons at the anchors PlayCanvas publishes: move icon at the centre (not for
+ * Length, where the body stays), the length / depth chips, the resize handles at both ends and Apply + × under the bottom-right corner.
  * The length changes through the end handles (client §17), which also work on a standard (attached)
  * top and take their limits from `getState().resizeBoundsM`. The ✎ of a chip opens its popover
  * (`CountertopDimensionPopover`): Length with Align, or Depth alone; one at a time. The hint under the
@@ -74,6 +76,7 @@ const actionAnchor = (frame: CountertopOverlayFrame) => {
  */
 export function CountertopDragOverlay({
   store,
+  movable,
   pending,
   onApply,
   onCancel,
@@ -128,7 +131,10 @@ export function CountertopDragOverlay({
   // the move marker and the length chip step off it, and the length popover follows the chip.
   const { marker: center, chip: lengthAnchor } = clearEditSizeButton(
     runtime?.canResize === true ? readEditSizeButtonRect() : null,
-    { marker: points.center ?? points.frontCenter ?? null, chip: points.lengthLabel ?? points.topCenter ?? null },
+    {
+      marker: movable ? (points.center ?? points.frontCenter ?? null) : null,
+      chip: points.lengthLabel ?? points.topCenter ?? null,
+    },
   );
   const depthAnchor = points.depthLabel ?? points.rightEnd;
   // The depth chip stands beside its anchor.
@@ -176,7 +182,12 @@ export function CountertopDragOverlay({
         </svg>
       )}
       {center && (
-        <span className={s.moveMarker} style={{ left: center.x, top: center.y }} aria-hidden="true">
+        <span
+          className={s.moveMarker}
+          style={{ left: center.x, top: center.y }}
+          aria-hidden="true"
+          data-testid="countertop-move-marker"
+        >
           <MoveIcon />
         </span>
       )}

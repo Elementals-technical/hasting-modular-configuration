@@ -62,7 +62,8 @@ Cabinet. A Sink Base added while the top is remote is not refused.
   - **Cancel / ×** — `restoreCountertopSnapshot` (shared with the modal): offset (or attached position),
     custom length, drag flag; each step verified. Overlay off.
 - **Length** (`Resize ▸ Length`, `CountertopDragModeHandle.enterLength`) — the same session and overlay
-  without `setDragEnabled(true)`: the end handles change the length, the top's body stays where it is.
+  without `setDragEnabled(true)`: the end handles change the length, the top's body stays where it is,
+  so the overlay draws no move icon.
   No layout intro. Apply, Cancel and the history are those of Drag & Drop. Offered only for a top whose
   option declares `countertopLengthResize` (`isLengthResizableThickness`), and, like Position, only where
   `CountertopDragMode` runs (a collection with `ruleData.dragDrop`), in Prebuilt as in Custom. Elsewhere Resize
@@ -104,7 +105,7 @@ see `docs/runtime-bindings-migration.md` → Scene restore. The test-mode modal
 
 ## Overlay (`CountertopDragOverlay.tsx`)
 
-Anchors come from the frame in iframe px (the layer covers the iframe 1:1): move icon at `center`,
+Anchors come from the frame in iframe px (the layer covers the iframe 1:1): move icon at `center` (Drag & Drop only),
 length chip at `lengthLabel` (fallback `topCenter`), depth chip 28 px right of `depthLabel` (fallback
 `rightEnd`), handles at `leftEnd` / `rightEnd`, Apply + × under `bottomRight` (clamped into the viewport).
 `status: "colliding"` / `canApply: false` disables Apply and shows `reasons[0].message`.
