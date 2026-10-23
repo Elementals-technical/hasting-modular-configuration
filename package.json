@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:pc-local": "vite --mode pc-local",
+    "pc:patch-export": "node scripts/patch-playcanvas-export.mjs",
     "tsc": "tsc -b",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
