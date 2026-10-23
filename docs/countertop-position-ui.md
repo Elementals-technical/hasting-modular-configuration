@@ -30,6 +30,27 @@ Each `Thickness` option of the collection's profile says it (`capabilities`); no
 Urban Low Height and Urban Duplex: 0.375–0.5″ declare none; 2.4″ slides (a floating top is 5⅛″ or 5½″, client
 rule 22.10); 4″ slides and has Length; 5⅛″ and 5½″ slide, lift and have Length.
 
+## A remote top: the Sink Base becomes a Side Cabinet
+
+Client item "Thick Countertop Placement | Cabinet Type Auto Change" (23.10): when the top is remotely positioned
+(its basin is not over a Sink Base, `isSinkOffSinkBase`), the Sink Base it took the basin from becomes a Side
+Cabinet. A Sink Base added while the top is remote is not refused.
+
+- **Lift.** Only a lift carries the basin; a resting slide keeps it in its Sink Base. The scene announces
+  `sink-lift` once the top owns the sink, and `useSinkLanding` commits `cabinets.liftSink`: the Sink Base becomes
+  the Side Cabinet of its pair under a new id, with its size, handle and colours, and the top hosts the basin.
+- **Lowered in the same drag.** The scene also announces the lift for a top lowered again beside the row, but
+  `liftSink` takes a lifted top only (`SpatialOffsetM.y` above 0.01 m, `INVALID_INPUT` otherwise). The UI then
+  lifts the top 2 cm (`setOffset(…, { validation: "skip" })`), commits the lift and lowers the top back. Once
+  the scene accepts a resting top, the first call goes through and this step never runs.
+- **Never half done.** A lift that fails, or that waited for another sink commit, puts the top back where its
+  drag started, or to Standard while it would still carry the sink, with `countertop.sinkLiftFailed`.
+- **Two Sink Bases.** The scene lifts one sink off one Sink Base and announces no lift over two: a lifted top
+  carries both basins and both cabinets stay Sink Bases, as before this rule, until the scene can lift both
+  sinks (then both cabinets become Side Cabinets).
+- **Back.** Standard, or the basin lowered over a Side Cabinet, lands it (`landSink`): that cabinet becomes the
+  Sink Base again.
+
 ## Modes
 
 - **Standard** — `countertop.setDragEnabled(false)`, `countertop.resetOffset()`, `whenSettled()`, then the
