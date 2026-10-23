@@ -269,15 +269,11 @@ export const adaptThreekitConfig = (
           overrides.image ??
           pickString(nested.image, outer.image, outer.Image, nested.Image) ??
           (typeof variant.image === "string" ? variant.image : undefined);
-        const image =
-          parentName === COUNTERTOP_PRODUCT_ELEMENT
-            ? rawImage ?? resolveCountertopFallbackTexture(variant.name)
-            : rawImage;
         const rawHex = pickString(nested.hex, outer.hex, nested.Hex, outer.Hex);
-        const hex =
-          parentName === COUNTERTOP_PRODUCT_ELEMENT
-            ? rawHex ?? resolveCountertopFallbackHex(variant.name)
-            : rawHex;
+        // A colour the configurator leaves without a picture and a hex is pictured by its colour code,
+        // whatever the group, as on the colour steps (`buildConfiguratorOptions`).
+        const image = rawImage ?? resolveCountertopFallbackTexture(variant.name, rawHex);
+        const hex = rawHex ?? resolveCountertopFallbackHex(variant.name);
         const rawColor = trimOrUndefined(pickString(nested.Color, outer.Color));
         const rawLook = trimOrUndefined(pickString(nested.Look, outer.Look));
         const rawCodeColor = trimOrUndefined(
