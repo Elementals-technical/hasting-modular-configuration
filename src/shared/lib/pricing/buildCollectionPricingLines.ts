@@ -1,3 +1,4 @@
+import { tandemCountertopLineId } from "./tandemCountertopLines";
 import {
   hasOwnCountertop,
   normalizeOptionValue,
@@ -294,6 +295,26 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (countertop.top && ownCountertopWidthCm != null) {
       add({ id: "countertop:0", group: "countertop", sku: countertop.top, quantity: 1, widthCm: ownCountertopWidthCm });
     }
+    // Tandem vanities: each clone of the top on a sink base set apart is one more top, at its own length.
+    (input.tandemCountertopLengthsCm ?? []).forEach((tandemWidthCm, index) => {
+      const tandem = buildCollectionCountertopSkus(skuProfile, profile, {
+        style: countertopStyle,
+        color: countertopColor,
+        thickness: countertopThickness,
+        basins: [],
+        widthCm: tandemWidthCm,
+        faucetHoles,
+        readConfiguratorColor,
+      });
+      if (tandem.top)
+        add({
+          id: tandemCountertopLineId(index),
+          group: "countertop",
+          sku: tandem.top,
+          quantity: 1,
+          widthCm: tandemWidthCm,
+        });
+    });
     sinkBases.forEach((entry, index) => {
       const basinSku = countertop.basins[index];
       if (basinSku) add({ id: `countertop:basin:${entry.stableKey}`, group: "basin", sku: basinSku, quantity: 1 });
@@ -383,6 +404,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         ? [{ id: "hosted", sinkType: hostedSink.sinkType }]
         : sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
       sinkBaseCount: basinCount,
+      tandemWidthsCm: input.tandemCountertopLengthsCm ?? [],
     });
 
     countertopLines.forEach(add);

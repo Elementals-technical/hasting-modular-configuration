@@ -748,6 +748,21 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(cabinetAndBasinLines(resized)).toEqual(cabinetAndBasinLines(fallback));
   });
 
+  it("prices each tandem top (two sink bases set apart under a thin top) as a top of its own length", () => {
+    // Ryan 23.10 "remote tandem vanities": [SB 60] and [SB 60] set apart — the scene's top on the first, a clone on the other.
+    const { lines, gaps } = ulhOrder([sinkBase("ulh-sb-a"), sinkBase("ulh-sb-b")], {}, {
+      committedCountertopLengthCm: 60,
+      tandemCountertopLengthsCm: [60],
+    });
+    const tops = lines.filter(({ group }) => group === "countertop");
+    expect(tops.map(({ id, widthCm, quantity }) => ({ id, widthCm, quantity }))).toEqual([
+      { id: "countertop:0", widthCm: 60, quantity: 1 },
+      { id: "countertop:tandem:0", widthCm: 60, quantity: 1 },
+    ]);
+    expect(tops[1].sku).toBe(tops[0].sku);
+    expect(gaps).toEqual([]);
+  });
+
   it("sizes the top by its sink base when a narrower cabinet stands first, as a side cabinet added on the left", () => {
     const sideCabinet = {
       stableKey: "ulh-sc",

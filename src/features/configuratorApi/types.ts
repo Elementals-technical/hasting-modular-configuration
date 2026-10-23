@@ -424,6 +424,17 @@ export type CountertopState = {
   verticalLocked?: boolean;
   /** Locked, but a restored pose is lifted (kept, not rejected): offer "lower" / "reset". */
   verticalLockViolated?: boolean;
+  /**
+   * Tandem vanities (sink bases set apart under a thin top): each SB set apart has a clone of this top,
+   * priced as a countertop of its own length. `lengthM` is null until the clone is laid out.
+   */
+  tandemTops?: readonly CountertopTandemTop[];
+};
+export type CountertopTandemTop = {
+  productId: string;
+  lengthM: number | null;
+  sinkBaseId: string | null;
+  cabinetIds: readonly string[];
 };
 export type CountertopChangeReason =
   | "current"

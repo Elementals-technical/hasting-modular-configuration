@@ -1,3 +1,4 @@
+import { tandemCountertopLineId } from "./tandemCountertopLines";
 import {
   isSyntesiCountertopMaterialSku,
   normalizeMaterialToken,
@@ -128,6 +129,8 @@ export type UshCountertopLinesInput = {
   /** Each sink base and its basin: an integrated basin is ordered per sink base. */
   sinkBases: readonly { id: string; sinkType: string | null }[];
   sinkBaseCount: number;
+  /** Tandem tops (clones of a thin top on sink bases set apart): one more top line each, at its own length. */
+  tandemWidthsCm?: readonly number[];
 };
 
 export const buildUshCountertopLines = ({
@@ -140,16 +143,17 @@ export const buildUshCountertopLines = ({
   depthCm,
   sinkBases,
   sinkBaseCount,
+  tandemWidthsCm = [],
 }: UshCountertopLinesInput): PricingLine[] => {
   const lines: PricingLine[] = [];
   const add = ({ quantity = 1, ...line }: Omit<PricingLine, "quantity"> & { quantity?: number }) => {
     if (quantity > 0) lines.push({ ...line, quantity });
   };
 
-  const skuLines = (basinType: string | null): string[] => {
+  const skuLines = (basinType: string | null, width: number | null = widthCm): string[] => {
     const skuInput: CountertopSkuInput = {
       style: style || null,
-      width: widthCm,
+      width,
       depth: depthCm,
       thickness: countertop.thickness,
       basinType,
@@ -184,6 +188,13 @@ export const buildUshCountertopLines = ({
       quantity: repeatCount,
       ...(index === 0 && widthCm != null ? { widthCm } : {}),
     });
+  });
+
+  // Tandem vanities: the clone of the top on each sink base set apart is a top of its own (its basin is
+  // already ordered per sink base above).
+  tandemWidthsCm.forEach((tandemWidthCm, index) => {
+    const top = skuLines(sinkType, tandemWidthCm)[0];
+    if (top) add({ id: tandemCountertopLineId(index), group: "countertop", sku: top, widthCm: tandemWidthCm });
   });
 
   // Always keep a default faucet-holes pricing SKU in the pool (including "0"),
