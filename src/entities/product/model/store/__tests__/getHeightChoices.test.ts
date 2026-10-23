@@ -106,7 +106,19 @@ describe("getHeightChoices", () => {
     ).toEqual([]);
   });
 
-  it("offers nothing for an Urban Low Height open shelf: it has no handle to decide its heights", () => {
+  it("offers an Urban Low Height open shelf the heights the handle gives the placed cabinets", () => {
+    // The open shelf has no handle of its own; it shares the composition's height.
+    const placed = ["ULH-sink-cabinet-test1", "ULH-Open-Shelf-test2"];
+
+    expect(choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Open-Shelf", handle: UPPER_GROOVE, placed })).toEqual([
+      28, 38,
+    ]);
+    expect(choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Open-Shelf", handle: PUSH_TO_OPEN, placed })).toEqual([
+      25, 35,
+    ]);
+  });
+
+  it("offers nothing for an Urban Low Height open shelf without a placed cabinet whose handle decides the height", () => {
     expect(choicesFor(ulhProfile, ulhCatalog, { cabinetType: "Open-Shelf" })).toEqual([]);
   });
 
