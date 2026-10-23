@@ -20,6 +20,19 @@ describe("draftInvalidHint", () => {
   });
   it("cabinet-only collision keeps the cabinet message", () => {
     expect(draftInvalidHint(invalid(collision("cab-2")))).toBe(DRAFT_HINTS.cabinetCollision);
+    expect(DRAFT_HINTS.cabinetCollision).toBe("This cabinet overlaps another cabinet. Move it to a free spot to apply.");
+  });
+  it("countertop collision has its own message without inferring the product id", () => {
+    expect(draftInvalidHint(invalid({ code: "COUNTERTOP_COLLISION", affectedProductIds: ["custom-top-id"] }))).toBe(
+      "This cabinet overlaps the countertop. Move it to a free spot to apply.",
+    );
+  });
+  it("mixed reasons keep cabinet, countertop, floor priority regardless of reason order", () => {
+    const top = { code: "COUNTERTOP_COLLISION" };
+    expect(draftInvalidHint(invalid(top, collision("cab-2")))).toBe(DRAFT_HINTS.cabinetCollision);
+    expect(draftInvalidHint(invalid(collision("Floor_R1"), top))).toBe(
+      "This cabinet overlaps the countertop. Move it to a free spot to apply.",
+    );
   });
   it("unknown reason code or no reasons gives the generic message", () => {
     expect(draftInvalidHint(invalid({ code: "OUT_OF_ROOM", params: {} }))).toBe(DRAFT_HINTS.generic);

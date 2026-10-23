@@ -2,7 +2,12 @@ export type CountertopRuntimeSize = Readonly<{
   productId: string;
   compositionId: string;
   lengthCm: number;
+  /** Lengths of the tandem tops (clones of a thin top on sink bases set apart), each priced as a countertop. */
+  tandemLengthsCm?: readonly number[];
 }>;
+
+const sameLengths = (left: readonly number[] = [], right: readonly number[] = []) =>
+  left.length === right.length && left.every((length, index) => length === right[index]);
 
 type CountertopRuntimeSizeListener = () => void;
 
@@ -28,11 +33,15 @@ export const setCountertopRuntimeSize = (next: CountertopRuntimeSize | null): vo
       next !== null &&
       snapshot.productId === next.productId &&
       snapshot.compositionId === next.compositionId &&
-      snapshot.lengthCm === next.lengthCm)
+      snapshot.lengthCm === next.lengthCm &&
+      sameLengths(snapshot.tandemLengthsCm, next.tandemLengthsCm))
   ) {
     return;
   }
 
-  snapshot = next === null ? null : Object.freeze({ ...next });
+  snapshot =
+    next === null
+      ? null
+      : Object.freeze({ ...next, ...(next.tandemLengthsCm ? { tandemLengthsCm: Object.freeze([...next.tandemLengthsCm]) } : {}) });
   listeners.forEach((listener) => listener());
 };

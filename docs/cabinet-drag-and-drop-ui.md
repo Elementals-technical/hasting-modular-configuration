@@ -18,9 +18,15 @@ the cabinet placement API of the configurator iframe (`cabinetPlacement.*`) and 
    places, never for one a draft commits. On every other step a cabinet draft opens only from the
    cabinet menu.
 2. While the draft is open the toolbar in the top-right corner shows **Cancel**. PlayCanvas tints the cabinet
-   **green** on a free spot and **red** when it overlaps another cabinet (and outlines the cabinets
-   it overlaps). A red draft cannot be applied: `canApply` is false, the runtime would refuse with
+   **green** on a free spot and **red** when it overlaps another cabinet or the primary countertop slab
+   (and outlines the objects it overlaps). The runtime checks the actual slab dimensions, including custom
+   length and Remote tops without sink traps. A top carried by a moved sink base follows that draft;
+   generated covers remain part of the prospective cover plan. A red draft cannot be applied: `canApply` is false, the runtime would refuse with
    `PLACEMENT_COLLISION`; the UI disables Apply and shows a hint.
+   `validation.reasons` distinguishes `CABINET_COLLISION` (another cabinet) from `COUNTERTOP_COLLISION`
+   (the slab); each has its own message and affected IDs. A mixed overlap returns both reasons;
+   the single UI hint prioritizes cabinet, then countertop, then floor. Both codes are invalid/red in
+   this cabinet flow, independently of the countertop editor's warning behavior.
 3. The icons follow the cabinet: the **move** icon (`frontCenter`), **Apply** and **discard (x)**
    under its bottom-right corner (`bottomRight`). They are this app's SVGs, placed from the
    overlay frames that PlayCanvas publishes whenever the camera, the drag or the status changes.

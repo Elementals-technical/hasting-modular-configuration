@@ -690,6 +690,22 @@ describe("Cabinet drag and drop overlay", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(client.apply).not.toHaveBeenCalled();
 
+    // The separate countertop reason keeps the red overlay and blocks Apply too.
+    emit("cabinetPlacement.change", {
+      ...preview,
+      canApply: false,
+      collision: { status: "colliding", collidesWith: ["custom-top-id"] },
+      validation: { status: "invalid", reasons: [{ code: "COUNTERTOP_COLLISION", affectedProductIds: ["custom-top-id"] }] },
+    });
+    emitFrame(frame({ status: "colliding", collidesWith: ["custom-top-id"], canApply: false }));
+    expect(screen.getByTestId("cabinet-draft-overlay").dataset.status).toBe("colliding");
+    const blockedByTop = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect(blockedByTop.disabled).toBe(true);
+    expect(blockedByTop.title).toBe("This cabinet overlaps the countertop. Move it to a free spot to apply.");
+    expect(screen.getByText(/overlaps the countertop/)).toBeTruthy();
+    fireEvent.click(blockedByTop);
+    expect(client.apply).not.toHaveBeenCalled();
+
     // A corner at the viewport edge: Apply / discard stay on screen.
     emit("cabinetPlacement.change", preview);
     emitFrame(frame({ points: { ...frame().points, bottomRight: { x: 795, y: 598 } } }));

@@ -93,6 +93,7 @@ import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import {
   appendUncoveredLines,
   resolveSummaryLinePrice,
+  tandemCountertopItems,
   type PricingLine,
   type SummaryPriceState,
 } from "@/shared/lib/pricing";
@@ -1172,31 +1173,34 @@ export const SummaryPage = () => {
         })),
       );
 
-    const countertopItems: SummaryItem[] = [
-      {
-        id: "countertop-1",
-        title: "Countertop",
-        subtitle: displayCountertopThickness ?? undefined,
-        ...priceOfLines([countertopTopLine]),
-        swatch: {
-          label: displayCountertopLabel,
-          value: displayCountertopColor,
-          color: countertopSwatch.color,
-          image: countertopSwatch.image,
-          materialSku: effectiveCountertopMaterialSku,
-        },
-        copyable: true,
-        showInfo: true,
-        description: {
-          "Product Category": "Countertop",
-          Style: countertopStyle || "Plain",
-          Width: totalCountertopWidth,
-          Thickness: displayCountertopThickness,
-          Depth: selectedDimensions.depth,
-          Material: displayCountertopMaterial,
-          "Color Code": displayCountertopColor,
-        },
+    const mainCountertopItem: SummaryItem = {
+      id: "countertop-1",
+      title: "Countertop",
+      subtitle: displayCountertopThickness ?? undefined,
+      ...priceOfLines([countertopTopLine]),
+      swatch: {
+        label: displayCountertopLabel,
+        value: displayCountertopColor,
+        color: countertopSwatch.color,
+        image: countertopSwatch.image,
+        materialSku: effectiveCountertopMaterialSku,
       },
+      copyable: true,
+      showInfo: true,
+      description: {
+        "Product Category": "Countertop",
+        Style: countertopStyle || "Plain",
+        Width: totalCountertopWidth,
+        Thickness: displayCountertopThickness,
+        Depth: selectedDimensions.depth,
+        Material: displayCountertopMaterial,
+        "Color Code": displayCountertopColor,
+      },
+    };
+    const countertopItems: SummaryItem[] = [
+      mainCountertopItem,
+      // Tandem vanities: the clone of the top on each sink base set apart is a countertop of its own.
+      ...tandemCountertopItems(mainCountertopItem, pricingLines, (line) => priceOfLines([line])),
       countertopStyle
         ? {
             id: "countertop-style",
