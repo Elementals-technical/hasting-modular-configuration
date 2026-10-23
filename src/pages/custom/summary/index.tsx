@@ -85,7 +85,7 @@ import {
   resolveCollectionColorCode,
 } from "@/shared/lib/sku";
 import { useSaveConfigurationMutation } from "@/entities";
-import { configurationValueOf, useActiveCollection } from "@/entities/collection";
+import { configurationValueOf, resolveCabinetTypeOfRuntimeId, useActiveCollection } from "@/entities/collection";
 import { useOptionLabel } from "@/features/collectionCustomization";
 import { usePriceResult } from "@/shared/hooks/usePriceResult";
 import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
@@ -628,9 +628,11 @@ export const CustomSummaryPage = () => {
       const width = typeof config.Width === "number" ? config.Width : undefined;
       const depth = typeof config.Depth === "number" ? config.Depth : undefined;
       const height = typeof config.Height === "number" ? config.Height : undefined;
+      // `productType` first: a cabinet a sink move changed (`cabinets.liftSink` / `landSink` / `moveSink`) keeps
+      // the `ProductType` of what it was in its scene config, while `productType` and its id name what it is now.
       const name =
-        config.ProductType ??
         config.productType ??
+        config.ProductType ??
         (config.entityName ? resolveNameFromRaw(config.entityName) : undefined) ??
         config.name ??
         undefined;
@@ -694,7 +696,11 @@ export const CustomSummaryPage = () => {
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
           const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
-          const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
+          // What stands there now: a Sink Base whose basin the countertop took has become a Side Cabinet.
+          const placedType = selectedProducts[index]
+            ? resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, selectedProducts[index])
+            : null;
+          const normalizedPresetType = placedType ?? (preset.name ? preset.name.replace(/[\s_]+/g, "-") : null);
           const subtitle = formatCabinetSubtitleForSummary({
             cabinetType: normalizedPresetType ?? activeCabinetType,
             drawers: preset.Drawers,
@@ -706,7 +712,7 @@ export const CustomSummaryPage = () => {
 
           return {
             id: `cabinet-preset-${index}`,
-            title: formatCabinetTitleForSummary(preset.name ?? activeCabinetType),
+            title: formatCabinetTitleForSummary(placedType ?? preset.name ?? activeCabinetType),
             subtitle,
             ...priceOfLines([lineById(`cabinet:preset-${index}`)]),
             swatch: {
@@ -793,10 +799,10 @@ export const CustomSummaryPage = () => {
       selectedProductDrawerStyle;
     const configToBookMatchingCabinet = (config: NormalizedProductConfigSnapshot): BookMatchingCabinetInput => ({
       name:
-        typeof config.ProductType === "string"
-          ? config.ProductType
-          : typeof config.productType === "string"
-            ? config.productType
+        typeof config.productType === "string"
+          ? config.productType
+          : typeof config.ProductType === "string"
+            ? config.ProductType
             : typeof config.entityName === "string"
               ? resolveNameFromRaw(config.entityName)
               : typeof config._productId === "string"
@@ -870,10 +876,10 @@ export const CustomSummaryPage = () => {
             })),
           ...sceneProductConfigs.flatMap((config, index) => {
             const rawName =
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
+              typeof config.productType === "string"
+                ? config.productType
+                : typeof config.ProductType === "string"
+                  ? config.ProductType
                   : typeof config.entityName === "string"
                     ? resolveNameFromRaw(config.entityName)
                     : typeof config._productId === "string"
@@ -893,10 +899,10 @@ export const CustomSummaryPage = () => {
       : sceneProductConfigs.length > 0
         ? sceneProductConfigs.flatMap((config, index) => {
             const rawName =
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
+              typeof config.productType === "string"
+                ? config.productType
+                : typeof config.ProductType === "string"
+                  ? config.ProductType
                   : typeof config.entityName === "string"
                     ? resolveNameFromRaw(config.entityName)
                     : typeof config._productId === "string"

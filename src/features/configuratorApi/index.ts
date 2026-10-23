@@ -99,6 +99,7 @@ export {
   COUNTERTOP_RESIZE_STEP_M,
   COUNTERTOP_STANDARD_EPSILON_M,
   classifyCountertopError,
+  isCarriedWithoutHost,
   isLiftedCountertop,
   isSinkOffSinkBase,
   isStandardCountertop,

@@ -47,6 +47,13 @@ export const isLiftedCountertop = (state: Pick<CountertopState, "offset"> | null
 export const isSinkOffSinkBase = (state: Pick<CountertopState, "sink"> | null | undefined) =>
   state?.sink?.hosted === true || (state?.sink?.owner === "countertop" && state.sink.landing?.status !== "home");
 
+/**
+ * The top carries the sink of a Sink Base that is still one: no `cabinets.liftSink` went through yet. The
+ * Sink Base must not stay under a remote top, so the lift is committed or the top goes back.
+ */
+export const isCarriedWithoutHost = (state: Pick<CountertopState, "sink"> | null | undefined) =>
+  state?.sink?.owner === "countertop" && state.sink.hosted !== true;
+
 export type CountertopFailureKind =
   /** The pose broke a rule; the runtime already reverted it. `reasons` holds the slugs. */
   | "pose-invalid"

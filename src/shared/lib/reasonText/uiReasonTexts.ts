@@ -32,6 +32,8 @@ export const UI_REASON_TEXTS: Record<string, string> = {
   /** Appended when the switch auto-corrected the pose. */
   "countertop.mode.lowered": "It was lowered onto the cabinets.",
   "countertop.mode.reset": "It was returned to the standard position.",
+  /** The top carried the sink off its sink cabinet, but the cabinet could not become a side cabinet. */
+  "countertop.sinkLiftFailed": "The sink could not move with the countertop, so the countertop went back.",
   /* Scene refusals of an add, duplicate or swap (features/sceneRefusalNotice). */
   UF_HEIGHT_RUN_VIOLATION:
     "The tall cabinets must stand together: a shorter cabinet can only go at either end of them.",
