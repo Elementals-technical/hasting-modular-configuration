@@ -1,0 +1,514 @@
+{
+  "format": "ulh-compact-v1",
+  "collection": "ULH",
+  "shared": {
+    "Height": 38,
+    "Drawers": "1D",
+    "Handle": "handle_urban_topcut",
+    "Thickness": "5.125",
+    "TopDrawerDividers": {
+      "zones": {
+        "siphon_left": {
+          "slots": [
+            {
+              "key": "ghost:siphon_left:left:0.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.2516,
+                "center": -0.1841,
+                "end": -0.1166
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_left",
+                "strategy": "edges-left",
+                "anchor": "left",
+                "start": 0,
+                "availableTypes": [
+                  "A",
+                  "B"
+                ],
+                "maxSpaceHere": 17.1
+              }
+            }
+          ]
+        },
+        "siphon_right": {
+          "slots": [
+            {
+              "key": "ghost:siphon_right:right:4.01",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.1166,
+                "center": 0.1841,
+                "end": 0.2516
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_right",
+                "strategy": "edges-right",
+                "anchor": "right",
+                "start": 4.009999999999998,
+                "availableTypes": [
+                  "A",
+                  "B"
+                ],
+                "maxSpaceHere": 17.1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "BotDrawerDividers": {
+      "zones": {
+        "main": {
+          "slots": [
+            {
+              "key": "ghost:main:left:0.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.2516,
+                "center": -0.1841,
+                "end": -0.1166
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 0,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:14.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.1116,
+                "center": -0.0441,
+                "end": 0.0234
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 14,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:28.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.0284,
+                "center": 0.0959,
+                "end": 0.1634
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 28,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CabinetColor": "Rox Black TKQ",
+    "CountertopColor": "Bianco Male TFA",
+    "HandleGrooveColor": "None"
+  },
+  "rows": [
+    {
+      "products": [
+        {
+          "name": "ULH-sink-cabinet",
+          "sinkType": "Top_HPL/Fenix_Prisma_Gres",
+          "ProductType": "ULH-sink-cabinet",
+          "Width": 90
+        },
+        {
+          "name": "ULH-sink-cabinet",
+          "sinkType": "Top_HPL/Fenix_Prisma_Gres",
+          "ProductType": "ULH-sink-cabinet",
+          "Width": 90
+        }
+      ]
+    }
+  ],
+  "top": {
+    "productType": "Top_Solid",
+    "Depth": 46,
+    "Height": 38,
+    "CountertopColor": "Bianco Male TFA",
+    "Thickness": "5.125",
+    "sinkType": "Top_HPL/Fenix_Prisma_Gres",
+    "CountertopPositioning": "support-plane",
+    "CountertopPlacement": "supported",
+    "CabinetColor": "Rox Black TKQ",
+    "Handle": "handle_urban_topcut",
+    "TopDrawerDividers": {
+      "zones": {
+        "siphon_left": {
+          "slots": [
+            {
+              "key": "ghost:siphon_left:left:0.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.5516,
+                "center": -0.4841,
+                "end": -0.4166
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_left",
+                "strategy": "edges-left",
+                "anchor": "left",
+                "start": 0,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:siphon_left:left:14.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.4116,
+                "center": -0.3441,
+                "end": -0.2766
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_left",
+                "strategy": "edges-left",
+                "anchor": "left",
+                "start": 14,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:siphon_left:left:28.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.2716,
+                "center": -0.2041,
+                "end": -0.1366
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_left",
+                "strategy": "edges-left",
+                "anchor": "left",
+                "start": 28,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            }
+          ]
+        },
+        "siphon_right": {
+          "slots": [
+            {
+              "key": "ghost:siphon_right:right:6.01",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.1366,
+                "center": 0.2041,
+                "end": 0.2716
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_right",
+                "strategy": "edges-right",
+                "anchor": "right",
+                "start": 6.009999999999998,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:siphon_right:right:20.01",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.2766,
+                "center": 0.3441,
+                "end": 0.4116
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_right",
+                "strategy": "edges-right",
+                "anchor": "right",
+                "start": 20.009999999999998,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:siphon_right:right:34.01",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.4166,
+                "center": 0.4841,
+                "end": 0.5516
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "siphon_right",
+                "strategy": "edges-right",
+                "anchor": "right",
+                "start": 34.01,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "BotDrawerDividers": {
+      "zones": {
+        "main": {
+          "slots": [
+            {
+              "key": "ghost:main:left:0.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.5516,
+                "center": -0.4841,
+                "end": -0.4166
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 0,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:14.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.4116,
+                "center": -0.3441,
+                "end": -0.2766
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 14,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:28.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.2716,
+                "center": -0.2041,
+                "end": -0.1366
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 28,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:42.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": -0.1316,
+                "center": -0.0641,
+                "end": 0.0034
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 42,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:56.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.0084,
+                "center": 0.0759,
+                "end": 0.1434
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 56,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:70.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.1484,
+                "center": 0.2159,
+                "end": 0.2834
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 70,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            },
+            {
+              "key": "ghost:main:left:84.00",
+              "value": "empty",
+              "width": 13.5,
+              "position": {
+                "start": 0.2884,
+                "center": 0.3559,
+                "end": 0.4234
+              },
+              "other": {
+                "type": "ghost",
+                "zone": "main",
+                "strategy": "packed",
+                "anchor": "left",
+                "start": 84,
+                "availableTypes": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "maxSpaceHere": 22.1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "HandleGrooveColor": "None",
+    "Width": 180
+  },
+  "featureSettings": {
+    "sidePanelSelection": {
+      "left": null,
+      "right": null
+    },
+    "cabinetCover": {
+      "enabled": true,
+      "profileId": "ulh-v1",
+      "eligibilityMode": "all",
+      "thicknessM": 0.012700083809585871,
+      "tolerances": {
+        "contactM": 0.001,
+        "adjacencyM": 0.001,
+        "numericalM": 1e-06
+      }
+    }
+  }
+}

@@ -123,3 +123,9 @@ docs/*
 iphone-safari-debugging
 
 .mcp.json
+
+# Playwright (npm run e2e)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
