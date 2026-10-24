@@ -1,12 +1,6 @@
 import type { RuntimeBindingSet } from "@/entities/collection";
 import { resolveProductConfig } from "@/entities/collection";
 
-/** Collections with cabinet/countertop Drag & Drop. Others keep the classic Resize/Reposition menus. */
-export const DRAG_DROP_COLLECTION_IDS: readonly string[] = ["urban-low-height", "urban-duplex"];
-
-export const isDragDropCollection = (collectionId: string | null | undefined): boolean =>
-  typeof collectionId === "string" && DRAG_DROP_COLLECTION_IDS.includes(collectionId);
-
 /**
  * Reuse the active collection's type/value translation, preserving the current scene config. The
  * type the builder adds comes first: a click on a placed cabinet puts its scene config, with its

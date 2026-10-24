@@ -8,6 +8,7 @@ export {
   isDrawerStyleHeightRestricted,
   resolveDrawerStyleSwitch,
 } from "./lib/drawerStyleHeightRule";
+export { resolveHeightsByHandle } from "./lib/handleForcedHeight";
 export { buildHandleStyleConfigPatch } from "./lib/handleStyleConfig";
 export { resolveHeightStyleCards } from "./lib/heightStyles";
 export type { HeightStyleCard } from "./lib/heightStyles";

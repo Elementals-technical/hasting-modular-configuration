@@ -1,7 +1,8 @@
 import type { RootState } from "@/app/store";
+import type { ProductProfile } from "@/entities/collection";
 import type { SceneLayout } from "@/entities/configuration";
 import {
-  getActiveCollectionId,
+  getActiveProductProfile,
   getCabinetEntries,
   getConfigurationSnapshot,
 } from "@/entities/configuration/model/store/selectors";
@@ -22,13 +23,13 @@ export type CaptureSnapshotDeps = {
  */
 const readLayout = async (
   captureLayout: SceneLayoutCapture | null,
-  collectionId: string | null,
+  profile: ProductProfile | null,
   ids: readonly string[],
 ): Promise<SceneLayout | null> => {
   if (!captureLayout || ids.length === 0) return null;
 
   try {
-    const layout = await captureLayout(collectionId);
+    const layout = await captureLayout(profile);
     if (!layout) return null;
 
     const captured = new Set(Object.values(layout.cabinetIds));
@@ -54,7 +55,7 @@ export async function captureSnapshot(
     }
   }
 
-  const sceneLayout = await readLayout(captureLayout, getActiveCollectionId(getState()), ids);
+  const sceneLayout = await readLayout(captureLayout, getActiveProductProfile(getState()), ids);
 
   return {
     productIds: ids,

@@ -191,22 +191,26 @@
           "value": "2.4",
           "label": "2.4\"",
           "order": 20,
-          "aliases": ["2.375", "2.5"]
+          "aliases": ["2.375", "2.5"],
+          "capabilities": { "countertopSlides": true }
         },
         {
           "value": "4",
           "label": "4\"",
-          "order": 30
+          "order": 30,
+          "capabilities": { "countertopSlides": true, "countertopLengthResize": true }
         },
         {
           "value": "5.125",
           "label": "5.1\"",
-          "order": 40
+          "order": 40,
+          "capabilities": { "countertopSlides": true, "countertopLifts": true, "countertopLengthResize": true }
         },
         {
           "value": "5.5",
           "label": "5.5\"",
-          "order": 50
+          "order": 50,
+          "capabilities": { "countertopSlides": true, "countertopLifts": true, "countertopLengthResize": true }
         }
       ]
     },
@@ -404,6 +408,7 @@
     }
   ],
   "ruleData": {
+    "dragDrop": { "enabled": true },
     "cabinetMatrixLegacyAdapter": {
       "tableId": 594,
       "columns": {
@@ -557,6 +562,7 @@
     "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
     "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
+    "countertop.materialNotAvailableOffSinkBase": "Not available when the basin is not over a sink base",
     "cabinet.notAvailableForType": "Not available for selected cabinet type",
     "cabinet.noCommonHeight": "No common supported height across selected products",
     "cabinet.heightLocked": "Height locked by existing products",
@@ -572,6 +578,8 @@
     "countertop.materialNotAvailableForModel": "The selected countertop material/finish is not available for this model.",
     "countertop.compositionLengthReached": "Maximum composition length reached for the selected countertop setup ({maxCm} cm / {maxIn}\").",
     "countertop.compositionLengthReachedNoMax": "Maximum composition length reached for the selected countertop setup.",
+    "countertop.rowLengthReached": "Maximum length reached for this row of cabinets with the selected countertop setup ({maxCm} cm / {maxIn}\").",
+    "cabinet.sinkBaseInCountertopRow": "A Sink Base can only be added to the countertop row, next to the other Sink Bases.",
     "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
     "divider.typeUnavailable": "{option} does not fit here. Choose one of: {options}.",
     "divider.noTypeAvailable": "{option} does not fit here. No Divider option is available for this slot.",

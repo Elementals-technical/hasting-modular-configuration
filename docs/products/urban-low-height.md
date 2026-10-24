@@ -50,6 +50,27 @@ Continue входить у Drag & Drop і позначає intro як побач
 входить. Слайди перелічені в `CountertopLayoutIntroModal.tsx`; крапки з'являються, коли слайдів більше
 одного. Gate живе в `CountertopDragMode.enter` (`src/features/countertopPlacement/ui/`).
 
+## Віддалена стільниця: Sink Base стає Side Cabinet
+
+Клієнт, 23.10.2026: коли товста стільниця стоїть віддалено (раковина не над Sink Base,
+`isSinkOffSinkBase`), Sink Base, з якого вона забрала раковину, стає Side Cabinet. Раковину несе лише піднята стільниця:
+зсув стільниці, що лежить, лишає її в Sink Base. Коли стільниця забирає раковину, сцена шле `sink-lift`, і
+`useSinkLanding` комітить `cabinets.liftSink`: Sink Base стає Side Cabinet своєї пари з тими самими
+розмірами, ручкою й кольорами. Якщо стільницю опустили в тому самому drag, `liftSink` її не бере
+(`INVALID_INPUT`), тож UI піднімає її на 2 см, комітить і опускає назад. Lift, що не пройшов, повертає
+стільницю (`countertop.sinkLiftFailed`). Новий Sink Base, доданий, поки стільниця віддалена, не
+забороняється. Над двома Sink Base сцена раковин не
+забирає: піднята стільниця несе обидві, а шафи лишаються Sink Base, як і раніше, доки сцена не навчиться
+піднімати дві. Standard або раковина, опущена над Side Cabinet, повертає Sink Base (`landSink`). Деталі —
+`docs/countertop-position-ui.md`.
+
+Перевірено в браузері 23.10.2026 (ULH 46″ #16, 61″ Multi-Level #29, UD 34″ #10): підйом і жест «підняти,
+відвести, опустити» (вбік від ряду та повністю поза рядом) дають Side Cabinet, один запис історії, Undo/Redo;
+Standard повертає Sink Base. На 48″ Double (ULH #17, UD #20) стільниця піднімається з обома раковинами, обидві
+шафи лишаються Sink Base, як до зміни. Відомо: на Multi-Level після Redo
+сцена ставить стільницю з раковиною в іншу позу, і Standard тоді не повертає Sink Base (так само без цієї
+зміни); підсумок Prebuilt називає перетворену шафу за пресетом, «Sink Base».
+
 ## Ряди: Undo / Redo і збережені конфігурації
 
 У ULH шафи можуть стояти у два ряди, а стільниця — бути зсунутою, піднятою, мати власну довжину й
@@ -61,7 +82,8 @@ Continue входить у Drag & Drop і позначає intro як побач
 
 - **Де це живе.** Читання й запис документа — лише `features/playCanvasAdapter/lib/sceneLayout.ts`.
   `captureFreeLayout` (`features/cabinetPlacementDebug/lib/`) вмикає це тільки для Drag & Drop
-  колекцій; `main.tsx` реєструє його для історії (`setSceneLayoutCapture`).
+  колекцій (`ruleData.dragDrop` у профілі колекції); `main.tsx` реєструє його для історії
+  (`setSceneLayoutCapture`).
 - **Коли layout немає.** Інша колекція, відкритий чернетковий drag шафи (сцена відповідає
   `COMPOSITION_BUSY`), збереження, зроблене до цієї зміни, або документ, який сцена не прийняла, —
   композиція відновлюється старим шляхом, в один ряд. Дія користувача через це не блокується.
@@ -79,6 +101,25 @@ Continue входить у Drag & Drop і позначає intro як побач
 колір у Prebuilt-моделі 60″ Multi-Level; Prebuilt → Custom → Resize; стільниця 5.1″ (підйом із
 раковиною, довжина, Cancel, Standard); Side Panels і Towel Bar без дублів; збереження й відкриття
 посилання з двома рядами. Urban Standard Height: Undo / Redo без змін, збереження layout не несе.
+
+## Ряди: «+» Cabinet Builder
+
+Sink Base стоїть лише в ряду стільниці, поруч з іншими Sink Base (клієнт, 22.10.2026). Інший ряд
+(нижній рівень Multi-Level) міряє свою довжину сам, проти того самого максимуму
+(`configurator-rule-core/countertop/cabinetRows.ts`). «+», куди обрана шафа стати не може, сховано:
+фільтр будує sidebar (`plusFilterFor` з `useCabinetRowCapacity`), а клік по «+» перевіряється ще раз
+(`checkPlus`) і пояснює відмову. Duplicate — так само.
+
+Сцена питає фільтр лише про «+», що несуть своє місце (`plus`: колонки Urban Duplex). Рядові «+» ULH
+(`setAnchors(..., { multiRow: true })`) його не несуть, тож сцена показувала їх усі. Поки вона не питає
+й про них, це робить `filterRowEndPlus` у `utils/functions/playcanvas/sceneBridge.ts`: обгортає
+`_isPlusVisible` менеджера «+» і називає рядовий «+» так, як сцена свої (`left:<cabinet>`). Лише для
+композиції в рядах; один ряд і колонки — як було. Sink Base, перетягнутий на нижній рівень (Drag to
+Place), не пускає сама сцена: `SINK_BASES_SPLIT`, «All sink bases must be in one row.».
+
+Перевірено в браузері 22.10.2026 на моделі 61″ Multi-Level у Custom: для Sink Base «+» лише біля
+верхнього рівня, для Side Cabinet — біля обох; Duplicate Sink Base — лише біля верхнього. Urban Duplex
+і Urban Standard Height показують ті самі «+», що й сцена.
 
 ## Cabinet catalog
 
@@ -199,7 +240,8 @@ URSTD SKU лише тому, що ULH ділить configurator 4 з USH.
 
 ### Lower / CoverCountertop: колір, SKU і pricing (2026-10-12)
 
-Prebuilt Countertop Color має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`.
+Countertop Color у Prebuilt і Custom має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`
+(`sku-profile.cabinetCover.flows`; з 2026-10-22 обидва flow, як у Urban Duplex).
 Upper використовує наявний CountertopColor flow; Lower викликає native
 `ConfiguratorAPI.cabinetCover.configure({ materialId })`, без зміни кольору Upper або тумб.
 Lower бере палітру Cabinet Color, але лише підтверджені Ryan матеріали **3D, LACM, LACG, ST, BM, ESS** і

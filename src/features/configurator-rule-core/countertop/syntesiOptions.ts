@@ -121,7 +121,7 @@ const buildSyntesiOption = (
 ): CountertopOptionWithSource => {
   const sourceVariantName = source?.metadata?.value ?? source?.name ?? source?.title ?? `Bianco ${finish.sourceFinish}`;
   const fallbackHex = resolveCountertopFallbackHex(sourceVariantName);
-  const fallbackImage = resolveCountertopFallbackTexture(sourceVariantName);
+  const fallbackImage = resolveCountertopFallbackTexture(sourceVariantName, source?.metadata?.hex);
 
   return {
     id: `syntesi-countertop-${finish.finish}`,

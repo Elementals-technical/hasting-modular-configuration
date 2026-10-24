@@ -556,6 +556,19 @@ describe("CountertopDragMode Length session (Resize ▸ Length)", () => {
     expect(f.onCommitted).not.toHaveBeenCalled();
   });
 
+  it("draws the move marker for Drag & Drop only: Length leaves the top's body where it is", async () => {
+    const f = fixture();
+    await enterLength(f);
+    f.emit(frameOf());
+    expect(screen.queryByTestId("countertop-move-marker")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Discard countertop changes" }));
+    await waitFor(() => expect(f.onSessionDiscarded).toHaveBeenCalledOnce());
+
+    await enter(f);
+    f.emit(frameOf());
+    expect(screen.getByTestId("countertop-move-marker")).toBeTruthy();
+  });
+
   it("is one session at a time with Drag & Drop", async () => {
     const f = fixture();
     await enterLength(f);

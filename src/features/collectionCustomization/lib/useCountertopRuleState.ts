@@ -18,7 +18,9 @@ import {
   type CountertopMaterialRuleInputs,
 } from "@/features/configurator-rule-core/countertop";
 import { getActiveProductProfile, useIsSinkBase } from "@/entities/configuration";
+import { isSinkOffSinkBase } from "@/features/configuratorApi";
 import { useAppSelector } from "@/shared/hooks/store/redux";
+import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
 import {
   buildCountertopColorSkuCandidates,
@@ -48,6 +50,8 @@ export const useCountertopRuleState = (): CountertopRuleState => {
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   // The countertop's own length: on a multi-level composition, not the cabinets under cabinet covers.
   const sceneTotalWidth = useCountertopLength(selectedProducts, null).withSidePanels;
+  // No Sink Base under the basin: the thicknesses, and the colours, that need one there are out.
+  const sinkOffSinkBase = useCountertopRuntimeValue(isSinkOffSinkBase);
 
   return useMemo(() => {
     const resolvedMaterials = resolveCountertopMaterialTokensFromCandidates({
@@ -74,6 +78,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
       activeBasinStyle: basinStyle,
       activeThickness: thickness,
       profile: activeProfile,
+      sinkOffSinkBase,
     });
 
     const materialRuleInputs: CountertopMaterialRuleInputs = {
@@ -84,6 +89,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
       countertopRules: rules,
       depth: depth ?? null,
       sinkBaseWidth,
+      sinkOffSinkBase,
       totalWidth,
     };
 
@@ -103,6 +109,7 @@ export const useCountertopRuleState = (): CountertopRuleState => {
     selectedProducts.length,
     sinkBaseDims.depth,
     sinkBaseDims.width,
+    sinkOffSinkBase,
     thickness,
   ]);
 };

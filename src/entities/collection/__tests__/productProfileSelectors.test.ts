@@ -5,6 +5,7 @@ import ulhProfileDocument from "../../../../public/collections/urban-low-height/
 import { parseProductProfile } from "../lib/parseProductProfile";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
+  isDragDropEnabled,
   isDrawerStyleMixingRestricted,
   isVesselBasin,
   parseConfiguratorSource,
@@ -97,6 +98,24 @@ describe("selectRuleData", () => {
 
     expect(selectRuleData(withoutVessels, "vesselCompatibility")).toBeUndefined();
     expect(selectRuleData(null, "fluting")).toBeUndefined();
+  });
+});
+
+describe("isDragDropEnabled", () => {
+  const withDragDrop = (dragDrop: ProductProfile["ruleData"]["dragDrop"]): ProductProfile => ({
+    ...ushProfile,
+    ruleData: { ...ushProfile.ruleData, dragDrop },
+  });
+
+  it("follows the collection's Drag & Drop section", () => {
+    expect(isDragDropEnabled(withDragDrop({ enabled: true }))).toBe(true);
+    expect(isDragDropEnabled(withDragDrop({ enabled: false }))).toBe(false);
+  });
+
+  it("is off without the section or without a profile", () => {
+    expect(isDragDropEnabled(ushProfile)).toBe(false);
+    expect(isDragDropEnabled(null)).toBe(false);
+    expect(isDragDropEnabled(undefined)).toBe(false);
   });
 });
 

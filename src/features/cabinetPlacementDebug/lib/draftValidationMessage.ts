@@ -3,6 +3,7 @@ export const FLOOR_COLLISION_ID = "Floor_R1";
 
 export const DRAFT_HINTS = {
   cabinetCollision: "This cabinet overlaps another cabinet. Move it to a free spot to apply.",
+  countertopCollision: "This cabinet overlaps the countertop. Move it to a free spot to apply.",
   belowFloor: "This cabinet goes below the floor. Move it up to apply.",
   generic: "This position is not valid. Move the cabinet to apply.",
   sideShelfAtRowEnd: "A side shelf stands at an end of the row. Move it to an end to apply.",
@@ -22,6 +23,7 @@ const asRecord = (v: unknown): Record<string, unknown> | null =>
 const ids = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
 
 const reasonHint = (reason: Reason, fallbackIds: string[]): string => {
+  if (reason.code === "COUNTERTOP_COLLISION") return DRAFT_HINTS.countertopCollision;
   // Placement rules (SB/SC stacking, tiers, …) carry their own text from the collection's rule pack.
   if (reason.code !== "CABINET_COLLISION") {
     return typeof reason.message === "string" && reason.message.trim() ? reason.message : DRAFT_HINTS.generic;
@@ -42,7 +44,7 @@ export function draftValidationStatus(draft: unknown): DraftValidationStatus | n
 /**
  * User-facing hint for a draft PlayCanvas rejects, or `null` when the spot is free. Reads
  * `validation.reasons` first; falls back to `collision` for engines without `validation`.
- * Cabinet collisions win over the floor so the user is told about the cabinet first.
+ * Cabinet, countertop, then floor collisions take priority over other placement hints.
  */
 export function draftInvalidHint(draft: unknown): string | null {
   const d = asRecord(draft);
@@ -60,6 +62,7 @@ export function draftInvalidHint(draft: unknown): string | null {
     const hints = reasons.map((r) => reasonHint(r, collisionIds));
     const hint =
       hints.find((h) => h === DRAFT_HINTS.cabinetCollision) ??
+      hints.find((h) => h === DRAFT_HINTS.countertopCollision) ??
       hints.find((h) => h === DRAFT_HINTS.belowFloor) ??
       hints.find((h) => h !== DRAFT_HINTS.generic) ??
       DRAFT_HINTS.generic;

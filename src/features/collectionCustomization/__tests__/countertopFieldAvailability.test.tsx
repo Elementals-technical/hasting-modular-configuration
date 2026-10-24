@@ -3,7 +3,7 @@
 import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { store } from "@/app/store";
 import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/entities/collection";
@@ -27,7 +27,9 @@ import {
   setCountertopStyle,
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
+import type { CountertopSinkLandingStatus, CountertopState } from "@/features/configuratorApi";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
@@ -219,6 +221,19 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
   });
 });
 
+/** The scene's top carrying the sink: hosting it, over another cabinet, beside the row or back home. */
+const carried = (status: CountertopSinkLandingStatus, hosted: boolean): CountertopState => ({
+  readiness: "ready",
+  productId: "top",
+  sink: {
+    owner: "countertop",
+    shiftM: 0,
+    landing: { status, cabinetId: null, fromCabinetId: null, reason: null, snapDxM: 0 },
+    pending: null,
+    hosted,
+  },
+});
+
 // Table 438 makes glass 50.5 cm deep only, so at the 46 cm of Urban Low Height a glass colour stays in
 // the grid, refused with the depth reason, as the USH countertop step refuses it.
 describe("Urban Low Height countertop colours follow the countertop matrix, as the USH countertop step", () => {
@@ -246,6 +261,43 @@ describe("Urban Low Height countertop colours follow the countertop matrix, as t
 
     expect(colorOf("Glass GL", "Bianco 0B GL")?.enabled).toBe(true);
     expect(colorOf("Glass MT", "Bianco 0B MT")?.enabled).toBe(true);
+  });
+
+  // Client rule (22.10): off its Sink Base the basin rides a 5⅛″ or 5½″ top; glass makes thin tops only.
+  describe("while the top carries the sink", () => {
+    beforeEach(() => store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 })));
+    afterEach(() => setCountertopRuntimeState(null));
+
+    it.each([
+      ["hosting it", carried("fits", true)],
+      ["beside the row", carried("none", false)],
+    ])("refuses the glass colours with their own reason, %s", (_where, state) => {
+      setCountertopRuntimeState(state);
+
+      const refusedOffSinkBase = { enabled: false, reasonCode: "countertop.materialNotAvailableOffSinkBase" };
+      expect(colorOf("Glass GL", "Bianco 0B GL")).toMatchObject(refusedOffSinkBase);
+      expect(colorOf("Glass MT", "Bianco 0B MT")).toMatchObject(refusedOffSinkBase);
+      expect(colorOf("Tekorlux", "Bianco 0B MT")?.enabled).toBe(true);
+      expect(colorOf("HPL", "Ardesia TKF")?.enabled).toBe(true);
+    });
+
+    it("offers them again over the sink's own Sink Base", () => {
+      setCountertopRuntimeState(carried("home", false));
+
+      expect(colorOf("Glass GL", "Bianco 0B GL")?.enabled).toBe(true);
+    });
+
+    // The glass colours are refused at 46 cm for the depth too, but lowering the top would not make them: the
+    // floating top is the reason the step says.
+    it("says the floating top, not the depth, for the glass colours at 46 cm", () => {
+      store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+      setCountertopRuntimeState(carried("fits", true));
+
+      const refusedOffSinkBase = { enabled: false, reasonCode: "countertop.materialNotAvailableOffSinkBase" };
+      expect(colorOf("Glass GL", "Bianco 0B GL")).toMatchObject(refusedOffSinkBase);
+      expect(colorOf("Glass MT", "Bianco 0B MT")).toMatchObject(refusedOffSinkBase);
+      expect(colorOf("Tekorlux", "Bianco 0B MT")?.enabled).toBe(true);
+    });
   });
 });
 
@@ -308,6 +360,28 @@ describe("Urban Low Height offers the thicknesses the countertop matrix gives, a
 
     expect(shownValues("thickness")?.length).toBeGreaterThan(0);
     expect(enabledValues("thickness")).toEqual([]);
+  });
+
+  // Client rule (22.10): off its Sink Base the basin rides a top that lifts only (5⅛″ or 5½″), no thin or 4″ one.
+  describe("while the top carries the sink", () => {
+    afterEach(() => setCountertopRuntimeState(null));
+
+    it.each([
+      ["hosting it", carried("fits", true)],
+      // As a lift the UI did not commit leaves it: the Sink Base still stands, beside the basin.
+      ["beside the row", carried("none", false)],
+    ])("keeps the thin and 4″ tops on the step but disables them, %s", (_where, state) => {
+      setCountertopRuntimeState(state);
+
+      expect(shownValues("thickness")).toEqual(expect.arrayContaining(["0.5", "4"]));
+      expect(enabledValues("thickness")).toEqual(["5.125"]);
+    });
+
+    it("enables 4″ over the sink's own Sink Base", () => {
+      setCountertopRuntimeState(carried("home", false));
+
+      expect(enabledValues("thickness")).toEqual(["0.5", "4", "5.125"]);
+    });
   });
 });
 

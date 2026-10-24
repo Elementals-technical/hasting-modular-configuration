@@ -214,6 +214,136 @@ export const readSceneProducts = (productIds: readonly string[]): Promise<SceneP
     return { status: "ready", order, configs };
   });
 
+type SceneRoot = { findByName?: (name: string) => unknown };
+type SceneEntity = { getPosition?: () => unknown };
+
+/** Where the scene shows a product, in metres: the centre along the wall and the bottom. */
+export type ScenePositionM = { x: number; y: number };
+
+/**
+ * Where the scene shows each product now, read from its entity: the place the layout gave it plus its
+ * `SpatialOffsetM`. A resize lays the row out again without rewriting the config's `positionX`/`positionY`,
+ * so the scene's own export reads the entity too. A product without an entity is left out.
+ */
+export const readScenePositionsM = (productIds: readonly string[]): Record<string, ScenePositionM> => {
+  const app = getConfiguratorApi()?.config;
+  const root = isRecord(app) ? (app.root as SceneRoot | undefined) : undefined;
+  if (!isRecord(root) || typeof root.findByName !== "function") return {};
+
+  const positions: Record<string, ScenePositionM> = {};
+
+  for (const productId of productIds) {
+    const entity = root.findByName(productId) as SceneEntity | null | undefined;
+    const position = isRecord(entity) && typeof entity.getPosition === "function" ? entity.getPosition() : null;
+    if (!isRecord(position)) continue;
+
+    const { x, y } = position;
+    if (typeof x === "number" && Number.isFinite(x) && typeof y === "number" && Number.isFinite(y)) {
+      positions[productId] = { x, y };
+    }
+  }
+
+  return positions;
+};
+
+/** How the scene lays the cabinets out: one row, several rows (ULH Multi-Level), or columns (UD). */
+export type SceneCabinetLayout = "single" | "rows" | "columns";
+
+/** A placed cabinet, with the support group the scene gave it and its width (null when unreadable). */
+export type SceneSupportCabinet = { id: string; supportGroupId: string; widthCm: number | null };
+
+export type SceneSupportGroups = {
+  layout: SceneCabinetLayout;
+  countertopGroupId: string;
+  cabinets: SceneSupportCabinet[];
+  /** Side panels the scene placed at the ends of a group ("group-edge" panels), counted by group. */
+  sidePanelsByGroup: Record<string, number>;
+};
+
+/** The scene's DEFAULT_COUNTERTOP_SUPPORT_GROUP_ID: a product without `SupportGroupId` belongs to it. */
+const SCENE_DEFAULT_SUPPORT_GROUP_ID = "group-1";
+
+type SceneLayoutManager = SceneCompositionManager & { preserveCabinetPositions?: unknown; freeLayoutPolicy?: unknown };
+type SceneProductsComposition = { getAllProducts?: () => unknown };
+
+const isThenable = (value: unknown): boolean => isRecord(value) && typeof value.then === "function";
+
+const supportGroupOf = (config: Record<string, unknown>): string =>
+  typeof config.SupportGroupId === "string" && config.SupportGroupId
+    ? config.SupportGroupId
+    : SCENE_DEFAULT_SUPPORT_GROUP_ID;
+
+const layoutOf = (manager: SceneLayoutManager): SceneCabinetLayout => {
+  if (isRecord(manager.freeLayoutPolicy) && manager.freeLayoutPolicy.columns === true) return "columns";
+  return manager.preserveCabinetPositions === true ? "rows" : "single";
+};
+
+/**
+ * The support groups of the placed cabinets, read synchronously as the scene holds them now. The scene
+ * measures the countertop's auto length over the cabinets of the countertop's `SupportGroupId` only: ULH
+ * gives every other row a group of its own and UD gives column bottoms `<group>~under`, and a "+" puts a
+ * new cabinet in the group of the cabinet it stands by. Null without a scene, an active composition or the
+ * countertop's config, or when the scene answers asynchronously.
+ */
+export const readSceneSupportGroups = (countertopId: string): SceneSupportGroups | null => {
+  const api = getConfiguratorApi();
+  const getConfig = api?.getConfig;
+  const app = api?.config;
+  const manager = isRecord(app) ? (app.compositionManager as SceneLayoutManager | undefined) : undefined;
+  if (typeof getConfig !== "function" || !isRecord(manager) || typeof manager.getActiveComposition !== "function") {
+    return null;
+  }
+
+  const order = readSceneOrder();
+  if (!order) return null;
+
+  let answeredAsync = false;
+  const readConfig = (productId: string): Record<string, unknown> | null => {
+    try {
+      const answer: unknown = (getConfig as SceneConfigApi)(productId);
+      if (isThenable(answer)) {
+        answeredAsync = true;
+        return null;
+      }
+      return toConfigValues(answer);
+    } catch {
+      return null;
+    }
+  };
+
+  const countertop = readConfig(countertopId);
+  if (answeredAsync || !countertop) return null;
+
+  const cabinets: SceneSupportCabinet[] = [];
+  for (const id of order) {
+    const config = readConfig(id);
+    if (answeredAsync) return null;
+    if (!config || (typeof config.category === "string" && config.category !== "cabinets")) continue;
+
+    const width = config.Width;
+    cabinets.push({
+      id,
+      supportGroupId: supportGroupOf(config),
+      widthCm: typeof width === "number" && Number.isFinite(width) ? width : null,
+    });
+  }
+
+  const composition = manager.getActiveComposition() as SceneProductsComposition | undefined;
+  const allProducts =
+    isRecord(composition) && typeof composition.getAllProducts === "function" ? composition.getAllProducts() : null;
+  const sidePanelsByGroup: Record<string, number> = {};
+  for (const id of isRecord(allProducts) ? Object.keys(allProducts) : []) {
+    const config = readConfig(id);
+    if (answeredAsync) return null;
+    if (config?.SidePanelLayout !== "group-edge") continue;
+
+    const groupId = supportGroupOf(config);
+    sidePanelsByGroup[groupId] = (sidePanelsByGroup[groupId] ?? 0) + 1;
+  }
+
+  return { layout: layoutOf(manager), countertopGroupId: supportGroupOf(countertop), cabinets, sidePanelsByGroup };
+};
+
 /**
  * Answer of one scene operation used to rebuild a composition. `sceneCode`: the scene's own code of a
  * refusal, e.g. "UF_HEIGHT_RUN_VIOLATION" (the change would split the block of tall UF cabinets).
@@ -420,7 +550,10 @@ export const swapSceneProducts = (runtimeIdA: string, runtimeIdB: string): Promi
  */
 export type ScenePlusKind = "left" | "right" | "left-top" | "right-top" | "top" | "bottom";
 
-/** A "+" of a row that holds columns, as the scene describes it (`plus` of the click callback). */
+/**
+ * A "+" of a row that holds columns, as the scene describes it (`plus` of the click callback). The bridge
+ * describes a row-end "+" of a composition in rows the same way, without `rowId`, for the filter only.
+ */
 export type ScenePlus = {
   id: string;
   kind: ScenePlusKind;
@@ -429,15 +562,50 @@ export type ScenePlus = {
   rowId?: string;
 };
 
+/** A "+" as the scene's PlusButtonManager keeps it: a row-end one has no `plus`, only its side and cabinet. */
+type ScenePlusButton = { plus?: unknown; side?: unknown; parentEntity?: unknown };
+
+/** The "+" managers whose row-end "+" already go through the filter. */
+const rowEndPlusFiltered = new WeakSet<object>();
+
 /**
- * Which "+" of a row that holds columns the scene shows; `null` shows them all. A row without
- * columns has no such "+" and ignores the filter. False when the scene build has no filter.
+ * The scene asks the filter only about a "+" that carries its place, so the row-end "+" of a composition in
+ * rows (Urban Low Height Multi-Level) were all shown, a Sink Base's by the lower level too (client, 22.10).
+ * Until the scene asks about them as well, the bridge does, naming each "+" as the scene names its own
+ * (`left:<cabinet>`). One row and columns keep the scene's answer.
+ */
+const filterRowEndPlus = (app: Record<string, unknown>) => {
+  const sceneManager = app.sceneManager;
+  const manager = isRecord(sceneManager) ? sceneManager.plusManager : null;
+  if (!isRecord(manager) || typeof manager._isPlusVisible !== "function" || rowEndPlusFiltered.has(manager)) return;
+
+  const isPlusVisible = (manager._isPlusVisible as (button: ScenePlusButton) => boolean).bind(manager);
+  const filteredIsPlusVisible = (button: ScenePlusButton): boolean => {
+    const filter = manager._plusFilter;
+    const entity = button.parentEntity;
+    const cabinetId = isRecord(entity) && typeof entity.name === "string" ? entity.name : null;
+    const kind = button.side === "left" || button.side === "right" ? button.side : null;
+    const compositionManager = app.compositionManager;
+    const inRows = isRecord(compositionManager) && layoutOf(compositionManager as SceneLayoutManager) === "rows";
+    if (button.plus || !cabinetId || !kind || typeof filter !== "function" || !inRows) return isPlusVisible(button);
+
+    return Boolean(filter({ id: `${kind}:${cabinetId}`, kind, cabinetId }));
+  };
+  // A manager that cannot take it keeps the scene's answer.
+  if (Reflect.set(manager, "_isPlusVisible", filteredIsPlusVisible)) rowEndPlusFiltered.add(manager);
+};
+
+/**
+ * Which "+" the scene shows; `null` shows them all. The scene filters the "+" that carry their place (the
+ * columns of Urban Duplex), the bridge the row-end "+" of a composition in rows (`filterRowEndPlus`); one row
+ * ignores the filter. False when the scene build has no filter.
  */
 export const setScenePlusFilter = (filter: ((plus: ScenePlus) => boolean) | null): boolean => {
   const api = getConfiguratorApi();
   if (!api || typeof api.setPlusFilter !== "function") return false;
 
   try {
+    if (filter && isRecord(api.config)) filterRowEndPlus(api.config);
     api.setPlusFilter(filter);
     return true;
   } catch (error) {

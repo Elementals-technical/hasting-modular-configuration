@@ -6,11 +6,13 @@ import {
   type CabinetColorTraitsRuleData,
   type CabinetMatrixLegacyAdapter,
   type CountertopFallbacksRuleData,
+  type DragDropRuleData,
   type DrawerStyleGroups,
   type UndeterminedRule,
   type FlutingRuleData,
   type GrainDirectionRuleData,
   type MaterialNormalizationRuleData,
+  type OptionCapabilities,
   type ProductProfile,
   type ProfileAttribute,
   type ProfileOption,
@@ -113,6 +115,31 @@ const createCollector = (): Collector => {
   };
 };
 
+/** Countertop movement capabilities of a Thickness option; an option that declares none never moves. */
+const COUNTERTOP_CAPABILITIES = ["countertopSlides", "countertopLifts", "countertopLengthResize"] as const;
+
+/**
+ * An option's capabilities. `supportsGrooveColor` reads as before; a countertop capability is kept only
+ * where the option declares it, and a value that is not a boolean is reported.
+ */
+const parseCapabilities = (raw: unknown, optionPath: string, collect: Collector): OptionCapabilities | undefined => {
+  if (!isRecord(raw)) return undefined;
+
+  const capabilities: OptionCapabilities = { supportsGrooveColor: raw.supportsGrooveColor === true };
+  for (const capability of COUNTERTOP_CAPABILITIES) {
+    const value = raw[capability];
+    if (value === undefined) continue;
+    if (isBoolean(value)) capabilities[capability] = value;
+    else
+      collect.add(
+        "profile.invalid_field_type",
+        `${optionPath}/capabilities/${capability}`,
+        `${capability} must be a boolean`,
+      );
+  }
+  return capabilities;
+};
+
 const parseOptions = (raw: unknown, attributePath: string, collect: Collector): ProfileOption[] | undefined => {
   if (raw === undefined) return undefined;
 
@@ -163,9 +190,7 @@ const parseOptions = (raw: unknown, attributePath: string, collect: Collector): 
       ? entry.aliases.filter((alias): alias is string => isNonEmptyString(alias))
       : undefined;
 
-    const capabilities = isRecord(entry.capabilities)
-      ? { supportsGrooveColor: entry.capabilities.supportsGrooveColor === true }
-      : undefined;
+    const capabilities = parseCapabilities(entry.capabilities, optionPath, collect);
 
     options.push({
       value: entry.value,
@@ -469,6 +494,9 @@ const RULE_SECTION_FIELDS = {
       "a map of vessel style to { materialTokens, colorCodes }",
     ],
   },
+  dragDrop: {
+    enabled: [isBoolean, "a boolean"],
+  },
 } satisfies Record<string, Record<string, FieldCheck>>;
 
 type RuleSectionName = keyof typeof RULE_SECTION_FIELDS;
@@ -661,6 +689,7 @@ const parseRuleSections = (
     materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
     cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
+    dragDrop: parseRuleSection<DragDropRuleData>(ruleData, "dragDrop", collect),
   };
 
   return Object.fromEntries(Object.entries(sections).filter(([, value]) => value !== undefined));

@@ -91,6 +91,8 @@ export type PricingInput = {
   dimensionsByCabinet: Readonly<Record<StableCabinetKey, CabinetDimensions>>;
   /** Applied runtime countertop length. Overrides only the priced top, never cabinet or basin geometry. */
   committedCountertopLengthCm?: number;
+  /** Lengths of the tandem tops (sink bases set apart under a thin top): one more countertop line each. */
+  tandemCountertopLengthsCm?: readonly number[];
   /** C's values by attribute and address; a collection priced from its SKU profile reads them. */
   configurationValues: Readonly<Record<string, readonly ScopedValue[]>>;
   activeCabinetType: ProductState["activeCabinetType"];

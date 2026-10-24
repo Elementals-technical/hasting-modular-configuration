@@ -26,6 +26,15 @@ export const ATTRIBUTE_SCOPES: readonly AttributeScope[] = ["global", "cabinet",
 export type OptionCapabilities = {
   /** Whether the groove-color attribute applies to this option. Replaces URBAN_HANDLES checks. */
   supportsGrooveColor?: boolean;
+  /** A countertop of this thickness slides left or right in Drag & Drop. */
+  countertopSlides?: boolean;
+  /**
+   * A countertop of this thickness also lifts off its cabinets. Only such a top carries its basin away from
+   * the Sink Base, so it is the only thickness offered there (client rule 22.10).
+   */
+  countertopLifts?: boolean;
+  /** A countertop of this thickness offers Resize ▸ Length. */
+  countertopLengthResize?: boolean;
 };
 
 export type ProfileOption = {
@@ -220,6 +229,14 @@ export type CountertopFallbacksRuleData = {
   needsConfirmation?: boolean;
 };
 
+/**
+ * Cabinet and countertop Drag & Drop. The scene must place the collection's cabinets freely too
+ * (its own list of modular collections): the flag only turns the app's side on.
+ */
+export type DragDropRuleData = {
+  enabled: boolean;
+};
+
 export type MaterialDisplayGroup = {
   value: string;
   label: string;
@@ -302,8 +319,8 @@ export type SteppedCabinetModule = {
  *
  * Every section except the cabinet matrix adapter is optional. An absent section means the
  * collection does not offer the feature (fluting, grain direction, book matching, side
- * panels) or has no such restriction (drawer style groups, Syntesi, countertop fallbacks,
- * vessel compatibility, material aliases). USH values are never substituted.
+ * panels, Drag & Drop) or has no such restriction (drawer style groups, Syntesi, countertop
+ * fallbacks, vessel compatibility, material aliases). USH values are never substituted.
  */
 export type ProfileRuleData = {
   cabinetMatrixLegacyAdapter: CabinetMatrixLegacyAdapter;
@@ -334,6 +351,7 @@ export type ProfileRuleData = {
   materialNormalization?: MaterialNormalizationRuleData;
   vesselCompatibility?: VesselCompatibilityRuleData;
   cabinetColorTraits?: CabinetColorTraitsRuleData;
+  dragDrop?: DragDropRuleData;
 };
 
 /** Stable reason codes -> legacy English fallback. B owns display and translation. */

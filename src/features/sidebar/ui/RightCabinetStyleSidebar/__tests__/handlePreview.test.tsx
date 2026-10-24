@@ -16,6 +16,7 @@ import {
   reset,
   setActiveCabinetType,
   setActiveProfile,
+  setSelectedDimensions,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
@@ -77,5 +78,42 @@ describe("an Urban Low Height cabinet placed in an empty builder", () => {
       expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_urban_topcut"),
     );
     expect(previewSrc()).toBe("https://app.test/collections/urban-low-height/images/handle/UpperGHandle.png");
+  });
+});
+
+describe("an Urban Low Height Slim cabinet", () => {
+  beforeEach(() => {
+    store.dispatch(setActiveProfile(ulhProfile));
+    store.dispatch(setActiveCollectionId("urban-low-height"));
+  });
+
+  const renderUlh = () =>
+    renderWithUshCollection(<RightCabinetStyleSidebar />, {
+      initialPath: "/?collectionId=urban-low-height",
+      data: buildReadyCollection("urban-low-height", ulhManifest, ulhUi, ulhPresets),
+    });
+
+  it("shows the Slim upper-groove handle at the Slim height", () => {
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_urban_topcut" }));
+    store.dispatch(setSelectedDimensions({ height: 28 }));
+    renderUlh();
+
+    expect(previewSrc()).toBe("https://app.test/collections/urban-low-height/images/handle/UpperGHandle-slim.png");
+  });
+
+  it("shows the Slim push-to-open handle at the Slim push-to-open height", () => {
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
+    store.dispatch(setSelectedDimensions({ height: 25 }));
+    renderUlh();
+
+    expect(previewSrc()).toBe("https://app.test/collections/urban-low-height/images/handle/PTOHandle-slim.png");
+  });
+
+  it("keeps the handle picture of the taller model at its height", () => {
+    store.dispatch(setSelectedProductConfig({ Handle: "handle_pto" }));
+    store.dispatch(setSelectedDimensions({ height: 35 }));
+    renderUlh();
+
+    expect(previewSrc()).toBe("https://app.test/collections/urban-low-height/images/handle/PTOHandle.png");
   });
 });

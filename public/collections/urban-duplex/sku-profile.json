@@ -380,7 +380,8 @@
     "thicknessIn": 0.5,
     "materialSkus": ["FX", "HPL", "POR", "SSTL"],
     "colorAttributeId": "CountertopColor",
-    "defaultColorAttributeId": "LateralPanelColor"
+    "defaultColorAttributeId": "LateralPanelColor",
+    "flows": ["prebuilt", "custom"]
   },
   "dividers": {},
   "gaps": [

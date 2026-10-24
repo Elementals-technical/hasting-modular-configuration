@@ -315,8 +315,8 @@ export function Player({
             text: (
               <>
                 Share your design configuration through the <em>How to Buy</em> form on the{" "}
-                <Link to={summaryViewPath ?? "#"}>Summary View page</Link>. Our team receives your design and reaches out
-                within 24 hours to get the ball rolling.
+                <Link to={summaryViewPath ?? "#"}>Summary View page</Link>. Our team receives your design and reaches
+                out within 24 hours to get the ball rolling.
               </>
             ),
           },
@@ -403,6 +403,8 @@ export function Player({
       },
     },
   ];
+
+  console.log("player");
 
   return (
     <div className={`${s.player} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>

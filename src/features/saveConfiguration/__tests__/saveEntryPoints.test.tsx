@@ -21,6 +21,7 @@ import { store } from "@/app/store";
 import type { SceneLayout } from "@/entities/configuration";
 import {
   finishRestore,
+  getActiveProductProfile,
   resetConfiguration,
   setActiveCollectionId,
   setAttributeValue,
@@ -172,7 +173,8 @@ describe("where the cabinets stood", () => {
 
     const request = await buildFrom("/custom/summary");
 
-    expect(captureFreeLayout).toHaveBeenCalledWith(USH);
+    // The active collection's profile decides whether it has a free layout (`ruleData.dragDrop`).
+    expect(captureFreeLayout).toHaveBeenCalledWith(getActiveProductProfile(store.getState()));
     expect(request?.metadata.sceneLayout).toEqual(layout);
   });
 

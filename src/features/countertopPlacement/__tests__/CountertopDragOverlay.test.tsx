@@ -59,7 +59,8 @@ const renderOverlay = (
   {
     pending = false,
     store = createCountertopOverlayStore(),
-  }: { pending?: boolean; store?: CountertopOverlayStore } = {},
+    movable = true,
+  }: { pending?: boolean; store?: CountertopOverlayStore; movable?: boolean } = {},
 ) => {
   store.set(frame);
   const props = {
@@ -72,6 +73,7 @@ const renderOverlay = (
   render(
     <CountertopDragOverlay
       store={store}
+      movable={movable}
       pending={pending}
       lengthLimitsM={{ minM: inches(36), maxM: inches(96) }}
       {...props}
@@ -93,6 +95,16 @@ describe("CountertopDragOverlay length chip", () => {
       "Discard countertop changes",
     ]);
     expect(screen.queryByRole("spinbutton")).toBeNull();
+  });
+
+  it.each([
+    ["under the top's lower edge", { x: 700, y: 450 }, "428px"],
+    ["below Apply / × when they stand under it", { x: 600, y: 425 }, "460px"],
+  ])("places the drag hint %s, centred on the top", (_, bottomRight, top) => {
+    const bounds = { left: 300, top: 380, right: 700, bottom: 420, width: 400, height: 40 };
+    renderOverlay(frameOf({ bounds, points: { ...frameOf().points, bottomRight } }));
+    const hint = screen.getByText("Drag the ends to change the length");
+    expect([hint.style.left, hint.style.top]).toEqual(["500px", top]);
   });
 
   it("fades the drag hint after COUNTERTOP_LENGTH_HINT_MS", () => {
@@ -228,6 +240,54 @@ describe("CountertopDragOverlay length popover", () => {
     cleanup();
     renderOverlay(frameOf({ dragging: true }));
     expect(chips().map((chip) => chip.hasAttribute("disabled"))).toEqual([true, true]);
+  });
+});
+
+describe("CountertopDragOverlay and the scene's Edit size button", () => {
+  const host = window as unknown as { containerRef?: { current: HTMLIFrameElement | null } };
+  const BOUNDS = { left: 300, top: 380, right: 700, bottom: 420, width: 400, height: 40 };
+
+  /** The scene's 40 px button centred at (500, 375): under the chip at (500, 350) and the marker at (500, 400). */
+  const mountButton = () => {
+    const iframe = document.createElement("iframe");
+    document.body.appendChild(iframe);
+    host.containerRef = { current: iframe };
+    const button = iframe.contentDocument?.createElement("button");
+    if (!button) throw new Error("jsdom gave the iframe no document");
+    button.className = "countertop-edit-size-button";
+    const rect = { left: 480, top: 355, right: 520, bottom: 395, width: 40, height: 40, x: 480, y: 355 };
+    button.getBoundingClientRect = () => ({ ...rect, toJSON: () => ({}) });
+    iframe.contentDocument?.body.appendChild(button);
+  };
+  const placeOf = (element: HTMLElement | null) => [element?.style.left, element?.style.top];
+  const marker = () => screen.getByTestId("countertop-drag-overlay").querySelector<HTMLElement>(":scope > span");
+  const hint = () => screen.getByText("Drag the ends to change the length");
+
+  afterEach(() => {
+    host.containerRef?.current?.remove();
+    delete host.containerRef;
+  });
+
+  it("moves the chip above a lifted top's button and the marker below it, the hint and popover with them", () => {
+    mountButton();
+    setCountertopRuntimeState({ readiness: "ready", productId: "top", attached: false, canResize: true });
+    renderOverlay(frameOf({ bounds: BOUNDS }));
+    const chip = screen.getByTestId("countertop-length-chip");
+    expect(placeOf(chip)).toEqual(["500px", "341px"]);
+    expect(placeOf(marker())).toEqual(["500px", "414px"]);
+    expect(placeOf(hint())).toEqual(["500px", "437px"]);
+    fireEvent.click(chip);
+    // Above the moved chip: 341 − 10 (half the chip) − 18 (gap) − 0 (jsdom's popover height).
+    expect(screen.getByRole("dialog", { name: "Countertop length" }).style.top).toBe("313px");
+  });
+
+  it("does not read the button while the top cannot be resized", () => {
+    mountButton();
+    setCountertopRuntimeState({ readiness: "ready", productId: "top", attached: true, canResize: false });
+    renderOverlay(frameOf({ attached: true, bounds: BOUNDS }));
+    expect(placeOf(screen.getByTestId("countertop-length-chip"))).toEqual(["500px", "350px"]);
+    expect(placeOf(marker())).toEqual(["500px", "400px"]);
+    expect(placeOf(hint())).toEqual(["500px", "428px"]);
   });
 });
 

@@ -4,29 +4,28 @@ import { buildFullDimensionsPayload, type FullDimensionsProduct } from "../refre
 
 const NO_PANELS = { left: "None", right: "None" };
 
-/** A placed product as `getConfig` answers for it: sizes in cm, positions in m. */
+/** A placed product as the scene answers for it: its config (`getConfig`, sizes in cm) and where its entity stands (m). */
 const product = (
   node: string,
-  config: { Width?: number; Height: number; Depth: number; positionX?: number; positionY?: number } & Record<
-    string,
-    unknown
-  >,
-): FullDimensionsProduct => ({ node, config: { Thickness: "0.5", ...config } });
+  config: { Width?: number; Height: number; Depth: number } & Record<string, unknown>,
+  positionM: { x: number; y: number } | null,
+): FullDimensionsProduct => ({ node, config: { Thickness: "0.5", ...config }, positionM });
 
 const labelSettings = { offset: 0.05, labelGap: "auto", labelPosition: "center", units: "in", decimals: 2 };
 
 // Urban Duplex #29 (Multi-level): the Sink Base hangs over the Side Cabinet, shifted as the lower row is.
-const udSink = { Width: 70, Height: 28, Depth: 50.5, positionX: 0.35, positionY: 0.28 };
-const udSide = { Width: 90, Height: 28, Depth: 50.5, positionX: 1, positionY: 0 };
-const udMultiLevel = [product("ud-sink", udSink), product("ud-side", udSide)];
+const udSink = { Width: 70, Height: 28, Depth: 50.5 };
+const udSide = { Width: 90, Height: 28, Depth: 50.5 };
+const udSinkAt = { x: 0.35, y: 0.28 };
+const udMultiLevel = [product("ud-sink", udSink, udSinkAt), product("ud-side", udSide, { x: 1, y: 0 })];
 
 describe("buildFullDimensionsPayload", () => {
   it("keeps today's payload for one level: the widths add up, the tallest cabinet, no line offsets", () => {
     // Urban Standard #29 as the scene lays it, 0.05 cm between the two cabinets.
     const payload = buildFullDimensionsPayload(
       [
-        product("Sink-Base-a", { Width: 80, Height: 56, Depth: 50.5, positionX: 0, positionY: 0 }),
-        product("Sink-Base-b", { Width: 80, Height: 56, Depth: 50.5, positionX: 0.8005000297688529, positionY: 0 }),
+        product("Sink-Base-a", { Width: 80, Height: 56, Depth: 50.5 }, { x: 0, y: 0 }),
+        product("Sink-Base-b", { Width: 80, Height: 56, Depth: 50.5 }, { x: 0.8005000297688529, y: 0 }),
       ],
       { sidePanels: NO_PANELS, countertopThickness: "0.5", unit: "in" },
     );
@@ -50,8 +49,8 @@ describe("buildFullDimensionsPayload", () => {
     // Urban Duplex #8: the Sink Base stands 3 cm higher than the Open Side Shelf next to it.
     const payload = buildFullDimensionsPayload(
       [
-        product("ud-sink", { Width: 70, Height: 53, Depth: 46, positionX: 0, positionY: 0.02999996367172897 }),
-        product("ud-shelf", { Width: 15, Height: 53, Depth: 46, positionX: 0.42550018328428263, positionY: 0 }),
+        product("ud-sink", { Width: 70, Height: 53, Depth: 46 }, { x: 0, y: 0.02999996367172897 }),
+        product("ud-shelf", { Width: 15, Height: 53, Depth: 46 }, { x: 0.42550018328428263, y: 0 }),
       ],
       { sidePanels: NO_PANELS, countertopThickness: "0.5", unit: "in" },
     );
@@ -81,9 +80,9 @@ describe("buildFullDimensionsPayload", () => {
     // Urban Low Height #46: the 120 cm Sink Base over two 80 cm Side Cabinets that start at 95 cm.
     const payload = buildFullDimensionsPayload(
       [
-        product("ulh-side-a", { Width: 80, Height: 38, Depth: 46, positionX: 1.35, positionY: -0.38 }),
-        product("ulh-side-b", { Width: 80, Height: 38, Depth: 46, positionX: 2.1505, positionY: -0.38 }),
-        product("ulh-sink", { Width: 120, Height: 38, Depth: 46, positionX: 0.6, positionY: 0 }),
+        product("ulh-side-a", { Width: 80, Height: 38, Depth: 46 }, { x: 1.35, y: -0.38 }),
+        product("ulh-side-b", { Width: 80, Height: 38, Depth: 46 }, { x: 2.1505, y: -0.38 }),
+        product("ulh-sink", { Width: 120, Height: 38, Depth: 46 }, { x: 0.6, y: 0 }),
       ],
       { sidePanels: NO_PANELS, countertopThickness: "0.5", unit: "in" },
     );
@@ -100,9 +99,9 @@ describe("buildFullDimensionsPayload", () => {
   it("levels cabinets by their bottom, so a tall cabinet beside a column does not merge its two levels", () => {
     const payload = buildFullDimensionsPayload(
       [
-        product("tall", { Width: 60, Height: 56, Depth: 50.5, positionX: 0.3, positionY: 0 }),
-        product("floor", { Width: 70, Height: 28, Depth: 50.5, positionX: 0.95, positionY: 0 }),
-        product("hanging", { Width: 70, Height: 28, Depth: 50.5, positionX: 0.95, positionY: 0.28 }),
+        product("tall", { Width: 60, Height: 56, Depth: 50.5 }, { x: 0.3, y: 0 }),
+        product("floor", { Width: 70, Height: 28, Depth: 50.5 }, { x: 0.95, y: 0 }),
+        product("hanging", { Width: 70, Height: 28, Depth: 50.5 }, { x: 0.95, y: 0.28 }),
       ],
       { sidePanels: NO_PANELS, countertopThickness: "0.5", unit: "in" },
     );
@@ -115,10 +114,11 @@ describe("buildFullDimensionsPayload", () => {
     ]);
   });
 
-  it("places a product at its position plus its SpatialOffsetM", () => {
-    const moved = product("ud-side", { ...udSide, SpatialOffsetM: { x: 0.1, y: 0, z: 0 } });
+  it("measures a cabinet off its laid-out place where it stands, without adding its SpatialOffsetM again", () => {
+    // The entity already stands at the laid-out place plus the offset.
+    const moved = product("ud-side", { ...udSide, SpatialOffsetM: { x: 0.1, y: 0, z: 0 } }, { x: 1.1, y: 0 });
 
-    const payload = buildFullDimensionsPayload([product("ud-sink", udSink), moved], {
+    const payload = buildFullDimensionsPayload([product("ud-sink", udSink, udSinkAt), moved], {
       sidePanels: NO_PANELS,
       countertopThickness: "0.5",
       unit: "in",
@@ -127,10 +127,34 @@ describe("buildFullDimensionsPayload", () => {
     expect(payload.box?.width).toEqual({ label: '61 "', offset: 0.05 });
   });
 
-  it("falls back to one level when a product has no position", () => {
-    const unplaced = product("ud-side", { ...udSide, positionY: undefined });
+  it("measures a resized cabinet where the scene shows it, not at the position its config was added with", () => {
+    // Urban Low Height #29 after Resize > Width of the Sink Base, 90 -> 105 cm: the scene laid it out at
+    // 0..105 cm, its entity at 52.5 cm, while its config kept positionX 0.45.
+    const payload = buildFullDimensionsPayload(
+      [
+        product(
+          "ulh-side",
+          { Width: 90, Height: 38, Depth: 46, positionX: 1.06, positionY: -0.38 },
+          { x: 1.06, y: -0.38 },
+        ),
+        product(
+          "ulh-shelf",
+          { Width: 60, Height: 38, Depth: 46, positionX: 1.811, positionY: -0.38 },
+          { x: 1.811, y: -0.38 },
+        ),
+        product("ulh-sink", { Width: 105, Height: 38, Depth: 46, positionX: 0.45, positionY: 0 }, { x: 0.525, y: 0 }),
+      ],
+      { sidePanels: NO_PANELS, countertopThickness: "0.5", unit: "in" },
+    );
 
-    const payload = buildFullDimensionsPayload([product("ud-sink", udSink), unplaced], {
+    // 211 cm, the box the scene measures; the config position gave 219 cm (86.2″).
+    expect(payload.box?.width).toEqual({ label: '83.1 "', offset: 0.05 });
+  });
+
+  it("falls back to one level when a product has no position", () => {
+    const unplaced = product("ud-side", udSide, null);
+
+    const payload = buildFullDimensionsPayload([product("ud-sink", udSink, udSinkAt), unplaced], {
       sidePanels: NO_PANELS,
       countertopThickness: "0.5",
       unit: "in",

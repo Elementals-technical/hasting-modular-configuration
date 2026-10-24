@@ -99,7 +99,9 @@ export {
   COUNTERTOP_RESIZE_STEP_M,
   COUNTERTOP_STANDARD_EPSILON_M,
   classifyCountertopError,
+  isCarriedWithoutHost,
   isLiftedCountertop,
+  isSinkOffSinkBase,
   isStandardCountertop,
 } from "./countertop";
 export { parseCabinetCoverSegments } from "./cabinetCover";

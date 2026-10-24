@@ -4,12 +4,9 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ConfiguratorClient } from "@/features/configuratorApi";
-import type { RuntimeBindingSet } from "@/entities/collection";
+import { isDragDropEnabled, parseProductProfile, type RuntimeBindingSet } from "@/entities/collection";
 import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
-import {
-  isDragDropCollection,
-  resolveCabinetDebugSelection,
-} from "../lib/resolveCabinetDebugSelection";
+import { resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
 
 const selection = {
   definitionId: "Example-side-cabinet",
@@ -693,6 +690,22 @@ describe("Cabinet drag and drop overlay", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(client.apply).not.toHaveBeenCalled();
 
+    // The separate countertop reason keeps the red overlay and blocks Apply too.
+    emit("cabinetPlacement.change", {
+      ...preview,
+      canApply: false,
+      collision: { status: "colliding", collidesWith: ["custom-top-id"] },
+      validation: { status: "invalid", reasons: [{ code: "COUNTERTOP_COLLISION", affectedProductIds: ["custom-top-id"] }] },
+    });
+    emitFrame(frame({ status: "colliding", collidesWith: ["custom-top-id"], canApply: false }));
+    expect(screen.getByTestId("cabinet-draft-overlay").dataset.status).toBe("colliding");
+    const blockedByTop = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect(blockedByTop.disabled).toBe(true);
+    expect(blockedByTop.title).toBe("This cabinet overlaps the countertop. Move it to a free spot to apply.");
+    expect(screen.getByText(/overlaps the countertop/)).toBeTruthy();
+    fireEvent.click(blockedByTop);
+    expect(client.apply).not.toHaveBeenCalled();
+
     // A corner at the viewport edge: Apply / discard stay on screen.
     emit("cabinetPlacement.change", preview);
     emitFrame(frame({ points: { ...frame().points, bottomRight: { x: 795, y: 598 } } }));
@@ -1131,11 +1144,22 @@ describe("Drag to Place on an empty composition", () => {
 });
 
 describe("Drag & Drop collections", () => {
-  it("enables cabinet/countertop Drag & Drop for ULH and Urban Duplex only", () => {
-    expect(isDragDropCollection("urban-low-height")).toBe(true);
-    expect(isDragDropCollection("urban-duplex")).toBe(true);
-    for (const id of ["urban-standard-height", "class", "mako", "", null, undefined]) {
-      expect(isDragDropCollection(id)).toBe(false);
-    }
+  const profiles = Object.values(
+    import.meta.glob("/public/collections/*/product-profile.json", { eager: true, import: "default" }),
+  ).map((document) => {
+    const parsed = parseProductProfile(document);
+    if (!parsed.ok) throw new Error("a shipped profile failed validation");
+    return parsed.profile;
+  });
+
+  it("enables cabinet/countertop Drag & Drop where the profile says so: ULH and Urban Duplex only", () => {
+    expect(profiles.length).toBeGreaterThanOrEqual(8);
+    expect(
+      profiles
+        .filter(isDragDropEnabled)
+        .map(({ collectionId }) => collectionId)
+        .sort(),
+    ).toEqual(["urban-duplex", "urban-low-height"]);
+    expect(isDragDropEnabled(null)).toBe(false);
   });
 });

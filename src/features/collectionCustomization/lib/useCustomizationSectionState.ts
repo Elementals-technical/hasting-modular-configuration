@@ -12,6 +12,7 @@ import {
   selectBookMatchingState,
   selectFlutingState,
   selectGrainDirectionState,
+  selectOptionImageContext,
 } from "@/entities/product/model/store/derivedSelectors";
 import {
   getActiveCountertopColor,
@@ -92,14 +93,26 @@ const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRul
 // The countertop colours the matrix makes at the current depth, widths and composition, as the USH
 // countertop screen enables them. Each option is judged by its own material, so a colour two
 // materials list (an MT lacquer, as Tekorlux and as Glass MT) is refused where only one of them is
-// made. The reason names the check every refused colour failed, or the selection when they differ.
+// made, and says the check its own material failed, as the USH screen says it: off its Sink Base a
+// glass colour is refused for the floating top while a Tekormud one is for the depth. The field's
+// reason names the check every refused colour failed, or the selection when they differ.
 const resolveCountertopColorAvailability = (
   profile: ProductProfile | null,
   configurator: ConfiguratorGroupCatalog | null,
   { materialRuleInputs }: CountertopRuleState,
 ): FieldAvailability => {
-  const judge = ({ traits }: FieldOptionState) =>
-    evaluateCountertopMaterial(traits?.materials ?? [], materialRuleInputs);
+  // The verdict depends on the materials alone: one judgement per material list, for every option that lists it.
+  const verdicts = new Map<string, ReturnType<typeof evaluateCountertopMaterial>>();
+  const judge = ({ traits }: FieldOptionState) => {
+    const materials = traits?.materials ?? [];
+    const key = materials.join("\u0000");
+    let verdict = verdicts.get(key);
+    if (!verdict) {
+      verdict = evaluateCountertopMaterial(materials, materialRuleInputs);
+      verdicts.set(key, verdict);
+    }
+    return verdict;
+  };
   const failures = new Set(
     resolveConfiguratorOptions(profile, "CountertopColor", configurator).flatMap(
       (option) => judge(option).failedBy ?? [],
@@ -110,6 +123,10 @@ const resolveCountertopColorAvailability = (
   return {
     available: true,
     isOptionAllowed: (option) => judge(option).isCompatible,
+    optionReason: (option) => {
+      const { failedBy } = judge(option);
+      return failedBy ? { reasonCode: REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] } : undefined;
+    },
     reasonCode:
       failures.size === 1 && failure
         ? REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failure]
@@ -311,12 +328,13 @@ const useSectionInputs = () => {
   // colours) is shown as the composition holds it; the typed options keep their own values.
   const values = useMemo(() => ({ ...compositionValues, ...productOptions }), [compositionValues, productOptions]);
   const availabilityResults = useFieldAvailabilityResults(configurator);
+  const imageContext = useAppSelector(selectOptionImageContext);
 
-  return { schema, configurator, profile, values, availabilityResults };
+  return { schema, configurator, profile, values, availabilityResults, imageContext };
 };
 
 export const useCustomizationStepSections = (stepId: string): ResolvedCustomizationSection[] => {
-  const { schema, configurator, profile, values, availabilityResults } = useSectionInputs();
+  const { schema, configurator, profile, values, availabilityResults, imageContext } = useSectionInputs();
 
   return useMemo(
     () =>
@@ -331,10 +349,18 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
             ...(section.labelWhenVessel ? { labelWhenVessel: section.labelWhenVessel } : {}),
             defaultOpen: section.defaultOpen ?? false,
             ...(section.fieldTabs ? { fieldTabs: section.fieldTabs } : {}),
-            fields: resolveSectionFields(schema, sectionId, profile, values, availabilityResults, configurator),
+            fields: resolveSectionFields(
+              schema,
+              sectionId,
+              profile,
+              values,
+              availabilityResults,
+              configurator,
+              imageContext,
+            ),
           },
         ];
       }),
-    [availabilityResults, configurator, values, profile, schema, stepId],
+    [availabilityResults, configurator, values, profile, schema, stepId, imageContext],
   );
 };

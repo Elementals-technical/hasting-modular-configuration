@@ -145,6 +145,7 @@ const shot = await ConfiguratorAPI.camera.hqSnapshot.capture('hero');
   quality: number,
   source: 'service',
   memoryGuard: object,
+  hiddenEntities: string[], // entity, яких немає в кадрі (hideEntities / includeRoom: false)
   dataUrl: string
 }
 ```
@@ -191,6 +192,31 @@ const shot = await ConfiguratorAPI.camera.hqSnapshot.captureCurrentView('page');
 - не застосовує fixed `azimuth/elevation`;
 - за замовчуванням зберігає aspect ratio поточного canvas;
 - захоплює видимі 3D dimension lines, якщо вони вже увімкнені в сцені.
+
+#### Без кімнати: `includeRoom: false` (Quote/PDF)
+
+Кімната сцени (`Room1_Point`: `Floor_R1`, `Wall_R1`) за замовчуванням потрапляє в кадр.
+Для зображення лише продукту передайте `includeRoom: false`, а для прозорого фону — `bg: null`:
+
+```javascript
+const shot = await ConfiguratorAPI.camera.captureCurrentViewHQSnapshot({
+  preset: 'page',
+  width: 3600,
+  height: 1784,
+  format: 'image/png',
+  bg: null,
+  ss: 1,
+  cameraFrame: false,
+  ssao: false,
+  includeRoom: false
+});
+```
+
+- `includeRoom` — опція bridge-адаптера (`bridge/adapters/camera.plugin.mjs`), не сервісу:
+  адаптер перетворює її на `hideEntities: ['Room1_Point']` (`ROOM_ROOT_NAME` з `domain/scene/room/room-offset.mjs`).
+- Кімната вимикається лише на кадри рендеру знімка й вмикається одразу після readback,
+  тому у вʼюпорті вона зникає приблизно на 2 кадри.
+- У білдах без кімнати опція нічого не змінює.
 
 ### downloadCurrentViewHQSnapshot(presetOrOptions, filename)
 
@@ -377,6 +403,8 @@ await ConfiguratorAPI.camera.captureHQSnapshot({
 | `superSample` | `number` | `0` | `0` означає auto |
 | `ss` | `number|null` | auto | Явний supersampling multiplier |
 | `aabbExclude` | `string[]` | `[]` | Імена entity, які не входять у framing AABB |
+| `hideEntities` | `string[]` | `[]` | Імена entity, які вимикаються на час одного знімка (напр. кімната) і вмикаються одразу після readback. Entity, вимкнені в сцені, не чіпаються |
+| `includeRoom` | `boolean` | `true` | Лише через `ConfiguratorAPI.camera.*`: `false` додає корінь кімнати в `hideEntities` |
 
 ## Як працює рендер
 
@@ -385,14 +413,14 @@ await ConfiguratorAPI.camera.captureHQSnapshot({
    - або entity з ім'ям `Camera`,
    - або першу активну camera component.
 2. Якщо на камері є `entity.script.hqSnapshot.capture()`, виклик делегується в цей script.
-3. Якщо script немає, сервіс створює clone камери.
+3. Якщо script немає, сервіс вимикає entity з `hideEntities` і створює clone камери.
 4. На clone вимикаються scripts, щоб orbit camera не перезаписувала позицію.
 5. Створюється `RenderTarget` з `samples: 1`.
 6. У `framed` mode сервіс рахує AABB тільки по enabled render/model components.
 7. У `framed` mode камера фреймиться по `azimuth/elevation/margin`.
 8. У `current` mode сервіс копіює поточну позицію/поворот камери й не змінює ракурс користувача.
 9. Сцена рендериться offscreen у supersampled resolution.
-10. Пікселі читаються через texture readback, перевертаються по Y і downscale-яться у фінальний canvas.
+10. Пікселі читаються через texture readback; entity з `hideEntities` одразу вмикаються назад; пікселі перевертаються по Y і downscale-яться у фінальний canvas.
 11. Результат повертається як `Blob` плюс lazy `dataUrl`.
 
 ## Інваріанти
@@ -482,7 +510,8 @@ await ConfiguratorAPI.camera.captureHQSnapshot({
 
 ### У framing потрапляє підлога/кімната/helper
 
-Додати entity names у `aabbExclude`:
+Щоб кімнати не було в самому зображенні, передайте `includeRoom: false` (або `hideEntities` з іменами).
+Щоб вона лише не впливала на framing у `framed` mode, додайте entity names у `aabbExclude`:
 
 ```javascript
 await ConfiguratorAPI.camera.captureHQSnapshot({

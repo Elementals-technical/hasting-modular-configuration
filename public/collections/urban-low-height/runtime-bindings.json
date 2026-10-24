@@ -157,8 +157,23 @@
     },
     {
       "attributeId": "DrawerPanelFluting",
-      "status": "state-only",
-      "reason": "A Low Height option, but the ULH scene products have no fluting rule yet; recorded for the rules and pricing only."
+      "status": "bound",
+      "target": {
+        "kind": "byFlow",
+        "prebuilt": {
+          "kind": "all"
+        },
+        "custom": {
+          "kind": "cabinets"
+        }
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "DrawerPanelFluting",
+        "emptyValue": "None"
+      },
+      "order": 50,
+      "note": "RuleOverlayFluting puts the pattern's normal and AO maps on ULH_Overlay_HNoCut / ULH_Overlay_HTopCut over CabinetColor; RuleHandleULHCabinet shows the overlay of the current handle (handle_pto: HNoCut, handle_urban_topcut: HTopCut) while a fluting is set, and None hides both. Prebuilt sends to every product, custom only to the placed cabinets, as Urban Standard Height; a cleared fluting (\"\") is sent as None."
     },
     {
       "attributeId": "HandleGrooveColor",

@@ -58,6 +58,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { selectCountertopCabinetCompositionConstraint } from "@/entities/product/model/store/derivedSelectors";
 import { useSinkBaseDimensions } from "@/shared/hooks/useSinkBaseDimensions";
+import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
 import { occupiedWidthCm, type PlacedWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { getIsActiveStyleSidebar, getPlacementButtonsVisible } from "@/features/sidebar/model/store/selectors";
 import { placementForPlus, plusFilterFor, rowEndSideOf } from "@/features/sidebar/lib/plusPlacement";
@@ -120,12 +121,14 @@ import {
   type CountertopState,
   type CountertopPlacementHandle,
 } from "@/features/countertopPlacement/ui/CountertopPlacementControls";
-import {
-  isDragDropCollection,
-  resolveCabinetDebugSelection,
-} from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
+import { resolveCabinetDebugSelection } from "@/features/cabinetPlacementDebug/lib/resolveCabinetDebugSelection";
 import { inCompositionOrder } from "@/features/cabinetPlacementDebug/lib/compositionOrder";
-import { createConfiguratorBridge, type CabinetsState, type ConfiguratorReceipt } from "@/features/configuratorApi";
+import {
+  createConfiguratorBridge,
+  isSinkOffSinkBase,
+  type CabinetsState,
+  type ConfiguratorReceipt,
+} from "@/features/configuratorApi";
 import { useSceneRoomCollection } from "@/features/playCanvasAdapter/lib/useSceneRoomCollection";
 import { setCabinetCoverRuntime } from "@/shared/lib/cabinetCoverRuntime";
 import { getCountertopRuntimeSize, setCountertopRuntimeSize } from "@/shared/lib/countertopRuntimeSize";
@@ -140,15 +143,19 @@ import {
 } from "@/features/countertopPlacement/ui/CountertopDragMode";
 import { useSinkLanding } from "@/features/countertopPlacement/lib/useSinkLanding";
 import { CountertopModeNotice } from "@/features/countertopPlacement/ui/CountertopModeNotice";
-import { reportSceneRefusal, SceneRefusalNotice } from "@/features/sceneRefusalNotice";
+import { reportAddRefusal, reportSceneRefusal, SceneRefusalNotice } from "@/features/sceneRefusalNotice";
 import { SinkLandingMessage } from "@/features/countertopPlacement/ui/SinkLandingMessage";
 import {
   buildCountertopPositionItems,
   isCountertopSettingsMode,
 } from "@/features/countertopPlacement/lib/positionMenuItems";
-import { buildCountertopResizeItems } from "@/features/countertopPlacement/lib/resizeMenuItems";
+import {
+  buildCountertopResizeItems,
+  buildCountertopThicknessItem,
+} from "@/features/countertopPlacement/lib/resizeMenuItems";
 import { resolveCountertopLengthLimitsIn } from "@/features/countertopPlacement/lib/countertopLength";
 import {
+  isDragDropEnabled,
   resolveCabinetTypeOfRuntimeId,
   selectMessageOr,
   selectOptions,
@@ -166,7 +173,9 @@ import {
   buildCountertopRuleState,
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
+  findThicknessOption,
   resolveMaxResizableCabinetWidthCm,
+  useCabinetRowCapacity,
   useCountertopLengthGuard,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -530,8 +539,12 @@ export const PlayCanvasIntegration = ({
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
-  // Cabinet & countertop Drag & Drop: ULH and Urban Duplex; other collections keep the classic menus.
-  const cabinetPlacementDebugEnabled = isDragDropCollection(activeCollectionId);
+  // Cabinet & countertop Drag & Drop where the collection's profile turns it on (`ruleData.dragDrop`); other
+  // collections keep the classic menus. Read from the collection, as its id was: Redux gets the profile one
+  // effect later, and a stale value would mount the Drag & Drop widgets for another collection.
+  const cabinetPlacementDebugEnabled = useActiveCollection((collection) =>
+    isDragDropEnabled(collection.catalog.productProfile),
+  );
   // Engineering tools of the Drag & Drop (Move selected, add side, Save/Restore JSON): ?placementDebug
   const cabinetPlacementDebugTools = new URLSearchParams(location.search).has("placementDebug");
   const cabinetPlacementRef = useRef<CabinetPlacementControls>(null);
@@ -648,6 +661,11 @@ export const PlayCanvasIntegration = ({
             productId: state.productId,
             compositionId: state.compositionId,
             lengthCm: Number((length * 100).toFixed(4)),
+            // Tandem vanities: each clone of the top on a sink base set apart is a countertop of its own.
+            tandemLengthsCm: (state.tandemTops ?? [])
+              .map(({ lengthM }) => lengthM)
+              .filter((lengthM): lengthM is number => typeof lengthM === "number" && Number.isFinite(lengthM) && lengthM > 0)
+              .map((lengthM) => Number((lengthM * 100).toFixed(4))),
           }
         : null,
     );
@@ -701,7 +719,12 @@ export const PlayCanvasIntegration = ({
       setCountertopRuntimeState(null);
     };
   }, [activeCollectionId, countertopPlacementStatus.supported, getCountertopApi, isPlayCanvasReady, offersCabinetCovers, publishCabinetCovers, publishCountertopSize]);
-  const countertopMovement = useCountertopMovementMode(getCountertopApi, isPlayCanvasReady);
+  // Only where Drag & Drop runs: nothing else moves a top, so nothing else needs it locked or corrected.
+  const countertopMovement = useCountertopMovementMode(
+    getCountertopApi,
+    isPlayCanvasReady && cabinetPlacementDebugEnabled,
+    activeProfile,
+  );
   const countertopMovementMode = countertopMovement.mode;
   const countertopLengthResizable = countertopMovement.lengthResizable;
   useEffect(() => {
@@ -844,6 +867,8 @@ export const PlayCanvasIntegration = ({
   const isStyleSidebarOpen = useAppSelector(getIsActiveStyleSidebar);
   const placementButtonsVisible = useAppSelector(getPlacementButtonsVisible);
   const lengthGuard = useCountertopLengthGuard(productIds, selectedDimensions.width ?? null);
+  // A cabinet may also go in a row the countertop does not rest on, judged by that row's own length.
+  const rowCapacity = useCabinetRowCapacity(lengthGuard);
   const sceneTotalWidth = lengthGuard.currentWithSp;
   const maxCountertopLength = lengthGuard.max;
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
@@ -1294,15 +1319,25 @@ export const PlayCanvasIntegration = ({
     if (!countertopCompositionConstraint.canAddCabinet) return false;
     if (!addableCabinetWidths.length) return false;
     if (remainingCountertopLength === null) return true;
-    return addableCabinetWidths.some((width) => width <= remainingCountertopLength + 0.01);
-  }, [addableCabinetWidths, countertopCompositionConstraint.canAddCabinet, remainingCountertopLength]);
+    return addableCabinetWidths.some((width) => rowCapacity.fits(null, width));
+  }, [addableCabinetWidths, countertopCompositionConstraint.canAddCabinet, remainingCountertopLength, rowCapacity]);
 
   const canDuplicateSelectedCabinet = useMemo(() => {
     if (!canAddAnotherCabinet) return false;
     if (remainingCountertopLength === null) return true;
     if (typeof selectedDimensions.width !== "number") return false;
-    return selectedDimensions.width <= remainingCountertopLength + 0.01;
-  }, [canAddAnotherCabinet, remainingCountertopLength, selectedDimensions.width]);
+    return rowCapacity.fits(cabinetTypeOf(selectedSceneProduct), selectedDimensions.width);
+  }, [
+    canAddAnotherCabinet,
+    cabinetTypeOf,
+    remainingCountertopLength,
+    rowCapacity,
+    selectedDimensions.width,
+    selectedSceneProduct,
+  ]);
+
+  // No Sink Base under the basin: the thicknesses that need one there are out.
+  const sinkOffSinkBase = useCountertopRuntimeValue(isSinkOffSinkBase);
 
   const ruleState = useMemo(
     () =>
@@ -1317,6 +1352,7 @@ export const PlayCanvasIntegration = ({
         activeBasinStyle,
         activeThickness: activeCountertopThickness ?? null,
         profile: activeProfile,
+        sinkOffSinkBase,
       }),
     [
       activeProfile,
@@ -1330,12 +1366,19 @@ export const PlayCanvasIntegration = ({
       selectedDimensions.depth,
       selectedDimensions.width,
       sceneTotalWidth,
+      sinkOffSinkBase,
     ],
   );
 
   const thicknessOptions = useMemo(
     () => Array.from(ruleState.allowedThicknesses).sort((a, b) => a - b),
     [ruleState.allowedThicknesses],
+  );
+  // Resize ▸ Thickness names a thickness as the collection's profile does (the Countertop step's label).
+  const countertopThicknessLabel = useCallback(
+    (thickness: number) =>
+      findThicknessOption(activeProfile, thickness)?.label ?? formatCountertopThicknessLabel(thickness),
+    [activeProfile],
   );
 
   const widthOptions = useMemo(() => {
@@ -2315,23 +2358,38 @@ export const PlayCanvasIntegration = ({
       config: { Height: sourceConfig?.Height, Handle: sourceConfig?.Handle },
     };
     setVisibleButtons(true, options);
-    // A row that holds columns shows only the "+" that fit the copy (a shelf never goes in a column).
-    setScenePlusFilter(plusFilterFor(cabinetTypeOf(sourceId), cabinetTypeOf, { columns: cabinetPlacementDebugEnabled }));
-  }, [cabinetPlacementDebugEnabled, cabinetTypeOf, canDuplicateSelectedCabinet, selectedSceneProduct]);
+    // A row that holds columns shows only the "+" that fit the copy (a shelf never goes in a column), and
+    // only by a row with room for it; so do the row ends of a composition in rows (ULH).
+    const copyWidths = typeof selectedDimensions.width === "number" ? [selectedDimensions.width] : null;
+    setScenePlusFilter(
+      plusFilterFor(cabinetTypeOf(sourceId), cabinetTypeOf, {
+        columns: cabinetPlacementDebugEnabled,
+        fits: (plus) => rowCapacity.allowsPlus(plus, cabinetTypeOf(sourceId), copyWidths),
+      }),
+    );
+  }, [
+    cabinetPlacementDebugEnabled,
+    cabinetTypeOf,
+    canDuplicateSelectedCabinet,
+    rowCapacity,
+    selectedDimensions.width,
+    selectedSceneProduct,
+  ]);
 
   useEffect(() => {
     if (!duplicateSourceId) return;
 
     const onPlusClick = async (entityId: string, side: ScenePlusKind) => {
       try {
-        // A cabinet under a hanging one does not lengthen the countertop above it.
-        if (
-          side !== "bottom" &&
-          maxCountertopLength !== null &&
-          sceneTotalWidth !== null &&
-          typeof selectedDimensions.width === "number" &&
-          sceneTotalWidth + selectedDimensions.width > maxCountertopLength + 0.01
-        ) {
+        // The row the copy goes in decides: the countertop's by its remaining length, a row the countertop
+        // does not rest on by its own length, a column's bottom place (under a hanging cabinet) by none.
+        const check = rowCapacity.checkPlus(
+          { cabinetId: entityId, kind: side },
+          cabinetTypeOf(duplicateSourceId),
+          typeof selectedDimensions.width === "number" ? [selectedDimensions.width] : null,
+        );
+        if (check.status === "refused") {
+          reportAddRefusal(check.reason);
           return;
         }
 
@@ -2410,10 +2468,9 @@ export const PlayCanvasIntegration = ({
     composition,
     dispatch,
     duplicateSourceId,
-    maxCountertopLength,
     resolveProductTypeFromId,
+    rowCapacity,
     runStep,
-    sceneTotalWidth,
     selectedDimensions.width,
     selectedProductConfig,
     productIds,
@@ -2475,42 +2532,6 @@ export const PlayCanvasIntegration = ({
     if (countertopCompositionConstraint.isSingleCabinetOnly) return;
     handleOpenCustomizeModePrompt("duplicate");
   }, [countertopCompositionConstraint.isSingleCabinetOnly, handleOpenCustomizeModePrompt]);
-
-  const handleCountertopColorFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["countertop-color"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
-
-  const handleCountertopThicknessFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["countertop-thickness"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
-
-  const handleCountertopStyleFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["countertop-style"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
-
-  const handleBasinStyleFromPrebuilt = useCallback(() => {
-    navigateToTarget(menuSupport.targets["basin-style"]);
-    closeCanvasFullMode();
-    getSelectTool()?.deselectAll();
-    setVesselBasinSelectionInfo(null);
-    setDropdownState((prev) => ({ ...prev, visible: false }));
-    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
-  }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
   /** Swaps cabinets in order, as one step of the history; stops at the first swap the scene refuses. */
   const handleSwapProducts = useCallback(
@@ -3794,12 +3815,17 @@ export const PlayCanvasIntegration = ({
       },
       countertopMovementMode,
     );
-    // Resize ▸ Thickness | Length: Length opens the Drag & Drop overlay with the top's body held in place.
-    const resizeItems = (thickness: DropdownItem) =>
-      buildCountertopResizeItems(thickness, countertopDragStatus, countertopLengthResizable, () => {
+    // Resize ▸ Thickness | Length: Thickness changes the top in place in both flows; Length opens the
+    // Drag & Drop overlay with the top's body held in place.
+    const resizeItems = buildCountertopResizeItems(
+      buildCountertopThicknessItem(thicknessOptions, handleCountertopThicknessSelect, countertopThicknessLabel),
+      countertopDragStatus,
+      countertopLengthResizable,
+      () => {
         closeCountertopMenus();
         countertopDragRef.current?.enterLength();
-      });
+      },
+    );
     const placementItems: DropdownItem[] = countertopSettingsMode && countertopPlacementStatus.supported
       ? [
           {
@@ -3815,37 +3841,7 @@ export const PlayCanvasIntegration = ({
           },
         ]
       : [];
-    if (isPrebuilt) {
-      return [
-        ...placementItems,
-        {
-          id: "countertop-color",
-          label: "Color",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleCountertopColorFromPrebuilt,
-        },
-        ...resizeItems({
-          id: "countertop-thickness",
-          label: "Thickness",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleCountertopThicknessFromPrebuilt,
-        }),
-        {
-          id: "countertop-style",
-          label: "Countertop Style",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleCountertopStyleFromPrebuilt,
-        },
-        {
-          id: "basin-style",
-          label: "Basin Style",
-          trailing: <ArrowTopRight color={"#333"} />,
-          onClick: handleBasinStyleFromPrebuilt,
-        },
-        ...positionItems,
-      ];
-    }
-
+    // One menu in both flows; each "Select …" opens the step of the flow the menu is opened in.
     return [
       ...placementItems,
       {
@@ -3860,18 +3856,7 @@ export const PlayCanvasIntegration = ({
           },
         ],
       },
-      ...resizeItems({
-        id: "countertop-thickness",
-        label: "Thickness",
-        children: thicknessOptions.map((value) => {
-          const label = formatCountertopThicknessLabel(value) ?? String(value);
-          return {
-            id: label,
-            label,
-            onClick: () => handleCountertopThicknessSelect(value),
-          };
-        }),
-      }),
+      ...resizeItems,
       {
         id: "countertop-style",
         label: "Countertop Style",
@@ -3904,15 +3889,11 @@ export const PlayCanvasIntegration = ({
     countertopLengthResizable,
     countertopMovementMode,
     countertopSettingsMode,
-    isPrebuilt,
+    countertopThicknessLabel,
     handleOpenBasinStyle,
     handleOpenCountertopColor,
     handleOpenCountertopStyle,
     handleCountertopThicknessSelect,
-    handleCountertopColorFromPrebuilt,
-    handleCountertopThicknessFromPrebuilt,
-    handleCountertopStyleFromPrebuilt,
-    handleBasinStyleFromPrebuilt,
     thicknessOptions,
   ]);
   const countertopPopoverItems = useMemo(

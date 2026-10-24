@@ -41,6 +41,8 @@ export type CameraHQSnapshotOptions = {
   superSample?: number;
   ss?: number | null;
   aabbExclude?: string[];
+  /** `false` leaves the scene room (walls, floor) out of the frame. Builds before room hiding ignore it. */
+  includeRoom?: boolean;
   [key: string]: unknown;
 };
 
@@ -52,6 +54,8 @@ export type CameraHQSnapshotResult = {
   quality?: number;
   source?: string;
   dataUrl?: string;
+  /** Entities left out of the frame (e.g. the room); missing in builds before room hiding. */
+  hiddenEntities?: string[];
   memoryGuard?: {
     profile: "ios" | "mobile" | "desktop";
     adjusted: boolean;
