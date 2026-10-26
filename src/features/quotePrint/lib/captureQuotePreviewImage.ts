@@ -1,4 +1,4 @@
-import { captureScreenshotWithOptions } from "@/utils/functions/playcanvas/captureScreenshot";
+import { captureSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 
 export const QUOTE_PREVIEW_CAMERA_RESTORED_EVENT = "quote-preview-camera-restored";
 
@@ -6,18 +6,11 @@ let activeQuotePreviewCaptureCount = 0;
 
 export const getActiveQuotePreviewCaptureCount = () => activeQuotePreviewCaptureCount;
 
-const QUOTE_PREVIEW_DISPLAY_SIZE = {
-  width: 900,
-  height: 446,
-} as const;
-
+// The PDF hero slot is 900x446 CSS px; rendering 4x keeps the picture sharp when the PDF is zoomed.
 const QUOTE_PREVIEW_SCALE = 4;
-const QUOTE_PREVIEW_HQ_SOURCE_SIZE = 4096;
-const QUOTE_PREVIEW_CONTENT_PADDING_RATIO = 0.04;
-
 const QUOTE_PREVIEW_SIZE = {
-  width: QUOTE_PREVIEW_DISPLAY_SIZE.width * QUOTE_PREVIEW_SCALE,
-  height: QUOTE_PREVIEW_DISPLAY_SIZE.height * QUOTE_PREVIEW_SCALE,
+  width: 900 * QUOTE_PREVIEW_SCALE,
+  height: 446 * QUOTE_PREVIEW_SCALE,
 } as const;
 
 const RENDER_SETTLE_FRAMES = 2;
@@ -34,23 +27,10 @@ export const captureQuotePreviewImage = async () => {
   try {
     await waitForAnimationFrames(RENDER_SETTLE_FRAMES);
 
-    return await captureScreenshotWithOptions({
-      includeLogo: false,
-      hqSnapshotOptions: {
-        out: QUOTE_PREVIEW_HQ_SOURCE_SIZE,
-        ss: 1,
-        cameraFrame: false,
-        ssao: false,
-        // Product only: no room behind it and a transparent background around it,
-        // so the crop follows the product's own alpha.
-        includeRoom: false,
-        bg: null,
-      },
-      outputSize: QUOTE_PREVIEW_SIZE,
-      renderSourceAtOutputSize: true,
-      transparentBackground: true,
-      transparentContentPaddingRatio: QUOTE_PREVIEW_CONTENT_PADDING_RATIO,
-    });
+    // Same render as the "Image" download button, room included, with three changes for the PDF:
+    // no logo or footer (the page has its own header), the slot's size, and the camera brought
+    // up to the product so it fills the slot at full resolution.
+    return await captureSceneImage({ includeBranding: false, outputSize: QUOTE_PREVIEW_SIZE, fitToProduct: true });
   } finally {
     activeQuotePreviewCaptureCount = Math.max(activeQuotePreviewCaptureCount - 1, 0);
     if (typeof window !== "undefined") {

@@ -43,6 +43,11 @@ export type CameraHQSnapshotOptions = {
   aabbExclude?: string[];
   /** `false` leaves the scene room (walls, floor) out of the frame. Builds before room hiding ignore it. */
   includeRoom?: boolean;
+  /**
+   * `true` keeps the current camera angle and moves the camera so the product fills the frame;
+   * the room stays in the picture. Builds before it ignore it and keep the camera as it is.
+   */
+  fitToProduct?: boolean;
   [key: string]: unknown;
 };
 
@@ -56,6 +61,8 @@ export type CameraHQSnapshotResult = {
   dataUrl?: string;
   /** Entities left out of the frame (e.g. the room); missing in builds before room hiding. */
   hiddenEntities?: string[];
+  /** True when `fitToProduct` moved the camera to the product; missing in builds before it. */
+  fittedToContent?: boolean;
   memoryGuard?: {
     profile: "ios" | "mobile" | "desktop";
     adjusted: boolean;
