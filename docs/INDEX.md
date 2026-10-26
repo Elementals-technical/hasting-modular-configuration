@@ -6,6 +6,14 @@ The documents under `docs/`, in the order they are meant to be read, each with w
 provenance: they say what was true when they were written and are not kept in sync with the
 product.
 
+## Workspace context
+
+- [HASTINGS-SOLUTIONS project map](../../../PROJECT-MAP.md) — portfolio boundaries and shared product knowledge.
+- [MODULAR project map](../../PROJECT-MAP.md) — component ownership, integration boundaries and documentation routes.
+- [Repository instructions](../AGENTS.md) — starting points and scope for work in this checkout.
+
+These links use the current portfolio layout; the maps live outside this Git repository.
+
 ## Maintained
 
 - [`products/`](products/README.md) — The maintained description of the collections.
@@ -20,6 +28,8 @@ product.
 - [`countertop-position-ui.md`](countertop-position-ui.md) — How the countertop Position control behaves.
 
 ## Records
+
+- [`ecosystem-map.md`](ecosystem-map.md) — Карта чотирьох робочих папок Hastings: відповідальність, інтеграції, передача даних, runtime/export boundaries та підтверджені розбіжності версій. Знімок локального стану на 2026-10-22.
 
 ### Collection-data migration
 
