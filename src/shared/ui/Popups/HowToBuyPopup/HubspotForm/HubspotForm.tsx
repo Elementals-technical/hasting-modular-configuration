@@ -4,6 +4,7 @@ import "./hubspot-forms.css";
 
 type HubspotCallback = (...args: unknown[]) => void;
 type HubspotHiddenFields = Record<string, string | null | undefined>;
+export type HubspotSubmissionValues = Readonly<Partial<Record<string, string>>>;
 
 type HubspotFormProps = {
   portalId: string;
@@ -12,7 +13,7 @@ type HubspotFormProps = {
   redirectUrl?: string;
   onFormReady?: HubspotCallback;
   onFormSubmit?: HubspotCallback;
-  onFormSubmitted?: HubspotCallback;
+  onFormSubmitted?: (submissionValues: HubspotSubmissionValues) => void;
   customStyle?: boolean;
   customCss?: string;
   hiddenFields?: HubspotHiddenFields;
@@ -41,6 +42,7 @@ type HubspotMessage = {
   type?: string;
   id?: string;
   eventName?: string;
+  data?: unknown;
 };
 
 declare global {
@@ -51,6 +53,19 @@ declare global {
 
 const isHubspotMessage = (value: unknown): value is HubspotMessage => {
   return typeof value === "object" && value !== null && "type" in value;
+};
+
+const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+// HubSpot passes `{ redirectUrl, submissionValues }` with onFormSubmitted: as the embed callback's second
+// argument and as `data` of the hsFormCallback message.
+const readSubmissionValues = (data: unknown): HubspotSubmissionValues => {
+  if (!isPlainRecord(data) || !isPlainRecord(data.submissionValues)) return {};
+
+  return Object.fromEntries(
+    Object.entries(data.submissionValues).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+  );
 };
 
 const escapeAttributeValue = (value: string) => value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
@@ -120,7 +135,7 @@ const HubspotForm = ({
       if (event.data.eventName === "onFormSubmitted" && !formSubmittedRef.current) {
         formSubmittedRef.current = true;
         syncHubspotFieldValues(formRef.current, hiddenFieldsRef.current);
-        callbacksRef.current.onFormSubmitted?.();
+        callbacksRef.current.onFormSubmitted?.(readSubmissionValues(event.data.data));
       }
     };
 
@@ -200,7 +215,7 @@ const HubspotForm = ({
         if (formSubmittedRef.current) return;
         formSubmittedRef.current = true;
         syncHubspotFieldValues(formRef.current, hiddenFieldsRef.current);
-        callbacksRef.current.onFormSubmitted?.(...args);
+        callbacksRef.current.onFormSubmitted?.(readSubmissionValues(args[1]));
       };
 
       try {

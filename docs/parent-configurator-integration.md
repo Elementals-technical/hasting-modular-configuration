@@ -326,6 +326,46 @@ Every saved modular configuration must include:
 
 Do not add `mode=custom|prebuilt` to the public URL. It duplicates data and can drift from the saved configuration.
 
+## postMessage events for parent GTM
+
+Modular sends activity events to the parent page with `window.parent.postMessage(message, targetOrigin)`. The parent's GTM listener routes them to Meta (Pixel and Conversions API). Each message is a plain object. Nothing is sent when the configurator is not inside an iframe. Code: `src/shared/lib/analytics/parentPageEvents.ts`.
+
+Every message has these fields:
+
+| Field      | Value                                                                           |
+| ---------- | ------------------------------------------------------------------------------- |
+| `source`   | `"hastings_configurator"`                                                       |
+| `event`    | One of the events below                                                         |
+| `event_id` | `hb_<timestamp ms>_<5 chars [0-9a-z]>`, unique per message (Meta deduplication) |
+| `flow`     | `"prebuilt"` or `"create_your_own"`                                             |
+| `product`  | `"urban_standard_height"`                                                       |
+
+| `event`                          | Fires                                                                                                                          | Extra fields                                                                                              | targetOrigin                        |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `configurator_next_click`        | The "Next: …" button in the bottom bar or the → arrow in the step header, when there is a next step                            | `step`: number of the step the user is leaving                                                            | `"*"`                               |
+| `configurator_quote_download`    | Right after the quote PDF is handed to the browser for download, from any Quote button. A cancelled save dialog is not visible | —                                                                                                         | `"*"`                               |
+| `configurator_how_to_buy_submit` | After HubSpot accepts the How to Buy form (`onFormSubmitted`), not on the button click                                         | `email`, `phone`, `first_name`, `last_name` from the form's `submissionValues`; a blank field is left out | An allowed parent origin, see below |
+
+| `step` | Prebuilt                           | Create your own    |
+| ------ | ---------------------------------- | ------------------ |
+| 1      | Model (also `/prebuilt/model/:id`) | Cabinet Builder    |
+| 2      | Color                              | Color              |
+| 3      | Countertop & Basin                 | Countertop & Basin |
+| 4      | Accessories                        | Accessories        |
+| 5      | Faucet Details                     | Faucet Details     |
+
+`configurator_how_to_buy_submit` carries contact details, so it is posted only to `https://hastingsbathcollection.com`, `https://www.hastingsbathcollection.com` or `https://info.hastingsbathcollection.com`. Modular takes the first allowed origin among `location.ancestorOrigins[0]`, `document.referrer` and `hostUrl`. The browser then delivers the message only if that origin is the real parent's. On any other parent, including the HubSpot sandbox (`https://www-hastingsbathcollection-com.sandbox.hs-sites.com`), the event is not sent and the iframe console shows a warning without the contact data.
+
+The parent listener should check both the sender and the source, and must be attached before the user can click: there is no queue.
+
+```js
+window.addEventListener("message", (event) => {
+  if (event.origin !== "https://hastings-modular.vivid3d.tech") return;
+  if (event.data?.source !== "hastings_configurator") return;
+  // route event.data to Meta
+});
+```
+
 ## Deployment requirements
 
 Both projects must be deployed together:

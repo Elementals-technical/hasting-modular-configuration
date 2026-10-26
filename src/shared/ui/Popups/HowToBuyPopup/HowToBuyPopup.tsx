@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState, type UIEvent } from "react";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
 
-import HubspotForm from "./HubspotForm/HubspotForm";
+import HubspotForm, { type HubspotSubmissionValues } from "./HubspotForm/HubspotForm";
 import styles from "./HowToBuyPopup.module.scss";
 
 const IMAGES = [
@@ -84,7 +84,7 @@ type HowToBuyPopupProps = {
   isConfigurationLoading?: boolean;
   configurationError?: string | null;
   onRetryConfiguration?: () => void;
-  onFormSubmitted?: () => void;
+  onFormSubmitted?: (submissionValues: HubspotSubmissionValues) => void;
 };
 
 export default function HowToBuyPopup({

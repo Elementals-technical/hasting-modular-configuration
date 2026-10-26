@@ -5,6 +5,7 @@ import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft.tsx";
 import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { trackConfiguratorNextClick } from "@/shared/lib/analytics/parentPageEvents";
 import { getSelectedProducts } from "@/entities/product/model/store/selectors";
 import { reset, resetCabinetBuilderBootstrap } from "@/entities/product/model/store/slice";
 
@@ -69,6 +70,7 @@ export const StepNavigationBar: React.FC<StepNavigationBarI> = ({ title, flow })
 
   const handleNavigateForward = () => {
     if (nextStep) {
+      trackConfiguratorNextClick({ flow, step: currentIndex + 1 });
       closeDrawerInteraction();
 
       navigate(nextStep.path);

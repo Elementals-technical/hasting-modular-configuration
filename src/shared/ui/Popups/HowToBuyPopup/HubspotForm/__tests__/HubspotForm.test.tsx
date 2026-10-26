@@ -2,12 +2,13 @@
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import HubspotForm from "../HubspotForm";
+import HubspotForm, { type HubspotSubmissionValues } from "../HubspotForm";
 
 type HubspotCreateConfig = {
   target: string;
   onFormReady?: () => void;
   onFormSubmit?: () => void;
+  onFormSubmitted?: (...args: unknown[]) => void;
 };
 
 const renderHubspotFields = (config: HubspotCreateConfig) => {
@@ -116,5 +117,79 @@ describe("HubspotForm", () => {
 
     expect(configurationId?.value).toBe("config-456");
     expect(configurationUrl?.value).toBe("https://example.test/config?configId=config-456");
+  });
+
+  const renderReadyForm = async (onFormSubmitted: (submissionValues: HubspotSubmissionValues) => void) => {
+    render(<HubspotForm portalId="21569224" formId="form-id" onFormSubmitted={onFormSubmitted} />);
+
+    await act(async () => {
+      await Promise.resolve();
+      vi.advanceTimersByTime(300);
+    });
+  };
+
+  // jsdom delivers window.postMessage through a timer, and this suite fakes timers.
+  const dispatchHubspotMessage = (data: unknown) => {
+    act(() => {
+      window.dispatchEvent(new MessageEvent("message", { data }));
+    });
+  };
+
+  it("passes the submitted string values from the embed callback", async () => {
+    const onFormSubmitted = vi.fn();
+    await renderReadyForm(onFormSubmitted);
+
+    act(() => {
+      createdConfig?.onFormSubmitted?.(document.querySelector("form"), {
+        redirectUrl: "",
+        submissionValues: { firstname: "Test", email: "qa@example.com", tags: ["a"], count: 1 },
+      });
+    });
+
+    expect(onFormSubmitted.mock.calls).toStrictEqual([[{ firstname: "Test", email: "qa@example.com" }]]);
+  });
+
+  it("passes the submitted values from the hsFormCallback message", async () => {
+    const onFormSubmitted = vi.fn();
+    await renderReadyForm(onFormSubmitted);
+
+    dispatchHubspotMessage({
+      type: "hsFormCallback",
+      eventName: "onFormSubmitted",
+      id: "form-id",
+      data: { redirectUrl: "", submissionValues: { lastname: "Buyer", phone: "+1 555 0100" } },
+    });
+
+    expect(onFormSubmitted.mock.calls).toStrictEqual([[{ lastname: "Buyer", phone: "+1 555 0100" }]]);
+  });
+
+  it("reports one submission when both the embed callback and the message arrive", async () => {
+    const onFormSubmitted = vi.fn();
+    await renderReadyForm(onFormSubmitted);
+
+    act(() => {
+      createdConfig?.onFormSubmitted?.(document.querySelector("form"), {
+        submissionValues: { email: "qa@example.com" },
+      });
+    });
+    dispatchHubspotMessage({
+      type: "hsFormCallback",
+      eventName: "onFormSubmitted",
+      id: "form-id",
+      data: { submissionValues: { email: "qa@example.com" } },
+    });
+
+    expect(onFormSubmitted).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores another form's message and reports no values when HubSpot sends none", async () => {
+    const onFormSubmitted = vi.fn();
+    await renderReadyForm(onFormSubmitted);
+
+    dispatchHubspotMessage({ type: "hsFormCallback", eventName: "onFormSubmitted", id: "other-form", data: {} });
+    expect(onFormSubmitted).not.toHaveBeenCalled();
+
+    dispatchHubspotMessage({ type: "hsFormCallback", eventName: "onFormSubmitted", id: "form-id" });
+    expect(onFormSubmitted.mock.calls).toStrictEqual([[{}]]);
   });
 });
