@@ -101,6 +101,7 @@ temp/
 docs/*
 !docs/
 !docs/INDEX.md
+!docs/ecosystem-map.md
 !docs/parent-configurator-integration.md
 !docs/side-panel-logic.md
 !docs/side-panel-reasons-refactor.md
