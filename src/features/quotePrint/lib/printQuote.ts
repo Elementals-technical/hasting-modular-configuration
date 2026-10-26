@@ -1,6 +1,8 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+import { trackConfiguratorQuoteDownload } from "@/shared/lib/analytics/parentPageEvents";
+
 import { captureQuotePreviewImage } from "./captureQuotePreviewImage";
 import { formatQuoteGeneratedDate } from "./formatQuoteGeneratedDate";
 
@@ -106,6 +108,8 @@ const generateQuotePdf = async (options: PrintQuoteOptions = {}) => {
   const content = document.getElementById("quote-print-root") ?? document.getElementById("summary-content");
   if (!content) return;
 
+  // Read before the awaits below: the user can leave the summary page while the PDF renders.
+  const flow = window.location.pathname.includes("/custom") ? "custom" : "prebuilt";
   const previewImage = options.previewImage === undefined ? await captureQuotePreviewImage() : options.previewImage;
   const clone = content.cloneNode(true) as HTMLElement;
   applyQuotePreviewImage(clone, previewImage);
@@ -158,6 +162,7 @@ const generateQuotePdf = async (options: PrintQuoteOptions = {}) => {
     }
 
     pdf.save(buildFileName(options.fileName));
+    trackConfiguratorQuoteDownload({ flow });
   } catch (error) {
     console.error("[QuotePrint] Failed to generate PDF", error);
   } finally {

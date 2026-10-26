@@ -13,8 +13,13 @@ import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuo
 import HowToBuyPopup from "@/shared/ui/Popups/HowToBuyPopup/HowToBuyPopup";
 import { PortalBody } from "@/shared/ui/Popups/Portal/PortalBody";
 import { FileDollarIcon } from "@/shared/assets/images/svg/FileDollarIcon";
-import { useCurrentConfigurationLink, type CurrentConfigurationLink } from "@/features/saveConfiguration";
+import {
+  resolveHostUrl,
+  useCurrentConfigurationLink,
+  type CurrentConfigurationLink,
+} from "@/features/saveConfiguration";
 import { trackModularHowToBuyClick } from "@/shared/lib/analytics/modularKeyEvents";
+import { trackConfiguratorHowToBuySubmit, trackConfiguratorNextClick } from "@/shared/lib/analytics/parentPageEvents";
 
 const formatPrice = (value?: number | null) => {
   if (typeof value !== "number") return "$—";
@@ -114,6 +119,7 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
 
   const handleNavigate = () => {
     if (nextStep) {
+      trackConfiguratorNextClick({ flow, step: currentIndex + 1 });
       closeDrawerInteraction();
 
       navigate(nextStep?.path);
@@ -234,7 +240,10 @@ export const BottomStickyBar = ({ flow, nextButtonDataTarget }: BottomStickyBarP
         isConfigurationLoading={isPreparingHowToBuyConfiguration}
         configurationError={howToBuyConfigurationError}
         onRetryConfiguration={() => void prepareHowToBuyConfiguration()}
-        onFormSubmitted={() => setIsHowToBuyOpen(false)}
+        onFormSubmitted={(submissionValues) => {
+          trackConfiguratorHowToBuySubmit({ flow, submissionValues, hostUrl: resolveHostUrl() });
+          setIsHowToBuyOpen(false);
+        }}
       />
 
       {isQuoteDownloadModalOpen && (
