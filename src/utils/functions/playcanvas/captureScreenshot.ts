@@ -788,7 +788,7 @@ const PRODUCT_FIT_MARGIN = 1.05;
  * The scene picture behind the "Image" button: room, white background, 4096 px HQ render.
  * The quote PDF takes the same picture without the branding, sized to its slot.
  * @example captureSceneImageCanvas() // download: logo + footer, 2048 px wide
- * @example captureSceneImageCanvas({ includeBranding: false, outputSize: { width: 3600, height: 1784 }, fitToProduct: true })
+ * @example captureSceneImageCanvas({ includeBranding: false, outputSize: { width: 3368, height: 1788 }, fitToProduct: true })
  */
 const captureSceneImageCanvas = ({
   includeBranding = true,

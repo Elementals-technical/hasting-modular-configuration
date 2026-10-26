@@ -27,7 +27,7 @@ describe("captureQuotePreviewImage", () => {
 
     expect(captureSceneImage).toHaveBeenCalledWith({
       includeBranding: false,
-      outputSize: { width: 3600, height: 1784 },
+      outputSize: { width: 3368, height: 1788 },
       fitToProduct: true,
     });
     expect(image).toBe("data:image/png;base64,download");

@@ -6,11 +6,14 @@ let activeQuotePreviewCaptureCount = 0;
 
 export const getActiveQuotePreviewCaptureCount = () => activeQuotePreviewCaptureCount;
 
-// The PDF hero slot is 900x446 CSS px; rendering 4x keeps the picture sharp when the PDF is zoomed.
-const QUOTE_PREVIEW_SCALE = 4;
+// The PDF cover picture (.heroImage in QuotePrintDocument.module.scss) is 1684x894 CSS px: the full
+// page width, from the logo to the footer. printQuote rasterises each page at 2x (CANVAS_SCALE),
+// so 2x is every pixel the PDF keeps.
+const QUOTE_PREVIEW_SLOT = { width: 1684, height: 894 } as const;
+const QUOTE_PREVIEW_SCALE = 2;
 const QUOTE_PREVIEW_SIZE = {
-  width: 900 * QUOTE_PREVIEW_SCALE,
-  height: 446 * QUOTE_PREVIEW_SCALE,
+  width: QUOTE_PREVIEW_SLOT.width * QUOTE_PREVIEW_SCALE,
+  height: QUOTE_PREVIEW_SLOT.height * QUOTE_PREVIEW_SCALE,
 } as const;
 
 const RENDER_SETTLE_FRAMES = 2;
