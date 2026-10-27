@@ -173,11 +173,11 @@
           }
         },
         "unboundValues": {
-          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig from a cabinet the scene has not given its color yet. Accepted on readback, never sent."
+          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig from a cabinet placed before its color reached the scene. Accepted on readback, never sent."
         }
       },
       "order": 50,
-      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export. The 3 wood veneers are sent by their exact names: the export has had those materials since the 2026-10-15 build (re-checked in v74, 2026-10-27). Until 2026-10-27 they were pending (user decision, 2026-10-08) and the scene showed Antracite Matte OCF."
+      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export; the 3 wood-veneer assets are in the export under their exact catalog names since the 2026-10-15 export and are sent as they are."
     },
     {
       "attributeId": "HandleGrooveColor",
