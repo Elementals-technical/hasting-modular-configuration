@@ -3428,7 +3428,10 @@ export const PlayCanvasIntegration = ({
   const rawDropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
     const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
-    const canRepositionSelectedCabinet = orderedIds.length > 1 && !hideMultiCabinetActionsForSyntesi;
+    // The only cabinet has nothing to swap with, so it can be repositioned only where Drag & Drop moves it.
+    const canRepositionSelectedCabinet =
+      (orderedIds.length > 1 || (orderedIds.length === 1 && cabinetPlacementDebugEnabled)) &&
+      !hideMultiCabinetActionsForSyntesi;
 
     if (isPrebuilt) {
       if (isTowelBarEntity) {
@@ -3676,6 +3679,7 @@ export const PlayCanvasIntegration = ({
     return items;
   }, [
     repositionStatus,
+    cabinetPlacementDebugEnabled,
     cabinetTypeOf,
     handleDragReposition,
     handleRemoveProducts,
