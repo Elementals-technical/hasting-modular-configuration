@@ -38,14 +38,22 @@ describe("findThicknessOption", () => {
 });
 
 describe("canThicknessFloat", () => {
-  it("lets only the tops that lift carry a basin off its Sink Base", () => {
-    expect([0.375, 0.4, 0.5, 2.4, 4, 5.125, 5.5].filter((value) => canThicknessFloat(ulhProfile, value))).toEqual([
-      5.125, 5.5,
-    ]);
+  const thicknesses = [0.375, 0.4, 0.5, 2.4, 4, 5.125, 5.5];
+
+  it("lets only the tops that lift carry an integrated basin off its Sink Base", () => {
+    expect(thicknesses.filter((value) => canThicknessFloat(ulhProfile, value))).toEqual([5.125, 5.5]);
+    expect(thicknesses.filter((value) => canThicknessFloat(ulhProfile, value, "integrated"))).toEqual([5.125, 5.5]);
+  });
+
+  // Client rule 27.10: 4″ is available with a Vessel style countertop, or over an integrated basin in its Sink Base.
+  it("lets a 4″ top carry a vessel too", () => {
+    expect(thicknesses.filter((value) => canThicknessFloat(ulhProfile, value, "vessel"))).toEqual([4, 5.125, 5.5]);
+    expect(canThicknessFloat(ulhProfile, 4, " Vessel ")).toBe(true);
   });
 
   it("lets nothing float in a collection whose options declare no lift", () => {
     expect([0.5, 4, 5.125, 5.5].some((value) => canThicknessFloat(ushProfile, value))).toBe(false);
+    expect([0.5, 4, 5.125, 5.5].some((value) => canThicknessFloat(ushProfile, value, "vessel"))).toBe(false);
     expect(canThicknessFloat(null, 5.125)).toBe(false);
   });
 });

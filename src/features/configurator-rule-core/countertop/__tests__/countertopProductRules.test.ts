@@ -325,8 +325,9 @@ describe("material aliases", () => {
   });
 });
 
-// Client rule (22.10): off its Sink Base the basin rides a top that lifts only (5⅛″ or 5½″), whatever the basin.
-// What lifts is the collection's data: Urban Low Height's Thickness options declare `countertopLifts`.
+// Client rules: off its Sink Base the basin rides a top that lifts (5⅛″ or 5½″, 22.10), or a 4″ one under a vessel
+// (27.10). What may float is the collection's data: Urban Low Height's Thickness options declare `countertopLifts`
+// and, on 4″, `countertopCarriesVessel`.
 describe("a basin with no Sink Base under it", () => {
   const rules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable438));
   const ulhProfile: ProductProfile = (() => {
@@ -350,11 +351,18 @@ describe("a basin with no Sink Base under it", () => {
     ].sort((left, right) => left - right);
 
   // Table 438: HPL is 1/2", 4" or 5-1/8"; Porcelain 1/2", 2-3/8", 4" or 5-1/2".
-  it.each(["integrated", "vessel"])("keeps only the top that lifts over a %s sink off its Sink Base", (style) => {
-    expect(thicknessesOf("HPL", 46, style)).toEqual([0.5, 4, 5.125]);
-    expect(thicknessesOf("HPL", 46, style, true)).toEqual([5.125]);
-    expect(thicknessesOf("Porcelain", 46, style)).toEqual([0.5, 2.4, 4, 5.5]);
-    expect(thicknessesOf("Porcelain", 46, style, true)).toEqual([5.5]);
+  it("keeps only the top that lifts over an integrated sink off its Sink Base", () => {
+    expect(thicknessesOf("HPL", 46, "integrated")).toEqual([0.5, 4, 5.125]);
+    expect(thicknessesOf("HPL", 46, "integrated", true)).toEqual([5.125]);
+    expect(thicknessesOf("Porcelain", 46, "integrated")).toEqual([0.5, 2.4, 4, 5.5]);
+    expect(thicknessesOf("Porcelain", 46, "integrated", true)).toEqual([5.5]);
+  });
+
+  it("keeps the 4″ top as well over a vessel off its Sink Base", () => {
+    expect(thicknessesOf("HPL", 46, "vessel")).toEqual([0.5, 4, 5.125]);
+    expect(thicknessesOf("HPL", 46, "vessel", true)).toEqual([4, 5.125]);
+    expect(thicknessesOf("Porcelain", 46, "vessel")).toEqual([0.5, 2.4, 4, 5.5]);
+    expect(thicknessesOf("Porcelain", 46, "Vessel", true)).toEqual([4, 5.5]);
   });
 
   it("leaves a material with thin tops only no thickness there", () => {
@@ -379,10 +387,10 @@ describe("a basin with no Sink Base under it", () => {
     expect([...ushThicknesses]).toEqual([]);
   });
 
-  const colourOf = (material: string, depth: number, sinkOffSinkBase?: boolean) =>
+  const colourOf = (material: string, depth: number, sinkOffSinkBase?: boolean, activeCountertopStyle = "integrated") =>
     evaluateCountertopMaterial([material], {
       activeBasinStyle: null,
-      activeCountertopStyle: "integrated",
+      activeCountertopStyle,
       activeProfile: ulhProfile,
       cabinetCompositionCount: 1,
       countertopRules: rules,
@@ -399,6 +407,29 @@ describe("a basin with no Sink Base under it", () => {
     }
     for (const lifting of ["HPL", "Fenix", "Porcelain", "Tekorlux", "Ocritech"])
       expect(colourOf(lifting, 50.5, true)).toEqual({ isCompatible: true, failedBy: null });
+  });
+
+  it("judges a vessel off its Sink Base by its 4″ rows as well", () => {
+    // A material with a 4″ row only (no 5-1/8″ or 5-1/2″): a vessel may ride it off its Sink Base, an integrated basin not.
+    const fourOnly = [
+      { ...rules.find((rule) => rule.material === "HPL")!, material: "FourOnly", topThicknesses: ["4"] },
+    ];
+    const fourOnlyOf = (style: string) =>
+      evaluateCountertopMaterial(["FourOnly"], {
+        activeBasinStyle: null,
+        activeCountertopStyle: style,
+        activeProfile: ulhProfile,
+        cabinetCompositionCount: 1,
+        countertopRules: fourOnly,
+        depth: 46,
+        sinkBaseWidth: null,
+        sinkOffSinkBase: true,
+        totalWidth: null,
+      });
+    expect(fourOnlyOf("vessel")).toEqual({ isCompatible: true, failedBy: null });
+    expect(fourOnlyOf("integrated")).toEqual({ isCompatible: false, failedBy: "offSinkBase" });
+    // Thin-only materials stay out under a vessel too.
+    expect(colourOf("Glass", 50.5, true, "vessel")).toEqual({ isCompatible: false, failedBy: "offSinkBase" });
   });
 
   it("names the floating top before the depth for a material that lifts at no depth, the depth for one that lifts elsewhere", () => {

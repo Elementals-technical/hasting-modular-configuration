@@ -29,7 +29,7 @@ export type CountertopMaterialRuleInputs = {
   countertopRules: CountertopMatrixRule[];
   depth: number | null;
   sinkBaseWidth: number | null | undefined;
-  /** No Sink Base under the basin (`isSinkOffSinkBase`): only the rows of a top that floats count. */
+  /** No Sink Base under the basin (`isSinkOffSinkBase`): only the rows of a top that floats with this style count. */
   sinkOffSinkBase?: boolean;
   totalWidth: number | null | undefined;
 };
@@ -43,11 +43,12 @@ export const REASON_COUNTERTOP_MATERIAL_BY_FAILURE: Record<NonNullable<Counterto
   offSinkBase: "countertop.materialNotAvailableOffSinkBase",
 };
 
-// A row that makes a top which may carry its basin off the Sink Base: one of its thicknesses lifts.
-const offersFloatingTop = (rule: CountertopMatrixRule, profile: ProductProfile | null) =>
+// A row that makes a top which may carry its basin off the Sink Base: one of its thicknesses lifts, or carries a
+// vessel under the vessel style.
+const offersFloatingTop = (rule: CountertopMatrixRule, inputs: CountertopMaterialRuleInputs) =>
   rule.topThicknesses.some((raw) => {
     const thickness = parseThicknessValue(raw);
-    return thickness !== null && canThicknessFloat(profile, thickness);
+    return thickness !== null && canThicknessFloat(inputs.activeProfile, thickness, inputs.activeCountertopStyle);
   });
 
 /** The reason code of colours that failed different checks. */
@@ -72,12 +73,12 @@ export const evaluateCountertopMaterial = (
   const materialRules = inputs.countertopRules.filter((rule) =>
     materials.some((material) => materialMatchesRule(material, rule.material, aliasTable)),
   );
-  // A material none of whose tops lifts, at any depth, can never ride off its Sink Base: that is its reason
+  // A material none of whose tops floats, at any depth, can never ride off its Sink Base: that is its reason
   // while the basin is away, before the depth or widths that may refuse it as well (Glass at 46 cm).
   if (
     inputs.sinkOffSinkBase &&
     materialRules.length > 0 &&
-    !materialRules.some((rule) => offersFloatingTop(rule, inputs.activeProfile))
+    !materialRules.some((rule) => offersFloatingTop(rule, inputs))
   ) {
     return { isCompatible: false, failedBy: "offSinkBase" };
   }
@@ -89,10 +90,10 @@ export const evaluateCountertopMaterial = (
     return { isCompatible: isCeramic, failedBy: isCeramic ? null : "total" };
   }
 
-  // Off its Sink Base the basin rides a top that lifts only: the widths are judged on those rows. A material that
-  // lifts at another depth but not at this one is refused here too: lowering the top would allow it.
+  // Off its Sink Base the basin rides a top that floats only: the widths are judged on those rows. A material that
+  // floats at another depth but not at this one is refused here too: lowering the top would allow it.
   const rulesForTop = inputs.sinkOffSinkBase
-    ? applicableRules.filter((rule) => offersFloatingTop(rule, inputs.activeProfile))
+    ? applicableRules.filter((rule) => offersFloatingTop(rule, inputs))
     : applicableRules;
   if (!rulesForTop.length) return { isCompatible: false, failedBy: "offSinkBase" };
 

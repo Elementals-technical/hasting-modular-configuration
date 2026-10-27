@@ -6,6 +6,7 @@ import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/co
 import { resolveHeightsByHandle } from "@/features/configurator-rule-core/cabinetBuilder";
 import { findCabinetRule, seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
+import { cabinetTypesAtLimit } from "../../lib/cabinetTypeLimits";
 import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
 import { selectPlacedSeriesHeights } from "./seriesCabinets";
 
@@ -170,22 +171,16 @@ export const getPlacedDividers = (state: RootState) => state.rootStateUI.product
 export const getPlacedCabinetStyles = (state: RootState) => state.rootStateUI.product.placedCabinetStyles;
 
 /**
- * Placed products of one cabinet type. The scene names a product after its own scene type
- * (`Sink-Base-…` in Urban, `Class-sink-cabinet-…` in Class), so the type is read through the
- * collection's runtime bindings rather than from a prefix of the id.
+ * The cabinet types the vanity already holds as many of as it takes, each with why another one cannot
+ * be added: the builder's cards, its "+" and the player's Duplicate read it. The scene names a product
+ * after its own scene type (`Sink-Base-…` in Urban, `Class-sink-cabinet-…` in Class), so the type is
+ * read through the collection's runtime bindings rather than from a prefix of the id.
  */
-const countPlacedCabinetsOfType = (state: RootState, cabinetType: string) => {
-  const profile = getActiveProductProfile(state);
-  const bindings = getActiveRuntimeBindings(state);
-
-  return state.rootStateUI.product.productIds.filter(
-    (id) => resolveCabinetTypeOfRuntimeId(profile, bindings, id) === cabinetType,
-  ).length;
-};
-
-export const getSinkBaseCount = (state: RootState) => countPlacedCabinetsOfType(state, "Sink-Base");
-
-export const getSideShelfCount = (state: RootState) => countPlacedCabinetsOfType(state, "Side-Shelf");
+export const selectCabinetTypesAtLimit = createSelector(
+  [(state: RootState) => state.rootStateUI.product.productIds, getActiveProductProfile, getActiveRuntimeBindings],
+  (productIds, profile, bindings) =>
+    cabinetTypesAtLimit(productIds.map((id) => resolveCabinetTypeOfRuntimeId(profile, bindings, id))),
+);
 
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 

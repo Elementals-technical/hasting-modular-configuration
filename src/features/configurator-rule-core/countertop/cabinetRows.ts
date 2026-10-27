@@ -150,3 +150,42 @@ export const checkPlusRow = (
         : compositionLengthReachedReason(maxCm),
   };
 };
+
+/** A row end a cabinet may start at, where the scene offers one, and how far along the wall it stands (m). */
+export type RowEndCandidate = PlusAnchor & { x: number };
+
+/**
+ * The row end a cabinet added without a "+" starts at (Drag to Place), by the rule of the "+": a Sink Base
+ * in the countertop's row, another type in a row with room for its width. The right end of the countertop's
+ * row comes first, then another row's, then the left ends. A row its width does not fit is taken only when
+ * none fits. Null for a composition judged as one row (one row, columns): the scene's own choice stands.
+ */
+export const pickRowEnd = <T extends RowEndCandidate>(
+  limits: CabinetRowLimits,
+  ends: readonly T[],
+  cabinetType: string | null,
+  widths: readonly number[] | null,
+): T | null => {
+  if (limits.rows.countertopGroupId === null) return null;
+
+  const ranked = ends
+    .filter(
+      (end) =>
+        (end.kind === "left" || end.kind === "right") && checkPlusRow(limits, end, cabinetType, null).status === "ok",
+    )
+    .map((end) => ({
+      end,
+      fits: widths === null || checkPlusRow(limits, end, cabinetType, widths).status === "ok",
+      right: end.kind === "right",
+      countertop: plusRowOf(limits.rows, end).kind === "countertop",
+    }))
+    .sort(
+      (a, b) =>
+        Number(b.fits) - Number(a.fits) ||
+        Number(b.right) - Number(a.right) ||
+        Number(b.countertop) - Number(a.countertop) ||
+        (a.right ? b.end.x - a.end.x : a.end.x - b.end.x),
+    );
+
+  return ranked[0]?.end ?? null;
+};
