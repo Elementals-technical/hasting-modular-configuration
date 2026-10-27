@@ -116,7 +116,12 @@ const createCollector = (): Collector => {
 };
 
 /** Countertop movement capabilities of a Thickness option; an option that declares none never moves. */
-const COUNTERTOP_CAPABILITIES = ["countertopSlides", "countertopLifts", "countertopLengthResize"] as const;
+const COUNTERTOP_CAPABILITIES = [
+  "countertopSlides",
+  "countertopLifts",
+  "countertopCarriesVessel",
+  "countertopLengthResize",
+] as const;
 
 /**
  * An option's capabilities. `supportsGrooveColor` reads as before; a countertop capability is kept only

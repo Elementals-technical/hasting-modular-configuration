@@ -340,7 +340,7 @@ describe("Class and Mako offer the thicknesses their countertop tables give", ()
 });
 
 describe("Urban Low Height offers the thicknesses the countertop matrix gives, as the USH countertop step", () => {
-  const { shownValues, enabledValues } = fieldsOf(urbanLowHeight);
+  const { fieldOf, shownValues, enabledValues } = fieldsOf(urbanLowHeight);
 
   beforeEach(() => {
     startWith(urbanLowHeight);
@@ -362,7 +362,7 @@ describe("Urban Low Height offers the thicknesses the countertop matrix gives, a
     expect(enabledValues("thickness")).toEqual([]);
   });
 
-  // Client rule (22.10): off its Sink Base the basin rides a top that lifts only (5⅛″ or 5½″), no thin or 4″ one.
+  // Client rule (22.10): off its Sink Base an integrated basin rides a top that lifts only (5⅛″ or 5½″), no thin or 4″ one.
   describe("while the top carries the sink", () => {
     afterEach(() => setCountertopRuntimeState(null));
 
@@ -375,12 +375,29 @@ describe("Urban Low Height offers the thicknesses the countertop matrix gives, a
 
       expect(shownValues("thickness")).toEqual(expect.arrayContaining(["0.5", "4"]));
       expect(enabledValues("thickness")).toEqual(["5.125"]);
+      expect(fieldOf("thickness")?.preferredValue).toBe("5.125");
     });
 
     it("enables 4″ over the sink's own Sink Base", () => {
       setCountertopRuntimeState(carried("home", false));
 
       expect(enabledValues("thickness")).toEqual(["0.5", "4", "5.125"]);
+    });
+
+    // Client rule (27.10): 4″ is available with a Vessel style countertop, or over an integrated basin in its Sink Base.
+    it("enables 4″ as well under a vessel, and keeps the top that lifts as the one autoSelect takes", () => {
+      store.dispatch(setCountertopStyle("vessel"));
+      setCountertopRuntimeState(carried("fits", true));
+
+      expect(enabledValues("thickness")).toEqual(["4", "5.125"]);
+      expect(fieldOf("thickness")?.preferredValue).toBe("5.125");
+    });
+
+    it("prefers nothing over the sink's own Sink Base", () => {
+      store.dispatch(setCountertopStyle("vessel"));
+      setCountertopRuntimeState(carried("home", false));
+
+      expect(fieldOf("thickness")?.preferredValue).toBeUndefined();
     });
   });
 });

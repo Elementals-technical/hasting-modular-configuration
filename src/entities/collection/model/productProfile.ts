@@ -33,6 +33,11 @@ export type OptionCapabilities = {
    * the Sink Base, so it is the only thickness offered there (client rule 22.10).
    */
   countertopLifts?: boolean;
+  /**
+   * A countertop of this thickness may hold a vessel off its Sink Base though it does not lift: with the vessel
+   * style it stays offered there (client rule 27.10, 4″).
+   */
+  countertopCarriesVessel?: boolean;
   /** A countertop of this thickness offers Resize ▸ Length. */
   countertopLengthResize?: boolean;
 };

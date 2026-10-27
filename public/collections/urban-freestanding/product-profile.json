@@ -648,6 +648,7 @@
     "cabinet.notAvailableForType": "Not available for selected cabinet type",
     "cabinet.noCommonHeight": "No common supported height across selected products",
     "cabinet.heightLocked": "Height locked by existing products",
+    "cabinet.sideShelfLimit": "Vanity configurations allow a maximum of two Open Side Shelf units.",
     "handle.heightLocked": "Not available for current configuration height ({heightCm} cm / {heightIn}\" locked)",
     "handle.notAvailableForOpenCabinet": "Not available for open cabinets",
     "countertop.integratedDepthRestricted": "Integrated basin style not available for 46cm (18.1\") depth configurations",

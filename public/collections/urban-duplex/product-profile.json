@@ -198,7 +198,7 @@
           "value": "4",
           "label": "4\"",
           "order": 30,
-          "capabilities": { "countertopSlides": true, "countertopLengthResize": true }
+          "capabilities": { "countertopSlides": true, "countertopCarriesVessel": true, "countertopLengthResize": true }
         },
         {
           "value": "5.125",
@@ -580,6 +580,7 @@
     "countertop.compositionLengthReachedNoMax": "Maximum composition length reached for the selected countertop setup.",
     "countertop.rowLengthReached": "Maximum length reached for this row of cabinets with the selected countertop setup ({maxCm} cm / {maxIn}\").",
     "cabinet.sinkBaseInCountertopRow": "A Sink Base can only be added to the countertop row, next to the other Sink Bases.",
+    "cabinet.sideShelfLimit": "Vanity configurations allow a maximum of two Open Side Shelf units.",
     "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
     "divider.typeUnavailable": "{option} does not fit here. Choose one of: {options}.",
     "divider.noTypeAvailable": "{option} does not fit here. No Divider option is available for this slot.",

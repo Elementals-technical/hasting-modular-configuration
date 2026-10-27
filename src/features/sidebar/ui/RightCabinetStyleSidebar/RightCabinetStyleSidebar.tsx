@@ -35,6 +35,7 @@ import {
   getHeightLocked,
   getSinkType,
   getVesselColor,
+  selectCabinetTypesAtLimit,
 } from "@/entities/product/model/store/selectors";
 import {
   setHasBootstrappedCabinetBuilder,
@@ -135,6 +136,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const selectedProducts = useAppSelector(getSelectedProducts);
   const activeDrawerProduct = useAppSelector(getDrawerProduct);
+  // The vanity may already hold as many of the type being added as it takes (two Sink Bases).
+  const addLimit = useAppSelector(selectCabinetTypesAtLimit)[activeDrawerProduct];
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
   const productConfig = useAppSelector(getCabinetBuilderProductConfig);
   const activeCabinetRule = useAppSelector(getActiveCabinetRule);
@@ -772,7 +775,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     // A side shelf and a short cabinet (`ruleData.steppedModules`, placement "composition-end") go
     // at an end of the composition: the scene's "Side-Shelf" button mode shows the end buttons only.
     const placesAtEnd = activeDrawerProduct === "Side-Shelf" || isSteppedStyle;
-    const shouldShowPlacementButtons = isOpenedStyleSidebar && hasAddableWidth;
+    // At the limit of its type no "+" would add the cabinet, and neither would Drag to Place beside them.
+    const shouldShowPlacementButtons = isOpenedStyleSidebar && hasAddableWidth && !addLimit;
 
     // The cabinet the "+" would add: the scene keeps only the "+" it may use (UF: a short one never
     // between tall ones) at its height. A short cabinet stands at its own height (table 590).
@@ -820,6 +824,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     activeCabinetRule,
     activeDrawerProduct,
     activeProfile,
+    addLimit,
     dispatch,
     fitsCountertopRow,
     isOpenedStyleSidebar,
@@ -874,6 +879,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
       console.log("Clicked Plus Button", entityId, side);
 
       if (!activeDrawerProduct) return;
+      // A "+" left from before the vanity reached the limit of the type adds nothing, and says why.
+      if (addLimit) {
+        reportAddRefusal(addLimit);
+        return;
+      }
       const availableAddWidths = filterWidthValuesByCountertopRules({
         profile: activeProfile,
         values: dimensionOptions.width.filter((option) => !option.disabled).map((option) => option.value),
@@ -971,6 +981,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
     activeProfile,
     isPlayCanvasReady,
     activeDrawerProduct,
+    addLimit,
     composition,
     onProductAdded,
     productConfig,

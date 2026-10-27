@@ -148,14 +148,19 @@ describe("urban-low-height product profile", () => {
     );
   });
 
-  it("says what each countertop thickness can do: thin tops stay, 2.4″ and 4″ slide, 5⅛″ and 5½″ also lift", () => {
+  it("says what each countertop thickness can do: thin tops stay, 2.4″ and 4″ slide, 4″ carries a vessel, 5⅛″ and 5½″ lift", () => {
     const capabilitiesOf = (value: string) =>
       selectOptions(profile(), "Thickness").find((option) => option.value === value)?.capabilities;
 
     for (const thin of ["0.375", "0.4", "0.5"]) expect(capabilitiesOf(thin)).toBeUndefined();
     expect(capabilitiesOf("2.4")).toMatchObject({ countertopSlides: true });
     expect(capabilitiesOf("2.4")?.countertopLifts).toBeUndefined();
-    expect(capabilitiesOf("4")).toMatchObject({ countertopSlides: true, countertopLengthResize: true });
+    expect(capabilitiesOf("4")).toMatchObject({
+      countertopSlides: true,
+      countertopCarriesVessel: true,
+      countertopLengthResize: true,
+    });
+    expect(capabilitiesOf("4")?.countertopLifts).toBeUndefined();
     for (const floating of ["5.125", "5.5"])
       expect(capabilitiesOf(floating)).toMatchObject({
         countertopSlides: true,

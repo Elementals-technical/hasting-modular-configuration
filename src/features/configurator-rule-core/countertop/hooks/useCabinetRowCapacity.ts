@@ -13,11 +13,13 @@ import {
   fitsCabinetRow,
   maxCabinetRowWidth,
   ONE_CABINET_ROW,
+  pickRowEnd,
   resolveCabinetRows,
   type CabinetRowLimits,
   type CabinetRows,
   type PlusAnchor,
   type PlusRowCheck,
+  type RowEndCandidate,
 } from "../cabinetRows";
 import {
   formatCompositionLengthReachedReason,
@@ -36,6 +38,12 @@ export type CabinetRowCapacity = {
   allowsPlus: (plus: PlusAnchor, cabinetType: string | null, widths: readonly number[] | null) => boolean;
   /** Whether a "+" may add this cabinet and in which widths, by the rows read again now: for its click. */
   checkPlus: (plus: PlusAnchor, cabinetType: string | null, widths: readonly number[] | null) => PlusRowCheck;
+  /** The row end a cabinet added without a "+" starts at (`pickRowEnd`), by the rows read again now. */
+  pickRowEnd: <T extends RowEndCandidate>(
+    ends: readonly T[],
+    cabinetType: string | null,
+    widths: readonly number[] | null,
+  ) => T | null;
 };
 
 const readCabinetRows = (): CabinetRows => {
@@ -88,6 +96,8 @@ export const useCabinetRowCapacity = (guard: CountertopLengthGuard): CabinetRowC
       allowsPlus: (plus, cabinetType, widths) => checkPlusRow(limits, plus, cabinetType, widths).status === "ok",
       checkPlus: (plus, cabinetType, widths) =>
         withText(checkPlusRow({ ...limits, rows: readCabinetRows() }, plus, cabinetType, widths)),
+      pickRowEnd: (ends, cabinetType, widths) =>
+        pickRowEnd({ ...limits, rows: readCabinetRows() }, ends, cabinetType, widths),
     }),
     [limits, withText],
   );
