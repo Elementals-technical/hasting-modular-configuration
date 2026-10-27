@@ -11,6 +11,7 @@ import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupC
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
+import type { MessageParams } from "@/shared/lib/reasonText";
 
 import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
@@ -62,9 +63,8 @@ import {
   getVesselColor,
   getProductsPresets,
   getHasBootstrappedCabinetBuilder,
-  getSinkBaseCount,
-  getSideShelfCount,
   getPlacedCabinetStyles,
+  selectCabinetTypesAtLimit,
 } from "@/entities/product/model/store/selectors";
 import {
   selectCountertopCabinetCompositionConstraint,
@@ -264,6 +264,17 @@ type PendingMixingStyle = {
   height: number | null;
 };
 
+/** Why a card is greyed. A card lists them by priority: the first one that holds is shown. */
+type CardBlocker = {
+  when: boolean;
+  reason?: string;
+  /** Stable reason code; the card resolves it to the collection's text. */
+  code?: string;
+  params?: MessageParams;
+  /** The Side Shelf needs a PTO handle: the card offers to switch to one. */
+  offersPtoSwitch?: boolean;
+};
+
 const REASON_STYLE_NOT_WITH_SERIES = "drawers.notWithSeriesCabinet";
 const REASON_STEPPED_NEEDS_CABINET = "drawers.steppedNeedsTallCabinet";
 const STEPPED_NEEDS_CABINET_TEXT =
@@ -368,8 +379,7 @@ export const CabinetBuilderPage = () => {
   const isStyleDrawerActive = Boolean(drawerProduct) && isStyleSidebarOpen;
   const productsPresets = useAppSelector(getProductsPresets);
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
-  const sinkBaseCount = useAppSelector(getSinkBaseCount);
-  const sideShelfCount = useAppSelector(getSideShelfCount);
+  const typesAtLimit = useAppSelector(selectCabinetTypesAtLimit);
   const placedCabinetStyles = useAppSelector(getPlacedCabinetStyles);
   const steppedCabinetIds = useAppSelector(selectSteppedCabinetIds);
   const placedDimensions = useAppSelector(getDimensionsByCabinet);
@@ -444,6 +454,8 @@ export const CabinetBuilderPage = () => {
         ),
       ),
     ].join(", ");
+    // The vanity may already hold as many of the type as it takes: no style of it adds one more.
+    const typeLimit = activeCabinetType ? typesAtLimit[activeCabinetType] : undefined;
 
     // The collection's own cabinet of the active type, then the ones other series supply of it
     // (Urban Duplex: the side cabinets of Urban Standard and Urban Low Height). Each stands under
@@ -493,19 +505,35 @@ export const CabinetBuilderPage = () => {
         const seriesLabel = series
           ? (selectOption(activeProfile, SERIES_ATTRIBUTE_ID, series)?.label ?? series)
           : undefined;
-        // The length of the countertop comes first, as for a style of the collection.
-        const compositionReason =
-          !countertopCompositionConstraint.canAddCabinet && hasProducts
-            ? countertopCompositionConstraint.reason
-            : !hasAddableWidth && hasProducts
-              ? compositionExceededReason
-              : undefined;
-        const isHeldBySeries = compositionReason === undefined && !canSwitch;
-        const needsTallerCabinet =
-          compositionReason === undefined &&
-          !isHeldBySeries &&
-          steppedModule !== undefined &&
-          !placedSteppedCategories.split("|").includes(steppedModule.requiresPlacedCategory);
+        // The countertop, the limit of the type and its length come first, as for a style of the collection.
+        const blockers: CardBlocker[] = [
+          {
+            when: hasProducts && !countertopCompositionConstraint.canAddCabinet,
+            reason: countertopCompositionConstraint.reason,
+          },
+          {
+            when: Boolean(typeLimit),
+            reason: typeLimit && selectMessageOr(activeProfile, typeLimit.code, typeLimit.text),
+            code: typeLimit?.code,
+          },
+          { when: hasProducts && !hasAddableWidth, reason: compositionExceededReason },
+          {
+            when: !canSwitch,
+            reason: selectMessageOr(activeProfile, REASON_STYLE_NOT_WITH_SERIES, STYLE_NOT_WITH_SERIES_TEXT, {
+              series: placedSeriesLabels,
+            }),
+            code: REASON_STYLE_NOT_WITH_SERIES,
+            params: { series: placedSeriesLabels },
+          },
+          {
+            when:
+              steppedModule !== undefined &&
+              !placedSteppedCategories.split("|").includes(steppedModule.requiresPlacedCategory),
+            reason: selectMessageOr(activeProfile, REASON_STEPPED_NEEDS_CABINET, STEPPED_NEEDS_CABINET_TEXT),
+            code: REASON_STEPPED_NEEDS_CABINET,
+          },
+        ];
+        const blocker = blockers.find(({ when }) => when);
 
         const title = selectOption(activeProfile, "Drawers", value)?.label ?? value;
         const cardValue = isOfOtherSeries ? `${series}:${value}` : value;
@@ -533,30 +561,12 @@ export const CabinetBuilderPage = () => {
             placedHeight: model ? compositionHeight : placedHeight,
             switchHeight: styleSwitch?.possible ? styleSwitch.height : null,
             height: model?.height ?? null,
-            isAvailable:
-              countertopCompositionConstraint.canAddCabinet &&
-              isOffered &&
-              hasAddableWidth &&
-              canSwitch &&
-              !needsTallerCabinet,
-            disabledReason:
-              compositionReason ??
-              (isHeldBySeries
-                ? selectMessageOr(activeProfile, REASON_STYLE_NOT_WITH_SERIES, STYLE_NOT_WITH_SERIES_TEXT, {
-                    series: placedSeriesLabels,
-                  })
-                : needsTallerCabinet
-                  ? selectMessageOr(activeProfile, REASON_STEPPED_NEEDS_CABINET, STEPPED_NEEDS_CABINET_TEXT)
-                  : ruleOption?.reason),
+            isAvailable: countertopCompositionConstraint.canAddCabinet && isOffered && hasAddableWidth && !blocker,
+            // A style the rules leave out says why in their words.
+            disabledReason: blocker?.reason ?? ruleOption?.reason,
             // Named by its code, so the hint reads the collection's text for it.
-            ...(isHeldBySeries
-              ? {
-                  disabledReasonCode: REASON_STYLE_NOT_WITH_SERIES,
-                  disabledReasonParams: { series: placedSeriesLabels },
-                }
-              : needsTallerCabinet
-                ? { disabledReasonCode: REASON_STEPPED_NEEDS_CABINET }
-                : {}),
+            disabledReasonCode: blocker?.code,
+            disabledReasonParams: blocker?.params,
             // Another model than the composition's switches every cabinet to its height, after asking.
             isMixingRestricted: isMixingRestricted || Boolean(model?.switchesComposition),
             isShortDesc: false,
@@ -581,6 +591,7 @@ export const CabinetBuilderPage = () => {
     activeProfile,
     activeCabinetRule,
     activeCabinetType,
+    typesAtLimit,
     cabinetCatalog,
     placedCabinetStyles,
     steppedCabinetIds,
@@ -637,33 +648,30 @@ export const CabinetBuilderPage = () => {
               .flatMap(({ widths }) => widths ?? [])
               .some((width) => Number.isFinite(width) && width > 0 && rowCapacity.fits(rule.code, width));
 
-          const isSinkBaseDisabled = rule.code === "Sink-Base" && sinkBaseCount >= 2;
-          const isSideShelfDisabled = rule.code === "Side-Shelf" && sideShelfCount >= 2;
-          const isShelfRequiresBaseCabinet =
-            (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene;
-          const isSideShelfHandleBlocked = rule.code === "Side-Shelf" && isOssBlockedByHandle;
-          const isLengthLimited = hasProducts && !typeHasFittingWidth;
-          const isBlockedByCountertopComposition = hasProducts && !countertopCompositionConstraint.canAddCabinet;
-          const isDisabled =
-            isBlockedByCountertopComposition ||
-            isSinkBaseDisabled ||
-            isSideShelfDisabled ||
-            isShelfRequiresBaseCabinet ||
-            isSideShelfHandleBlocked ||
-            isLengthLimited;
-          const disabledReason = isBlockedByCountertopComposition
-            ? countertopCompositionConstraint.reason
-            : isSinkBaseDisabled
-              ? "Vanity configurations allow a maximum of two Sink Base units."
-              : isSideShelfDisabled
-                ? "Vanity configurations allow a maximum of two Side Shelf units."
-                : isShelfRequiresBaseCabinet
-                  ? "Add at least one Sink Base or Side Cabinet first."
-                  : isSideShelfHandleBlocked
-                    ? "This cabinet type is only compatible with a PTO handle."
-                    : isLengthLimited
-                      ? compositionExceededReason
-                      : undefined;
+          const typeLimit = typesAtLimit[rule.code];
+          const blockers: CardBlocker[] = [
+            {
+              when: hasProducts && !countertopCompositionConstraint.canAddCabinet,
+              reason: countertopCompositionConstraint.reason,
+            },
+            {
+              when: Boolean(typeLimit),
+              reason: typeLimit && selectMessageOr(activeProfile, typeLimit.code, typeLimit.text),
+              code: typeLimit?.code,
+            },
+            {
+              when: (rule.code === "Open-Shelf" || rule.code === "Side-Shelf") && !hasBaseOrSideCabinetOnScene,
+              reason: "Add at least one Sink Base or Side Cabinet first.",
+            },
+            {
+              when: rule.code === "Side-Shelf" && isOssBlockedByHandle,
+              reason: "This cabinet type is only compatible with a PTO handle.",
+              // Offered only while this is the reason shown: at the limit of the type another handle makes no room.
+              offersPtoSwitch: true,
+            },
+            { when: hasProducts && !typeHasFittingWidth, reason: compositionExceededReason },
+          ];
+          const blocker = blockers.find(({ when }) => when);
 
           return {
             id: rule.code,
@@ -671,16 +679,12 @@ export const CabinetBuilderPage = () => {
             name: rule.code,
             desc: typeOption?.legacyDescription,
             isShortDesc: false,
-            isAvailable: !isDisabled,
-            disabledReason,
-            disabledActionLabel:
-              !isBlockedByCountertopComposition && !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked
-                ? "Switch to PTO handle here"
-                : undefined,
-            onDisabledAction:
-              !isBlockedByCountertopComposition && !isShelfRequiresBaseCabinet && isSideShelfHandleBlocked
-                ? () => setIsPtoSwitchPromptOpen(true)
-                : undefined,
+            isAvailable: !blocker,
+            disabledReason: blocker?.reason,
+            // Named by its code, so the hint reads the collection's text for it.
+            disabledReasonCode: blocker?.code,
+            disabledActionLabel: blocker?.offersPtoSwitch ? "Switch to PTO handle here" : undefined,
+            onDisabledAction: blocker?.offersPtoSwitch ? () => setIsPtoSwitchPromptOpen(true) : undefined,
             metadata: {
               image: resolveOptionImage({
                 optionImages,
@@ -700,8 +704,7 @@ export const CabinetBuilderPage = () => {
       optionImages,
       optionImageVariants,
       optionImageContext,
-      sinkBaseCount,
-      sideShelfCount,
+      typesAtLimit,
       isOssBlockedByHandle,
       countertopCompositionConstraint.canAddCabinet,
       countertopCompositionConstraint.reason,

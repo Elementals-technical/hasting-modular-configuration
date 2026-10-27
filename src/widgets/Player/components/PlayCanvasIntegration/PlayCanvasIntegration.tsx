@@ -45,8 +45,7 @@ import {
   getDrawerProduct,
   getSelectedProductConfig,
   getActiveCabinetRule,
-  getSinkBaseCount,
-  getSideShelfCount,
+  selectCabinetTypesAtLimit,
   getTowelBarOption,
   getSelectedProducts,
   getVesselColor,
@@ -813,8 +812,7 @@ export const PlayCanvasIntegration = ({
       countertopDragRef.current?.apply();
     },
   });
-  const sinkBaseCount = useAppSelector(getSinkBaseCount);
-  const sideShelfCount = useAppSelector(getSideShelfCount);
+  const typesAtLimit = useAppSelector(selectCabinetTypesAtLimit);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const placedDividers = useAppSelector(getPlacedDividers);
   const selectedProducts = useAppSelector(getSelectedProducts);
@@ -3651,8 +3649,8 @@ export const PlayCanvasIntegration = ({
             } as DropdownItem,
           ]
         : []),
-      ...((cabinetTypeOf(selectedSceneProduct) === "Sink-Base" && sinkBaseCount >= 2) ||
-      (cabinetTypeOf(selectedSceneProduct) === "Side-Shelf" && sideShelfCount >= 2)
+      // No copy of a cabinet whose type the vanity holds as many of as it takes (two Sink Bases).
+      ...(typesAtLimit[cabinetTypeOf(selectedSceneProduct) ?? ""]
         ? []
         : canDuplicateSelectedCabinet
           ? [{ id: "duplicate", label: "Duplicate", trailing: <DuplicateIcon />, onClick: handleDuplicateProduct }]
@@ -3712,8 +3710,7 @@ export const PlayCanvasIntegration = ({
     cabinetAttributeMenuItems,
     selectedProductConfig,
     selectedSceneProduct,
-    sinkBaseCount,
-    sideShelfCount,
+    typesAtLimit,
     countertopCompositionConstraint.isSingleCabinetOnly,
   ]);
   const dropdownItems = useMemo(
