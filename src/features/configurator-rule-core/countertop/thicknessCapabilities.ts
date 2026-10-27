@@ -29,8 +29,17 @@ export const findThicknessOption = (
 };
 
 /**
- * Whether a top of this thickness may carry its basin off its Sink Base: only a top that lifts does
- * (`countertopLifts`; client rule 22.10, a floating top is 5⅛″ or 5½″).
+ * Whether a top of this thickness may carry its basin off its Sink Base: a top that lifts does
+ * (`countertopLifts`; client rule 22.10, a floating top is 5⅛″ or 5½″), and with the vessel style a top that
+ * carries a vessel (`countertopCarriesVessel`; client rule 27.10, 4″). An integrated basin off its Sink Base
+ * keeps the lifting tops only.
  */
-export const canThicknessFloat = (profile: ProductProfile | null | undefined, thicknessIn: number): boolean =>
-  findThicknessOption(profile, thicknessIn)?.capabilities?.countertopLifts === true;
+export const canThicknessFloat = (
+  profile: ProductProfile | null | undefined,
+  thicknessIn: number,
+  countertopStyle?: string | null,
+): boolean => {
+  const capabilities = findThicknessOption(profile, thicknessIn)?.capabilities;
+  if (capabilities?.countertopLifts === true) return true;
+  return capabilities?.countertopCarriesVessel === true && countertopStyle?.trim().toLowerCase() === "vessel";
+};

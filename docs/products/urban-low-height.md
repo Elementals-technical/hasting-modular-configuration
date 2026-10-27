@@ -117,6 +117,11 @@ Sink Base стоїть лише в ряду стільниці, поруч з і
 композиції в рядах; один ряд і колонки — як було. Sink Base, перетягнутий на нижній рівень (Drag to
 Place), не пускає сама сцена: `SINK_BASES_SPLIT`, «All sink bases must be in one row.».
 
+Drag to Place починає чернетку біля правого кінця ряду, куди шафу пустив би «+»: Sink Base — у ряду
+стільниці, інша шафа — там, поки вистачає довжини, інакше в ряду з місцем (клієнт, 27.10.2026). Місце
+обирає `chooseAddPlacement` у `PlayCanvasIntegration` серед опцій сцени (`pickRowEnd` у `cabinetRows.ts`).
+Сама сцена обирає старт лише за вільним місцем і ставила Sink Base у нижній ряд, червоним.
+
 Перевірено в браузері 22.10.2026 на моделі 61″ Multi-Level у Custom: для Sink Base «+» лише біля
 верхнього рівня, для Side Cabinet — біля обох; Duplicate Sink Base — лише біля верхнього. Urban Duplex
 і Urban Standard Height показують ті самі «+», що й сцена.

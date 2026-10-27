@@ -3,7 +3,7 @@ import { createRef } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { ConfiguratorClient } from "@/features/configuratorApi";
+import { ConfiguratorError, type CabinetPlacementOption, type ConfiguratorClient } from "@/features/configuratorApi";
 import { isDragDropEnabled, parseProductProfile, type RuntimeBindingSet } from "@/entities/collection";
 import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
 import { resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
@@ -1091,6 +1091,82 @@ describe("Drag to Place", () => {
     await screen.findByRole("button", { name: "Cancel" });
     expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
     expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
+  });
+});
+
+describe("Drag to Place starts the draft where the host chooses", () => {
+  const rowEnd = (id: string, anchorCabinetId: string, x: number) => ({
+    id,
+    kind: "right",
+    anchorCabinetId,
+    availability: "available",
+    frameId: "wall",
+    positionM: { x, y: 0, z: 0 },
+  });
+  const lowerRight = rowEnd("lower-right", "lower-c", 1.9);
+  const upperRight = rowEnd("upper-right", "side-c", 1.35);
+  type Choose = (options: readonly CabinetPlacementOption[]) => CabinetPlacementOption | null;
+
+  const startAdd = async (f: ReturnType<typeof fixture>, chooseAddPlacement: Choose) => {
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        prepareSelection={() => selection}
+        chooseAddPlacement={chooseAddPlacement}
+        selectedProductId={null}
+        createClient={f.createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.mouseDown(add);
+  };
+
+  it("opens the draft at the option the host picks among those the scene offers for the cabinet", async () => {
+    const f = fixture();
+    f.client.getPlacementOptions.mockResolvedValue([lowerRight, upperRight]);
+    const choose = vi.fn<Choose>((options) => options.find(({ id }) => id === "upper-right") ?? null);
+    await startAdd(f, choose);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    // The options are read for the very selection the draft is opened with: an option is valid only for it.
+    expect(f.client.getPlacementOptions).toHaveBeenCalledExactlyOnceWith({
+      definitionId: selection.definitionId,
+      selection: selection.selection,
+      operation: "add",
+    });
+    expect(choose).toHaveBeenCalledExactlyOnceWith([lowerRight, upperRight]);
+    expect(f.client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "upper-right",
+    });
+  });
+
+  it("leaves the start to the scene when the host picks none", async () => {
+    const f = fixture();
+    await startAdd(f, () => null);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(f.client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
+  });
+
+  it("reads the options again once when the scene changed between the two reads", async () => {
+    const f = fixture();
+    f.client.getPlacementOptions
+      .mockResolvedValueOnce([{ ...upperRight, id: "stale" }])
+      .mockResolvedValueOnce([upperRight]);
+    f.client.beginAdd.mockRejectedValueOnce(new ConfiguratorError("STALE_OPTION"));
+    await startAdd(f, (options) => options[0] ?? null);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(f.client.getPlacementOptions).toHaveBeenCalledTimes(2);
+    expect(f.client.beginAdd).toHaveBeenLastCalledWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "upper-right",
+    });
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 

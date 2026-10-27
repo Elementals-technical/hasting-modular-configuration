@@ -7,6 +7,7 @@ import {
   fitsCabinetRow,
   maxCabinetRowWidth,
   ONE_CABINET_ROW,
+  pickRowEnd,
   plusRowOf,
   REASON_ROW_LENGTH_REACHED,
   REASON_SINK_BASE_IN_COUNTERTOP_ROW,
@@ -186,5 +187,42 @@ describe("checkPlusRow", () => {
       limitCm: 5,
       widths: null,
     });
+  });
+});
+
+describe("pickRowEnd", () => {
+  // The row ends the scene offers for the client's composition: the lower row reaches further right.
+  const countertopLeft = { cabinetId: "sink-a", kind: "left", x: -1.3 } as const;
+  const countertopRight = { cabinetId: "side-c", kind: "right", x: 1.35 } as const;
+  const lowerLeft = { cabinetId: "lower-a", kind: "left", x: -0.8 } as const;
+  const lowerRight = { cabinetId: "lower-c", kind: "right", x: 1.9 } as const;
+  const allEnds = [lowerLeft, lowerRight, countertopLeft, countertopRight];
+  const roomy: CabinetRowLimits = { ...clientLimits, countertopRemainingCm: 150 };
+
+  it("starts a Sink Base at the right end of the countertop row, not at the lower row's further right end", () => {
+    expect(pickRowEnd(roomy, allEnds, "Sink-Base", [60])).toBe(countertopRight);
+    // Its width not fitting does not send it to another row: a Sink Base goes in none.
+    expect(pickRowEnd(clientLimits, allEnds, "Sink-Base", [60])).toBe(countertopRight);
+  });
+
+  it("starts another cabinet in the countertop row while its width fits there, else in a row with room", () => {
+    expect(pickRowEnd(roomy, allEnds, "Side-Cabinet", [70])).toBe(countertopRight);
+    expect(pickRowEnd(clientLimits, allEnds, "Side-Cabinet", [70])).toBe(lowerRight);
+    expect(pickRowEnd(clientLimits, allEnds, "Side-Cabinet", null)).toBe(countertopRight);
+  });
+
+  it("takes a left end only when no right end is offered", () => {
+    expect(pickRowEnd(roomy, [lowerLeft, countertopLeft], "Sink-Base", [60])).toBe(countertopLeft);
+    expect(pickRowEnd(roomy, [lowerLeft, countertopLeft], "Side-Cabinet", [70])).toBe(countertopLeft);
+  });
+
+  it("finds no start for a Sink Base offered only lower-row ends, nor in a composition judged as one row", () => {
+    expect(pickRowEnd(roomy, [lowerLeft, lowerRight], "Sink-Base", [60])).toBeNull();
+    expect(
+      pickRowEnd(roomy, [{ cabinetId: "lower-a", kind: "bottom", x: 0 } as const], "Side-Cabinet", null),
+    ).toBeNull();
+    expect(
+      pickRowEnd({ rows: ONE_CABINET_ROW, maxCm: 270, countertopRemainingCm: 150 }, allEnds, "Sink-Base", [60]),
+    ).toBeNull();
   });
 });

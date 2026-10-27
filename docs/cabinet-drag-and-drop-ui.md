@@ -12,8 +12,17 @@ the cabinet placement API of the configurator iframe (`cabinetPlacement.*`) and 
    shows the scene's "+" for the cabinet being added (`placementButtonsVisible` of the sidebar slice,
    passed as `offerAdd`). A press calls `beginAdd` with the configured cabinet right away; like any
    press outside the sidebar it also closes the sidebar, so its "+" go away for the drag. There is no
-   modal: the cabinet appears in the scene next to the selected (or last) cabinet and can be dragged
-   at once. On an empty composition the press places the first cabinet as the empty scene's "+" does,
+   modal: the cabinet appears in the scene and can be dragged at once. Where it starts:
+   - In a composition in rows (ULH Multi-Level) it starts at the right end of a row the builder's "+"
+     would allow it in: a Sink Base in the countertop's row, another cabinet there while its width
+     fits, else in a row with room. `chooseAddPlacement` picks it among the scene's placement options
+     (`pickRowEnd` in `configurator-rule-core/countertop/cabinetRows.ts`). The scene picks its start
+     by free space alone, so it put a Sink Base in the lower row, red with `SINK_BASES_SPLIT`
+     (client, 27.10.2026).
+   - In one row and in columns (Urban Duplex) the scene's choice stands: the right end of the selected
+     cabinet's row, else the right end furthest along the wall.
+
+   On an empty composition the press places the first cabinet as the empty scene's "+" does,
    without a draft (`addFirstCabinet`): the scene lays a countertop only for a cabinet its own add
    places, never for one a draft commits. On every other step a cabinet draft opens only from the
    cabinet menu.

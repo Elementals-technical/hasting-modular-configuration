@@ -25,6 +25,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
 import {
+  canThicknessFloat,
   evaluateCountertopMaterial,
   filterThicknessValuesByCountertopRules,
   findIntegratedBasinRules,
@@ -136,18 +137,23 @@ const resolveCountertopColorAvailability = (
 
 // The thicknesses the matrix gives the current colour, depth, style and widths, as the USH countertop
 // screen offers them. Where it gives none, none is enabled: another row's thickness would price a top
-// the table does not make.
+// the table does not make. Off its Sink Base a top that lifts is the one taken for a thickness the
+// rules drop (a colour change keeps a lifted top up); a 4″ top under a vessel is the user's pick.
 const resolveThicknessAvailability = (
   profile: ProductProfile | null,
-  { allowedThicknesses }: CountertopRuleState,
+  { allowedThicknesses, materialRuleInputs }: CountertopRuleState,
 ): FieldAvailability => {
   const values = selectOptions(profile, "Thickness").map(({ value }) => value);
+  const allowedValues = allowedThicknesses.size
+    ? filterThicknessValuesByCountertopRules({ values, allowedThicknesses }).map(String)
+    : [];
 
   return {
     available: true,
-    allowedValues: allowedThicknesses.size
-      ? filterThicknessValuesByCountertopRules({ values, allowedThicknesses }).map(String)
-      : [],
+    allowedValues,
+    preferredValue: materialRuleInputs.sinkOffSinkBase
+      ? allowedValues.find((value) => canThicknessFloat(profile, Number(value)))
+      : undefined,
   };
 };
 

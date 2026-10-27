@@ -198,7 +198,7 @@
           "value": "4",
           "label": "4\"",
           "order": 30,
-          "capabilities": { "countertopSlides": true, "countertopLengthResize": true }
+          "capabilities": { "countertopSlides": true, "countertopCarriesVessel": true, "countertopLengthResize": true }
         },
         {
           "value": "5.125",

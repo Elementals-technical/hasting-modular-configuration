@@ -125,6 +125,7 @@ import { inCompositionOrder } from "@/features/cabinetPlacementDebug/lib/composi
 import {
   createConfiguratorBridge,
   isSinkOffSinkBase,
+  type CabinetPlacementOption,
   type CabinetsState,
   type ConfiguratorReceipt,
 } from "@/features/configuratorApi";
@@ -177,6 +178,7 @@ import {
   useCabinetRowCapacity,
   useCountertopLengthGuard,
   useCountertopRules,
+  type RowEndCandidate,
 } from "@/features/configurator-rule-core/countertop";
 import { BaseButton, ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
@@ -877,6 +879,23 @@ export const PlayCanvasIntegration = ({
 
   // Each action of the player menu is one undo step, written once it changed the configuration.
   const { run: runStep } = useHistoryStep();
+
+  // Drag to Place starts where the builder's "+" for the cabinet would be allowed (a Sink Base in the
+  // countertop's row), at the right end of that row: the scene's own start goes by free space alone.
+  const chooseAddPlacement = useCallback(
+    (options: readonly CabinetPlacementOption[]) => {
+      const ends = options.flatMap((option): (RowEndCandidate & { option: CabinetPlacementOption })[] =>
+        option.availability === "available" &&
+        (option.kind === "left" || option.kind === "right") &&
+        typeof option.anchorCabinetId === "string"
+          ? [{ cabinetId: option.anchorCabinetId, kind: option.kind, x: option.positionM.x, option }]
+          : [],
+      );
+      const widths = typeof selectedDimensions.width === "number" ? [selectedDimensions.width] : null;
+      return rowCapacity.pickRowEnd(ends, activeDrawerProduct, widths)?.option ?? null;
+    },
+    [activeDrawerProduct, rowCapacity, selectedDimensions.width],
+  );
 
   // The first cabinet of an empty composition goes in as the empty scene's "+" puts it: the scene lays the
   // countertop only for a cabinet its own add places, never for one a Drag & Drop draft commits.
@@ -3951,6 +3970,7 @@ export const PlayCanvasIntegration = ({
           ready={isPlayCanvasReady}
           selection={cabinetDebugSelection}
           prepareSelection={prepareCabinetPlacement}
+          chooseAddPlacement={chooseAddPlacement}
           addFirstCabinet={addFirstCabinet}
           selectedProductId={selectedSceneProduct}
           offerAdd={placementButtonsVisible}

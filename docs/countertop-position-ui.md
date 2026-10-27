@@ -3,11 +3,17 @@
 Selected countertop menu: Color, **Resize ▸ Thickness | Length**, Countertop Style, Basin Style,
 **Position ▸ Standard | Drag & Drop**.
 While no Sink Base stands under the basin (`isSinkOffSinkBase`: the top hosts the sink after `liftSink`, or
-carries it anywhere but back home), only a top that lifts is offered (client rule 22.10, integrated or
-vessel): a `Thickness` option with `capabilities.countertopLifts`, 5⅛″ or 5½″ in Urban Low Height and Urban
-Duplex (`canThicknessFloat`). Resize ▸ Thickness lists the one the matrix gives the colour; the Countertop
-step's swatches show only that one (they hide the disabled thin and 4″ tops), and `autoSelect` moves the top
-to it (5½″ after a Porcelain colour). A colour whose material has no such row is refused with
+carries it anywhere but back home), only a top that may float is offered (`canThicknessFloat`): one that lifts
+(client rule 22.10), a `Thickness` option with `capabilities.countertopLifts`, 5⅛″ or 5½″ in Urban Low Height
+and Urban Duplex; and with the Vessel countertop style also one with `capabilities.countertopCarriesVessel`, 4″
+there (client rule 27.10: "4″ is available when a Vessel Style countertop is in use, or a SB cabinet is used and
+an integrated basin is situated in the SB cabinet"). An integrated basin off its Sink Base keeps the lifting tops
+only. Resize ▸ Thickness lists those the matrix gives the colour; the Countertop step's swatches show only them
+(they hide the disabled thin, 2⅜″ and, under an integrated basin, 4″ tops). For a thickness the rules drop,
+`autoSelect` takes the top that lifts (`preferredValue`; 5½″ after a Porcelain colour), so a colour change never
+lowers a lifted top; 4″ under a vessel is picked by the user. A 4″ top does not lift: picked while the top is
+up, it is lowered where it is ("It was lowered onto the cabinets."), still holding the vessel beside the row,
+and Position ▸ Standard lands the vessel in its Sink Base again. A colour whose material has no such row is refused with
 `countertop.materialNotAvailableOffSinkBase` ("Not available when the basin is not over a sink base"): a material
 that lifts at no depth (Glass, Mineralmarmo, Syntesi) gets it before the depth and width checks, so Glass at 46 cm
 says the floating top, not the depth; one that lifts at another depth only (Tekorund at 46 cm) keeps the depth
@@ -24,11 +30,13 @@ Each `Thickness` option of the collection's profile says it (`capabilities`); no
 |---|---|
 | none | The top stays in the standard position (mode `none`): no Position item; a moved top is reset |
 | `countertopSlides` | Position ▸ Drag & Drop slides it left or right, vertically locked (mode `offset`); a lifted top is lowered |
-| `countertopLifts` | It also lifts (mode `free`), so only it may carry the basin off its Sink Base |
+| `countertopLifts` | It also lifts (mode `free`), so it may carry the basin off its Sink Base |
+| `countertopCarriesVessel` | It may hold a vessel off its Sink Base though it does not lift: offered there with the Vessel style only |
 | `countertopLengthResize` | Resize ▸ Length |
 
 Urban Low Height and Urban Duplex: 0.375–0.5″ declare none; 2.4″ slides (a floating top is 5⅛″ or 5½″, client
-rule 22.10); 4″ slides and has Length; 5⅛″ and 5½″ slide, lift and have Length.
+rule 22.10); 4″ slides, carries a vessel (client rule 27.10) and has Length; 5⅛″ and 5½″ slide, lift and have
+Length.
 
 ## A remote top: the Sink Base becomes a Side Cabinet
 

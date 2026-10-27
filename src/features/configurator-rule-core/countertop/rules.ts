@@ -29,7 +29,8 @@ export type CountertopRuleInput = {
   profile?: ProductProfile | null;
   /**
    * No Sink Base stands where the basin is (the scene's top hosts the sink or carries it off its Sink Base):
-   * only a thickness whose profile option lifts (`countertopLifts`) is allowed then.
+   * only a thickness whose profile option lifts (`countertopLifts`), or with the vessel style carries a vessel
+   * (`countertopCarriesVessel`), is allowed then.
    */
   sinkOffSinkBase?: boolean;
 };
@@ -398,8 +399,9 @@ export const buildCountertopRuleState = ({
     .forEach((rule) => {
       rule.topThicknesses.forEach((value) => {
         const parsed = parseThicknessValue(value);
-        // Off its Sink Base the basin rides a top that lifts only (a 5⅛″ or 5½″ one): no thin, 2⅜″ or 4″ there.
-        if (parsed !== null && (!sinkOffSinkBase || canThicknessFloat(profile, parsed))) allowedThicknesses.add(parsed);
+        // Off its Sink Base the basin rides a top that lifts (5⅛″ or 5½″), or a 4″ one under a vessel: no thin or 2⅜″.
+        if (parsed !== null && (!sinkOffSinkBase || canThicknessFloat(profile, parsed, activeStyle)))
+          allowedThicknesses.add(parsed);
       });
     });
 
