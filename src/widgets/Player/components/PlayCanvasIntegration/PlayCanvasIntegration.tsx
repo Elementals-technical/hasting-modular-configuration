@@ -3580,14 +3580,17 @@ export const PlayCanvasIntegration = ({
         // nothing to choose is dropped with its empty submenu.
         children: menuSupport.resize.map((sizeId) => resizeItems[sizeId]),
       },
-      ...buildRepositionItems({
-        order: orderedIds,
-        cabinetId: selectedSceneProduct,
-        isSideShelf: (runtimeId) => cabinetTypeOf(runtimeId) === "Side-Shelf",
-        dragDrop: repositionStatus,
-        onMove: handleMoveProduct,
-        onDragDrop: handleDragReposition,
-      }),
+      // A Syntesi top that takes one cabinet only keeps that cabinet in place, as in Prebuilt.
+      ...(orderedIds.length === 1 && hideMultiCabinetActionsForSyntesi
+        ? []
+        : buildRepositionItems({
+            order: orderedIds,
+            cabinetId: selectedSceneProduct,
+            isSideShelf: (runtimeId) => cabinetTypeOf(runtimeId) === "Side-Shelf",
+            dragDrop: repositionStatus,
+            onMove: handleMoveProduct,
+            onDragDrop: handleDragReposition,
+          })),
       {
         id: "color",
         label: "Color",
