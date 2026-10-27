@@ -32,6 +32,20 @@ the cabinet placement API of the configurator iframe (`cabinetPlacement.*`) and 
    overlay frames that PlayCanvas publishes whenever the camera, the drag or the status changes.
 4. Apply commits and syncs the composition (`onCompositionCommitted`); Cancel / x discards the draft.
 
+## Reposition in the cabinet menu
+
+The selected cabinet's menu offers **Reposition** in a collection with cabinet Drag & Drop
+(`ruleData.dragDrop.enabled` in the collection profile), including when it is the only cabinet in the
+scene. Other collections offer Reposition only with two or more cabinets.
+
+- **Create Your Own.** Reposition is a submenu: Move Left and Move Right appear only where the cabinet
+  has a neighbour to swap with, and **Drag & Drop** appears while the scene supports the move (disabled
+  while it can't start one). The only cabinet gets the submenu with Drag & Drop alone, and no
+  Reposition at all where the scene can't drag it.
+- **Prebuilt.** Reposition is a single item that opens the customize prompt, the same for one cabinet
+  as for several. It is offered from the collection's profile flag, so it does not wait for the scene.
+- **Syntesi single-cabinet-only top.** The only cabinet gets no Reposition in either flow.
+
 ## History
 
 An applied draft (an added cabinet, or Reposition from the cabinet menu) is one undo step and drops
