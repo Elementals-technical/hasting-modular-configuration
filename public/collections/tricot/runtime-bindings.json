@@ -161,17 +161,23 @@
           },
           "Zafferano 412 MT": {
             "CabinetColor": "Zafferano 412 Lacquered MT"
+          },
+          "Noce Canaletto 933": {
+            "CabinetColor": "Noce Canaletto 933"
+          },
+          "Rovere Oro 932": {
+            "CabinetColor": "Rovere Oro 932"
+          },
+          "Rovere Termocotto 931": {
+            "CabinetColor": "Rovere Termocotto 931"
           }
         },
         "unboundValues": {
-          "Noce Canaletto 933": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
-          "Rovere Oro 932": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
-          "Rovere Termocotto 931": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
-          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig while a wood is pending and the cabinet was placed without a color. Accepted on readback, never sent."
+          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig from a cabinet the scene has not given its color yet. Accepted on readback, never sent."
         }
       },
       "order": 50,
-      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export. A wood is pending (user decision, 2026-10-08): the cabinet is placed without a color and the scene shows its default Antracite Matte OCF, while the state and the price keep the wood; a wood command stays unsupported."
+      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export. The 3 wood veneers are sent by their exact names: the export has had those materials since the 2026-10-15 build (re-checked in v74, 2026-10-27). Until 2026-10-27 they were pending (user decision, 2026-10-08) and the scene showed Antracite Matte OCF."
     },
     {
       "attributeId": "HandleGrooveColor",

@@ -37,8 +37,8 @@ const approvedConfig = {
   HandleGrooveColor: "Nero 433 MT",
   DrawerPanelFluting: "Loden",
 };
-// Pending choices a placed cabinet must not send, and the semantic pattern, sent as CabinetPattern.
-const NOT_SENT = ["CabinetColor", "SidePanels", "DrawerPanelFluting"];
+// Pending side panels a placed cabinet must not send, and the semantic pattern, sent as CabinetPattern.
+const NOT_SENT = ["SidePanels", "DrawerPanelFluting"];
 // The basin, as Class sends it: the authored sub-product of its LB/VA/LV name, on the sink base only.
 const expectBasinOnSinkBaseOnly = (product: Record<string, unknown>) =>
   product.name === "Tricot-sink-cabinet" || product.productType === "Tricot-sink-cabinet"
@@ -146,7 +146,7 @@ describe("Tricot production composition handoff through the adapter", () => {
     },
   );
 
-  it("places every model's recipe, leaving its pending choices out of the scene", async () => {
+  it("places every model's recipe in its wood, leaving its pending side panels out of the scene", async () => {
     const scene = fakeScene();
     const port = createCompositionPort({ getBindings: () => bindings, scene, reader: createTestSceneReader().reader });
     for (const preset of presets) {
@@ -162,6 +162,7 @@ describe("Tricot production composition handoff through the adapter", () => {
     for (const [products] of scene.presetProducts.mock.calls) {
       for (const product of products) {
         expect(product).toMatchObject({
+          CabinetColor: "Rovere Oro 932",
           CabinetPattern: "Cannette",
           HandleGrooveColor: "Nero 433 Lacquered MT",
           CountertopColor: "Solid Surface Matte White",
@@ -172,7 +173,7 @@ describe("Tricot production composition handoff through the adapter", () => {
     }
   });
 
-  it("adds a recipe's cabinet at the end and beside another without its pending choices", async () => {
+  it("adds a recipe's cabinet at the end and beside another without its pending side panels", async () => {
     const scene = fakeScene();
     const port = createCompositionPort({ getBindings: () => bindings, scene, reader: createTestSceneReader().reader });
     const { name, ...config } = presets[0].presetProducts[0];
@@ -187,6 +188,7 @@ describe("Tricot production composition handoff through the adapter", () => {
     for (const sent of [added, inserted]) {
       expect(sent).toMatchObject({
         Width: config.Width,
+        CabinetColor: "Rovere Oro 932",
         CabinetPattern: "Cannette",
         HandleGrooveColor: "Nero 433 Lacquered MT",
         CountertopColor: "Solid Surface Matte White",
@@ -196,7 +198,7 @@ describe("Tricot production composition handoff through the adapter", () => {
     }
   });
 
-  it.each(["prebuilt", "custom"] as const)("places a recipe with its basin but not its wood in %s", async (flow) => {
+  it.each(["prebuilt", "custom"] as const)("places a recipe with its basin and its wood in %s", async (flow) => {
     const products = [{ productType: "Sink-Base", config: approvedConfig }];
     const scene = fakeScene();
     const port = createCompositionPort({
@@ -217,8 +219,9 @@ describe("Tricot production composition handoff through the adapter", () => {
         flow,
       }),
     ).toMatchObject({ status: "applied" });
-    // The pending wood stays out; the style is recorded only, as Class records it.
+    // The wood is the export's material of the same name; the style is recorded only, as Class records it.
     expect(scene.presetProducts).toHaveBeenCalledWith(expect.any(Array), {
+      CabinetColor: "Rovere Oro 932",
       CountertopColor: "Solid Surface Matte White",
       HandleGrooveColor: "Nero 433 Lacquered MT",
       sinkType: "Top_HPLPrisma",
@@ -271,7 +274,7 @@ describe("Tricot production composition handoff through the adapter", () => {
   });
 
   it("restores and duplicates a sink base from the config the scene reads back", async () => {
-    // getConfig of a Sink Base placed while its wood was pending: the scene's own color and basin.
+    // getConfig of a Sink Base the scene has not given its color yet: the export's own color and basin.
     const readBack = {
       Width: 80,
       Height: 40,
@@ -446,7 +449,7 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
     }
   });
 
-  it("rejects pending panel and wood commands without applying a dependent partial change", async () => {
+  it("rejects the pending side panels command without reaching the scene", async () => {
     const apply = vi.fn<SceneBridge["apply"]>(async () => ({ status: "applied", updatedIds: [] }));
     const runtime = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene: { isReady: () => true, apply } });
     const deps = {
@@ -456,13 +459,76 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
       flow: "custom" as const,
       configurator: tricotConfigurator,
     };
-    // A wood color would also move each Loden cabinet to a wood pattern; neither change may reach the scene alone.
-    for (const change of [
-      { attributeId: "SidePanels", scope: "global" as const, value: "Yes" },
-      { attributeId: "CabinetColor", scope: "global" as const, value: "Rovere Oro 932" },
-    ]) {
-      expect((await changeAttribute(change, deps)).status).not.toBe("applied");
-    }
+    expect((await changeAttribute({ attributeId: "SidePanels", scope: "global", value: "Yes" }, deps)).status).not.toBe(
+      "applied",
+    );
     expect(apply).not.toHaveBeenCalled();
+  });
+
+  it("moves every Loden cabinet to Cannette in the scene when a wood color rules out its lacquer pattern", async () => {
+    const apply = vi.fn<SceneBridge["apply"]>(async () => ({
+      status: "applied",
+      updatedIds: ["Tricot-sink-cabinet-a1b2c3d4e", "Tricot-side-cabinet-f5g6h7i8j"],
+    }));
+    const runtime = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene: { isReady: () => true, apply } });
+    const deps = {
+      getState: () => store.getState(),
+      dispatch: store.dispatch,
+      runtime,
+      flow: "custom" as const,
+      configurator: tricotConfigurator,
+    };
+
+    expect(
+      await changeAttribute({ attributeId: "CabinetColor", scope: "global", value: "Rovere Oro 932" }, deps),
+    ).toMatchObject({ status: "applied" });
+    expect(apply).toHaveBeenCalledWith(expect.anything(), { CabinetColor: "Rovere Oro 932" });
+    for (const { runtimeId, stableKey } of getCabinetEntries(store.getState())) {
+      expect(apply).toHaveBeenCalledWith({ productIds: [runtimeId] }, { CabinetPattern: "Cannette" });
+      expect(
+        getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: stableKey }),
+      ).toBe("Cannette");
+    }
+  });
+
+  // A groove follows a cabinet in its colour only to a colour the scene takes for a groove: Tricot's has no wood.
+  it("keeps a groove in the cabinet's lacquer when the cabinet turns to a wood", async () => {
+    const apply = vi.fn<SceneBridge["apply"]>(async () => ({
+      status: "applied",
+      updatedIds: ["Tricot-sink-cabinet-a1b2c3d4e", "Tricot-side-cabinet-f5g6h7i8j"],
+    }));
+    const runtime = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene: { isReady: () => true, apply } });
+    const deps = {
+      getState: () => store.getState(),
+      dispatch: store.dispatch,
+      runtime,
+      flow: "custom" as const,
+      configurator: tricotConfigurator,
+    };
+    // The groove colour a cabinet colour change compares with.
+    const groove = () => store.getState().rootStateUI.product.productOptions.HandleGrooveColor;
+    for (const change of [
+      { attributeId: "HandleGrooveColor", scope: "global" as const, value: "Nero 433 MT" },
+      { attributeId: "CabinetColor", scope: "global" as const, value: "Nero 433 MT" },
+    ])
+      expect(await changeAttribute(change, deps)).toMatchObject({ status: "applied" });
+
+    // To a lacquer, which the groove offers too, the groove follows the cabinet.
+    expect(
+      await changeAttribute({ attributeId: "CabinetColor", scope: "global", value: "Zafferano 412 MT" }, deps),
+    ).toMatchObject({ status: "applied" });
+    expect(apply).toHaveBeenCalledWith(expect.anything(), { HandleGrooveColor: "Zafferano 412 Lacquered MT" });
+    expect(groove()).toBe("Zafferano 412 MT");
+    apply.mockClear();
+
+    expect(
+      await changeAttribute({ attributeId: "CabinetColor", scope: "global", value: "Noce Canaletto 933" }, deps),
+    ).toMatchObject({ status: "applied" });
+    expect(apply).toHaveBeenCalledWith(expect.anything(), { CabinetColor: "Noce Canaletto 933" });
+    expect(apply).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ HandleGrooveColor: expect.anything() }),
+    );
+    expect(groove()).toBe("Zafferano 412 MT");
   });
 });

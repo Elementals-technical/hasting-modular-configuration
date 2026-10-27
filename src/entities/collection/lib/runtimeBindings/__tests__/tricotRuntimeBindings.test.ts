@@ -75,7 +75,7 @@ describe("Tricot delivered runtime bindings", () => {
     expect(findProductConfigBindingErrors(bindings, { [String(id)]: value })).toHaveLength(1);
   });
 
-  it("checks both product registrations and every delivered lacquer material against the actual export", () => {
+  it("checks both product registrations and every delivered lacquer and wood material against the actual export", () => {
     const exportDocument = JSON.parse(sceneConfig) as { assets: Record<string, { type: string; name: string }> };
     const materials = new Set(
       Object.values(exportDocument.assets)
@@ -84,10 +84,14 @@ describe("Tricot delivered runtime bindings", () => {
     );
     for (const type of Object.values(bindings.productTypes))
       expect(bundle).toContain(`registry.registerProduct("${type}"`);
-    for (const id of ["CabinetColor", "HandleGrooveColor"]) {
+    // 20 lacquers each; the cabinet also takes the 3 wood veneers.
+    for (const [id, count] of [
+      ["CabinetColor", 23],
+      ["HandleGrooveColor", 20],
+    ] as const) {
       const binding = bindings.bindings.find((b) => b.attributeId === id);
       if (binding?.status !== "bound" || binding.values.kind !== "map") throw new Error("Missing palette");
-      expect(Object.keys(binding.values.patches)).toHaveLength(20);
+      expect(Object.keys(binding.values.patches)).toHaveLength(count);
       for (const [value, scenePatch] of Object.entries(binding.values.patches)) {
         const sceneMaterial = String(scenePatch[id]);
         expect(materials.has(sceneMaterial), sceneMaterial).toBe(true);
@@ -99,16 +103,20 @@ describe("Tricot delivered runtime bindings", () => {
     }
   });
 
+  // Pending until 27.10 (user decision 08.10); the export has had these exact materials since 15.10.
   it.each(["Noce Canaletto 933", "Rovere Oro 932", "Rovere Termocotto 931"])(
-    "keeps missing wood asset %s pending: placed without a color, never substituted by another wood",
+    "sends wood veneer %s to the cabinets as the export's material of the same name, never another wood",
     (value) => {
       expect(patch("CabinetColor", value)).toMatchObject({
-        ok: false,
-        reason: "unbound",
-        detail: expect.stringContaining("wood-veneer"),
+        ok: true,
+        target: { kind: "cabinets" },
+        patch: { CabinetColor: value },
       });
       expect(findProductConfigBindingErrors(bindings, { CabinetColor: value })).toEqual([]);
-      expect(resolveProductConfig(bindings, { CabinetColor: value, Width: 60 })).toEqual({ Width: 60 });
+      expect(resolveProductConfig(bindings, { CabinetColor: value, Width: 60 })).toEqual({
+        CabinetColor: value,
+        Width: 60,
+      });
     },
   );
 
@@ -243,14 +251,14 @@ describe("Tricot delivered runtime bindings", () => {
     expect(resolveProductConfig(bindings, sceneOwned)).toEqual(sceneOwned);
   });
 
-  it("reads the export's own color back from a cabinet placed while its wood is pending", () => {
+  it("reads the export's own color back from a cabinet the scene has not given its color yet", () => {
     const sceneDefault = "Antracite Matte OCF";
     expect(patch("CabinetColor", sceneDefault)).toMatchObject({ ok: false, reason: "unbound" });
     expect(findProductConfigBindingErrors(bindings, { CabinetColor: sceneDefault })).toEqual([]);
     expect(resolveProductConfig(bindings, { CabinetColor: sceneDefault, Width: 60 })).toEqual({ Width: 60 });
     expect(semanticValueOf(bindings, "CabinetColor", sceneDefault)).toBe(sceneDefault);
-    // The summary shows the chosen wood, not the color the scene keeps in its place.
-    expect(configurationValueOf(bindings, "CabinetColor", sceneDefault, "Rovere Oro 932")).toBe("Rovere Oro 932");
+    // A wood is sent, so a cabinet in the export's color has not taken it: the summary shows what the scene shows.
+    expect(configurationValueOf(bindings, "CabinetColor", sceneDefault, "Rovere Oro 932")).toBe(sceneDefault);
     expect(configurationValueOf(bindings, "CabinetColor", sceneDefault, "Zafferano 412 MT")).toBe(sceneDefault);
     for (const type of Object.values(bindings.productTypes)) {
       const registration = bundle.match(new RegExp(`registerProduct\\("${type}".*?defaultConfig:\\{[^}]*\\}`))?.[0];
@@ -258,7 +266,7 @@ describe("Tricot delivered runtime bindings", () => {
     }
   });
 
-  it("still blocks an invalid value among pending ones", () => {
+  it("still blocks an invalid value beside a wood", () => {
     expect(
       findProductConfigBindingErrors(bindings, { CabinetColor: "Rovere Oro 932", sinkType: "LB440", Height: 52 }),
     ).toEqual(['No approved scene translation for Height "52".']);
