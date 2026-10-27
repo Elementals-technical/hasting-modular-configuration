@@ -3445,7 +3445,10 @@ export const PlayCanvasIntegration = ({
   const rawDropdownItems: DropdownItem[] = useMemo(() => {
     const orderedIds = getOrderedProductIds(productIds);
     const hideMultiCabinetActionsForSyntesi = countertopCompositionConstraint.isSingleCabinetOnly;
-    const canRepositionSelectedCabinet = orderedIds.length > 1 && !hideMultiCabinetActionsForSyntesi;
+    // The only cabinet has nothing to swap with, so it can be repositioned only where Drag & Drop moves it.
+    const canRepositionSelectedCabinet =
+      (orderedIds.length > 1 || (orderedIds.length === 1 && cabinetPlacementDebugEnabled)) &&
+      !hideMultiCabinetActionsForSyntesi;
 
     if (isPrebuilt) {
       if (isTowelBarEntity) {
@@ -3594,14 +3597,17 @@ export const PlayCanvasIntegration = ({
         // nothing to choose is dropped with its empty submenu.
         children: menuSupport.resize.map((sizeId) => resizeItems[sizeId]),
       },
-      ...buildRepositionItems({
-        order: orderedIds,
-        cabinetId: selectedSceneProduct,
-        isSideShelf: (runtimeId) => cabinetTypeOf(runtimeId) === "Side-Shelf",
-        dragDrop: repositionStatus,
-        onMove: handleMoveProduct,
-        onDragDrop: handleDragReposition,
-      }),
+      // A Syntesi top that takes one cabinet only keeps that cabinet in place, as in Prebuilt.
+      ...(orderedIds.length === 1 && hideMultiCabinetActionsForSyntesi
+        ? []
+        : buildRepositionItems({
+            order: orderedIds,
+            cabinetId: selectedSceneProduct,
+            isSideShelf: (runtimeId) => cabinetTypeOf(runtimeId) === "Side-Shelf",
+            dragDrop: repositionStatus,
+            onMove: handleMoveProduct,
+            onDragDrop: handleDragReposition,
+          })),
       {
         id: "color",
         label: "Color",
@@ -3693,6 +3699,7 @@ export const PlayCanvasIntegration = ({
     return items;
   }, [
     repositionStatus,
+    cabinetPlacementDebugEnabled,
     cabinetTypeOf,
     handleDragReposition,
     handleRemoveProducts,

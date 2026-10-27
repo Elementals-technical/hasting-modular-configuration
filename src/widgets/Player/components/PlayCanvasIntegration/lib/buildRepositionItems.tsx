@@ -15,10 +15,11 @@ type BuildRepositionItemsParams = {
 };
 
 /**
- * "Reposition ▸ Move Left | Move Right | Drag & Drop" of the selected cabinet's menu; none while the
- * cabinet is the only one. A move swaps the cabinet with its neighbour and never takes a side shelf
- * off the end of its row: a shelf at an end is not pushed inward, and a shelf changes sides only with
- * the one cabinet it stands by.
+ * "Reposition ▸ Move Left | Move Right | Drag & Drop" of the selected cabinet's menu. The only cabinet
+ * has no neighbour to swap with, so it gets Drag & Drop alone, and no Reposition where the scene can't
+ * drag it. A move swaps the cabinet with its neighbour and never takes a side shelf off the end of its
+ * row: a shelf at an end is not pushed inward, and a shelf changes sides only with the one cabinet it
+ * stands by.
  */
 export const buildRepositionItems = ({
   order,
@@ -29,7 +30,7 @@ export const buildRepositionItems = ({
   onDragDrop,
 }: BuildRepositionItemsParams): DropdownItem[] => {
   const index = order.indexOf(cabinetId);
-  if (order.length < 2 || index === -1) return [];
+  if (index === -1) return [];
 
   const canMove = !isSideShelf(cabinetId) || (order.length === 2 && order.some((id) => !isSideShelf(id)));
   const neighbor = (at: number): string | null => {
