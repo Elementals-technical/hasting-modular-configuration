@@ -1,4 +1,6 @@
-import type { TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
+import type { ConfiguratorCatalog, TypeCabinetRuleConfig } from "@/shared/config/configurator/typeCabinetCatalog";
+
+import { findPlacedCabinetRule } from "./placedCabinetRule";
 
 /**
  * A cabinet style and the height of the cabinets already placed.
@@ -18,6 +20,28 @@ export const heightsOfDrawerStyle = (rule: TypeCabinetRuleConfig, drawers: strin
 
   const forced = rule.forcedHeightByDrawers?.[drawers];
   return typeof forced === "number" ? [forced] : null;
+};
+
+/**
+ * The heights the drawers of the placed cabinets leave the composition: those every one of them comes
+ * in (Urban Duplex one-drawer cabinets: 53, 38 or 28 cm; two drawers: 56 only). A type with no drawers
+ * of its own, the open shelf, shares the composition's height, so these are its heights. Null while
+ * no placed cabinet's drawers decide a height.
+ */
+export const resolvePlacedDrawerHeights = (
+  catalog: ConfiguratorCatalog,
+  placedProductIds: readonly string[],
+  placedCabinetStyles: Readonly<Record<string, string>>,
+): readonly number[] | null => {
+  const lists = placedProductIds.flatMap((runtimeId) => {
+    const drawers = placedCabinetStyles[runtimeId];
+    const rule = drawers ? findPlacedCabinetRule(catalog, runtimeId, drawers) : null;
+    const heights = rule && drawers ? heightsOfDrawerStyle(rule, drawers) : null;
+    return heights ? [heights] : [];
+  });
+  if (lists.length === 0) return null;
+
+  return lists[0].filter((height) => lists.every((heights) => heights.includes(height)));
 };
 
 /**
