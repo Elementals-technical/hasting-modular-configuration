@@ -195,6 +195,7 @@ export {
   PLAYER_MENU_RESIZE_IDS,
   STYLE_SIDEBAR_FIELD_IDS,
   perCabinetAttributeId,
+  perCabinetAttributeLabel,
 } from "./model/customizationSchema";
 export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
 

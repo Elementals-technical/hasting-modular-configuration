@@ -106,10 +106,12 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
   `playerMenu.attributes` (підменю в Details меню поставленої шафи). Для шафи, виділеної на сцені,
   змінюється лише вона; без виділення sidebar задає значення шафі, яку зараз додають. Binding такого
   attribute мусить мати `perProduct: true`, інакше колекція не завантажиться
-  (`runtime.not-per-product`). Urban Duplex так показує сторону Lateral Panel; поле на кроці Color
-  і далі ставить її всім шафам. Елемент списку може мати умову:
-  `{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }` — значення пропонують лише шафі,
-  яка сама тримає ці значення (Urban Duplex: шафи інших серій панелі не мають).
+  (`runtime.not-per-product`). Urban Duplex так показує сторону Lateral Panel, і лише так: окремого
+  поля на кроці Color немає (з 27.10). Елемент списку може мати умову:
+  `{ "attributeId": "LateralPanelSide", "label": "Lateral Panel", "when": { "Series": "URDPX" } }` —
+  значення пропонують лише шафі, яка сама тримає ці значення (Urban Duplex: шафи інших серій панелі не
+  мають). `label` — назва selector і підменю; без нього береться label розділу, що показує лише це
+  поле, інакше id.
 - Шафи, які колекції постачає інша серія, описує profile: `ruleData.seriesModules` — на кожну серію і тип
   шафи свої `widthsCm` і `heightsByDrawers` (Urban Duplex: Side Cabinet серій `URSTD` і `URLH`). З них
   каталог отримує варіант правила типу з полем `series`; глибини, handle і продукт сцени — від власного
