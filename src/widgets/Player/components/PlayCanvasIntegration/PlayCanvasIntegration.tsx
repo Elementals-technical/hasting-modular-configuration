@@ -661,6 +661,11 @@ export const PlayCanvasIntegration = ({
             productId: state.productId,
             compositionId: state.compositionId,
             lengthCm: Number((length * 100).toFixed(4)),
+            // Tandem vanities: each clone of the top on a sink base set apart is a countertop of its own.
+            tandemLengthsCm: (state.tandemTops ?? [])
+              .map(({ lengthM }) => lengthM)
+              .filter((lengthM): lengthM is number => typeof lengthM === "number" && Number.isFinite(lengthM) && lengthM > 0)
+              .map((lengthM) => Number((lengthM * 100).toFixed(4))),
           }
         : null,
     );

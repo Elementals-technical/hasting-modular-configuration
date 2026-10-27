@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { captureScreenshotWithOptions } = vi.hoisted(() => ({
-  captureScreenshotWithOptions: vi.fn(async () => "data:image/png;base64,"),
+const { captureSceneImage } = vi.hoisted(() => ({
+  captureSceneImage: vi.fn(async (_options?: unknown) => "data:image/png;base64,download"),
 }));
 
-vi.mock("@/utils/functions/playcanvas/captureScreenshot", () => ({ captureScreenshotWithOptions }));
+vi.mock("@/utils/functions/playcanvas/captureScreenshot", () => ({ captureSceneImage }));
 
 import { captureQuotePreviewImage } from "../captureQuotePreviewImage";
 
@@ -19,16 +19,17 @@ describe("captureQuotePreviewImage", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    captureScreenshotWithOptions.mockClear();
+    captureSceneImage.mockClear();
   });
 
-  it("asks PlayCanvas for the product only: no room, transparent background", async () => {
-    await captureQuotePreviewImage();
+  it("uses the download button's render: no branding, PDF slot size, product filling the frame", async () => {
+    const image = await captureQuotePreviewImage();
 
-    const [options] = captureScreenshotWithOptions.mock.calls[0] as unknown as [
-      { hqSnapshotOptions: Record<string, unknown>; transparentBackground: boolean },
-    ];
-    expect(options.hqSnapshotOptions).toMatchObject({ includeRoom: false, bg: null });
-    expect(options.transparentBackground).toBe(true);
+    expect(captureSceneImage).toHaveBeenCalledWith({
+      includeBranding: false,
+      outputSize: { width: 3368, height: 1788 },
+      fitToProduct: true,
+    });
+    expect(image).toBe("data:image/png;base64,download");
   });
 });

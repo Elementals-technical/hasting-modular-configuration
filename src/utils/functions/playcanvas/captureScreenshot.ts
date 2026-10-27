@@ -772,12 +772,46 @@ export async function captureScreenshotWithOptions(options: CaptureScreenshotOpt
   return canvas ? canvasToDataUrl(canvas, "image/png") : null;
 }
 
-const downloadSceneImageOnce = async (filename: string) => {
-  const canvas = await captureScreenshotCanvasWithOptions({
-    includeLogo: true,
-    hqSnapshotOptions: DOWNLOAD_HQ_SNAPSHOT_OPTIONS,
-    outputSize: DOWNLOAD_OUTPUT_SIZE,
+type SceneImageOptions = {
+  /** Hastings logo above the render and the contacts footer below it. Default: true. */
+  includeBranding?: boolean;
+  /** Final size. With both sides set, the scene is rendered at that size: no letterboxing. */
+  outputSize?: OutputSize;
+  /** Camera keeps its angle and moves so the product fills the frame; the room stays behind it. */
+  fitToProduct?: boolean;
+};
+
+// Space around the product's box when fitToProduct frames it: 5% of the box.
+const PRODUCT_FIT_MARGIN = 1.05;
+
+/**
+ * The scene picture behind the "Image" button: room, white background, 4096 px HQ render.
+ * The quote PDF takes the same picture without the branding, sized to its slot.
+ * @example captureSceneImageCanvas() // download: logo + footer, 2048 px wide
+ * @example captureSceneImageCanvas({ includeBranding: false, outputSize: { width: 3368, height: 1788 }, fitToProduct: true })
+ */
+const captureSceneImageCanvas = ({
+  includeBranding = true,
+  outputSize = DOWNLOAD_OUTPUT_SIZE,
+  fitToProduct = false,
+}: SceneImageOptions = {}) =>
+  captureScreenshotCanvasWithOptions({
+    includeLogo: includeBranding,
+    hqSnapshotOptions: fitToProduct
+      ? { ...DOWNLOAD_HQ_SNAPSHOT_OPTIONS, fitToProduct: true, margin: PRODUCT_FIT_MARGIN }
+      : DOWNLOAD_HQ_SNAPSHOT_OPTIONS,
+    outputSize,
+    renderSourceAtOutputSize: Boolean(outputSize.width && outputSize.height),
   });
+
+/** The scene picture as a PNG data URL; see captureSceneImageCanvas for the options. */
+export async function captureSceneImage(options?: SceneImageOptions): Promise<string | null> {
+  const canvas = await captureSceneImageCanvas(options);
+  return canvas ? canvasToDataUrl(canvas, "image/png") : null;
+}
+
+const downloadSceneImageOnce = async (filename: string) => {
+  const canvas = await captureSceneImageCanvas();
   if (!canvas) return;
 
   const blob = await canvasToBlob(canvas, "image/png");
