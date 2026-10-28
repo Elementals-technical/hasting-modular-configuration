@@ -10,7 +10,8 @@
       "analysis/products-data/Class/docs/COLLECTION-LOGIC-UA.md"
     ],
     "auditedAt": "2026-09-08",
-    "warning": "Only facts the Class documents confirm: the WebGL Scoping rules (CLS-WGL), the Class price workbook (CLS-XLS) and the Master File register (appendix A). Urban Standard Height values are not inherited."
+    "warning": "Only facts the Class documents confirm: the WebGL Scoping rules (CLS-WGL), the Class price workbook (CLS-XLS) and the Master File register (appendix A). Urban Standard Height values are not inherited.",
+    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block: Wood Veneer = WDV Tier 3. The shared table has no WDV tier."
   },
   "sourceRefs": {
     "configuratorId": 8,
@@ -337,6 +338,7 @@
     },
     "drawerOrganizers": { "profile": "ROW-MTL-43" },
     "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "priceTiers": { "byAttribute": { "CabinetColor": { "WDV": 3 } } },
     "vesselCompatibility": {
       "hiddenStyles": [],
       "allowedMaterialsByStyle": {

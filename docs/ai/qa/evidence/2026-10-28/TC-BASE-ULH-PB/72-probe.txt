@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/model?collectionId=urban-low-height","price":null,"step":null,"dialogs":[],"alerts":["Collection unavailable The collection data is invalid and the configurator cannot start. Collection: urban-low-height Retry Open default collection"],"sceneReady":false}
+```

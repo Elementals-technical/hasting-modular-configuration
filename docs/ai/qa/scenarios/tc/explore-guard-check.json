@@ -1,0 +1,34 @@
+{
+ "description": "guard check",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+   },
+   "save": "g.txt",
+   "optional": false
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 60,
+    "resourceTypes": [
+     "fetch",
+     "xhr"
+    ]
+   },
+   "save": "n.txt"
+  }
+ ]
+}

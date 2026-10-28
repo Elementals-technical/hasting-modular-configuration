@@ -1,0 +1,430 @@
+{"id": "T00R000C00", "first_paragraph": "P0004", "text": "Пункт"}
+{"id": "T00R000C01", "first_paragraph": "P0005", "text": "Значення"}
+{"id": "T00R001C00", "first_paragraph": "P0006", "text": "Колекція"}
+{"id": "T00R001C01", "first_paragraph": "P0007", "text": "Tricot (\"Tricot Vanity\"), код продукту в SKU TRIC, категорія VAN"}
+{"id": "T01R000C00", "first_paragraph": "P0017", "text": "Продукт"}
+{"id": "T01R000C01", "first_paragraph": "P0018", "text": "Код"}
+{"id": "T01R000C02", "first_paragraph": "P0019", "text": "Ширина (см / дюйми)"}
+{"id": "T01R000C03", "first_paragraph": "P0020", "text": "Висота"}
+{"id": "T01R000C04", "first_paragraph": "P0021", "text": "Глибина"}
+{"id": "T01R000C05", "first_paragraph": "P0022", "text": "Ящики (стиль)"}
+{"id": "T01R000C06", "first_paragraph": "P0023", "text": "Ручка"}
+{"id": "T01R000C07", "first_paragraph": "P0024", "text": "Патерни"}
+{"id": "T01R000C08", "first_paragraph": "P0025", "text": "Раковина"}
+{"id": "T01R001C00", "first_paragraph": "P0026", "text": "Sink Base"}
+{"id": "T01R001C01", "first_paragraph": "P0027", "text": "SB"}
+{"id": "T01R001C02", "first_paragraph": "P0028", "text": "{60, 80, 100, 120} / {23.6, 31.5, 39.4, 47.2}"}
+{"id": "T01R001C03", "first_paragraph": "P0029", "text": "{40 см / 15.7\"}"}
+{"id": "T01R001C04", "first_paragraph": "P0030", "text": "{52 см / 20.5\"}"}
+{"id": "T01R001C05", "first_paragraph": "P0031", "text": "{1DW, 2DW, 1DWID}"}
+{"id": "T01R001C06", "first_paragraph": "P0032", "text": "{лише паз}"}
+{"id": "T01R001C07", "first_paragraph": "P0033", "text": "{Loden, Cannette, Twill, Gessato, Satin}"}
+{"id": "T01R001C08", "first_paragraph": "P0034", "text": "так, одна на Sink Base"}
+{"id": "T01R002C00", "first_paragraph": "P0035", "text": "Side Cabinet"}
+{"id": "T01R002C01", "first_paragraph": "P0036", "text": "SC"}
+{"id": "T01R002C02", "first_paragraph": "P0037", "text": "{40, 60, 80, 100, 120} / {15.7, 23.6, 31.5, 39.4, 47.2}"}
+{"id": "T01R002C03", "first_paragraph": "P0038", "text": "{40 см}"}
+{"id": "T01R002C04", "first_paragraph": "P0039", "text": "{52 см}"}
+{"id": "T01R002C05", "first_paragraph": "P0040", "text": "{1DW, 2DW, 1DWID}"}
+{"id": "T01R002C06", "first_paragraph": "P0041", "text": "{лише паз}"}
+{"id": "T01R002C07", "first_paragraph": "P0042", "text": "ті самі п'ять"}
+{"id": "T01R002C08", "first_paragraph": "P0043", "text": "ні"}
+{"id": "T01R003C00", "first_paragraph": "P0044", "text": "Side Panel (аксесуар)"}
+{"id": "T01R003C01", "first_paragraph": "P0045", "text": "SP"}
+{"id": "T01R003C02", "first_paragraph": "P0046", "text": "{товщина 0.8\"}"}
+{"id": "T01R003C03", "first_paragraph": "P0047", "text": "{40 см}"}
+{"id": "T01R003C04", "first_paragraph": "P0048", "text": "{52 см}"}
+{"id": "T01R003C05", "first_paragraph": "P0049", "text": "–"}
+{"id": "T01R003C06", "first_paragraph": "P0050", "text": "–"}
+{"id": "T01R003C07", "first_paragraph": "P0051", "text": "немає (гладка)"}
+{"id": "T01R003C08", "first_paragraph": "P0052", "text": "–"}
+{"id": "T02R000C00", "first_paragraph": "P0057", "text": "Підпис в UI"}
+{"id": "T02R000C01", "first_paragraph": "P0058", "text": "Код"}
+{"id": "T02R000C02", "first_paragraph": "P0059", "text": "Значення"}
+{"id": "T02R001C00", "first_paragraph": "P0060", "text": "1 Drawer"}
+{"id": "T02R001C01", "first_paragraph": "P0061", "text": "1DW"}
+{"id": "T02R001C02", "first_paragraph": "P0062", "text": "один ящик"}
+{"id": "T02R002C00", "first_paragraph": "P0063", "text": "2 Drawers"}
+{"id": "T02R002C01", "first_paragraph": "P0064", "text": "2DW"}
+{"id": "T02R002C02", "first_paragraph": "P0065", "text": "два ящики"}
+{"id": "T02R003C00", "first_paragraph": "P0066", "text": "1 Drawer + Inner Drawer"}
+{"id": "T02R003C01", "first_paragraph": "P0067", "text": "1DWID"}
+{"id": "T02R003C02", "first_paragraph": "P0068", "text": "один фасадний ящик із внутрішнім; ціна як у 2DW"}
+{"id": "T03R000C00", "first_paragraph": "P0084", "text": "#"}
+{"id": "T03R000C01", "first_paragraph": "P0085", "text": "Крок"}
+{"id": "T03R000C02", "first_paragraph": "P0086", "text": "Блоки (по порядку)"}
+{"id": "T03R000C03", "first_paragraph": "P0087", "text": "Що налаштовується"}
+{"id": "T03R000C04", "first_paragraph": "P0088", "text": "Крок у 2D"}
+{"id": "T03R001C00", "first_paragraph": "P0089", "text": "1"}
+{"id": "T03R001C01", "first_paragraph": "P0090", "text": "Tricot Models"}
+{"id": "T03R001C02", "first_paragraph": "P0091", "text": "фільтр Size, фільтр Style, сітка моделей, деталі моделі"}
+{"id": "T03R001C03", "first_paragraph": "P0092", "text": "вибір однієї з 41 моделі; \"Customize\" копіює модель у конструктор тумб"}
+{"id": "T03R001C04", "first_paragraph": "P0093", "text": "1 Select Model (Size, Style, Model) [2D L2–L55]"}
+{"id": "T03R002C00", "first_paragraph": "P0094", "text": "2"}
+{"id": "T03R002C01", "first_paragraph": "P0095", "text": "Cabinet Finishes"}
+{"id": "T03R002C02", "first_paragraph": "P0096", "text": "Cabinet Color, Cabinet Pattern, Handle Groove Color"}
+{"id": "T03R002C03", "first_paragraph": "P0097", "text": "23 кольори корпусу, 5 патернів (з обмеженням за матеріалом), 20 кольорів пазу"}
+{"id": "T03R002C04", "first_paragraph": "P0098", "text": "2 Select Cabinet Color, 3 Select Cabinet Pattern, 4 Select Handle Groove Color"}
+{"id": "T03R003C00", "first_paragraph": "P0099", "text": "3"}
+{"id": "T03R003C01", "first_paragraph": "P0100", "text": "Accessories"}
+{"id": "T03R003C02", "first_paragraph": "P0101", "text": "Side Panels"}
+{"id": "T03R003C03", "first_paragraph": "P0102", "text": "None / No groove"}
+{"id": "T03R003C04", "first_paragraph": "P0103", "text": "5 Side Panels (опційно)"}
+{"id": "T03R004C00", "first_paragraph": "P0104", "text": "4"}
+{"id": "T03R004C01", "first_paragraph": "P0105", "text": "Countertop & Basin"}
+{"id": "T03R004C02", "first_paragraph": "P0106", "text": "Countertop Color, Thickness, Countertop Style, Basin Style (заголовок \"Vessel Sink Style\" для vessel), Vessel Color (лише для vessel)"}
+{"id": "T03R004C03", "first_paragraph": "P0107", "text": "71 колір, 5 товщин, Integrated / Vessel, 10 інтегрованих раковин або 3 vessel + \"None\", 20–40 кольорів vessel"}
+{"id": "T03R004C04", "first_paragraph": "P0108", "text": "6 Select Countertop Color, 7 Select Countertop Basin Style (Thickness, Countertop Style і vessel у 2D немає, вони визначені в документі WebGL)"}
+{"id": "T03R005C00", "first_paragraph": "P0109", "text": "5"}
+{"id": "T03R005C01", "first_paragraph": "P0110", "text": "Summary"}
+{"id": "T03R005C02", "first_paragraph": "P0111", "text": "ціна і список позицій"}
+{"id": "T03R005C03", "first_paragraph": "P0112", "text": "–"}
+{"id": "T03R005C04", "first_paragraph": "P0113", "text": "–"}
+{"id": "T04R000C00", "first_paragraph": "P0115", "text": "#"}
+{"id": "T04R000C01", "first_paragraph": "P0116", "text": "Крок"}
+{"id": "T04R000C02", "first_paragraph": "P0117", "text": "Блоки"}
+{"id": "T04R000C03", "first_paragraph": "P0118", "text": "Що налаштовується"}
+{"id": "T04R001C00", "first_paragraph": "P0119", "text": "1"}
+{"id": "T04R001C01", "first_paragraph": "P0120", "text": "Tricot Cabinet Builder"}
+{"id": "T04R001C02", "first_paragraph": "P0121", "text": "Cabinet Type, Cabinet Style; права панель вибраної тумби: Width, Depth"}
+{"id": "T04R001C03", "first_paragraph": "P0122", "text": "додати Sink Base / Side Cabinet; ящики 1DW / 2DW / 1DWID; ширина кожної тумби; глибина показує єдине значення 52 см"}
+{"id": "T04R002C00", "first_paragraph": "P0123", "text": "2–5"}
+{"id": "T04R002C01", "first_paragraph": "P0124", "text": "як у Prebuilt 2–5"}
+{"id": "T04R002C02", "first_paragraph": "P0125", "text": ""}
+{"id": "T04R002C03", "first_paragraph": "P0126", "text": ""}
+{"id": "T05R000C00", "first_paragraph": "P0130", "text": "Блок"}
+{"id": "T05R000C01", "first_paragraph": "P0131", "text": "Контрол"}
+{"id": "T05R000C02", "first_paragraph": "P0132", "text": "Джерело опцій"}
+{"id": "T05R000C03", "first_paragraph": "P0133", "text": "Коли показаний / активний"}
+{"id": "T05R001C00", "first_paragraph": "P0134", "text": "Cabinet Type"}
+{"id": "T05R001C01", "first_paragraph": "P0135", "text": "картки з картинками"}
+{"id": "T05R001C02", "first_paragraph": "P0136", "text": "Sink Base, Side Cabinet"}
+{"id": "T05R001C03", "first_paragraph": "P0137", "text": "третя Sink Base і ширини понад ліміт довжини вимкнені"}
+{"id": "T05R002C00", "first_paragraph": "P0138", "text": "Cabinet Style"}
+{"id": "T05R002C01", "first_paragraph": "P0139", "text": "картки з картинками"}
+{"id": "T05R002C02", "first_paragraph": "P0140", "text": "1DW, 2DW, 1DWID"}
+{"id": "T05R002C03", "first_paragraph": "P0141", "text": "інша група ящиків позначена як «змішування обмежене»"}
+{"id": "T05R003C00", "first_paragraph": "P0142", "text": "Cabinet Color"}
+{"id": "T05R003C01", "first_paragraph": "P0143", "text": "свотчі з фільтрами Material / Color"}
+{"id": "T05R003C02", "first_paragraph": "P0144", "text": "список кольорів конфігуратора (23)"}
+{"id": "T05R003C03", "first_paragraph": "P0145", "text": "завжди"}
+{"id": "T05R004C00", "first_paragraph": "P0146", "text": "Cabinet Pattern"}
+{"id": "T05R004C01", "first_paragraph": "P0147", "text": "картки з картинками"}
+{"id": "T05R004C02", "first_paragraph": "P0148", "text": "5 патернів"}
+{"id": "T05R004C03", "first_paragraph": "P0149", "text": "активні лише патерни, дозволені для матеріалу корпусу"}
+{"id": "T05R005C00", "first_paragraph": "P0150", "text": "Handle Groove Color"}
+{"id": "T05R005C01", "first_paragraph": "P0151", "text": "свотчі"}
+{"id": "T05R005C02", "first_paragraph": "P0152", "text": "список кольорів конфігуратора (20)"}
+{"id": "T05R005C03", "first_paragraph": "P0153", "text": "завжди; один колір на всю тумбу"}
+{"id": "T05R006C00", "first_paragraph": "P0154", "text": "Side Panels"}
+{"id": "T05R006C01", "first_paragraph": "P0155", "text": "картки з картинками"}
+{"id": "T05R006C02", "first_paragraph": "P0156", "text": "None, No groove"}
+{"id": "T05R006C03", "first_paragraph": "P0157", "text": "\"No groove\" вимкнена, якщо перевищить ліміт довжини"}
+{"id": "T05R007C00", "first_paragraph": "P0158", "text": "Countertop Color"}
+{"id": "T05R007C01", "first_paragraph": "P0159", "text": "свотчі з фільтрами Material / Color"}
+{"id": "T05R007C02", "first_paragraph": "P0160", "text": "список кольорів конфігуратора (71)"}
+{"id": "T05R007C03", "first_paragraph": "P0161", "text": "кольори, чий матеріал підходить композиції"}
+{"id": "T05R008C00", "first_paragraph": "P0162", "text": "Thickness"}
+{"id": "T05R008C01", "first_paragraph": "P0163", "text": "свотчі (лише доступні значення)"}
+{"id": "T05R008C02", "first_paragraph": "P0164", "text": "0.5\", 0.8\", 3.1\", 4\", 4.7\""}
+{"id": "T05R008C03", "first_paragraph": "P0165", "text": "значення, дозволені для матеріалу стільниці"}
+{"id": "T05R009C00", "first_paragraph": "P0166", "text": "Countertop Style"}
+{"id": "T05R009C01", "first_paragraph": "P0167", "text": "картки з картинками"}
+{"id": "T05R009C02", "first_paragraph": "P0168", "text": "Integrated, Vessel"}
+{"id": "T05R009C03", "first_paragraph": "P0169", "text": "обидва доступні для всіх поточних матеріалів [derived]"}
+{"id": "T05R010C00", "first_paragraph": "P0170", "text": "Basin Style"}
+{"id": "T05R010C01", "first_paragraph": "P0171", "text": "картки з картинками"}
+{"id": "T05R010C02", "first_paragraph": "P0172", "text": "інтегровані раковини вибраного матеріалу або None / Iris / Frame / Plaza"}
+{"id": "T05R010C03", "first_paragraph": "P0173", "text": "§5"}
+{"id": "T05R011C00", "first_paragraph": "P0174", "text": "Vessel Color"}
+{"id": "T05R011C01", "first_paragraph": "P0175", "text": "свотчі"}
+{"id": "T05R011C02", "first_paragraph": "P0176", "text": "список кольорів vessel"}
+{"id": "T05R011C03", "first_paragraph": "P0177", "text": "лише коли вибрано vessel (Iris, Frame, Plaza)"}
+{"id": "T06R000C00", "first_paragraph": "P0182", "text": "Властивість"}
+{"id": "T06R000C01", "first_paragraph": "P0183", "text": "Категорія"}
+{"id": "T06R000C02", "first_paragraph": "P0184", "text": "Кількість"}
+{"id": "T06R000C03", "first_paragraph": "P0185", "text": "Область"}
+{"id": "T06R001C00", "first_paragraph": "P0186", "text": "Cabinet Color"}
+{"id": "T06R001C01", "first_paragraph": "P0187", "text": "Lacquered MT / Wood Veneer"}
+{"id": "T06R001C02", "first_paragraph": "P0188", "text": "20 / 3 = 23"}
+{"id": "T06R001C03", "first_paragraph": "P0189", "text": "уся тумба"}
+{"id": "T06R002C00", "first_paragraph": "P0190", "text": "Cabinet Pattern"}
+{"id": "T06R002C01", "first_paragraph": "P0191", "text": "–"}
+{"id": "T06R002C02", "first_paragraph": "P0192", "text": "5"}
+{"id": "T06R002C03", "first_paragraph": "P0193", "text": "на кожну тумбу"}
+{"id": "T06R003C00", "first_paragraph": "P0194", "text": "Handle Groove Color"}
+{"id": "T06R003C01", "first_paragraph": "P0195", "text": "Lacquered MT"}
+{"id": "T06R003C02", "first_paragraph": "P0196", "text": "20"}
+{"id": "T06R003C03", "first_paragraph": "P0197", "text": "уся тумба"}
+{"id": "T06R004C00", "first_paragraph": "P0198", "text": "Countertop Color"}
+{"id": "T06R004C01", "first_paragraph": "P0199", "text": "Solid Surface / HPL / Porcelain / Glass MT / Glass GL"}
+{"id": "T06R004C02", "first_paragraph": "P0200", "text": "2 / 14 / 15 / 20 / 20 = 71"}
+{"id": "T06R004C03", "first_paragraph": "P0201", "text": "уся стільниця"}
+{"id": "T06R005C00", "first_paragraph": "P0202", "text": "Thickness"}
+{"id": "T06R005C01", "first_paragraph": "P0203", "text": "–"}
+{"id": "T06R005C02", "first_paragraph": "P0204", "text": "5"}
+{"id": "T06R005C03", "first_paragraph": "P0205", "text": "уся стільниця"}
+{"id": "T06R006C00", "first_paragraph": "P0206", "text": "Vessel Color"}
+{"id": "T06R006C01", "first_paragraph": "P0207", "text": "Lacquered MT / Lacquered GL"}
+{"id": "T06R006C02", "first_paragraph": "P0208", "text": "20 / 20 = 40 (Provisional)"}
+{"id": "T06R006C03", "first_paragraph": "P0209", "text": "на кожну vessel"}
+{"id": "T07R000C00", "first_paragraph": "P0216", "text": "Патерн (підпис)"}
+{"id": "T07R000C01", "first_paragraph": "P0217", "text": "Дозволений матеріал корпусу"}
+{"id": "T07R000C02", "first_paragraph": "P0218", "text": "Токен SKU"}
+{"id": "T07R001C00", "first_paragraph": "P0219", "text": "Loden"}
+{"id": "T07R001C01", "first_paragraph": "P0220", "text": "лише Lacquered MT"}
+{"id": "T07R001C02", "first_paragraph": "P0221", "text": "LOD"}
+{"id": "T07R002C00", "first_paragraph": "P0222", "text": "Cannette (підпис \"Cannete\", як у Master File)"}
+{"id": "T07R002C01", "first_paragraph": "P0223", "text": "лише Wood Veneer"}
+{"id": "T07R002C02", "first_paragraph": "P0224", "text": "CAN"}
+{"id": "T07R003C00", "first_paragraph": "P0225", "text": "Twill"}
+{"id": "T07R003C01", "first_paragraph": "P0226", "text": "лише Wood Veneer"}
+{"id": "T07R003C02", "first_paragraph": "P0227", "text": "TWLL"}
+{"id": "T07R004C00", "first_paragraph": "P0228", "text": "Gessato"}
+{"id": "T07R004C01", "first_paragraph": "P0229", "text": "лише Wood Veneer"}
+{"id": "T07R004C02", "first_paragraph": "P0230", "text": "GES"}
+{"id": "T07R005C00", "first_paragraph": "P0231", "text": "Satin (без рельєфу)"}
+{"id": "T07R005C01", "first_paragraph": "P0232", "text": "лише Wood Veneer"}
+{"id": "T07R005C02", "first_paragraph": "P0233", "text": "SAT"}
+{"id": "T08R000C00", "first_paragraph": "P0249", "text": "Показано"}
+{"id": "T08R000C01", "first_paragraph": "P0250", "text": "Значення (дюйми)"}
+{"id": "T08R000C02", "first_paragraph": "P0251", "text": "Код SKU"}
+{"id": "T08R000C03", "first_paragraph": "P0252", "text": "Дозволені матеріали [table 593]"}
+{"id": "T08R001C00", "first_paragraph": "P0253", "text": "0.5\""}
+{"id": "T08R001C01", "first_paragraph": "P0254", "text": "1/2"}
+{"id": "T08R001C02", "first_paragraph": "P0255", "text": ".5"}
+{"id": "T08R001C03", "first_paragraph": "P0256", "text": "Solid Surface (раковини LB), HPL, Glass MT/GL"}
+{"id": "T08R002C00", "first_paragraph": "P0257", "text": "0.8\""}
+{"id": "T08R002C01", "first_paragraph": "P0258", "text": "3/4"}
+{"id": "T08R002C02", "first_paragraph": "P0259", "text": ".8"}
+{"id": "T08R002C03", "first_paragraph": "P0260", "text": "Porcelain"}
+{"id": "T08R003C00", "first_paragraph": "P0261", "text": "3.1\""}
+{"id": "T08R003C01", "first_paragraph": "P0262", "text": "3-1/8"}
+{"id": "T08R003C02", "first_paragraph": "P0263", "text": "3.1"}
+{"id": "T08R003C03", "first_paragraph": "P0264", "text": "лише Solid Surface з VA023"}
+{"id": "T08R004C00", "first_paragraph": "P0265", "text": "4\""}
+{"id": "T08R004C01", "first_paragraph": "P0266", "text": "4"}
+{"id": "T08R004C02", "first_paragraph": "P0267", "text": "4"}
+{"id": "T08R004C03", "first_paragraph": "P0268", "text": "HPL"}
+{"id": "T08R005C00", "first_paragraph": "P0269", "text": "4.7\""}
+{"id": "T08R005C01", "first_paragraph": "P0270", "text": "4-3/4"}
+{"id": "T08R005C02", "first_paragraph": "P0271", "text": "4.7"}
+{"id": "T08R005C03", "first_paragraph": "P0272", "text": "Solid Surface (раковини LB), Porcelain"}
+{"id": "T09R000C00", "first_paragraph": "P0284", "text": "Код"}
+{"id": "T09R000C01", "first_paragraph": "P0285", "text": "3D-модель"}
+{"id": "T09R000C02", "first_paragraph": "P0286", "text": "Матеріал стільниці (кольори)"}
+{"id": "T09R000C03", "first_paragraph": "P0287", "text": "Товщина"}
+{"id": "T09R000C04", "first_paragraph": "P0288", "text": "Ширина Sink Base"}
+{"id": "T09R000C05", "first_paragraph": "P0289", "text": "Іконка"}
+{"id": "T09R000C06", "first_paragraph": "P0290", "text": "Рев'ю відповідності 27.10"}
+{"id": "T09R001C00", "first_paragraph": "P0291", "text": "LB440"}
+{"id": "T09R001C01", "first_paragraph": "P0292", "text": "Top_HPLPrisma"}
+{"id": "T09R001C02", "first_paragraph": "P0293", "text": "Solid Surface (Matte White, Matte White 8cm)"}
+{"id": "T09R001C03", "first_paragraph": "P0294", "text": "0.5\", 4.7\""}
+{"id": "T09R001C04", "first_paragraph": "P0295", "text": "60–120"}
+{"id": "T09R001C05", "first_paragraph": "P0296", "text": "є"}
+{"id": "T09R001C06", "first_paragraph": "P0297", "text": "ок"}
+{"id": "T09R002C00", "first_paragraph": "P0298", "text": "LB175"}
+{"id": "T09R002C01", "first_paragraph": "P0299", "text": "Top_Tekorlux_Ron"}
+{"id": "T09R002C02", "first_paragraph": "P0300", "text": "Solid Surface"}
+{"id": "T09R002C03", "first_paragraph": "P0301", "text": "0.5\", 4.7\""}
+{"id": "T09R002C04", "first_paragraph": "P0302", "text": "60–120"}
+{"id": "T09R002C05", "first_paragraph": "P0303", "text": "є"}
+{"id": "T09R002C06", "first_paragraph": "P0304", "text": "не та модель — має бути овальна"}
+{"id": "T09R003C00", "first_paragraph": "P0305", "text": "LB575"}
+{"id": "T09R003C01", "first_paragraph": "P0306", "text": "Top_Tekorlux_Quadra"}
+{"id": "T09R003C02", "first_paragraph": "P0307", "text": "Solid Surface"}
+{"id": "T09R003C03", "first_paragraph": "P0308", "text": "0.5\", 4.7\""}
+{"id": "T09R003C04", "first_paragraph": "P0309", "text": "60–120"}
+{"id": "T09R003C05", "first_paragraph": "P0310", "text": "є"}
+{"id": "T09R003C06", "first_paragraph": "P0311", "text": "ок"}
+{"id": "T09R004C00", "first_paragraph": "P0312", "text": "LB856"}
+{"id": "T09R004C01", "first_paragraph": "P0313", "text": "Top_HPLStrip"}
+{"id": "T09R004C02", "first_paragraph": "P0314", "text": "Solid Surface"}
+{"id": "T09R004C03", "first_paragraph": "P0315", "text": "0.5\", 4.7\""}
+{"id": "T09R004C04", "first_paragraph": "P0316", "text": "60–120"}
+{"id": "T09R004C05", "first_paragraph": "P0317", "text": "є"}
+{"id": "T09R004C06", "first_paragraph": "P0318", "text": "не та"}
+{"id": "T09R005C00", "first_paragraph": "P0319", "text": "VA023"}
+{"id": "T09R005C01", "first_paragraph": "P0320", "text": "Top_Tekormud_Tivi"}
+{"id": "T09R005C02", "first_paragraph": "P0321", "text": "Solid Surface (цінова група SSTMT)"}
+{"id": "T09R005C03", "first_paragraph": "P0322", "text": "лише 3.1\""}
+{"id": "T09R005C04", "first_paragraph": "P0323", "text": "80–120"}
+{"id": "T09R005C05", "first_paragraph": "P0324", "text": "немає"}
+{"id": "T09R005C06", "first_paragraph": "P0325", "text": "не та модель"}
+{"id": "T09R006C00", "first_paragraph": "P0326", "text": "VA024"}
+{"id": "T09R006C01", "first_paragraph": "P0327", "text": "Top_HPLCover"}
+{"id": "T09R006C02", "first_paragraph": "P0328", "text": "HPL (14)"}
+{"id": "T09R006C03", "first_paragraph": "P0329", "text": "0.5\", 4\""}
+{"id": "T09R006C04", "first_paragraph": "P0330", "text": "60–120"}
+{"id": "T09R006C05", "first_paragraph": "P0331", "text": "є"}
+{"id": "T09R006C06", "first_paragraph": "P0332", "text": "ок"}
+{"id": "T09R007C00", "first_paragraph": "P0333", "text": "LV890"}
+{"id": "T09R007C01", "first_paragraph": "P0334", "text": "Top_Tekorlux_Trip"}
+{"id": "T09R007C02", "first_paragraph": "P0335", "text": "Porcelain (15)"}
+{"id": "T09R007C03", "first_paragraph": "P0336", "text": "0.8\", 4.7\""}
+{"id": "T09R007C04", "first_paragraph": "P0337", "text": "60–120"}
+{"id": "T09R007C05", "first_paragraph": "P0338", "text": "є"}
+{"id": "T09R007C06", "first_paragraph": "P0339", "text": "прибрати скіс краю"}
+{"id": "T09R008C00", "first_paragraph": "P0340", "text": "LV892"}
+{"id": "T09R008C01", "first_paragraph": "P0341", "text": "Top_Ocritech_Orion"}
+{"id": "T09R008C02", "first_paragraph": "P0342", "text": "Porcelain"}
+{"id": "T09R008C03", "first_paragraph": "P0343", "text": "0.8\", 4.7\""}
+{"id": "T09R008C04", "first_paragraph": "P0344", "text": "60–120"}
+{"id": "T09R008C05", "first_paragraph": "P0345", "text": "є"}
+{"id": "T09R008C06", "first_paragraph": "P0346", "text": "прибрати перелив"}
+{"id": "T09R009C00", "first_paragraph": "P0347", "text": "VA002"}
+{"id": "T09R009C01", "first_paragraph": "P0348", "text": "Top_Ocritech_Oly55"}
+{"id": "T09R009C02", "first_paragraph": "P0349", "text": "Glass MT (20), Glass GL (20)"}
+{"id": "T09R009C03", "first_paragraph": "P0350", "text": "0.5\""}
+{"id": "T09R009C04", "first_paragraph": "P0351", "text": "60–120"}
+{"id": "T09R009C05", "first_paragraph": "P0352", "text": "є"}
+{"id": "T09R009C06", "first_paragraph": "P0353", "text": "має бути скляна"}
+{"id": "T09R010C00", "first_paragraph": "P0354", "text": "VA005"}
+{"id": "T09R010C01", "first_paragraph": "P0355", "text": "Top_Tekorlux_Rectangular"}
+{"id": "T09R010C02", "first_paragraph": "P0356", "text": "Glass MT, Glass GL"}
+{"id": "T09R010C03", "first_paragraph": "P0357", "text": "0.5\""}
+{"id": "T09R010C04", "first_paragraph": "P0358", "text": "60–120"}
+{"id": "T09R010C05", "first_paragraph": "P0359", "text": "є"}
+{"id": "T09R010C06", "first_paragraph": "P0360", "text": "має бути скляна"}
+{"id": "T10R000C00", "first_paragraph": "P0366", "text": "Опція"}
+{"id": "T10R000C01", "first_paragraph": "P0367", "text": "3D-модель"}
+{"id": "T10R000C02", "first_paragraph": "P0368", "text": "Кольори vessel"}
+{"id": "T10R000C03", "first_paragraph": "P0369", "text": "Ширина Sink Base"}
+{"id": "T10R000C04", "first_paragraph": "P0370", "text": "SKU"}
+{"id": "T10R000C05", "first_paragraph": "P0371", "text": "Статус"}
+{"id": "T10R001C00", "first_paragraph": "P0372", "text": "None (лише виріз, vessel не замовляється)"}
+{"id": "T10R001C01", "first_paragraph": "P0373", "text": "порожній виріз"}
+{"id": "T10R001C02", "first_paragraph": "P0374", "text": "–"}
+{"id": "T10R001C03", "first_paragraph": "P0375", "text": "будь-яка"}
+{"id": "T10R001C04", "first_paragraph": "P0376", "text": "лише виріз"}
+{"id": "T10R001C05", "first_paragraph": "P0377", "text": "Provisional (немає в оригіналах клієнта)"}
+{"id": "T10R002C00", "first_paragraph": "P0378", "text": "Iris"}
+{"id": "T10R002C01", "first_paragraph": "P0379", "text": "Vessel_Iris"}
+{"id": "T10R002C02", "first_paragraph": "P0380", "text": "Lacquered MT (20)"}
+{"id": "T10R002C03", "first_paragraph": "P0381", "text": "будь-яка"}
+{"id": "T10R002C04", "first_paragraph": "P0382", "text": "VES-IRIS-X-16.5W-4.3H-16.5D-…"}
+{"id": "T10R002C05", "first_paragraph": "P0383", "text": "Provisional; модель ок"}
+{"id": "T10R003C00", "first_paragraph": "P0384", "text": "Frame"}
+{"id": "T10R003C01", "first_paragraph": "P0385", "text": "Vessel_Frame"}
+{"id": "T10R003C02", "first_paragraph": "P0386", "text": "Lacquered MT (20)"}
+{"id": "T10R003C03", "first_paragraph": "P0387", "text": "будь-яка"}
+{"id": "T10R003C04", "first_paragraph": "P0388", "text": "VES-FRM-X-19.7W-4.3H-13.8D-…"}
+{"id": "T10R003C05", "first_paragraph": "P0389", "text": "Provisional; не видно в 3D, ретест [backlog: #76]"}
+{"id": "T10R004C00", "first_paragraph": "P0390", "text": "Plaza"}
+{"id": "T10R004C01", "first_paragraph": "P0391", "text": "Vessel_Blade11 (заглушка)"}
+{"id": "T10R004C02", "first_paragraph": "P0392", "text": "Lacquered MT + GL (40)"}
+{"id": "T10R004C03", "first_paragraph": "P0393", "text": "будь-яка"}
+{"id": "T10R004C04", "first_paragraph": "P0394", "text": "VES-PLZ-X-23.6W-4.7H-18.9D-…"}
+{"id": "T10R004C05", "first_paragraph": "P0395", "text": "Provisional; не та модель, моделі Plaza в сцені немає"}
+{"id": "T11R000C00", "first_paragraph": "P0404", "text": "Пункт"}
+{"id": "T11R000C01", "first_paragraph": "P0405", "text": "Значення"}
+{"id": "T11R001C00", "first_paragraph": "P0406", "text": "Де"}
+{"id": "T11R001C01", "first_paragraph": "P0407", "text": "крок \"Accessories\", блок \"Side Panels\" (обидва сценарії)"}
+{"id": "T11R002C00", "first_paragraph": "P0408", "text": "Опції"}
+{"id": "T11R002C01", "first_paragraph": "P0409", "text": "None; No groove (гладка панель). Підписи в 2D клієнта: \"None\" / \"Yes\""}
+{"id": "T11R003C00", "first_paragraph": "P0410", "text": "Розміщення"}
+{"id": "T11R003C01", "first_paragraph": "P0411", "text": "лише на відкритих торцях тумби (\"only to the end of a unit\"); при кількох тумбах користувачу показують, з якого боку стане панель"}
+{"id": "T11R004C00", "first_paragraph": "P0412", "text": "На чому можна"}
+{"id": "T11R004C01", "first_paragraph": "P0413", "text": "Sink Base і Side Cabinet, усі стилі ящиків (висота 40 см)"}
+{"id": "T11R005C00", "first_paragraph": "P0414", "text": "Колір"}
+{"id": "T11R005C01", "first_paragraph": "P0415", "text": "як колір і матеріал корпусу; без патерну, без пазу"}
+{"id": "T11R006C00", "first_paragraph": "P0416", "text": "Вплив на стільницю"}
+{"id": "T11R006C01", "first_paragraph": "P0417", "text": "+1 см до довжини стільниці на кожен активний бік"}
+{"id": "T11R007C00", "first_paragraph": "P0418", "text": "Ціна"}
+{"id": "T11R007C01", "first_paragraph": "P0419", "text": "за кожен активний бік"}
+{"id": "T11R008C00", "first_paragraph": "P0420", "text": "Ліміт"}
+{"id": "T11R008C01", "first_paragraph": "P0421", "text": "\"No groove\" вимикається, якщо тумба з панелями перевищить максимальну довжину"}
+{"id": "T12R000C00", "first_paragraph": "P0440", "text": "Матеріал"}
+{"id": "T12R000C01", "first_paragraph": "P0441", "text": "Товщина"}
+{"id": "T12R000C02", "first_paragraph": "P0442", "text": "Інтегровані раковини"}
+{"id": "T12R000C03", "first_paragraph": "P0443", "text": "Мін. Sink Base"}
+{"id": "T12R001C00", "first_paragraph": "P0444", "text": "Solid Surface"}
+{"id": "T12R001C01", "first_paragraph": "P0445", "text": "0.5\", 4.7\""}
+{"id": "T12R001C02", "first_paragraph": "P0446", "text": "LB440, LB175, LB575, LB856"}
+{"id": "T12R001C03", "first_paragraph": "P0447", "text": "60 см"}
+{"id": "T12R002C00", "first_paragraph": "P0448", "text": "Solid Surface"}
+{"id": "T12R002C01", "first_paragraph": "P0449", "text": "3.1\""}
+{"id": "T12R002C02", "first_paragraph": "P0450", "text": "VA023"}
+{"id": "T12R002C03", "first_paragraph": "P0451", "text": "80 см"}
+{"id": "T12R003C00", "first_paragraph": "P0452", "text": "HPL"}
+{"id": "T12R003C01", "first_paragraph": "P0453", "text": "0.5\", 4\""}
+{"id": "T12R003C02", "first_paragraph": "P0454", "text": "VA024"}
+{"id": "T12R003C03", "first_paragraph": "P0455", "text": "60 см"}
+{"id": "T12R004C00", "first_paragraph": "P0456", "text": "Porcelain"}
+{"id": "T12R004C01", "first_paragraph": "P0457", "text": "0.8\", 4.7\""}
+{"id": "T12R004C02", "first_paragraph": "P0458", "text": "LV890, LV892"}
+{"id": "T12R004C03", "first_paragraph": "P0459", "text": "60 см"}
+{"id": "T12R005C00", "first_paragraph": "P0460", "text": "Glass MT / Glass GL"}
+{"id": "T12R005C01", "first_paragraph": "P0461", "text": "0.5\""}
+{"id": "T12R005C02", "first_paragraph": "P0462", "text": "VA002, VA005"}
+{"id": "T12R005C03", "first_paragraph": "P0463", "text": "60 см"}
+{"id": "T13R000C00", "first_paragraph": "P0474", "text": "Комбінація"}
+{"id": "T13R000C01", "first_paragraph": "P0475", "text": "Результат"}
+{"id": "T13R001C00", "first_paragraph": "P0476", "text": "Sink Base 40 см"}
+{"id": "T13R001C01", "first_paragraph": "P0477", "text": "не пропонується"}
+{"id": "T13R002C00", "first_paragraph": "P0478", "text": "Третя Sink Base"}
+{"id": "T13R002C01", "first_paragraph": "P0479", "text": "вимкнена"}
+{"id": "T13R003C00", "first_paragraph": "P0480", "text": "Тумба > 220 см (з боковими панелями)"}
+{"id": "T13R003C01", "first_paragraph": "P0481", "text": "блокується (див. відому проблему для Solid Surface)"}
+{"id": "T13R004C00", "first_paragraph": "P0482", "text": "2DW разом із 1DW або 1DWID"}
+{"id": "T13R004C01", "first_paragraph": "P0483", "text": "не змішуються"}
+{"id": "T13R005C00", "first_paragraph": "P0484", "text": "Sink Base 60 см + 1DWID + інтегрована стільниця"}
+{"id": "T13R005C01", "first_paragraph": "P0485", "text": "відхиляється"}
+{"id": "T13R006C00", "first_paragraph": "P0486", "text": "Loden на Wood Veneer; Cannette/Twill/Gessato/Satin на Lacquered MT"}
+{"id": "T13R006C01", "first_paragraph": "P0487", "text": "вимкнено"}
+{"id": "T13R007C00", "first_paragraph": "P0488", "text": "VA023 на Sink Base 60 см"}
+{"id": "T13R007C01", "first_paragraph": "P0489", "text": "вимкнено"}
+{"id": "T13R008C00", "first_paragraph": "P0490", "text": "Раковина іншого матеріалу стільниці"}
+{"id": "T13R008C01", "first_paragraph": "P0491", "text": "прихована"}
+{"id": "T13R009C00", "first_paragraph": "P0492", "text": "Колір Lacquered GL для Iris / Frame"}
+{"id": "T13R009C01", "first_paragraph": "P0493", "text": "вимкнено"}
+{"id": "T14R000C00", "first_paragraph": "P0497", "text": "Рядок"}
+{"id": "T14R000C01", "first_paragraph": "P0498", "text": "Шаблон SKU"}
+{"id": "T14R000C02", "first_paragraph": "P0499", "text": "К-сть"}
+{"id": "T14R000C03", "first_paragraph": "P0500", "text": "Ціна залежить від"}
+{"id": "T14R000C04", "first_paragraph": "P0501", "text": "Джерело ціни"}
+{"id": "T14R001C00", "first_paragraph": "P0502", "text": "Тумба"}
+{"id": "T14R001C01", "first_paragraph": "P0503", "text": "VAN-TRIC-<SB/SC>/<1DW/2DW/1DWID>/<LOD/CAN/TWLL/GES/SAT>-<W>W-15.7H-20.5D-CAB-<LACM/WDV>-<colour code>-HDL-LACM-<groove code>"}
+{"id": "T14R001C02", "first_paragraph": "P0504", "text": "1 на тумбу"}
+{"id": "T14R001C03", "first_paragraph": "P0505", "text": "тип, ящики, ширина, матеріал корпусу (WDV / LACM)"}
+{"id": "T14R001C04", "first_paragraph": "P0506", "text": "[price: Tricot xlsx CabinetPricing]"}
+{"id": "T14R002C00", "first_paragraph": "P0507", "text": "Бокова панель"}
+{"id": "T14R002C01", "first_paragraph": "P0508", "text": "VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-<LACM/WDV>-<colour code>"}
+{"id": "T14R002C02", "first_paragraph": "P0509", "text": "1 на активний бік"}
+{"id": "T14R002C03", "first_paragraph": "P0510", "text": "матеріал корпусу"}
+{"id": "T14R002C04", "first_paragraph": "P0511", "text": "[price: Tricot xlsx CabinetPricing A176]"}
+{"id": "T14R003C00", "first_paragraph": "P0512", "text": "Стільниця"}
+{"id": "T14R003C01", "first_paragraph": "P0513", "text": "CT-GB<material>-<INTG/VES>-<W>W-<thickness>H-20.7D[-<material>-<colour code>]"}
+{"id": "T14R003C02", "first_paragraph": "P0514", "text": "1 на тумбу"}
+{"id": "T14R003C03", "first_paragraph": "P0515", "text": "цінова група, товщина, стиль, довжина (тумби + 1 см на бокову панель)"}
+{"id": "T14R003C04", "first_paragraph": "P0516", "text": "[price: Class xlsx CountertopPricing]"}
+{"id": "T14R004C00", "first_paragraph": "P0517", "text": "Інтегрована раковина"}
+{"id": "T14R004C01", "first_paragraph": "P0518", "text": "CT-GB<material>-<basin code>-<thickness>H"}
+{"id": "T14R004C02", "first_paragraph": "P0519", "text": "1 на Sink Base"}
+{"id": "T14R004C03", "first_paragraph": "P0520", "text": "код раковини, цінова група"}
+{"id": "T14R004C04", "first_paragraph": "P0521", "text": "[price: Class xlsx Basin StylePricing]"}
+{"id": "T14R005C00", "first_paragraph": "P0522", "text": "Виріз під vessel"}
+{"id": "T14R005C01", "first_paragraph": "P0523", "text": "CT-GB<material>-HCUT"}
+{"id": "T14R005C02", "first_paragraph": "P0524", "text": "1 на Sink Base зі стилем vessel"}
+{"id": "T14R005C03", "first_paragraph": "P0525", "text": "цінова група"}
+{"id": "T14R005C04", "first_paragraph": "P0526", "text": "[price: Class xlsx AccessoriesPricing A3–C10]"}
+{"id": "T14R006C00", "first_paragraph": "P0527", "text": "Vessel"}
+{"id": "T14R006C01", "first_paragraph": "P0528", "text": "VES-<IRIS/FRM/PLZ>-X-<w>W-<h>H-<d>D-<LACM/LACG>-<code>"}
+{"id": "T14R006C02", "first_paragraph": "P0529", "text": "1 на Sink Base з Iris/Frame/Plaza"}
+{"id": "T14R006C03", "first_paragraph": "P0530", "text": "vessel, оздоблення"}
+{"id": "T14R006C04", "first_paragraph": "P0531", "text": "Provisional – ціни vessel із Class; у даних клієнта для Tricot цін vessel немає"}
+{"id": "T14R007C00", "first_paragraph": "P0532", "text": "Кронштейн"}
+{"id": "T14R007C01", "first_paragraph": "P0533", "text": "CT-GB-BRKT"}
+{"id": "T14R007C02", "first_paragraph": "P0534", "text": "2, коли товщина 3.1\", 4\" або 4.7\""}
+{"id": "T14R007C03", "first_paragraph": "P0535", "text": "–"}
+{"id": "T14R007C04", "first_paragraph": "P0536", "text": "[price: Class xlsx Basin StylePricing A42–A43]"}
+{"id": "T14R008C00", "first_paragraph": "P0537", "text": "Отвори під змішувач"}
+{"id": "T14R008C01", "first_paragraph": "P0538", "text": "CT-GB<material>-FAHO/0"}
+{"id": "T14R008C02", "first_paragraph": "P0539", "text": "1 на стільницю, завжди 0 отворів"}
+{"id": "T14R008C03", "first_paragraph": "P0540", "text": "– ($0)"}
+{"id": "T14R008C04", "first_paragraph": "P0541", "text": "[price: Class xlsx AccessoriesPricing]"}
+{"id": "T15R000C00", "first_paragraph": "P0547", "text": "Змінює ціну"}
+{"id": "T15R000C01", "first_paragraph": "P0548", "text": "Не змінює ціну"}
+{"id": "T15R001C00", "first_paragraph": "P0549", "text": "тип тумби, ширина, стиль ящиків (1DW vs 2DW/1DWID), матеріал корпусу (Wood Veneer vs Lacquered MT); кількість бокових панелей; матеріал, товщина, стиль і довжина стільниці; код раковини; vessel і його оздоблення; кронштейни товстої стільниці"}
+{"id": "T15R001C01", "first_paragraph": "P0550", "text": "патерн у межах Wood Veneer (Cannette = Twill = Gessato = Satin); колір пазу; 2DW vs 1DWID; конкретний колір у межах матеріалу [price: Tricot xlsx CabinetPricing]"}

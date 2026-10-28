@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/model?collectionId=urban-low-height","price":"$6,174.00","step":"Urban Low Height Models","dialogs":[],"alerts":["Ready to drag a cabinet"],"sceneReady":true,"order":null,"products":[],"countertop":{"productId":"Top_Solid-4n9gdgcce","placementState":"attached","attached":true,"moved":false,"canResize":false,"thickness":0.012700083809517593,"autoLength":0.6000000350177359,"customLength":null,"size":{"length":0.6000000350177359,"depth":0.45999997950115723},"lengthLimitsM":{"minLengthM":0.6,"maxLengthM":3.048,"requestedMinM":0.6,"requestedMaxM":3.048,"basinMinLengthM":0.5528},"offset":{"x":0,"y":0}},"coverEntries":0}
+```

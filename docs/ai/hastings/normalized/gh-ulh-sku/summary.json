@@ -1,0 +1,48 @@
+{
+  "source_id": "gh-ulh-sku",
+  "file": "Urban Low Height - SKUs + Pricing.xlsx",
+  "sha256": "835906753b5f588bbd21eb55911a674602f9c2acfd1423feb54dcd16f496b84d",
+  "size_bytes": 274193,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "SKU Structure - Product Model",
+      "dimension": "",
+      "non_empty_rows": 4,
+      "max_row_with_value": 9,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 2,
+      "name": "SKU Curation",
+      "dimension": "",
+      "non_empty_rows": 114,
+      "max_row_with_value": 119,
+      "formulas": 11,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 3,
+      "name": "Pricing",
+      "dimension": "",
+      "non_empty_rows": 680,
+      "max_row_with_value": 774,
+      "formulas": 0,
+      "links": 0,
+      "notes": 2
+    },
+    {
+      "index": 4,
+      "name": "Accessories Pricing",
+      "dimension": "",
+      "non_empty_rows": 2,
+      "max_row_with_value": 6,
+      "formulas": 0,
+      "links": 1,
+      "notes": 0
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+"{\"path\":\"fiber5.props.value\",\"error\":{\"code\":\"source-validation-failed\",\"message\":\"SKU profile failed validation: [\\n  {\\n    \\\"code\\\": \\\"unrecognized_keys\\\",\\n    \\\"keys\\\": [\\n      \\\"materialSkus\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"cabinetCover\\\"\\n    ],\\n    \\\"message\\\": \\\"Unrecognized key: \\\\\\\"materialSkus\\\\\\\"\\\"\\n  }\\n]\",\"cause\":{\"name\":\"ZodError\",\"message\":\"[\\n  {\\n    \\\"code\\\": \\\"unrecognized_keys\\\",\\n    \\\"keys\\\": [\\n      \\\"materialSkus\\\"\\n    ],\\n    \\\"path\\\": [\\n      \\\"cabinetCover\\\"\\n    ],\\n    \\\"message\\\": \\\"Unrecognized key: \\\\\\\"materialSkus\\\\\\\"\\\"\\n  }\\n]\"}}}"
+```

@@ -1,0 +1,82 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 13,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase2/ui-fixes) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 2,
+      "tool": "get_console_message",
+      "status": "ok",
+      "ms": 36,
+      "summary": "ID: 220 Message: warn> [PlayCanvasIntegration] The basin choice did not reach the scene [object Object] ### Arguments Arg #0: [PlayCanvasIntegration] The basin choice did not reach the scene Arg #1: {\"status\":\"applied\",\""
+    },
+    {
+      "step": 3,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 278,
+      "summary": "image 61-before-control-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 2997,
+      "summary": "Script ran on page and returned: ```json {\"before\":{\"tree\":[[\"Vessel_Iris_Root\"]],\"cfg\":\"Vessel_Iris\"},\"setConfigResult\":{\"success\":true,\"dividerConflicts\":[]},\"after\":{\"tree\":[[]],\"sinkType\":\"Vessel\",\"VesselColor\":\"Salv"
+    },
+    {
+      "step": 6,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 248,
+      "summary": "image 63-after-control-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 7,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 1,
+      "summary": "## Console messages Showing 1-40 of 121 (Page 1 of 4). Next page: 1 msgid=97 [log] [DividerUI][Debug] Divider UI debug buffer initialized [object Object] (2 args) msgid=98 [log] [Fluting] inputs [object Object] (2 args) "
+    }
+  ]
+}

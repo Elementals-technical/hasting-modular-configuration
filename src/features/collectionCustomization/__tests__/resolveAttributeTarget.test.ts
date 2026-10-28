@@ -63,10 +63,15 @@ describe("resolveAttributeTarget", () => {
       path: "/custom/countertop",
       sectionId: "basin-style",
     });
+    expect(resolveAttributeTarget(tricot, "prebuilt", "FaucetHolesAmount")).toEqual({
+      stepId: "faucet-holes",
+      path: "/prebuilt/faucet-holes",
+      sectionId: "faucet-holes-amount",
+    });
   });
 
   it("finds nothing for an attribute the collection does not show", () => {
-    expect(resolveAttributeTarget(tricot, "prebuilt", "FaucetHolesAmount")).toBeNull();
+    expect(resolveAttributeTarget(tricot, "prebuilt", "FaucetHolesSpacing")).toBeNull();
     expect(resolveAttributeTarget(tricot, "custom", "DividersStyle")).toBeNull();
     expect(resolveAttributeTarget(null, "custom", "CabinetColor")).toBeNull();
   });

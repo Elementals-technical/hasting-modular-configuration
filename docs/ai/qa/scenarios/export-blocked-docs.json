@@ -1,0 +1,14 @@
+{
+  "description": "Read-only DOCX export of Google Docs that the Drive connector cannot see, through the user's authorized Chrome session. Opens each export URL in a new tab (download), then closes only those tabs.",
+  "steps": [
+    { "tool": "new_page", "args": { "url": "https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/export?format=docx", "background": true }, "save": "01-bugdoc.txt", "capture": { "p1": "(\\d+): [^\\n]*1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/export" }, "optional": true },
+    { "sleep": 12000 },
+    { "tool": "new_page", "args": { "url": "https://docs.google.com/document/d/151UdAKWlYqcRkyKA3HkvN3_TLgnhJl-hOQyXgqsshro/export?format=docx", "background": true }, "save": "02-ush.txt", "capture": { "p2": "(\\d+): [^\\n]*151UdAKWlYqcRkyKA3HkvN3_TLgnhJl-hOQyXgqsshro/export" }, "optional": true },
+    { "sleep": 15000 },
+    { "tool": "new_page", "args": { "url": "https://docs.google.com/document/d/1bm4FqTdAoqe2wYQBZfvikE1oOX4x6wGL/export?format=docx", "background": true }, "save": "03-scoping.txt", "capture": { "p3": "(\\d+): [^\\n]*1bm4FqTdAoqe2wYQBZfvikE1oOX4x6wGL/export" }, "optional": true },
+    { "sleep": 12000 },
+    { "tool": "new_page", "args": { "url": "https://docs.google.com/document/d/1KHDD5vRhu0-kL8DVE-aWaP1k1xREG5dk/export?format=docx", "background": true }, "save": "04-tricot-spec.txt", "capture": { "p4": "(\\d+): [^\\n]*1KHDD5vRhu0-kL8DVE-aWaP1k1xREG5dk/export" }, "optional": true },
+    { "sleep": 12000 },
+    { "tool": "list_pages", "args": {}, "save": "05-pages.txt" }
+  ]
+}

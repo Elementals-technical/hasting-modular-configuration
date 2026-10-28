@@ -21,6 +21,7 @@ import {
   type SidePanelsRuleData,
   type SyntesiRuleData,
   type VesselCompatibilityRuleData,
+  type PriceTiersRuleData,
 } from "../model/productProfile";
 
 /**
@@ -70,6 +71,14 @@ const isNumberArray = (value: unknown): value is number[] => Array.isArray(value
 
 const isStringArrayRecord = (value: unknown): value is Record<string, string[]> =>
   isRecord(value) && Object.values(value).every(isStringArray);
+
+/** SKU material code (upper-case) -> price tier 1 (Standard $) … 4 (Exclusive $$$$). */
+const isPriceTierRecord = (value: unknown): value is Record<string, number> =>
+  isRecord(value) &&
+  Object.entries(value).every(
+    ([sku, tier]) =>
+      /^[A-Z0-9]+$/.test(sku) && Number.isInteger(tier) && (tier as number) >= 1 && (tier as number) <= 4,
+  );
 
 /** A map whose every entry lists at least one height in cm. */
 const isHeightListRecord = (value: unknown): value is Record<string, number[]> =>
@@ -500,6 +509,9 @@ const RULE_SECTION_FIELDS = {
       "a map of vessel style to { materialTokens, colorCodes }",
     ],
   },
+  priceTiers: {
+    byAttribute: [recordOf(isPriceTierRecord), "a map of field id to { upper-case SKU material code: tier 1-4 }"],
+  },
   drawerOrganizers: {
     profile: NON_EMPTY_STRING,
   },
@@ -697,6 +709,7 @@ const parseRuleSections = (
     countertopFallbacks: parseRuleSection<CountertopFallbacksRuleData>(ruleData, "countertopFallbacks", collect),
     materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
+    priceTiers: parseRuleSection<PriceTiersRuleData>(ruleData, "priceTiers", collect),
     cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
     drawerOrganizers: parseRuleSection<DrawerOrganizersRuleData>(ruleData, "drawerOrganizers", collect),
     dragDrop: parseRuleSection<DragDropRuleData>(ruleData, "dragDrop", collect),

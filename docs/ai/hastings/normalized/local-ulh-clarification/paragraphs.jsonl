@@ -1,0 +1,552 @@
+{"id": "P0001", "style": "Title", "text": "Urban Low Height Countertop Positioning Clarification", "links": [], "images": [], "comments": ["0"], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0002", "style": "", "text": "Please confirm the positioning, dimensional, compatibility, safety, and commercial rules shown below. Each illustration identifies the exact value or behavior that needs a client decision.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0003", "style": "", "text": "Current interpretation", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0004", "style": "", "text": "Default", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0005", "style": "", "text": "The countertop is positioned directly on the cabinet.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0006", "style": "", "text": "Offset", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0007", "style": "", "text": "The countertop is shifted but remains partially supported by the cabinet.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0008", "style": "", "text": "Remote", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0009", "style": "", "text": "The countertop does not contact the lower cabinet.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0010", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0011", "style": "", "text": "Response guidance", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0012", "style": "", "text": "Provide dimensions in both inches and millimeters where applicable.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0013", "style": "", "text": "Identify every dependency, including material, thickness, length, basin style, supports, and cabinet type.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0014", "style": "", "text": "Attach a drawing or worked example when a rule cannot be expressed with one value.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0015", "style": "", "text": "State how the configurator should prevent or explain invalid placements.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0016", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Countertop Positioning Clarification"}
+{"id": "P0017", "style": "Heading1", "text": "Movement directions", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0018", "style": "", "text": "1  Permitted movement axes", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0019", "style": "", "text": "Is it correct that Offset permits left and right movement, while Remote permits left and right movement plus up and down movement?", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0020", "style": "", "text": "", "links": [], "images": ["media/image52.png"], "comments": [], "heading": "Movement directions"}
+{"id": "P0021", "style": "", "text": "Figure 1. Please confirm the movement axes for Offset and Remote. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0022", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0023", "style": "", "text": "Yes, both Offset and Remote definitions are correct", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0024", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0025", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Movement directions"}
+{"id": "P0026", "style": "Heading1", "text": "Offset mode", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0027", "style": "", "text": "2  Minimum overlap", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0028", "style": "", "text": "What is the minimum required overlap between the countertop and the cabinet? Are there any additional support or placement conditions?", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0029", "style": "", "text": "", "links": [], "images": ["media/image51.png"], "comments": [], "heading": "Offset mode"}
+{"id": "P0030", "style": "", "text": "Figure 2. The dimension A represents the minimum supported length. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0031", "style": "", "text": "Please specify: the minimum overlap in inches and millimeters; any variations based on material, thickness, sink position, brackets, or cabinet type (if applicable); and if none of these apply, please confirm this", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0032", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0033", "style": "", "text": "Minimum Overlap: There isn’t a defined minimum dimension; see the rules affecting overlap below", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0034", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0035", "style": "", "text": "Material: No restrictions", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0036", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0037", "style": "", "text": "Thickness:", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0038", "style": "", "text": "All 5-⅛” and 5-½”", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0039", "style": "", "text": "4” is available in specific scenarios when:", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0040", "style": "", "text": "(1) a Vessel Style countertop is in use or", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0041", "style": "", "text": "(2) a SB cabinet is used, and an integrated basin is situated in the SB cabinet", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0042", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0043", "style": "", "text": "Sink Position", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0044", "style": "", "text": "See Sink Base Cabinet rule below", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0045", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0046", "style": "", "text": "Cabinet Type", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0047", "style": "", "text": "Sink Base Cabinets", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0048", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0049", "style": "", "text": "Side Cabinets", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0050", "style": "", "text": "There are no min-max rules for overlap", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0051", "style": "", "text": "The clearance, keep-out window L and R is 6” below", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0052", "style": "", "text": "", "links": [], "images": ["media/image44.png"], "comments": [], "heading": "Offset mode"}
+{"id": "P0053", "style": "", "text": "Open Shelf", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0054", "style": "", "text": "There are no min-max rules for overlap", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0055", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0056", "style": "", "text": "Brackets: No restrictions", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0057", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0058", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0059", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0060", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0061", "style": "", "text": "3  Maximum countertop extension", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0062", "style": "", "text": "What is the maximum permitted countertop extension beyond the cabinet edge? Which product or structural parameters determine this limit?", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0063", "style": "", "text": "", "links": [], "images": ["media/image53.png"], "comments": [], "heading": "Offset mode"}
+{"id": "P0064", "style": "", "text": "Figure 3. The dimension X represents the unsupported countertop extension. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0065", "style": "", "text": "Please include: the maximum value or formula; all controlling parameters; any required supports or exceptions.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0066", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0067", "style": "", "text": "There isn’t a maximum dimension. The countertop has ‘ghost’ brackets (brackets that are hidden) that support the countertop", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0068", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0069", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0070", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0071", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0072", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0073", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0074", "style": "", "text": "4  Movement increment", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0075", "style": "", "text": "Should countertop positioning be continuous, or should it use a fixed increment such as 1 inch?", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0076", "style": "", "text": "", "links": [], "images": ["media/image49.png"], "comments": [], "heading": "Offset mode"}
+{"id": "P0077", "style": "", "text": "Figure 4. Please choose continuous positioning or a fixed increment. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0078", "style": "", "text": "Please include: the chosen behavior; the increment in inches and millimeters if fixed.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0079", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0080", "style": "", "text": "Continuous", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0081", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0082", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0083", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0084", "style": "", "text": "5  Snap points", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0085", "style": "", "text": "Should the countertop snap to cabinet edges, cabinet centers, module joints, or other reference points?", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0086", "style": "", "text": "", "links": [], "images": ["media/image60.png"], "comments": [], "heading": "Offset mode"}
+{"id": "P0087", "style": "", "text": "Figure 5. Orange markers show possible snap references. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0088", "style": "", "text": "Please include: all required snap points; snap tolerance; priority when more than one snap point is available.", "links": [], "images": [], "comments": ["1"], "heading": "Offset mode"}
+{"id": "P0089", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0090", "style": "", "text": "1. Freeform movement by default", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0091", "style": "", "text": "2. Explicit Left / Center / Right alignment controls", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0092", "style": "", "text": "3. Optional subtle snapping to meaningful joints/edges", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0093", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0094", "style": "", "text": "The snap points should provide subtle assistance, but not be a hindrance if users are aiming for true custom, freeform placement. How do we best achieve this?", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0095", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0096", "style": "", "text": "", "links": [], "images": ["media/image37.png"], "comments": [], "heading": "Offset mode"}
+{"id": "P0097", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0098", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0099", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0100", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0101", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0102", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0103", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0104", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0105", "style": "", "text": "6  Basin compatibility", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0106", "style": "", "text": "Is Offset available for Integrated, Undermount, and Vessel basins, or only for Vessel basins?", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0107", "style": "", "text": "", "links": [], "images": ["media/image54.png"], "comments": [], "heading": "Offset mode"}
+{"id": "P0108", "style": "", "text": "Figure 6. Please confirm Offset availability for each basin style. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0109", "style": "", "text": "Please include: a Yes or No decision for each basin style; material, size, faucet, overflow, or cabinet exceptions.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0110", "style": "", "text": "Available for integrated and Vessel styles.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0111", "style": "", "text": "We don't have Undermount in the experience currently", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0112", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0113", "style": "", "text": "Integrated", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0114", "style": "", "text": "Offset is only available for 5-⅛” or 5-½” thicknesses.", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0115", "style": "", "text": "4” is available in specific scenarios when:", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0116", "style": "", "text": "(1) a Vessel Style countertop is in use or", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0117", "style": "", "text": "(2) a SB cabinet is used", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0118", "style": "", "text": "Available for all basin styles (that meet the thickness reqs)", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0119", "style": "", "text": "Available for all materials (that meet the thickness reqs)", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0120", "style": "", "text": "Faucet Holes - no restrictions", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0121", "style": "", "text": "Overflow - no restrictions", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0122", "style": "", "text": "Cabinet Type criteria - see here", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0123", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0124", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0125", "style": "", "text": "Offset is available for 4”, 5-⅛” or 5-½” thicknesses", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0126", "style": "", "text": "Available for all vessel styles", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0127", "style": "", "text": "Available for all materials (that meet the thickness reqs)", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0128", "style": "", "text": "Faucet Holes - no restrictions", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0129", "style": "", "text": "Cabinet Type criteria - same as Integrated", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0130", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0131", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0132", "style": "Heading1", "text": "", "links": [], "images": [], "comments": [], "heading": "Offset mode"}
+{"id": "P0133", "style": "Heading1", "text": "Remote mode", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0134", "style": "", "text": "7  Remote positioning distances", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0135", "style": "", "text": "What are the minimum and maximum horizontal and vertical distances between the countertop and the lower cabinet?", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0136", "style": "", "text": "", "links": [], "images": ["media/image58.png"], "comments": [], "heading": "Remote mode"}
+{"id": "P0137", "style": "", "text": "Figure 7. H and V represent the horizontal and vertical separation distances. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0138", "style": "", "text": "Please include: minimum and maximum H and V values; permitted combinations; whether the cabinet may be placed fully outside the countertop footprint.", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0139", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0140", "style": "", "text": "Horizontal", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0141", "style": "", "text": "Min - none", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0142", "style": "", "text": "Mix - none", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0143", "style": "", "text": "The cabinet can be placed fully outside of the countertop footprint", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0144", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0145", "style": "", "text": "Vertical", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0146", "style": "", "text": "Min", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0147", "style": "", "text": "Application: Cabinet Abutted", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0148", "style": "", "text": "Min dim – Flush with the top of the cabinet", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0149", "style": "", "text": "It cannot sink beneath that. See below the 2nd graphic.", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0150", "style": "", "text": "", "links": [], "images": ["media/image62.png"], "comments": [], "heading": "Remote mode"}
+{"id": "P0151", "style": "", "text": "Application: Lower Cabinet Remote – cabinet positioned beneath the trap", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0152", "style": "", "text": "Applies for SC and OS cabinets", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0153", "style": "", "text": "Min dim – 8”", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0154", "style": "", "text": "", "links": [], "images": ["media/image11.png"], "comments": [], "heading": "Remote mode"}
+{"id": "P0155", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0156", "style": "", "text": "Application: Lower Cabinet Remote – cabinet positioned beneath the trap", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0157", "style": "", "text": "Applies for SC and OS cabinets only", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0158", "style": "", "text": "Min - 0”", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0159", "style": "", "text": "", "links": [], "images": ["media/image56.png"], "comments": [], "heading": "Remote mode"}
+{"id": "P0160", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0161", "style": "", "text": "Max - none", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0162", "style": "", "text": "We’ll leave this open to the user. There are a lot of conceptual possibilities", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0163", "style": "", "text": "Users could create something silly or unrealistic, but I think leaving this flexibility open will be helpful in general", "links": [], "images": [], "comments": ["2"], "heading": "Remote mode"}
+{"id": "P0164", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0165", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Remote mode"}
+{"id": "P0166", "style": "Heading1", "text": "Countertop eligibility", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0167", "style": "", "text": "8  Definition of a thick countertop", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0168", "style": "", "text": "Which Urban Low Height countertop options are considered thick? Should the same 4 inch, 5 1/8 inch, and 5 1/2 inch options used for Urban Standard Height apply?", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0169", "style": "", "text": "", "links": [], "images": ["media/image64.png"], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0170", "style": "", "text": "Figure 8. Please confirm the eligible thicknesses and their product mapping. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0171", "style": "", "text": "Please include: all qualifying thicknesses; materials, colors, styles, and SKUs; any differences from Urban Standard Height.", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0172", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0173", "style": "", "text": "Urban Low Height", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0174", "style": "", "text": "4”, 5-⅛” + 5-½” are all thick tops", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0175", "style": "", "text": "Available for all materials (that meet the thickness reqs)", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0176", "style": "", "text": "Colors/Finishes are dictated by the materials", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0177", "style": "", "text": "SKUs would not be altered in any way", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0178", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0179", "style": "", "text": "This would be the same for Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0180", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0181", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0182", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Countertop eligibility"}
+{"id": "P0183", "style": "Heading1", "text": "Geometry and safety", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0184", "style": "", "text": "10  Permitted depth combinations", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0185", "style": "", "text": "Which countertop and lower-cabinet depth combinations are permitted? For example, may a 46 cm cabinet be positioned beneath a 50.5 cm countertop?", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0186", "style": "", "text": "", "links": [], "images": ["media/image63.png"], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0187", "style": "", "text": "Figure 10. The top view compares countertop depth with lower-cabinet depth. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0188", "style": "", "text": "Please include: a complete depth compatibility matrix; rules for connected, Offset, and Remote configurations; any front or rear alignment requirements.", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0189", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0190", "style": "", "text": "Standard", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0191", "style": "", "text": "Cabinet Depth – must match", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0192", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0193", "style": "", "text": "Offset Application (connected)", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0194", "style": "", "text": "Cabinet Depth – Lower cabinet must match the countertop depth when the cabinet is connected to the countertop", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0195", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0196", "style": "", "text": "Countertop (D)     Cabinet (D)     Compatibility", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0197", "style": "", "text": "50", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0198", "style": "", "text": "50", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0199", "style": "", "text": "Yes", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0200", "style": "", "text": "46", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0201", "style": "", "text": "46", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0202", "style": "", "text": "Yes", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0203", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0204", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0205", "style": "", "text": "Remote Application", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0206", "style": "", "text": "Cabinet Depth – Lower cabinet cannot be deeper than the countertop. It can be shallower, though. They can also match depths.", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0207", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0208", "style": "", "text": "Countertop (D)     Cabinet (D)     Compatibility", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0209", "style": "", "text": "50", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0210", "style": "", "text": "50", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0211", "style": "", "text": "Yes", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0212", "style": "", "text": "46", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0213", "style": "", "text": "46", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0214", "style": "", "text": "Yes", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0215", "style": "", "text": "50", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0216", "style": "", "text": "46", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0217", "style": "", "text": "Yes", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0218", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0219", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0220", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0221", "style": "", "text": "Front-Rear Alignment", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0222", "style": "", "text": "The countertop and cabinet should always be rear-aligned against the wall; like it would be in a real setting", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0223", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0224", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0225", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0226", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0227", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0228", "style": "", "text": "11  Trap clearance", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0229", "style": "", "text": "What minimum clearance is required between the cabinet edge and the plumbing trap?", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0230", "style": "", "text": "", "links": [], "images": ["media/image59.png"], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0231", "style": "", "text": "Figure 11. The shaded area represents the trap keep-out zone. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0232", "style": "", "text": "Please include: a clearance value or keep-out envelope; the measurement reference; allowances for fittings, installation, and service access.", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0233", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0234", "style": "", "text": "The minimum clearance should be 6” - clearance should be from the trap to the cabinet", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0235", "style": "", "text": "", "links": [], "images": ["media/image26.png"], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0236", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0237", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0238", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0239", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0240", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Geometry and safety"}
+{"id": "P0241", "style": "Heading1", "text": "SKU and pricing", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0242", "style": "", "text": "12  Commercial rules", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0243", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0244", "style": "", "text": "Do countertop position and length affect the SKU and price?", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0245", "style": "", "text": "Please include: the rule table or formula for Default, Offset, and Remote; surcharges; SKU examples; a worked pricing example.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0246", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0247", "style": "", "text": "Countertop position does not impact price", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0248", "style": "", "text": "Countertop length would use the same pricing structure we’ve defined", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0249", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0250", "style": "", "text": "Other considerations", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0251", "style": "", "text": "Certain lower cabinet types and specific applications (offset + remote) will need a countertop applied on top of it. This is new. We’ll need to create SKUs for the materials below. We’ll use the same countertop SKU structure", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0252", "style": "", "text": "Materials", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0253", "style": "", "text": "3D", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0254", "style": "", "text": "LACM", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0255", "style": "", "text": "LACG", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0256", "style": "", "text": "ST", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0257", "style": "", "text": "BM", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0258", "style": "", "text": "ESS", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0259", "style": "", "text": "**See pricing here", "links": ["https://docs.google.com/spreadsheets/d/1uCOysG4G_ODEKgMx0tteUK0oH9FB29BgPlEwDBCdDNc/edit?disco=AAACG6Dc-J0"], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0260", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0261", "style": "", "text": "Example SKUs", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0262", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0263", "style": "", "text": "CT-UR3D-VES-33.5W-.5H-19.9D-3D-10B", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0264", "style": "", "text": "CT-URLACM-VES-33.5W-.5H-19.9D-LACM-77", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0265", "style": "", "text": "CT-URLACG-VES-33.5W-.5H-19.9D-LACG-A6", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0266", "style": "", "text": "CT-URST-VES-33.5W-.5H-19.9D-ST-43", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0267", "style": "", "text": "CT-URBM-VES-33.5W-.5H-19.9D-BM-2MA", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0268", "style": "", "text": "CT-URESS-VES-33.5W-.5H-19.9D-ESS-06A", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0269", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0270", "style": "", "text": "See a couple of example images", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0271", "style": "", "text": "", "links": [], "images": ["media/image13.png", "media/image9.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0272", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0273", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0274", "style": "", "text": "Additional Remote mode clarification", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0275", "style": "", "text": "13  Vertical range and snap behavior", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0276", "style": "", "text": "In Remote mode, what are the minimum and maximum permitted vertical gaps between the underside of the countertop and the top of the lower cabinet? What is the lowest valid height at which vertical snapping may begin? If a 1 inch snap position conflicts with the trap or its required service clearance, should the configurator skip that position and snap to the next valid height, or block the movement?", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0277", "style": "", "text": "", "links": [], "images": ["media/image12.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0278", "style": "", "text": "Reference image supplied by the project team. The red arrow identifies the exposed vertical gap below the countertop.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0279", "style": "", "text": "", "links": [], "images": ["media/image3.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0280", "style": "", "text": "Figure 13. Vmin and Vmax define the permitted vertical range; the trap may invalidate one or more snap positions. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0281", "style": "", "text": "Please include: numeric Vmin and Vmax values in inches and millimeters; the exact measurement references; the snap origin and increment; the required behavior when a snap conflicts with the trap; dependencies on basin, trap, fittings, and service clearance.", "links": [], "images": [], "comments": ["3"], "heading": "SKU and pricing"}
+{"id": "P0282", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0283", "style": "", "text": "V min - see above", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0284", "style": "", "text": "V max - see above", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0285", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0286", "style": "", "text": "Snap origin –", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0287", "style": "", "text": "", "links": [], "images": ["media/image29.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0288", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0289", "style": "", "text": "Snap increment - 1”", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0290", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0291", "style": "", "text": "Snap conflicts", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0292", "style": "", "text": "When a movement conflicts with a trap or clearance area, could we:", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0293", "style": "", "text": "1) Block the movement and prevent the product from entering the blocked range", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0294", "style": "", "text": "2) Display the keep-out area w/ a red ghost overlay when this incompatible movement occurs as a warning signal to users, similar to your graphic", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0295", "style": "", "text": "", "links": [], "images": ["media/image61.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0296", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0297", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0298", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0299", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0300", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0301", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0302", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0303", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0304", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0305", "style": "", "text": "14  Trap visibility in Remote mode", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0306", "style": "", "text": "Should the trap and connecting plumbing be visible in the configurator whenever Remote mode exposes the space below the countertop? If the plumbing is hidden, should the configurator still use an invisible keep-out envelope for collision and service-clearance checks?", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0307", "style": "", "text": "", "links": [], "images": ["media/image2.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0308", "style": "", "text": "Figure 14. Please choose how exposed plumbing should be represented and validated. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0309", "style": "", "text": "Please include: whether plumbing is always visible, visible only when exposed, controlled by a display option, or hidden; the required level of geometric detail; the collision and clearance model that must remain active when plumbing is hidden.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0310", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0311", "style": "", "text": "We should display the trap only when exposed; this visual reference will help the keep-out area logic and visual display make sense to users", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0312", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0313", "style": "", "text": "As for detail, we should create a generic trap, something that looks like hologram-esque", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0314", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0315", "style": "", "text": "The only time plumbing will be hidden is when a SB cabinet type is used. Like below.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0316", "style": "", "text": "The trap must be centered in the SB cabinet", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0317", "style": "", "text": "", "links": [], "images": ["media/image40.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0318", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0319", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0320", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0321", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0322", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0323", "style": "", "text": "15  Countertop resizing in Remote mode", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0324", "style": "", "text": "May users change the countertop's overall length or width and its depth after placing it in Remote mode? If yes, which edges may move, what dimensions and increments are permitted, and which reference point must remain fixed?", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0325", "style": "", "text": "", "links": [], "images": ["media/image50.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0326", "style": "", "text": "Figure 15. W and D represent the editable countertop dimensions; the basin center is shown as a possible anchor. Diagram is schematic and not to scale.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0327", "style": "", "text": "Please include: minimum and maximum width or length and depth; continuous or fixed increments; permitted moving edges; basin, drain, faucet, centerline, or cabinet anchors; material, thickness, support, and basin dependencies; effects on validity, SKU, and price.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0328", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0329", "style": "", "text": "Yes, users should be able to change the countertop Width and Depth in remote mode", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0330", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0331", "style": "", "text": "Sizing", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0332", "style": "", "text": "Width Min-Max – this is dictated by the material", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0333", "style": "", "text": "Depth - this is dictated by the material + basin style. Also by this rule", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0334", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0335", "style": "", "text": "Continous – .1” increments", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0336", "style": "", "text": "See min-maxs here", "links": ["https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0337", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0338", "style": "", "text": "Permitted Movements", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0339", "style": "", "text": "Moving edges – users can drag the ‘handle’ at the end of the countertop to alter the width. Basin stays in place", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0340", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0341", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0342", "style": "", "text": "Basin movement – users can move the basin", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0343", "style": "", "text": "The edge of the basin cannot be within 10cm of the edge of the countertop", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0344", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0345", "style": "", "text": "If remote cabinet is in the scene the Trap keep-out rules apply (6” clearance L and R, 8” V Min)", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0346", "style": "", "text": "", "links": [], "images": ["media/image21.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0347", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0348", "style": "", "text": "For vessel Countertop Styles", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0349", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0350", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0351", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0352", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0353", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0354", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0355", "style": "", "text": "16  Countertop resizing in Connected mode", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0356", "style": "", "text": "", "links": [], "images": ["media/image23.png", "media/image55.png", "media/image39.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0357", "style": "", "text": "", "links": [], "images": ["media/image35.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0358", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0359", "style": "", "text": "Rules", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0360", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0361", "style": "", "text": "Sizing", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0362", "style": "", "text": "Lengthening CT", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0363", "style": "", "text": "Can be lengthened in any scenario/arrangement, presuming it is supported by the material", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0364", "style": "", "text": "Shortening CT", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0365", "style": "", "text": "There is a restriction when a SB Cabinet is in use: The countertop cannot be shorter than the SB cabinet size. It must be at least as long as the SB cabinet E.g.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0366", "style": "", "text": "", "links": [], "images": ["media/image43.png", "media/image22.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0367", "style": "", "text": "This also applies when multiple SBs are used e.g.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0368", "style": "", "text": "", "links": [], "images": ["media/image7.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0369", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0370", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0371", "style": "", "text": "When a SB cabinet is in use, the trap must be centered in the SB cabinet, see here", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0372", "style": "", "text": "", "links": [], "images": ["media/image40.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0373", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0374", "style": "", "text": "Depth - this is dictated by the material + basin style. Also by this rule", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0375", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0376", "style": "", "text": "Continous – .1” increments", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0377", "style": "", "text": "See min-maxs here", "links": ["https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0378", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0379", "style": "", "text": "Permitted Movements", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0380", "style": "", "text": "Moving edges – users can drag the ‘handle’ at the end of the countertop to alter the width. Basin stays in place", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0381", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0382", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0383", "style": "", "text": "Basin Movement – users can move the basin", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0384", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0385", "style": "", "text": "The edge of the basin cannot be within 10cm of the edge of the countertop", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0386", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0387", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0388", "style": "", "text": "Same Trap keep-out rules apply (6” clearance L and R, 8” V Min) e.g.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0389", "style": "", "text": "", "links": [], "images": ["media/image45.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0390", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0391", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0392", "style": "", "text": "Basin Movement – SB usage Rules", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0393", "style": "", "text": "Moving the basin when an SB is situated beneath the basin is only supported in certain scenarios. See examples that are compatible and incompatible", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0394", "style": "", "text": "", "links": [], "images": ["media/image15.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0395", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0396", "style": "", "text": "", "links": [], "images": ["media/image27.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0397", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0398", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0399", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0400", "style": "", "text": "", "links": [], "images": ["media/image24.png"], "comments": ["4"], "heading": "SKU and pricing"}
+{"id": "P0401", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0402", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0403", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0404", "style": "", "text": "17  In-Scene Countertop Resizing UI", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0405", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0406", "style": "", "text": "Width Resizing should exclusively occur by dragging the handles. Why?", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0407", "style": "", "text": "Because if a user enters a figure in the dialogue box, we don’t how they want the adjustment applied (e.g. if the original size is 60”, then a user inputs 70”, we don’t know if they want to apply 10” to the left side ot 10” to the right side or a mix of L and R)", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0408", "style": "", "text": "I propose when a user attempts to click the dimension in the dialogue, there is some type of visual display/interaction that steers the user to us the handles on the either side of the countertop to change the size of the countertop. See the 2nd image for the interaction", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0409", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0410", "style": "", "text": "", "links": [], "images": ["media/image42.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0411", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0412", "style": "", "text": "Interaction State", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0413", "style": "", "text": "V1", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0414", "style": "", "text": "", "links": [], "images": ["media/image14.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0415", "style": "", "text": "V2", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0416", "style": "", "text": "", "links": [], "images": ["media/image48.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0417", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0418", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0419", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0420", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0421", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0422", "style": "", "text": "________________________________________________________________________________", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0423", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0424", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0425", "style": "", "text": "Standard → to → Remote/Offset Positioning", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0426", "style": "", "text": "", "links": [], "images": ["media/image46.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0427", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0428", "style": "", "text": "Rules", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0429", "style": "", "text": "All cabinets in the scene must be an SC, OS, or OSS when remotely positioned", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0430", "style": "", "text": "SB cabs must change to an equivalent SC", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0431", "style": "", "text": "SB cabs cannot be remotely positioned", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0432", "style": "", "text": "", "links": [], "images": ["media/image25.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0433", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0434", "style": "", "text": "CT must be added to remotely positioned SC cabs, not OS cabs", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0435", "style": "", "text": "", "links": [], "images": ["media/image36.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0436", "style": "", "text": "Exception: if an SC is abutted to an OS or OSS cabinet, the CT should be extended over the complete cabinet arrangement", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0437", "style": "", "text": "", "links": [], "images": ["media/image5.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0438", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0439", "style": "", "text": "Display trap figurine - when in remote mode, always", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0440", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0441", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0442", "style": "", "text": "Trap Keep-Out Rules", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0443", "style": "", "text": "6” Clearance - to the L and R of the trap, from above", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0444", "style": "", "text": "8” V Min - from bottom of countertop, from above", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0445", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0446", "style": "", "text": "Countertop Thickness compatibility – 5-⅛” and 5-½” only", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0447", "style": "", "text": "All materials that meet thickness requirements", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0448", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0449", "style": "", "text": "Countertop Styles: Integrated and Vessel style", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0450", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0451", "style": "", "text": "Faucet Holes - no restrictions", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0452", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0453", "style": "", "text": "Overflow - no restrictions", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0454", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0455", "style": "", "text": "Countertop Drag & Drop from a SB cabinet", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0456", "style": "", "text": "If the countertop is partially lifted off the SB cabinet (or the cabinet is dragged down) where it would conflict with the Trap Keep-Out rules (6” Clearance L and R and 8” V Min), the countertop should snap back.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0457", "style": "", "text": "e. g.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0458", "style": "", "text": "", "links": [], "images": ["media/image19.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0459", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0460", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0461", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0462", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0463", "style": "", "text": "Remote → to → Offset (connected)", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0464", "style": "", "text": "", "links": [], "images": ["media/image47.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0465", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0466", "style": "", "text": "Rules", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0467", "style": "", "text": "When a cabinet is placed where the trap is – it must be an SB", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0468", "style": "", "text": "In the context of migrating a ‘Remote’ SC cabinet to a position where it is connected to the countertop, we may give users the ability to override the rule above, that being, if the SC cabinet is moved where the trap is, it would automatically change to an SB cab (SC → SB)", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0469", "style": "", "text": "Or we’ll just fully block this…..TBD", "links": [], "images": [], "comments": ["5"], "heading": "SKU and pricing"}
+{"id": "P0470", "style": "", "text": "", "links": [], "images": ["media/image34.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0471", "style": "", "text": "This can only be done with an SC cabinet, not an OS cabinet", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0472", "style": "", "text": "The trap must be centered in the cabinet (auto-center)", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0473", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0474", "style": "", "text": "CT - remove the countertop off all covered portions of the SC cab", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0475", "style": "", "text": "", "links": [], "images": ["media/image28.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0476", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0477", "style": "", "text": "Display trap figurine - when in it is not inside an SB cabinet", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0478", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0479", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0480", "style": "", "text": "Trap Keep-Out Rules – same", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0481", "style": "", "text": "6” Clearance - to the L and R of the trap, from above", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0482", "style": "", "text": "8” V Min - from bottom of countertop, from above", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0483", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0484", "style": "", "text": "Countertop Thickness compatibility – 5-⅛” and 5-½”. Also, 4” thick in specific use cases", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0485", "style": "", "text": "4” thick compatibility – Only when an SB is where the basin is e.,g.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0486", "style": "", "text": "", "links": [], "images": ["media/image66.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0487", "style": "", "text": "", "links": [], "images": ["media/image38.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0488", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0489", "style": "", "text": "All materials that meet thickness requirements", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0490", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0491", "style": "", "text": "Countertop Styles: Integrated and Vessel style", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0492", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0493", "style": "", "text": "Faucet Holes - no restrictions", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0494", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0495", "style": "", "text": "Overflow - no restrictions", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0496", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0497", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0498", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0499", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0500", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0501", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0502", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0503", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0504", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0505", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0506", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0507", "style": "", "text": "Other Rules", "links": [], "images": [], "comments": ["6"], "heading": "SKU and pricing"}
+{"id": "P0508", "style": "", "text": "Countertop Intraplayer Actions | Resize", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0509", "style": "", "text": "‘Length’ option should only display when a thick countertop is used (4”, 5-⅛” or 5-½”)", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0510", "style": "", "text": "", "links": [], "images": ["media/image33.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0511", "style": "", "text": "Length would display the handles on the end of the countertop", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0512", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0513", "style": "", "text": "Countertop Thickness compatibility", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0514", "style": "", "text": "4” thick should not be an option for this configuration setup. 4” thick is only available when the integrated basin is positioned w/in a SB cab. See rule here.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0515", "style": "", "text": "", "links": [], "images": ["media/image17.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0516", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0517", "style": "", "text": "Offset", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0518", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0519", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0520", "style": "", "text": "Cabinet Builder SB Placement", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0521", "style": "", "text": "SB cabinets must be on a single row/plane. The placements crossed off below should not have ‘+’ buttons", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0522", "style": "", "text": "", "links": [], "images": ["media/image32.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0523", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0524", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0525", "style": "", "text": "D&D Movement | Shifting SB downwards Thin Top", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0526", "style": "", "text": "When dragging the SB cabinet down, the countertop should move with it because the countertop is a thin top. The movement below should be compatible, so long as the SB cabinet is not lower than the SC cabinet", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0527", "style": "", "text": "", "links": [], "images": ["media/image30.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0528", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0529", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0530", "style": "", "text": "D&D | SC Higher than SB Cabinet", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0531", "style": "", "text": "This movement should not be compatible. Nor is this available for an OS or SB cabinet. This applies no matter how many cabinets are abutted.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0532", "style": "", "text": "", "links": [], "images": ["media/image57.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0533", "style": "", "text": "Below are other setups that are not compatible", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0534", "style": "", "text": "", "links": [], "images": ["media/image41.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0535", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0536", "style": "", "text": "Cabinet Builder SB Placement", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0537", "style": "", "text": "SB cabinets must be on a single row/plane. The placements crossed off below should not have ‘+’ buttons", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0538", "style": "", "text": "", "links": [], "images": ["media/image32.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0539", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0540", "style": "", "text": "Drag & Drop - SB Cabinet Movements", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0541", "style": "", "text": "I’d like the movements shown below and in the recording to be supported, not blocked. The countertop should move with the top.", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0542", "style": "", "text": "The thinking is that users may want to reposition the SB cabinet slightly; currently, these smaller movements are blocked", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0543", "style": "", "text": "See the recording", "links": ["https://drive.google.com/drive/folders/1xr7lQgPs2mlBSu_I4x27QcSaXnZx67Ko"], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0544", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0545", "style": "", "text": "", "links": [], "images": ["media/image67.png", "media/image20.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0546", "style": "", "text": "", "links": [], "images": ["media/image18.png", "media/image8.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0547", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0548", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0549", "style": "", "text": "Reposition Function - Single Cabinet", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0550", "style": "", "text": "The Reposition Function should display when a single cabinet is in the scene – the only option should be ‘Drag & Drop’", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0551", "style": "", "text": "", "links": [], "images": ["media/image65.png"], "comments": [], "heading": "SKU and pricing"}
+{"id": "P0552", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "SKU and pricing"}

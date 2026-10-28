@@ -1,0 +1,14 @@
+sheet,cell,formula
+SKU Curation,AO13,0.4*1.45*1.1*1.085*1.15*4
+SKU Curation,AO15,AO10*$AO$13
+SKU Curation,AP15,(shared 1)
+SKU Curation,AQ15,(shared 1)
+SKU Curation,AR15,(shared 1)
+SKU Curation,AS15,(shared 1)
+SKU Curation,AO16,AO11*$AO$13
+SKU Curation,AP16,(shared 2)
+SKU Curation,AQ16,(shared 2)
+SKU Curation,AR16,(shared 2)
+SKU Curation,AS16,(shared 2)
+Pricing,G2,88/2.54
+Pricing,G3,91/2.54

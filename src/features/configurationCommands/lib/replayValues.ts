@@ -18,7 +18,9 @@ import {
 import type { AttributeValue, ConfigurationRuntimePort, ValueTarget } from "@/entities/configuration";
 
 import { buildCommitContext, buildRuntimeContext } from "./applyPlan";
+import { resolveBasinTargets } from "./buildChangePlan";
 import { commitPlan } from "./commitChange";
+import { findSinkBaseKeys } from "./isSinkBase";
 import { toSceneValue } from "./sceneValue";
 import { validateChange } from "./validateChange";
 import { checkUndetermined } from "./undeterminedGate";
@@ -226,8 +228,14 @@ export const replayValues = async (
     const applied = runtimeResult.applied.map((change) =>
       Object.hasOwn(send, change.attributeId) ? { ...change, value: send[change.attributeId] } : change,
     );
+    // A basin value is recorded as a field records it: the composition's and every placed Sink
+    // Base's, so no Sink Base keeps the basin it had (and its price) under the new one.
+    const sinkBaseIds = findSinkBaseKeys(getState());
+    const recorded = [...applied, ...recordChanges].flatMap((change) =>
+      resolveBasinTargets(change.target, sinkBaseIds).map((target) => ({ ...change, target })),
+    );
 
-    for (const action of commitPlan([...applied, ...recordChanges], commitContext)) {
+    for (const action of commitPlan(recorded, commitContext)) {
       dispatch(action);
     }
   }

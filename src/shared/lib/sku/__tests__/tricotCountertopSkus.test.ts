@@ -43,9 +43,15 @@ describe("Tricot countertop SKUs", () => {
       basins: ["CT-GBHPL-VA024-.5H"],
       bracket: null,
     });
-    // Tricot offers no faucet hole choice: the top is ordered without holes, which cost nothing.
-    expect(countertop({ color: "Matte White", basins: ["LB440"], faucetHoles: "0" }).faucetHoles).toBe(
-      "CT-GBSSTL-FAHO/0",
+    // The top starts without faucet holes, which cost nothing.
+    expect(
+      countertop({ color: "Matte White", basins: ["LB440"], faucetHoles: defaults.FaucetHolesAmount }).faucetHoles,
+    ).toBe("CT-GBSSTL-FAHO/0");
+  });
+
+  it.each(["1", "2", "3"])("spells %s faucet holes chosen in Faucet Details on the top's material", (holes) => {
+    expect(countertop({ color: "Matte White", basins: ["LB440"], faucetHoles: holes }).faucetHoles).toBe(
+      `CT-GBSSTL-FAHO/${holes}`,
     );
   });
 

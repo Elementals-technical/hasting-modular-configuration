@@ -50,6 +50,7 @@ export type {
   SyntesiFinishTransform,
   SyntesiRuleData,
   VesselCompatibilityRuleData,
+  PriceTiersRuleData,
   VesselFinishPreference,
 } from "./model/productProfile";
 export { ATTRIBUTE_SCOPES } from "./model/productProfile";
@@ -83,6 +84,7 @@ export {
   selectOptionsByCapability,
   selectResetValue,
   selectMaterialHierarchy,
+  selectPriceTierOverride,
   selectRuleData,
 } from "./lib/productProfileSelectors";
 export type { ConfiguratorSource, MessageParams } from "./lib/productProfileSelectors";

@@ -1,0 +1,290 @@
+{"id": "P0001", "style": "", "text": "Class  Tricot  Mako  Lame vanities – WebGL Scoping", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0002", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0003", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0004", "style": "", "text": "Class", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0005", "style": "", "text": "Overview", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0006", "style": "", "text": "Generally speaking, this product is similar to Urban Standard Height, but with much less optionality", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0007", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0008", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0009", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0010", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0011", "style": "", "text": "Cabinet Models", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0012", "style": "", "text": "All cabinets from Vivid for the pre-render experience project:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0013", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0014", "style": "", "text": "SCs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0015", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0016", "style": "", "text": "All cabinet SKUs can be seen here", "links": ["https://docs.google.com/spreadsheets/d/1ZmGk1OcPASzAH_uC4HR6JRh89qH8gid0gJla33nq6GM/edit?gid=818697916#gid=818697916"], "images": [], "comments": [], "heading": ""}
+{"id": "P0017", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0018", "style": "", "text": "Selecting Cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0019", "style": "", "text": "Use the same Cabinet Type → Cabinet Style → Size Selection approach (as Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0020", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": ""}
+{"id": "P0021", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0022", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0023", "style": "", "text": "No option - it is the frame detail", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0024", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0025", "style": "", "text": "Cabinet Configure logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0026", "style": "", "text": "Cabinet Style Usage", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0027", "style": "", "text": "2DW can only be used with 2DW cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0028", "style": "", "text": "1DW can be mixed with 1DWID cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0029", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0030", "style": "", "text": "1DWID 60cm is N/A when countertop is integrated", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0031", "style": "", "text": "Max length: 220cm (86.6”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0032", "style": "", "text": "SBs cabinet: maximum of 2 in a configuration", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0033", "style": "", "text": "Cabinets can only be abutted (like Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0034", "style": "", "text": "Floating countertop options are available, like below (like Urban Low Height + Duplex)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0035", "style": "", "text": "This can only be done with thick countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0036", "style": "", "text": "", "links": [], "images": ["media/image7.png"], "comments": [], "heading": ""}
+{"id": "P0037", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0038", "style": "", "text": "Cabinet Colors + Frame Colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0039", "style": "", "text": "Follows the same structure as the pre-render experience", "links": ["https://www.hastingsbathcollection.com/products/vanities/class"], "images": [], "comments": [], "heading": ""}
+{"id": "P0040", "style": "", "text": "Cabinet Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0041", "style": "", "text": "Cabinet Side Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0042", "style": "", "text": "Frame Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0043", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0044", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0045", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0046", "style": "", "text": "See Countertop | Basin Styles Rules Logic - GB GSheet", "links": ["https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": ""}
+{"id": "P0047", "style": "", "text": "This is structured the same as the Urban Standard height version", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0048", "style": "", "text": "Materials", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0049", "style": "", "text": "Thicknesses", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0050", "style": "", "text": "Countertop Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0051", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0052", "style": "", "text": "Vessel Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0053", "style": "", "text": "Iris", "links": ["https://www.hastingsbathcollection.com/products/vessels/iris"], "images": [], "comments": [], "heading": ""}
+{"id": "P0054", "style": "", "text": "Frame", "links": ["https://www.hastingsbathcollection.com/products/vessels/frame"], "images": [], "comments": [], "heading": ""}
+{"id": "P0055", "style": "", "text": "Plaza", "links": ["https://www.hastingsbathcollection.com/products/vessels/plaza"], "images": [], "comments": [], "heading": ""}
+{"id": "P0056", "style": "", "text": "Vessel Hole Cutouts - when vessel is used (for each SB cab)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0057", "style": "", "text": "Faucet Hole options", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0058", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0059", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0060", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0061", "style": "", "text": "Inner drawer dividers", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0062", "style": "", "text": "2 options - metal or oak", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0063", "style": "", "text": "", "links": [], "images": ["media/image5.png"], "comments": [], "heading": ""}
+{"id": "P0064", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0065", "style": "", "text": "Tricot", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0066", "style": "", "text": "Overview", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0067", "style": "", "text": "Generally speaking, this product is similar to Urban Standard Height, but with much less optionality", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0068", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0069", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0070", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0071", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0072", "style": "", "text": "Cabinet Models", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0073", "style": "", "text": "All cabinets from Vivid for the pre-render experience project:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0074", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0075", "style": "", "text": "SCs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0076", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0077", "style": "", "text": "All cabinet SKUs can be seen here", "links": ["https://docs.google.com/spreadsheets/d/10YKejH2sM-FVTxjr5ej5pI6d4Tvfqq3W1zo8G5-ciRk/edit?gid=1804821375#gid=1804821375"], "images": [], "comments": [], "heading": ""}
+{"id": "P0078", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0079", "style": "", "text": "Selecting Cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0080", "style": "", "text": "Use the same Cabinet Type → Cabinet Style → Size Selection approach (as Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0081", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": ""}
+{"id": "P0082", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0083", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0084", "style": "", "text": "No option - it is always grooved", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0085", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0086", "style": "", "text": "Cabinet Configure logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0087", "style": "", "text": "Cabinet Style Usage", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0088", "style": "", "text": "2DW can only be used with 2DW cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0089", "style": "", "text": "1DW can be mixed with 1DWID cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0090", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0091", "style": "", "text": "1DWID 60cm is N/A when countertop is integrated", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0092", "style": "", "text": "Max length: 220cm (86.6”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0093", "style": "", "text": "SBs cabinet: maximum of 2 in a configuration", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0094", "style": "", "text": "Cabinets can only be abutted (like Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0095", "style": "", "text": "Floating countertop options are available, like below (like Urban Low Height + Duplex)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0096", "style": "", "text": "This can only be done with thick countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0097", "style": "", "text": "", "links": [], "images": ["media/image9.png"], "comments": [], "heading": ""}
+{"id": "P0098", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0099", "style": "", "text": "Cabinet Colors + Patterns", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0100", "style": "", "text": "Follows the same structure as the pre-render experience", "links": ["https://www.hastingsbathcollection.com/products/vanities/tricot"], "images": [], "comments": [], "heading": ""}
+{"id": "P0101", "style": "", "text": "Cabinet Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0102", "style": "", "text": "Cabinet Pattern", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0103", "style": "", "text": "Handle Groove Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0104", "style": "", "text": "Patterns", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0105", "style": "", "text": "Follow the same logic as in the pre-render experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0106", "style": "", "text": "New feature in pre-render experience: Cabinet patterns can be mixed across different cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0107", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0108", "style": "", "text": "Side Panels", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0109", "style": "", "text": "Follow the same logic as in the pre-render experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0110", "style": "", "text": "Side Panels can only be added to the end of a unit (like Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0111", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0112", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0113", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0114", "style": "", "text": "See Countertop | Basin Styles Rules Logic - GB GSheet", "links": ["https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": ""}
+{"id": "P0115", "style": "", "text": "This is structured the same as the Urban Standard height version", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0116", "style": "", "text": "Materials", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0117", "style": "", "text": "Thicknesses", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0118", "style": "", "text": "Countertop Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0119", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0120", "style": "", "text": "Vessel Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0121", "style": "", "text": "Iris", "links": ["https://www.hastingsbathcollection.com/products/vessels/iris"], "images": [], "comments": [], "heading": ""}
+{"id": "P0122", "style": "", "text": "Frame", "links": ["https://www.hastingsbathcollection.com/products/vessels/frame"], "images": [], "comments": [], "heading": ""}
+{"id": "P0123", "style": "", "text": "Plaza", "links": ["https://www.hastingsbathcollection.com/products/vessels/plaza"], "images": [], "comments": [], "heading": ""}
+{"id": "P0124", "style": "", "text": "Vessel Hole Cutouts - when vessel is used (for each SB cab)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0125", "style": "", "text": "Faucet Hole options", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0126", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0127", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0128", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0129", "style": "", "text": "Inner drawer dividers - same as Class", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0130", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0131", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0132", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0133", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0134", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0135", "style": "", "text": "Mako", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0136", "style": "", "text": "Overview", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0137", "style": "", "text": "Generally speaking, this product is similar to Urban Standard Height, but with less optionality", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0138", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0139", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0140", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0141", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0142", "style": "", "text": "Cabinet Models", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0143", "style": "", "text": "All cabinets from Vivid for the pre-render experience project:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0144", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0145", "style": "", "text": "SCs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0146", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0147", "style": "", "text": "All cabinet SKUs can be seen here", "links": ["https://docs.google.com/spreadsheets/d/1ZNHK45AUfJ_1wAYjzqhi0ydbJTY_SnuC4iZARz1FIzk/edit?gid=1804821375#gid=1804821375"], "images": [], "comments": [], "heading": ""}
+{"id": "P0148", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0149", "style": "", "text": "Selecting Cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0150", "style": "", "text": "Use the same Cabinet Type → Cabinet Style → Size Selection approach (as Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0151", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": ""}
+{"id": "P0152", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0153", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0154", "style": "", "text": "Use the same options as defined in the pre-render configure experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0155", "style": "", "text": "G57 and G50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0156", "style": "", "text": "G57 – is available in Lacquered MT or Metal", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0157", "style": "", "text": "G50 – is only available in Metal", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0158", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": ""}
+{"id": "P0159", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0160", "style": "", "text": "Cabinet Configure logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0161", "style": "", "text": "Cabinet Style Usage", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0162", "style": "", "text": "2DW can only be used with 2DW cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0163", "style": "", "text": "1DW can only be used with 1DW cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0164", "style": "", "text": "Max length: 220cm (86.6”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0165", "style": "", "text": "SBs cabinet: maximum of 2 in a configuration", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0166", "style": "", "text": "Cabinets can only be abutted (like Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0167", "style": "", "text": "Floating countertop options are available, like below (like Urban Low Height + Duplex)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0168", "style": "", "text": "This can only be done with thick countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0169", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": ""}
+{"id": "P0170", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0171", "style": "", "text": "Cabinet Colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0172", "style": "", "text": "Follows the same structure as the pre-render experience", "links": ["https://www.hastingsbathcollection.com/products/vanities/mako"], "images": [], "comments": [], "heading": ""}
+{"id": "P0173", "style": "", "text": "Cabinet Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0174", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0175", "style": "", "text": "Legs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0176", "style": "", "text": "Legs are only available for 2DW", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0177", "style": "", "text": "", "links": [], "images": ["media/image8.png"], "comments": [], "heading": ""}
+{"id": "P0178", "style": "", "text": "Color: follow the same logic as in the pre-render experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0179", "style": "", "text": "By default, it should match the handle color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0180", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0181", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0182", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0183", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0184", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0185", "style": "", "text": "See Countertop | Basin Styles Rules Logic - GB GSheet", "links": ["https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": ""}
+{"id": "P0186", "style": "", "text": "This is structured the same as the Urban Standard height version", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0187", "style": "", "text": "Materials", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0188", "style": "", "text": "Thicknesses – Mako is only available with thin countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0189", "style": "", "text": "Countertop Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0190", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0191", "style": "", "text": "Vessel Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0192", "style": "", "text": "Iris", "links": ["https://www.hastingsbathcollection.com/products/vessels/iris"], "images": [], "comments": [], "heading": ""}
+{"id": "P0193", "style": "", "text": "Frame", "links": ["https://www.hastingsbathcollection.com/products/vessels/frame"], "images": [], "comments": [], "heading": ""}
+{"id": "P0194", "style": "", "text": "Plaza", "links": ["https://www.hastingsbathcollection.com/products/vessels/plaza"], "images": [], "comments": [], "heading": ""}
+{"id": "P0195", "style": "", "text": "Vessel Hole Cutouts - when vessel is used (for each SB cab)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0196", "style": "", "text": "Faucet Hole options", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0197", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0198", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0199", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0200", "style": "", "text": "Inner drawer dividers - same as Class", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0201", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0202", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0203", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0204", "style": "", "text": "Lame", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0205", "style": "", "text": "Overview", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0206", "style": "", "text": "Generally speaking, this product is similar to Urban Standard, but with less optionality", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0207", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0208", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0209", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0210", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0211", "style": "", "text": "Cabinet Models", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0212", "style": "", "text": "All cabinets from Vivid for the pre-render experience project:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0213", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0214", "style": "", "text": "SCs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0215", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0216", "style": "", "text": "All cabinet SKUs can be seen here", "links": ["https://docs.google.com/spreadsheets/u/0/d/1KJeZDiJN9UkWl5X0JW3bYZ8dvDnfMofVrjtHQeF0htY/edit"], "images": [], "comments": [], "heading": ""}
+{"id": "P0217", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0218", "style": "", "text": "Selecting Cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0219", "style": "", "text": "Use the same Cabinet Type → Cabinet Style → Size Selection approach (as Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0220", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": ""}
+{"id": "P0221", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0222", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0223", "style": "", "text": "Only 1 handle styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0224", "style": "", "text": "Colors – Use the same options as defined in the pre-render configure experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0225", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0226", "style": "", "text": "Cabinet Configure logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0227", "style": "", "text": "Cabinet Style Usage", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0228", "style": "", "text": "2DW can only be used with 2DW cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0229", "style": "", "text": "1DW can only be used with 1DW cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0230", "style": "", "text": "Max length: 220cm (86.6”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0231", "style": "", "text": "SBs cabinet: maximum of 2 in a configuration", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0232", "style": "", "text": "Cabinets can only be abutted (like Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0233", "style": "", "text": "Floating countertop options are available, like below (like Urban Low Height + Duplex)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0234", "style": "", "text": "This can only be done with thick countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0235", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": ""}
+{"id": "P0236", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0237", "style": "", "text": "Cabinet Colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0238", "style": "", "text": "Follows the same structure as the pre-render experience", "links": ["https://www.hastingsbathcollection.com/products/vanities/lame"], "images": [], "comments": [], "heading": ""}
+{"id": "P0239", "style": "", "text": "Cabinet Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0240", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0241", "style": "", "text": "Cabinet Pattern", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0242", "style": "", "text": "Follows the same structure as the pre-render experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0243", "style": "", "text": "Patterns cannot be mixed across cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0244", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0245", "style": "", "text": "Side Panels", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0246", "style": "", "text": "Follows the same structure as the pre-render experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0247", "style": "", "text": "Matches cabinet pattern", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0248", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0249", "style": "", "text": "Legs (optional)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0250", "style": "", "text": "There are 2 classifications for legs: Countertop Style + Cabinet Style. See below.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0251", "style": "", "text": "Integrated Countertop: 1DW and 2DW", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0252", "style": "", "text": "", "links": [], "images": ["media/image3.png"], "comments": [], "heading": ""}
+{"id": "P0253", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0254", "style": "", "text": "Vessel Countertop: 1DW and 2DW", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0255", "style": "", "text": "", "links": [], "images": ["media/image2.png"], "comments": [], "heading": ""}
+{"id": "P0256", "style": "", "text": "Leg Color: follow the same logic as in the pre-render experience (matches cabinet color)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0257", "style": "", "text": "Leg Cap Color: follow the same logic as in the pre-render experience", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0258", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0259", "style": "", "text": "Undertop (optional)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0260", "style": "", "text": "This is new. It is not in the pre-render experience.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0261", "style": "", "text": "This is a recessed, accent top that sits underneath the countertop", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0262", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": ""}
+{"id": "P0263", "style": "", "text": "Rules: This is not available for vanity configurations that have a 60cm SB cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0264", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0265", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0266", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0267", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0268", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0269", "style": "", "text": "See Countertop | Basin Styles Rules Logic - GB GSheet", "links": ["https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": ""}
+{"id": "P0270", "style": "", "text": "This is structured the same as the Urban Standard height version", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0271", "style": "", "text": "Materials", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0272", "style": "", "text": "Thicknesses – Lame is only available with thin countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0273", "style": "", "text": "Countertop Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0274", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0275", "style": "", "text": "Vessel Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0276", "style": "", "text": "Iris", "links": ["https://www.hastingsbathcollection.com/products/vessels/iris"], "images": [], "comments": [], "heading": ""}
+{"id": "P0277", "style": "", "text": "Frame", "links": ["https://www.hastingsbathcollection.com/products/vessels/frame"], "images": [], "comments": [], "heading": ""}
+{"id": "P0278", "style": "", "text": "Plaza", "links": ["https://www.hastingsbathcollection.com/products/vessels/plaza"], "images": [], "comments": [], "heading": ""}
+{"id": "P0279", "style": "", "text": "Art", "links": ["https://www.hastingsbathcollection.com/products/vessels/art"], "images": [], "comments": [], "heading": ""}
+{"id": "P0280", "style": "", "text": "Diamond", "links": ["https://www.hastingsbathcollection.com/products/vessels/diamond"], "images": [], "comments": [], "heading": ""}
+{"id": "P0281", "style": "", "text": "Vessel Hole Cutouts - when vessel is used (for each SB cab)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0282", "style": "", "text": "Faucet Hole options", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0283", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0284", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0285", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0286", "style": "", "text": "Inner drawer dividers - same as Class", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0287", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0288", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0289", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0290", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}

@@ -1,0 +1,12 @@
+sheet,cell,formula
+SKU Curation,AV13,0.4*1.45*1.1*1.085*1.15*4
+SKU Curation,AV15,AV10*$AV$13
+SKU Curation,AW15,(shared 1)
+SKU Curation,AX15,(shared 1)
+SKU Curation,AY15,(shared 1)
+SKU Curation,AZ15,(shared 1)
+SKU Curation,AV16,AV11*$AV$13
+SKU Curation,AW16,(shared 2)
+SKU Curation,AX16,(shared 2)
+SKU Curation,AY16,(shared 2)
+SKU Curation,AZ16,(shared 2)

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"total":"$6,174.00","block":"Your Configuration\nCabinet\nSink Base\nUrban Low Height Height cabinet: Sink Base unit, 1 Drawer, Upper Groove handle, 23.6\" W, 15\" H, 18.1\" D - Cabinet Color: HPL | Rox Black TKQ\n1-Drawer | 23.6W-15H-18.1D\nUpper Groove\nCabinet\nHPL | Rox Black TKQ\n$2,003.00\nCountertop\nCountertop\nCountertop - Style: Integrated, 23.6\" W, Thickness: 0.5\", Depth: 18.1\", Material: Fenix, Color: Bianco Male TFA\n0.5\"\nCountertop\nFX | Bianco Male TFA\n$1,063.00\nCountertop Style\nIntegrated\nBasin\nBasin - Style: Prisma\nPrisma\n$3,108.00\nAccessories\nFaucet\nFaucet Holes\n0\n$0.00\nSwatches\nAutofill My Swatches\n\nLet us fill your swatch cart with your selected finishes\n\nSwatches list\nFree\nOrder Swatches\n"}
+```

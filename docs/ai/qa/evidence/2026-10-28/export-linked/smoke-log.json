@@ -1,0 +1,180 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 17044,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1iZTeizCS2qAjU73OBbmIfobBSw6gEtATsw1ECHQFKes/export?format=xlsx"
+    },
+    {
+      "step": 3,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1262,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1t97Pg0xh5SZqUkKcOC4lBJr75DPYmd6iRxe07qHC5Bk/export?format=xlsx"
+    },
+    {
+      "step": 5,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1534,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1uCOysG4G_ODEKgMx0tteUK0oH9FB29BgPlEwDBCdDNc/export?format=xlsx"
+    },
+    {
+      "step": 7,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1835,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1Kiciol2oxUbDxVLbfvx1WB5myzkFzlffc_FqfF0wKHE/export?format=xlsx"
+    },
+    {
+      "step": 9,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1768,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1B37NlJJNF9aob0F73fBdcQOlbWR1gK1Ywcy6wec7iz8/export?format=xlsx"
+    },
+    {
+      "step": 11,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1843,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1ZmGk1OcPASzAH_uC4HR6JRh89qH8gid0gJla33nq6GM/export?format=xlsx"
+    },
+    {
+      "step": 13,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1286,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/10YKejH2sM-FVTxjr5ej5pI6d4Tvfqq3W1zo8G5-ciRk/export?format=xlsx"
+    },
+    {
+      "step": 15,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1682,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1ZNHK45AUfJ_1wAYjzqhi0ydbJTY_SnuC4iZARz1FIzk/export?format=xlsx"
+    },
+    {
+      "step": 17,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 2509,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/export?format=xlsx"
+    },
+    {
+      "step": 19,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1860,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/export?format=xlsx"
+    },
+    {
+      "step": 21,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1919,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1DcCbKcuMe6G-HMqRXElGF9NFq39Nf2v6OWet6LjJZNw/export?format=xlsx"
+    },
+    {
+      "step": 23,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 2144,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1UzXp64mllWY3Jy7AFFcGG70VSjCiDtUmYwvhBLAQ_kU/export?format=xlsx"
+    },
+    {
+      "step": 25,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1311,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/spreadsheets/d/1HauIiXeYnoit6MIkHdvMi8e-N8nV1NTzOtHU1e8NvKE/export?format=xlsx"
+    },
+    {
+      "step": 27,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 1251,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 29,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1627,
+      "summary": "Error: net::ERR_ABORTED at https://drive.google.com/uc?export=download&id=1ygWqHaJWmzWmfOwawCCFBwYL7R_dSs7D"
+    },
+    {
+      "step": 31,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 2302,
+      "summary": "Error: net::ERR_ABORTED at https://drive.google.com/uc?export=download&id=1BtDeZVwUBpW7QcMK_tm2dkdFlT7Y-Kqv"
+    },
+    {
+      "step": 33,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 2168,
+      "summary": "Error: net::ERR_ABORTED at https://drive.google.com/uc?export=download&id=1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp"
+    },
+    {
+      "step": 35,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 2189,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/document/d/1uK0d2ZSa7TcVbarmPD-fZOzfDWKb2j5rKxUO-tLLLxE/export?format=docx"
+    },
+    {
+      "step": 37,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 2624,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/document/d/1y_QRaTjODnF4l96uTqYEUukKadcMQjWSHyRqUSv94UA/export?format=docx"
+    },
+    {
+      "step": 40,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 24,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    }
+  ]
+}

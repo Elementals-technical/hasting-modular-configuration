@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+"clicked: Next: Faucet Details <BUTTON>"
+```
+Page navigated to http://localhost:5173/prebuilt/faucet-holes?collectionId=tricot.

@@ -1,0 +1,61 @@
+{
+ "description": "Ownership control: scene setConfig sinkType=Vessel (scene-local state only, no backend).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "get_console_message",
+   "args": {
+    "pageId": "${pageId}",
+    "msgid": 220
+   },
+   "save": "60-warn-detail.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "61-before-control.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  const w = document.querySelector('iframe').contentWindow;\n  const app = w.pc.Application.getApplication();\n  const pid = 'Tricot-sink-cabinet-b8lt49nlm';\n  const tree = () => { const out = []; app.root.forEach((e) => { if (e.name === 'Tricot_Sink_Point' && e.enabled) out.push(e.children.map((c) => c.name + (c.enabled ? '' : '(off)'))); }); return out; };\n  const before = { tree: tree(), cfg: (await w.ConfiguratorAPI.getConfig(pid))?.sinkType ?? null };\n  const res = await w.ConfiguratorAPI.setConfig(pid, { sinkType: 'Vessel' });\n  await new Promise((r) => setTimeout(r, 2500));\n  const c = await w.ConfiguratorAPI.getConfig(pid);\n  return { before, setConfigResult: JSON.parse(JSON.stringify(res ?? null)), after: { tree: tree(), sinkType: (c?.config ?? c)?.sinkType, VesselColor: (c?.config ?? c)?.VesselColor } };\n}\n"
+   },
+   "save": "62-control.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "63-after-control.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 40,
+    "types": [
+     "log",
+     "info",
+     "warn"
+    ]
+   },
+   "save": "64-console-control.txt"
+  }
+ ]
+}

@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+"clicked: Create Your Own <DIV>"
+```
+Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/cabinet-builder?collectionId=mako.

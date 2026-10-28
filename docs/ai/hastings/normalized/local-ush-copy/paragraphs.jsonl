@@ -1,0 +1,700 @@
+{"id": "P0001", "style": "", "text": "Urban Standard Height Logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0002", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0003", "style": "", "text": "See UI Excel Sheet - began compiling rules", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0004", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0005", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0006", "style": "", "text": "General Configuration order/steps", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0007", "style": "", "text": "Parallel configuration primarily except for:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0008", "style": "", "text": "Must start with adding a cabinet 1st (if no cabinet present in player (from scratch)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0009", "style": "", "text": "Grey out other steps – hover element that explains why/what to users (Norwalk)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0010", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0011", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0012", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0013", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0014", "style": "", "text": "Selecting Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0015", "style": "", "text": "Must select ‘Cabinet Type’ as 1st step", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0016", "style": "", "text": "SB or SC must be 1st  - do not show ‘Open Shelf’ or Side Shelve unit a SB or SC is selected", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0017", "style": "", "text": "Cabinet options displayed should update dynamically based on the ‘Handle Style’ selected – both Cabinet Type + Cabinet Style - see here", "links": ["https://docs.google.com/spreadsheets/d/1DcCbKcuMe6G-HMqRXElGF9NFq39Nf2v6OWet6LjJZNw/edit?disco=AAABxniImYU"], "images": [], "comments": [], "heading": ""}
+{"id": "P0018", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0019", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0020", "style": "", "text": "Not available for Open Shelves or Side Shelves", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0021", "style": "", "text": "Only 1 handle type can be used in a configuration – can’t mix", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0022", "style": "", "text": "Once handle selected, the appropriate cabinet styles w/ the selected handle style should display", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0023", "style": "", "text": "Types", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0024", "style": "", "text": "Urban Handle | Upper Groove – available for all Sink Bases + Side Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0025", "style": "", "text": "Urban Handle | Central Groove – only available for 2 Drawer cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0026", "style": "", "text": "Push-to-Open – available for all Sink Bases + Side Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0027", "style": "", "text": "Users can override", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0028", "style": "", "text": "Users should have the ability to override or change the handle style, which updates all the cabinets in the configuration.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0029", "style": "", "text": "They should receive a notification of the impact and have to approve it", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0030", "style": "", "text": "Logic should reference whether there are any limitations", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0031", "style": "", "text": "Handle Groove Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0032", "style": "", "text": "Only available for Urban handle (Upper or central )", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0033", "style": "", "text": "Inner handle groove finish can contrast the cabinet finish. All cabinets must have the same groove finish", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0034", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0035", "style": "", "text": "Cabinet Dimensions", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0036", "style": "", "text": "Heights – All cabinet heights in the configuration must match as they are abutted together", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0037", "style": "", "text": "But different cabinet styles can be intermixed (e.g. 2DW + 1DW)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0038", "style": "", "text": "After the 1st cabinet selection (+ handle selection), we should hide or grey out non-matching or incompatible cabs based on height?", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0039", "style": "", "text": "Height parameters", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0040", "style": "", "text": "Height is dictated by a combination of two elements:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0041", "style": "", "text": "Cabinet Style – 1 Drawer vs 2 Drawer", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0042", "style": "", "text": "Handle Style – Urban handle vs PTO handle", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0043", "style": "", "text": "", "links": [], "images": ["media/image5.png"], "comments": [], "heading": ""}
+{"id": "P0044", "style": "", "text": "Depths – All cabinet depths in a config must match", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0045", "style": "", "text": "Can be overridden – see logic + notification protocol above, but for Depth", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0046", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0047", "style": "", "text": "Cabinet Positioning", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0048", "style": "", "text": "Cabinets can only be positioned/abutted L or R", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0049", "style": "", "text": "Remote position cab?", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0050", "style": "", "text": "Standalone - for extra storage", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0051", "style": "", "text": "", "links": [], "images": ["media/image16.png"], "comments": [], "heading": ""}
+{"id": "P0052", "style": "", "text": "Rule", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0053", "style": "", "text": "Default color for the exposed countertop - is the cabinet color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0054", "style": "", "text": "", "links": [], "images": ["media/image27.png"], "comments": [], "heading": ""}
+{"id": "P0055", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0056", "style": "", "text": "Floor-mount cab w/ wall-mount countertop", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0057", "style": "", "text": "", "links": [], "images": ["media/image64.png"], "comments": [], "heading": ""}
+{"id": "P0058", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0059", "style": "", "text": "Color", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0060", "style": "", "text": "Match existing cabinets in the configuration by default - when adding additional cabs to a design", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0061", "style": "", "text": "Drawer Panel Fluting – Figma reference", "links": ["https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT?node-id=1295-1712#1563829359"], "images": [], "comments": [], "heading": ""}
+{"id": "P0062", "style": "", "text": "Only available when cabinet is Lacquer Matte (LACM) – hide if this is not selected", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0063", "style": "", "text": "Only available for drawer cabinets (1DW, 1DWID, 2DW). Not available for Open Shelf or Side Shelf cabs.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0064", "style": "", "text": "4 Fluting Options - see here", "links": ["https://docs.google.com/spreadsheets/d/1Kg1_GQiXEZpBke1tybbqStdYN4bqG_h6/edit?disco=AAABxqQBUes"], "images": [], "comments": [], "heading": ""}
+{"id": "P0065", "style": "", "text": "Vertical | Type B", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0066", "style": "", "text": "Vertical | Type A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0067", "style": "", "text": "Horizontal | Type B", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0068", "style": "", "text": "Horizontal | Type A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0069", "style": "", "text": "", "links": [], "images": ["media/image42.png", "media/image2.png", "media/image39.png", "media/image72.png"], "comments": [], "heading": ""}
+{"id": "P0070", "style": "", "text": "Grain Direction – Figma reference", "links": ["https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT?node-id=1295-1713#1563829779"], "images": [], "comments": [], "heading": ""}
+{"id": "P0071", "style": "", "text": "This is only available for select materials + specifically only finishes that have a grain direction (e.g., wood graining or marble/stone veining)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0072", "style": "", "text": "Below is the list of materials for which this feature is available for:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0073", "style": "", "text": "Essenze – all finishes", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0074", "style": "", "text": "HPL – all finishes except for: Cepp Stone (TKP), Rox Black (TKQ) + Brera Brown (TKN)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0075", "style": "", "text": "3D – all finishes except for: Colortech Bianco 10B, Colortech Grigio fume 10F, Cemento Cenere 1A1, Cemento Tortora 1A2, Cemento Creta 1A3, Cemento Oltremare 1A4, Cemento Ghiaccio 1A5, Pelle Pecari Tortora 1PE", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0076", "style": "", "text": "2 Options – see here", "links": ["https://docs.google.com/spreadsheets/d/1Kg1_GQiXEZpBke1tybbqStdYN4bqG_h6/edit?disco=AAABxqQBUek"], "images": [], "comments": [], "heading": ""}
+{"id": "P0077", "style": "", "text": "Horizontal", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0078", "style": "", "text": "Vertical", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0079", "style": "", "text": "", "links": [], "images": ["media/image19.png", "media/image34.png"], "comments": [], "heading": ""}
+{"id": "P0080", "style": "", "text": "Book Matching – Figma Reference", "links": ["https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT?node-id=745-8612#1564151128"], "images": [], "comments": [], "heading": ""}
+{"id": "P0081", "style": "", "text": "Please see conditions below:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0082", "style": "", "text": "Grain Direction: Horizontal - only available when there are 2 or more cabinets in the user configuration. Book matching is not applicable for Horizontal when only 1 cabinet is in the user's configuration", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0083", "style": "", "text": "Grain Direction: Vertical - available regardless of # of cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0084", "style": "", "text": "# of Sink Bases", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0085", "style": "", "text": "Double basins – Smallest size 60cm SB | 60cm SB", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0086", "style": "", "text": "Cannot do greater than 2 SBs?????", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0087", "style": "", "text": "Triple basin – N/A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0088", "style": "", "text": "Minimum top dimension – 200cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0089", "style": "", "text": "Glass countertop material N/A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0090", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0091", "style": "", "text": "Max Cabinet configuration length (user notification)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0092", "style": "", "text": "Once vanity configuration exceeds 260cm (102-⅜”) – a blanket notification should display that only certain countertops are available at + above this dimension", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0093", "style": "", "text": "Separate countertop logic will grey out countertop materials that are N/A based on the total vanity length – See Counterop: Sizes | Max length section", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0094", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0095", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0096", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0097", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0098", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0099", "style": "", "text": "Side Panels", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0100", "style": "", "text": "Optional", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0101", "style": "", "text": "", "links": [], "images": ["media/image18.png"], "comments": [], "heading": ""}
+{"id": "P0102", "style": "", "text": "Dimensions", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0103", "style": "", "text": "Height + Depth must match the cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0104", "style": "", "text": "Adds 1cm to the Left + Right of the vanity", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0105", "style": "", "text": "Countertop needs to be 2cm longer to accommodate them", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0106", "style": "", "text": "Quantity", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0107", "style": "", "text": "2 required sold as a pair", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0108", "style": "", "text": "See the handle Style logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0109", "style": "", "text": "", "links": [], "images": ["media/image36.png"], "comments": [], "heading": ""}
+{"id": "P0110", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0111", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0112", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0113", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0114", "style": "", "text": "Countertop overhangs", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0115", "style": "", "text": "Counterops slightly extend beyond the bounding vanity dimensions. See particulars:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0116", "style": "", "text": "Left + Right side overhand – ⅛” (3mm)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0117", "style": "", "text": "Front overhang – 3/16” (5mm)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0118", "style": "", "text": "Sizes | Max length", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0119", "style": "", "text": "Determined by material type + basin style limitations in certain cases – see below", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0120", "style": "", "text": "Grey out options N/A based on size + explain to users why (max top size for Glass 260cm…..)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0121", "style": "", "text": "Required???", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0122", "style": "", "text": "Make required?", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0123", "style": "", "text": "Countertop Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0124", "style": "", "text": "Undermount", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0125", "style": "", "text": "Only available in select top materials", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0126", "style": "", "text": "When ‘Undermount selected – notification to user that specs will be + need to be  confirmed w. our team to confirm compaitability", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0127", "style": "", "text": "Thick countertops (4”, 5-⅛”, 5-½”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0128", "style": "", "text": "Require additional ghost brackets - see logic below", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0129", "style": "", "text": "Single basin ≤ 120cm – 2 brackets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0130", "style": "", "text": "Single basin 121-179 – 3 brackets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0131", "style": "", "text": "Single basin 180-220 – 4 brackets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0132", "style": "", "text": "Single basin 221-300 – 5 brackets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0133", "style": "", "text": "Double basin 120-160 – 3 brackets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0134", "style": "", "text": "Double basin 161-220 – 4 brackets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0135", "style": "", "text": "Double basin 221-300 – 5 brackets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0136", "style": "", "text": "", "links": [], "images": ["media/image49.png"], "comments": [], "heading": ""}
+{"id": "P0137", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0138", "style": "", "text": "Offsetting countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0139", "style": "", "text": "Must be a thick countertop (4”, 5-⅛”, 5-½”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0140", "style": "", "text": "", "links": [], "images": ["media/image44.png"], "comments": [], "heading": ""}
+{"id": "P0141", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0142", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0143", "style": "", "text": "Basin Styles (Integrated | Vessel | Undermount)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0144", "style": "", "text": "Quantity dictated by the # of SBs in the configuration", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0145", "style": "", "text": "Basin Size options – dictated by minimum cab size", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0146", "style": "", "text": "e.g. if SBs are 60cm - cannot use a Prisma 60", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0147", "style": "", "text": "Top length limitations", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0148", "style": "", "text": "Some basin styles dictate total countertop/vanity length – See chart", "links": ["https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": ""}
+{"id": "P0149", "style": "", "text": "Basin positioning", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0150", "style": "", "text": "Left-to-right – Basins (always) centered on the SB", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0151", "style": "", "text": "Front-to-back – Positioning altered based on faucet type (wall vs deck)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0152", "style": "", "text": "", "links": [], "images": ["media/image65.png", "media/image59.png"], "comments": [], "heading": ""}
+{"id": "P0153", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0154", "style": "", "text": "Integrated", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0155", "style": "", "text": "Only displays when ‘Countertop Style’ = Integrated", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0156", "style": "", "text": "Basin Size/Options dictated by SB sizes", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0157", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0158", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0159", "style": "", "text": "Only displays when ‘Countertop Style’ = Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0160", "style": "", "text": "If a specific Vessel selected –", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0161", "style": "", "text": "Add to each SB in the configuration (if 2 SBs, add to both)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0162", "style": "", "text": "If no Vessel selected (adding specific NOT REQUIRED)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0163", "style": "", "text": "Show hole cut-out in top", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0164", "style": "", "text": "Add to each SB in the configuration (if 2 SBs, add to both)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0165", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0166", "style": "", "text": "Undermount", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0167", "style": "", "text": "Only available in select top materials", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0168", "style": "", "text": "When ‘Undermount’ selected – notification to the user that specs will be need to be provided on their end + need to be confirmed w/ our team to confirm compatibility", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0169", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0170", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0171", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0172", "style": "", "text": "Max Countertop Lengths – Material, Top Style Basin Style", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0173", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0174", "style": "", "text": "See consolidated Countertop | Basin Styles RulesLogic GSheet", "links": ["https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": ""}
+{"id": "P0175", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0176", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0177", "style": "", "text": "Mineralmarmo", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0178", "style": "", "text": "Top thickness: ½”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0179", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0180", "style": "", "text": "2 colors (Gloss White + Matte White)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0181", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0182", "style": "", "text": "1 integrated basin (Diamond)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0183", "style": "", "text": "Minimum SB cab size: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0184", "style": "", "text": "", "links": [], "images": ["media/image61.png"], "comments": [], "heading": ""}
+{"id": "P0185", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0186", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0187", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0188", "style": "", "text": "Top Style:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0189", "style": "", "text": "Vessel: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0190", "style": "", "text": "", "links": [], "images": ["media/image74.png"], "comments": [], "heading": ""}
+{"id": "P0191", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0192", "style": "", "text": "Integrated: 340cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0193", "style": "", "text": "", "links": [], "images": ["media/image53.png"], "comments": [], "heading": ""}
+{"id": "P0194", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0195", "style": "", "text": "Tekormud", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0196", "style": "", "text": "Top thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0197", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0198", "style": "", "text": "5 colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0199", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0200", "style": "", "text": "1 integrated basin (TIVI)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0201", "style": "", "text": "Minimum SB cab size: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0202", "style": "", "text": "", "links": [], "images": ["media/image37.png"], "comments": [], "heading": ""}
+{"id": "P0203", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0204", "style": "", "text": "Undermount??? - offer?", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0205", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0206", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0207", "style": "", "text": "Vessel or Undermount: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0208", "style": "", "text": "", "links": [], "images": ["media/image52.png"], "comments": [], "heading": ""}
+{"id": "P0209", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0210", "style": "", "text": "Integrated: 340cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0211", "style": "", "text": "", "links": [], "images": ["media/image83.png"], "comments": [], "heading": ""}
+{"id": "P0212", "style": "", "text": "", "links": [], "images": ["media/image69.png"], "comments": [], "heading": ""}
+{"id": "P0213", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0214", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0215", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0216", "style": "", "text": "Syntesi", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0217", "style": "", "text": "Top thickness: ½”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0218", "style": "", "text": "Depths: 50.5cm ONLY", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0219", "style": "", "text": "2 colors (matte white, gloss white)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0220", "style": "", "text": "Select top sizes only", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0221", "style": "", "text": "60, 70, 80, 90, 105, 120, 140", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0222", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0223", "style": "", "text": "1 integrated basin (Syntesi)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0224", "style": "", "text": "48cm size", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0225", "style": "", "text": "Minimum SB cab size: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0226", "style": "", "text": "58cm size", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0227", "style": "", "text": "Minimum SB cab size: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0228", "style": "", "text": "", "links": [], "images": ["media/image12.png"], "comments": [], "heading": ""}
+{"id": "P0229", "style": "", "text": "Rules / Logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0230", "style": "", "text": "Only available for single cabinet vanity configurations (e.g. not multi-cabinet concepts)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0231", "style": "", "text": "Material n/a when side panels are used", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0232", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0233", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0234", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0235", "style": "", "text": "Ocritech", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0236", "style": "", "text": "Top thickness: 3/8”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0237", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0238", "style": "", "text": "46 D is only available for select basin styles (Rayo, Roll, Quadra)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0239", "style": "", "text": "2 colors (Matte white, gloss white)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0240", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0241", "style": "", "text": "5 integrated basins", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0242", "style": "", "text": "Oly 55", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0243", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0244", "style": "", "text": "", "links": [], "images": ["media/image21.png"], "comments": [], "heading": ""}
+{"id": "P0245", "style": "", "text": "D 50 Only", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0246", "style": "", "text": "Oly 56", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0247", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0248", "style": "", "text": "", "links": [], "images": ["media/image9.png"], "comments": [], "heading": ""}
+{"id": "P0249", "style": "", "text": "D 50 Only", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0250", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": ""}
+{"id": "P0251", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0252", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0253", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0254", "style": "", "text": "Rayo", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0255", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0256", "style": "", "text": "", "links": [], "images": ["media/image54.png"], "comments": [], "heading": ""}
+{"id": "P0257", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0258", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0259", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0260", "style": "", "text": "Roll", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0261", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0262", "style": "", "text": "", "links": [], "images": ["media/image15.png"], "comments": [], "heading": ""}
+{"id": "P0263", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0264", "style": "", "text": "Orion", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0265", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0266", "style": "", "text": "", "links": [], "images": ["media/image26.png"], "comments": [], "heading": ""}
+{"id": "P0267", "style": "", "text": "D 50 Only", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0268", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0269", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0270", "style": "", "text": "Quadra", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0271", "style": "", "text": "Minimum SB: 70cm (override)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0272", "style": "", "text": "", "links": [], "images": ["media/image80.png"], "comments": [], "heading": ""}
+{"id": "P0273", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0274", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0275", "style": "", "text": "Undermount - N/A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0276", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0277", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0278", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0279", "style": "", "text": "Vessel: 290cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0280", "style": "", "text": "", "links": [], "images": ["media/image38.png"], "comments": [], "heading": ""}
+{"id": "P0281", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0282", "style": "", "text": "Integrated: 290cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0283", "style": "", "text": "", "links": [], "images": ["media/image57.png"], "comments": [], "heading": ""}
+{"id": "P0284", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0285", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0286", "style": "", "text": "Tekorlux", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0287", "style": "", "text": "Top Thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0288", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0289", "style": "", "text": "54 colors (same as lacquer colors above + matte white + gloss white)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0290", "style": "", "text": "Black + 5 Metalizzato colors - n/a", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0291", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0292", "style": "", "text": "4 integrated basins  (multiple sizes)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0293", "style": "", "text": "Rectangular 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0294", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0295", "style": "", "text": "Max Top Size: 251cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0296", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": ""}
+{"id": "P0297", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0298", "style": "", "text": "Quadra 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0299", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0300", "style": "", "text": "Max Top Size: 251cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0301", "style": "", "text": "", "links": [], "images": ["media/image78.png"], "comments": [], "heading": ""}
+{"id": "P0302", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0303", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0304", "style": "", "text": "Trip 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0305", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0306", "style": "", "text": "Max Top Size: 271cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0307", "style": "", "text": "", "links": [], "images": ["media/image62.png"], "comments": [], "heading": ""}
+{"id": "P0308", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0309", "style": "", "text": "Ron 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0310", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0311", "style": "", "text": "Max Top Size: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0312", "style": "", "text": "Depth limitation: 50.5cm ONLY", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0313", "style": "", "text": "", "links": [], "images": ["media/image75.png"], "comments": [], "heading": ""}
+{"id": "P0314", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0315", "style": "", "text": "Undermount??? - offer?", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0316", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0317", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0318", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0319", "style": "", "text": "Vessel or Undermount: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0320", "style": "", "text": "", "links": [], "images": ["media/image23.png"], "comments": [], "heading": ""}
+{"id": "P0321", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0322", "style": "", "text": "Integrated: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0323", "style": "", "text": "Max length dictated by basin style above", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0324", "style": "", "text": "", "links": [], "images": ["media/image66.png"], "comments": [], "heading": ""}
+{"id": "P0325", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0326", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0327", "style": "", "text": "HPL", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0328", "style": "", "text": "Top Thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0329", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0330", "style": "", "text": "12 colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0331", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0332", "style": "", "text": "4 integrated basin styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0333", "style": "", "text": "Cover 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0334", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0335", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": ""}
+{"id": "P0336", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0337", "style": "", "text": "Prisma 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0338", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0339", "style": "", "text": "", "links": [], "images": ["media/image41.png"], "comments": [], "heading": ""}
+{"id": "P0340", "style": "", "text": "Quadra 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0341", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0342", "style": "", "text": "", "links": [], "images": ["media/image8.png"], "comments": [], "heading": ""}
+{"id": "P0343", "style": "", "text": "Strip 48", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0344", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0345", "style": "", "text": "", "links": [], "images": ["media/image31.png"], "comments": [], "heading": ""}
+{"id": "P0346", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0347", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0348", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0349", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0350", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0351", "style": "", "text": "Vessel: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0352", "style": "", "text": "", "links": [], "images": ["media/image50.png"], "comments": [], "heading": ""}
+{"id": "P0353", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0354", "style": "", "text": "Integrated: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0355", "style": "", "text": "", "links": [], "images": ["media/image13.png"], "comments": [], "heading": ""}
+{"id": "P0356", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0357", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0358", "style": "", "text": "Fenix", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0359", "style": "", "text": "Top Thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0360", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0361", "style": "", "text": "12 colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0362", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0363", "style": "", "text": "4 integrated basin styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0364", "style": "", "text": "Cover 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0365", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0366", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": ""}
+{"id": "P0367", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0368", "style": "", "text": "Prisma 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0369", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0370", "style": "", "text": "", "links": [], "images": ["media/image41.png"], "comments": [], "heading": ""}
+{"id": "P0371", "style": "", "text": "Quadra 50", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0372", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0373", "style": "", "text": "", "links": [], "images": ["media/image8.png"], "comments": [], "heading": ""}
+{"id": "P0374", "style": "", "text": "Strip 48", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0375", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0376", "style": "", "text": "", "links": [], "images": ["media/image31.png"], "comments": [], "heading": ""}
+{"id": "P0377", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0378", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0379", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0380", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0381", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0382", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0383", "style": "", "text": "Vessel: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0384", "style": "", "text": "", "links": [], "images": ["media/image70.png"], "comments": [], "heading": ""}
+{"id": "P0385", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0386", "style": "", "text": "Integrated: 270cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0387", "style": "", "text": "", "links": [], "images": ["media/image55.png"], "comments": [], "heading": ""}
+{"id": "P0388", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0389", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0390", "style": "", "text": "Porcelain", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0391", "style": "", "text": "Top thickness: ⅜”, 2-⅜”, 4”, 5-½”(5.5”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0392", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0393", "style": "", "text": "36 colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0394", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0395", "style": "", "text": "4 Integrated", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0396", "style": "", "text": "Cover 48", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0397", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0398", "style": "", "text": "", "links": [], "images": ["media/image40.png"], "comments": [], "heading": ""}
+{"id": "P0399", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0400", "style": "", "text": "Strip 48", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0401", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0402", "style": "", "text": "", "links": [], "images": ["media/image35.png"], "comments": [], "heading": ""}
+{"id": "P0403", "style": "", "text": "Quadra 48", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0404", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0405", "style": "", "text": "", "links": [], "images": ["media/image24.png"], "comments": [], "heading": ""}
+{"id": "P0406", "style": "", "text": "Prisma 48", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0407", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0408", "style": "", "text": "", "links": [], "images": ["media/image56.png"], "comments": [], "heading": ""}
+{"id": "P0409", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0410", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0411", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0412", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0413", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0414", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0415", "style": "", "text": "Vessel: 290cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0416", "style": "", "text": "", "links": [], "images": ["media/image67.png"], "comments": [], "heading": ""}
+{"id": "P0417", "style": "", "text": "Integrated: 290cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0418", "style": "", "text": "", "links": [], "images": ["media/image7.png"], "comments": [], "heading": ""}
+{"id": "P0419", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0420", "style": "", "text": "Glass", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0421", "style": "", "text": "Top thickness: ⅜”", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0422", "style": "", "text": "Depth: 50.5 Only", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0423", "style": "", "text": "58 colors (same as lacquered)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0424", "style": "", "text": "Gloss + Matte", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0425", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0426", "style": "", "text": "2 integrated basins", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0427", "style": "", "text": "Nettuno", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0428", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0429", "style": "", "text": "Max Top Size: 260cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0430", "style": "", "text": "", "links": [], "images": ["media/image11.png"], "comments": [], "heading": ""}
+{"id": "P0431", "style": "", "text": "Ovale", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0432", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0433", "style": "", "text": "Max Top Size: 260cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0434", "style": "", "text": "", "links": [], "images": ["media/image60.png"], "comments": [], "heading": ""}
+{"id": "P0435", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0436", "style": "", "text": "Undermount don’t offer (can be done though (p.65/127)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0437", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0438", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0439", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0440", "style": "", "text": "Vessel: 260cm (override - leave lower)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0441", "style": "", "text": "", "links": [], "images": ["media/image46.png"], "comments": [], "heading": ""}
+{"id": "P0442", "style": "", "text": "Integrated: 260cm (override - leave lower – max size for nettuno + ovale 260cm)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0443", "style": "", "text": "", "links": [], "images": ["media/image32.png"], "comments": [], "heading": ""}
+{"id": "P0444", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0445", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0446", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0447", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0448", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0449", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0450", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0451", "style": "", "text": "Inner LED lights – Per drawer", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0452", "style": "", "text": "Dynamic size to fit the given cabinet size", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0453", "style": "", "text": "2 paths", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0454", "style": "", "text": "Autofill – Add it to all drawers, w/ a single click", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0455", "style": "", "text": "Per diem – add to only select cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0456", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0457", "style": "", "text": "UI Design: Per Diem path –", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0458", "style": "", "text": "This should be a modal window that recreates their design, then users click which cabinets they would like to add the LEDs to", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0459", "style": "", "text": "Or", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0460", "style": "", "text": "Use the configuration in the player for users to make the selections for which cabinets they want to add LEDs to", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0461", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0462", "style": "", "text": "", "links": [], "images": ["media/image81.png"], "comments": [], "heading": ""}
+{"id": "P0463", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0464", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0465", "style": "", "text": "Inner Cabinet Dividers", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0466", "style": "", "text": "A   B    C    versions for both cabinet depths", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0467", "style": "", "text": "50.5cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0468", "style": "", "text": "", "links": [], "images": ["media/image82.png"], "comments": [], "heading": ""}
+{"id": "P0469", "style": "", "text": "46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0470", "style": "", "text": "", "links": [], "images": ["media/image28.png"], "comments": [], "heading": ""}
+{"id": "P0471", "style": "", "text": "2 paths", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0472", "style": "", "text": "Autofill –", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0473", "style": "", "text": "Add recommended dividers to all drawers based on: (1) Cabinet Type (SB vs SC) + (2) Cabinet Size (Width + Depth), w/ a single click based on logic above", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0474", "style": "", "text": "Within this auto-recommendation path, users could:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0475", "style": "", "text": "Remove specific dividers, if they don't need them for a specific drawer or what have you", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0476", "style": "", "text": "Add dividers that will actually fit", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0477", "style": "", "text": "There should be a clear or reset button that reloads the initial 'Autofill' recommendation for users", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0478", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0479", "style": "", "text": "A la carte –", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0480", "style": "", "text": "Users can add dividers à la carte to select cabinets/drawers, using the same logic as above", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0481", "style": "", "text": "Users can remove as well", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0482", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0483", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0484", "style": "", "text": "UI Design: A la carte path –", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0485", "style": "", "text": "This should be a modal window that recreates their design – looking downwards with the drawer open – then users select/click:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0486", "style": "", "text": "1) Which cabinets they would like to add the dividers to +", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0487", "style": "", "text": "2) What Cabinet Divider options they want to add based on compatibility (based on cabinet type (SB vs SC) + size)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0488", "style": "", "text": "Or", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0489", "style": "", "text": "Use the configuration in the player for this", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0490", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0491", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0492", "style": "", "text": "", "links": [], "images": ["media/image33.png"], "comments": [], "heading": ""}
+{"id": "P0493", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0494", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0495", "style": "", "text": "Towel Bar", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0496", "style": "", "text": "Side-mount – 5 colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0497", "style": "", "text": "Positioning | Quantity", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0498", "style": "", "text": "Can be Left, Right or both", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0499", "style": "", "text": "", "links": [], "images": ["media/image71.png"], "comments": [], "heading": ""}
+{"id": "P0500", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0501", "style": "", "text": "Faucet Holes", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0502", "style": "", "text": "Options: 0, 1, 2 or 3", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0503", "style": "", "text": "Facuet Hole Spacing", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0504", "style": "", "text": "Not an option for 0 or 1 hole", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0505", "style": "", "text": "Minimum spacing ……..?", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0506", "style": "", "text": "Max spacing ……………", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0507", "style": "", "text": "Standard spacing 4” on center", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0508", "style": "", "text": "Faucet Hole Placement", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0509", "style": "", "text": "L-to-R placement it should be centered on the basin", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0510", "style": "", "text": "", "links": [], "images": ["media/image25.png"], "comments": [], "heading": ""}
+{"id": "P0511", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0512", "style": "", "text": "Front-to-back placement", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0513", "style": "", "text": "", "links": [], "images": ["media/image30.png"], "comments": [], "heading": ""}
+{"id": "P0514", "style": "", "text": "This is dependent a few factors:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0515", "style": "", "text": "If Faucet Hole = 0 the basin gets moved back", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0516", "style": "", "text": "If Countertop Style = Vessel……………", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0517", "style": "", "text": "If Integrated Basin has an overflow…….", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0518", "style": "", "text": "If integrated Basin + no overflow - spacing equidistant", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0519", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0520", "style": "", "text": "", "links": [], "images": ["media/image17.png"], "comments": [], "heading": ""}
+{"id": "P0521", "style": "", "text": "Electrical Outlet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0522", "style": "", "text": "Future", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0523", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0524", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0525", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0526", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0527", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0528", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0529", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0530", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0531", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0532", "style": "", "text": "Urban Low Height Logic – comparison", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0533", "style": "", "text": "For replicating WebGL config", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0534", "style": "", "text": "Modifications for Urban Low Height", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0535", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0536", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0537", "style": "", "text": "Cabinet models", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0538", "style": "", "text": "Use existing Urban Low Height Models already in Vivid Manage (from Pre-Render Config X project) – Minimal rework for WebGL X", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0539", "style": "", "text": "SBs – 1 Drawer", "links": ["https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SB", "https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SB"], "images": [], "comments": [], "heading": ""}
+{"id": "P0540", "style": "", "text": "Widths: 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0541", "style": "", "text": "Depth: 50.5cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0542", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0543", "style": "", "text": "SCs – 1 Drawer", "links": ["https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SC", "https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SC"], "images": [], "comments": [], "heading": ""}
+{"id": "P0544", "style": "", "text": "Widths: 25, 35, 50, 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0545", "style": "", "text": "Depth: 50.5cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0546", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0547", "style": "", "text": "OS – Open Shelves", "links": ["https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=duplex+1+shelf"], "images": [], "comments": [], "heading": ""}
+{"id": "P0548", "style": "", "text": "25, 35, 50, 60, 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0549", "style": "", "text": "Depth 50.5cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0550", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0551", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0552", "style": "", "text": "Create Additional cabinet Heights + Depths", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0553", "style": "", "text": "SBs – 1 Drawer only", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0554", "style": "", "text": "Widths: 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0555", "style": "", "text": "Depths: 50.5 + 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0556", "style": "", "text": "Heights: 25 + 35cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0557", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0558", "style": "", "text": "Widths: 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0559", "style": "", "text": "Depths: 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0560", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0561", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0562", "style": "", "text": "SCs – 1 Drawer only", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0563", "style": "", "text": "Widths: 25, 35, 50, 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0564", "style": "", "text": "Depths: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0565", "style": "", "text": "Heights: 25 + 35cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0566", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0567", "style": "", "text": "Widths: 25, 35, 50, 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0568", "style": "", "text": "Depths: 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0569", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0570", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0571", "style": "", "text": "OS – Open Shelves", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0572", "style": "", "text": "25, 35, 50, 60, 70cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0573", "style": "", "text": "Depth 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0574", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0575", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0576", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0577", "style": "", "text": "Selecting Cabinets", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0578", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0579", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0580", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0581", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0582", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0583", "style": "", "text": "Exception – ‘Central Groove’ is not an option (b/c only 1 Drawer units are available for Urban LH", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0584", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0585", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0586", "style": "", "text": "Cabinet Dimensions", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0587", "style": "", "text": "Heights", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0588", "style": "", "text": "All individual cabinet heights in a configuration must match (e.g cabs must be all 25H or 28H or 35H or 38H)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0589", "style": "", "text": "Cabinet configurations - cabinets can be composed in a plethora of ways to create different configurations that vary in totl height e.g. see below", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0590", "style": "", "text": "", "links": [], "images": ["media/image22.png"], "comments": [], "heading": ""}
+{"id": "P0591", "style": "", "text": "Depths", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0592", "style": "", "text": "All cabinet depths in a config must match", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0593", "style": "", "text": "Can be overridden – see logic + notification protocol above, but for Depth", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0594", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0595", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0596", "style": "", "text": "Cabinet Positioning | Configuration | Logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0597", "style": "", "text": "Configurability possibilities are much more robust than merely abutting cabinets, as with urban Standard Height. See some examples below.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0598", "style": "", "text": "Note to self", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0599", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0600", "style": "", "text": "Simple Design", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0601", "style": "", "text": "", "links": [], "images": ["media/image76.png"], "comments": [], "heading": ""}
+{"id": "P0602", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0603", "style": "", "text": "Multi-level | Offsetting | Staggering", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0604", "style": "", "text": "Cabinets can be overlapped as much or as little as a user wants (drag’n’drop to the exact spot the user wants)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0605", "style": "", "text": "The user should receive a notification that the exact overlap displayed is important, as it dictates the length of the countertop that gets produced on the lower cabinet (see red arrow below)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0606", "style": "", "text": "", "links": [], "images": ["media/image3.png"], "comments": [], "heading": ""}
+{"id": "P0607", "style": "", "text": "", "links": [], "images": ["media/image79.png"], "comments": [], "heading": ""}
+{"id": "P0608", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0609", "style": "", "text": "Lower-positioned offset cabinets must be an SC", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0610", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0611", "style": "", "text": "Countertop material needs to be selected for the lower offset SC (see arrow below; this should default to be the cabinet finish)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0612", "style": "", "text": "", "links": [], "images": ["media/image29.png"], "comments": [], "heading": ""}
+{"id": "P0613", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0614", "style": "", "text": "Stacked Units", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0615", "style": "", "text": "For stacked 2-Drawer look units, just add a 2nd Low Height drawer beneath it", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0616", "style": "", "text": "The cabinet on the bottom must be a SC", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0617", "style": "", "text": "", "links": [], "images": ["media/image45.png"], "comments": [], "heading": ""}
+{"id": "P0618", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0619", "style": "", "text": "Floating Countertop applications", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0620", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0621", "style": "", "text": "Cabinet connected to the top | Offset", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0622", "style": "", "text": "Cabinets can be overlapped as much or as little as a user wants (drag’n’drop to the exact spot the user wants)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0623", "style": "", "text": "The user should receive a notification that the exact overlap displayed is important, as it dictates the length of the countertop that gets produced on the lower cabinet (see red arrow below)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0624", "style": "", "text": "A countertop is needed for the offset portion of the cabinet; this should match the cabinet color by default - like above", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0625", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": ""}
+{"id": "P0626", "style": "", "text": "", "links": [], "images": ["media/image48.png"], "comments": [], "heading": ""}
+{"id": "P0627", "style": "", "text": "", "links": [], "images": ["media/image47.png"], "comments": [], "heading": ""}
+{"id": "P0628", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0629", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0630", "style": "", "text": "Cabinet remote position", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0631", "style": "", "text": "Can be positioned anywhere, essentially", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0632", "style": "", "text": "When a cabinet is remotely positioned, a countertop is needed for the remote cabinet; this should match the cabinet color by default - like above", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0633", "style": "", "text": "", "links": [], "images": ["media/image14.png"], "comments": [], "heading": ""}
+{"id": "P0634", "style": "", "text": "", "links": [], "images": ["media/image84.png"], "comments": [], "heading": ""}
+{"id": "P0635", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0636", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0637", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0638", "style": "", "text": "Side panels", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0639", "style": "", "text": "Models", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0640", "style": "", "text": "No groove", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0641", "style": "", "text": "Depths: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0642", "style": "", "text": "Heights: 25, 28, 35, 38cm      or    50 or 56", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0643", "style": "", "text": "1 groove (upper)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0644", "style": "", "text": "Depths: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0645", "style": "", "text": "Heights: 25, 28, 35, 38cm      or    50 or 56", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0646", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0647", "style": "", "text": "Logic", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0648", "style": "", "text": "Optional", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0649", "style": "", "text": "Dimensions", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0650", "style": "", "text": "Height + Depth must match the cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0651", "style": "", "text": "Adds 1cm to the Left + Right of the vanity", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0652", "style": "", "text": "Countertop needs to be 2cm longer to accommodate them", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0653", "style": "", "text": "Quantity", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0654", "style": "", "text": "Dictated by the # of endpoints - see examples below", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0655", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0656", "style": "", "text": "2 endpoints (most common)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0657", "style": "", "text": "", "links": [], "images": ["media/image63.png"], "comments": [], "heading": ""}
+{"id": "P0658", "style": "", "text": "", "links": [], "images": ["media/image58.png"], "comments": [], "heading": ""}
+{"id": "P0659", "style": "", "text": "3 endpoints", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0660", "style": "", "text": "", "links": [], "images": ["media/image77.png"], "comments": [], "heading": ""}
+{"id": "P0661", "style": "", "text": "4 end points", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0662", "style": "", "text": "", "links": [], "images": ["media/image51.png"], "comments": [], "heading": ""}
+{"id": "P0663", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0664", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0665", "style": "", "text": "", "links": [], "images": ["media/image36.png"], "comments": [], "heading": ""}
+{"id": "P0666", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0667", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0668", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0669", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0670", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0671", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0672", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0673", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0674", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0675", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0676", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0677", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0678", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0679", "style": "", "text": "Positioning", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0680", "style": "", "text": "Default – positioned directly on the cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0681", "style": "", "text": "", "links": [], "images": ["media/image68.png"], "comments": [], "heading": ""}
+{"id": "P0682", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0683", "style": "", "text": "Fringe Use Cases", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0684", "style": "", "text": "Remotely positioned", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0685", "style": "", "text": "", "links": [], "images": ["media/image84.png"], "comments": [], "heading": ""}
+{"id": "P0686", "style": "", "text": "", "links": [], "images": ["media/image43.png"], "comments": [], "heading": ""}
+{"id": "P0687", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0688", "style": "", "text": "Offset relative to the cabinet (but connected)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0689", "style": "", "text": "", "links": [], "images": ["media/image20.png"], "comments": [], "heading": ""}
+{"id": "P0690", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0691", "style": "", "text": "", "links": [], "images": ["media/image73.png"], "comments": [], "heading": ""}
+{"id": "P0692", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0693", "style": "", "text": "All other Countertop & Basin Style rules", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0694", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0695", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0696", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0697", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0698", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0699", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0700", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": ""}

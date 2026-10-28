@@ -1,0 +1,81 @@
+{"id": "P0001", "style": "", "text": "Tricot", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0002", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0003", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0004", "style": "", "text": "Cabinet Builder SB 1DWID", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0005", "style": "", "text": "SB 1DWID is not available in 23.6” when an integrated countertop style is used", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0006", "style": "", "text": "When selecting this cabinet type/style/size, can we display a modal message that communicates it is only compatible with a vessel countertop application? Then ask the user to ‘Approve’ or ‘Cancel’", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0007", "style": "", "text": "If the user approves, the countertop displayed should be a Vessel Countertop Style with the hole cutout.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0008", "style": "", "text": "If there is already an SB in the scene, that SB should be updated too.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0009", "style": "", "text": "", "links": [], "images": ["media/image7.png"], "comments": [], "heading": ""}
+{"id": "P0010", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0011", "style": "", "text": "Steps | Order", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0012", "style": "", "text": "Add the ‘Faucet Details’ step - add it before ‘Summary View’", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0013", "style": "", "text": "Move ‘Accessories’ before ‘Faucet Details’.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0014", "style": "", "text": "", "links": [], "images": ["media/image5.png"], "comments": [], "heading": ""}
+{"id": "P0015", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0016", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0017", "style": "", "text": "Cabinet Color | Price Filter", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0018", "style": "", "text": "Standard $ – all Lacquered MT colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0019", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": ""}
+{"id": "P0020", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0021", "style": "", "text": "Classic $$ - all Wood Veneer colors", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0022", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": ""}
+{"id": "P0023", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0024", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0025", "style": "", "text": "Cabinet Colors | Wood Veneer", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0026", "style": "", "text": "These colors are not loading in the player", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0027", "style": "", "text": "", "links": [], "images": ["media/image14.png"], "comments": [], "heading": ""}
+{"id": "P0028", "style": "", "text": "Also, the Cabinet Patterns associated with these Wood Veneers are persistently greyed out", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0029", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0030", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0031", "style": "", "text": "Accessories | Side Panels", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0032", "style": "", "text": "The Side panel is not positioned properly. It also seems to be short", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0033", "style": "", "text": "", "links": [], "images": ["media/image13.png"], "comments": [], "heading": ""}
+{"id": "P0034", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0035", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0036", "style": "", "text": "Countertop Materials | Solid Surface", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0037", "style": "", "text": "We’ll treat Solid Surface as a header and nest the two solid surface types underneath it", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0038", "style": "", "text": "Technolite", "links": ["https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?disco=doco.fbEq7yIEl6fVRU5K5yM2Rg"], "images": [], "comments": [], "heading": ""}
+{"id": "P0039", "style": "", "text": "Technomat", "links": ["https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?disco=doco.Ho00SsmhZsJ0UAS2T4OZZg"], "images": [], "comments": [], "heading": ""}
+{"id": "P0040", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": ""}
+{"id": "P0041", "style": "", "text": "LB175", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0042", "style": "", "text": "This is the wrong basin model", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0043", "style": "", "text": "", "links": [], "images": ["media/image2.png"], "comments": [], "heading": ""}
+{"id": "P0044", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0045", "style": "", "text": "LB856", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0046", "style": "", "text": "This basin model seems off slightly", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0047", "style": "", "text": "", "links": [], "images": ["media/image3.png"], "comments": [], "heading": ""}
+{"id": "P0048", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0049", "style": "", "text": "VA023", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0050", "style": "", "text": "Is the wrong basin model", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0051", "style": "", "text": "", "links": [], "images": ["media/image8.png"], "comments": [], "heading": ""}
+{"id": "P0052", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0053", "style": "", "text": "Countertop Materials | Glass", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0054", "style": "", "text": "The correct basin styles visuals need to be added for VA002 + VA005", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0055", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0056", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0057", "style": "", "text": "Porcelain Countertop | Basin Styles", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0058", "style": "", "text": "The LV 890 and LV 892 integrated basin style models are incorrect.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0059", "style": "", "text": "See the correct models in the Pre-Render experience on our website – https://www.hastingsbathcollection.com/products/vanities/tricot?UI_Countertop+Color=Pietra%2520Grey%2520Goffrato%2520323&UI_Basin+Style=LV890", "links": ["https://www.hastingsbathcollection.com/products/vanities/tricot?UI_Countertop+Color=Pietra%2520Grey%2520Goffrato%2520323&UI_Basin+Style=LV890"], "images": [], "comments": [], "heading": ""}
+{"id": "P0060", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0061", "style": "", "text": "LV 890", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0062", "style": "", "text": "", "links": [], "images": ["media/image9.png"], "comments": [], "heading": ""}
+{"id": "P0063", "style": "", "text": "This should not have the beveled edge", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0064", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0065", "style": "", "text": "LV892", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0066", "style": "", "text": "", "links": [], "images": ["media/image11.png"], "comments": [], "heading": ""}
+{"id": "P0067", "style": "", "text": "This should not have an overflow", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0068", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0069", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0070", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0071", "style": "", "text": "Countertop & Basin | Countertop Style = Vessel", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0072", "style": "", "text": "Vessel Sink Style", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0073", "style": "", "text": "Frame & Plaza are not producing the correct model in the scene", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0074", "style": "", "text": "", "links": [], "images": ["media/image12.png"], "comments": [], "heading": ""}
+{"id": "P0075", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0076", "style": "", "text": "", "links": [], "images": ["media/image15.png"], "comments": [], "heading": ""}
+{"id": "P0077", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0078", "style": "", "text": "When adding a Vessel to the scene - please add it in Latte 417 MT by default", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0079", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0080", "style": "", "text": "The Delete Function is not working", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0081", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": ""}

@@ -1,0 +1,1113 @@
+{"id": "P0001", "style": "Heading1", "text": "Urban Standard Height Logic", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0002", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0003", "style": "", "text": "See UI Excel Sheet - began compiling rules", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0004", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0005", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0006", "style": "", "text": "General Configuration order/steps", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0007", "style": "", "text": "Parallel configuration primarily except for:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0008", "style": "", "text": "Must start with adding a cabinet 1st (if no cabinet present in player (from scratch)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0009", "style": "", "text": "Grey out other steps – hover element that explains why/what to users (Norwalk)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0010", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0011", "style": "", "text": "Pre-Built Mode Countertop", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0012", "style": "", "text": "Pre-Built Mode – Selecting a Different Model Once Colors Applied", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0013", "style": "", "text": "If users backtrack to the 1st step to pick a different model after they’ve applied colors, the models should display the users' selections in the player. See the screen recording.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0014", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0015", "style": "", "text": "I'd like to keep the colors/selections the user has selected applied when users select a different model, primarily because this aligns with the current pre-render experience + would ultimately improve the UX (https://www.hastingsbathcollection.com/products/vanities/urban-standard-height).", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0016", "style": "", "text": "With that said, if restrictions exist based on the selections a user has made (mainly countertop restrictions (material + basin style), use the existing configuration logic to trigger a pop-up notification for the user to approve when changing the model and to convey that it will clear the selections that are incompatible (or some of them). Also, specify the restriction in the notification", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0017", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0018", "style": "", "text": "", "links": [], "images": ["media/image131.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0019", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0020", "style": "", "text": "Scenarios", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0021", "style": "", "text": "No Restrictions - no modal pop-up", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0022", "style": "", "text": "If restrictions exist – modal pop-up message", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0023", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0024", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0025", "style": "", "text": "Yellow Highlights are the restrictions (as of 6/11/26", "links": [], "images": [], "comments": ["0"], "heading": "Urban Standard Height Logic"}
+{"id": "P0026", "style": "", "text": "", "links": [], "images": ["media/image104.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0027", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0028", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0029", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0030", "style": "", "text": "Selecting Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0031", "style": "", "text": "Must select ‘Cabinet Type’ as 1st step", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0032", "style": "", "text": "SB or SC must be 1st  - do not show ‘Open Shelf’ or ‘Side Shelve’ option until a SB or SC is selected", "links": [], "images": [], "comments": ["1"], "heading": "Urban Standard Height Logic"}
+{"id": "P0033", "style": "", "text": "Cabinet Type logic: Open Shelf and Open Side Shelf", "links": [], "images": [], "comments": ["2"], "heading": "Urban Standard Height Logic"}
+{"id": "P0034", "style": "", "text": "When users select ‘Open Shelf’", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0035", "style": "", "text": "Hide the ‘Cabinet Style’ step as there is only 1 version", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0036", "style": "", "text": "Automatically display the R sidebar - with only the ‘Width’ and Depth attributes displayed (Handle Style is not an option)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0037", "style": "", "text": "When users select Open Side Shelf’", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0038", "style": "", "text": "Hide the ‘Cabinet Style’ step as there is only 1 version", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0039", "style": "", "text": "Display the R sidebar - with only the prompt of ‘Click the ‘+’ button to place your cabinet’ at the top (there are no size options)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0040", "style": "", "text": "This cabinet type can only be used on the end of the vanity, meaning ‘+’ buttons should only display at the end of the vanity configuration, not inner cabinet seams. See graphic below.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0041", "style": "", "text": "", "links": [], "images": ["media/image54.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0042", "style": "", "text": "This cabinet type can only be used at the end of a vanity configuration, meaning no other cabinet can be abutted ‘beyond’ it. See the crossed off ‘+’ button. This should not display", "links": [], "images": [], "comments": ["3"], "heading": "Urban Standard Height Logic"}
+{"id": "P0043", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0044", "style": "", "text": "OSS cabinets are only available for PTO handle styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0045", "style": "", "text": "If a PTO handle is not used in the configuration. The OSS should be fully blocked off with a hover tooltip saying ‘Side Shelf cabinets are only compatible with PTO (Push-to-Open) handle styles. If you like to switch to a PTO handle style click here (hypertext to activate the handle style switch)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0046", "style": "", "text": "OSS cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0047", "style": "", "text": "Can only be positioned at the ends of the vanity", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0048", "style": "", "text": "A maximum of 2 can be used", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0049", "style": "", "text": "If 2 are already in use:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0050", "style": "", "text": "1) The OSS cabinet option should be greyed out in the Cabinet Builder Cabinet Type step - there should be a message that displays when hovering that states “Vanity configurations allow a maximum of two Side Shelf units”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0051", "style": "", "text": "2) In the Intraplayer Actions - ‘Duplicate’ should not display", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0052", "style": "", "text": "OSS Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0053", "style": "", "text": "Remove the ‘Reposition’ option in the Intraplayer Actions for OSS for configurations with greater than 1 cabinet", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0054", "style": "", "text": "This option moves the OSS cabinet into a position that is incompatible in scenarios where more than 1 cabinet is in use.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0055", "style": "", "text": "", "links": [], "images": ["media/image15.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0056", "style": "", "text": "", "links": [], "images": ["media/image79.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0057", "style": "", "text": "OSS Cabinets - enable Reposition action if only 1 cabinet is in the scene, presuming only 1 OSS cabinet is in use in the scene", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0058", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0059", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0060", "style": "", "text": "Cabinet options displayed should update dynamically based on the ‘Handle Style’ selected – both Cabinet Type + Cabinet Style - see here", "links": ["https://docs.google.com/spreadsheets/d/1DcCbKcuMe6G-HMqRXElGF9NFq39Nf2v6OWet6LjJZNw/edit?disco=AAABxniImYU"], "images": [], "comments": ["4"], "heading": "Urban Standard Height Logic"}
+{"id": "P0061", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0062", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0063", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0064", "style": "", "text": "Not available for Open Shelves or Side Shelves", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0065", "style": "", "text": "Only 1 handle type can be used in a configuration – can’t mix", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0066", "style": "", "text": "Once handle selected, the appropriate cabinet styles w/ the selected handle style should display", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0067", "style": "", "text": "Types", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0068", "style": "", "text": "Urban Handle | Upper Groove – available for all Sink Bases + Side Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0069", "style": "", "text": "Urban Handle | Central Groove – only available for 2 Drawer cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0070", "style": "", "text": "Push-to-Open – available for all Sink Bases + Side Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0071", "style": "", "text": "Users can override", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0072", "style": "", "text": "Users should have the ability to override or change the handle style, which updates all the cabinets in the configuration.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0073", "style": "", "text": "They should receive a notification of the impact and have to approve it", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0074", "style": "", "text": "Logic should reference whether there are any limitations", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0075", "style": "", "text": "Handle Groove Color", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0076", "style": "", "text": "Only available for Urban handle (Upper or central )", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0077", "style": "", "text": "Inner handle groove finish can contrast the cabinet finish. All cabinets must have the same groove finish", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0078", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0079", "style": "", "text": "Cabinet Dimensions", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0080", "style": "", "text": "Heights – All cabinet heights in the configuration must match as they are abutted together", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0081", "style": "", "text": "After the 1st cabinet selection (+ handle selection), we should hide or grey out non-matching or incompatible cabs based on height?", "links": [], "images": [], "comments": ["5"], "heading": "Urban Standard Height Logic"}
+{"id": "P0082", "style": "", "text": "Height parameters", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0083", "style": "", "text": "Height is dictated by a combination of two elements:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0084", "style": "", "text": "Cabinet Style – 1 Drawer vs 2 Drawer", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0085", "style": "", "text": "Handle Style – Urban handle (UG or CG) vs PTO handle", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0086", "style": "", "text": "", "links": [], "images": ["media/image70.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0087", "style": "", "text": "Depths – All cabinet depths in a config must match", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0088", "style": "", "text": "Can be overridden – see logic + notification protocol above, but for Depth", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0089", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0090", "style": "", "text": "Cabinet Positioning", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0091", "style": "", "text": "Cabinets can only be positioned/abutted L or R", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0092", "style": "", "text": "Remote position cab?", "links": [], "images": [], "comments": ["6"], "heading": "Urban Standard Height Logic"}
+{"id": "P0093", "style": "", "text": "Standalone - for extra storage", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0094", "style": "", "text": "", "links": [], "images": ["media/image73.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0095", "style": "", "text": "Rule", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0096", "style": "", "text": "Default color for the exposed countertop - is the cabinet color", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0097", "style": "", "text": "", "links": [], "images": ["media/image86.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0098", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0099", "style": "", "text": "Floor-mount cab w/ wall-mount countertop", "links": [], "images": [], "comments": ["7"], "heading": "Urban Standard Height Logic"}
+{"id": "P0100", "style": "", "text": "", "links": [], "images": ["media/image78.png"], "comments": ["7"], "heading": "Urban Standard Height Logic"}
+{"id": "P0101", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0102", "style": "", "text": "Color", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0103", "style": "", "text": "Match existing cabinets in the configuration by default - when adding additional cabs to a design", "links": [], "images": [], "comments": ["8"], "heading": "Urban Standard Height Logic"}
+{"id": "P0104", "style": "", "text": "Drawer Panel Fluting – Figma reference", "links": ["https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT?node-id=1295-1712#1563829359"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0105", "style": "", "text": "Only available when cabinet is Lacquer Matte (LACM) – hide if this is not selected", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0106", "style": "", "text": "Only available for drawer cabinets (1DW, 1DWID, 2DW). Not available for Open Shelf or Side Shelf cabs. Not available for Side Panels either", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0107", "style": "", "text": "Fluting is only available for cabinet fronts, not cabinet sides", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0108", "style": "", "text": "", "links": [], "images": ["media/image80.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0109", "style": "", "text": "4 Fluting Options - see here", "links": ["https://docs.google.com/spreadsheets/d/1Kg1_GQiXEZpBke1tybbqStdYN4bqG_h6/edit?disco=AAABxqQBUes"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0110", "style": "", "text": "Vertical | Type B", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0111", "style": "", "text": "Vertical | Type A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0112", "style": "", "text": "Horizontal | Type B", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0113", "style": "", "text": "Horizontal | Type A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0114", "style": "", "text": "", "links": [], "images": ["media/image75.png", "media/image102.png", "media/image19.png", "media/image45.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0115", "style": "", "text": "Grain Direction – Figma reference", "links": ["https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT?node-id=1295-1713#1563829779"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0116", "style": "", "text": "This is only available for select materials + specifically only finishes that have a grain direction (e.g., wood graining or marble/stone veining)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0117", "style": "", "text": "Below is the list of materials for which this feature is available for:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0118", "style": "", "text": "Essenze – all finishes", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0119", "style": "", "text": "HPL – all finishes except for: Cepp Stone (TKP), Rox Black (TKQ) + Brera Brown (TKN)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0120", "style": "", "text": "3D – all finishes except for: Colortech Bianco 10B, Colortech Grigio fume 10F, Cemento Cenere 1A1, Cemento Tortora 1A2, Cemento Creta 1A3, Cemento Oltremare 1A4, Cemento Ghiaccio 1A5, Pelle Pecari Tortora 1PE", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0121", "style": "", "text": "2 Options – see here", "links": ["https://docs.google.com/spreadsheets/d/1Kg1_GQiXEZpBke1tybbqStdYN4bqG_h6/edit?disco=AAABxqQBUek"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0122", "style": "", "text": "Horizontal", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0123", "style": "", "text": "Vertical", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0124", "style": "", "text": "", "links": [], "images": ["media/image96.png", "media/image41.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0125", "style": "", "text": "", "links": [], "images": ["media/image56.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0126", "style": "", "text": "", "links": [], "images": ["media/image65.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0127", "style": "", "text": "Book Matching – Figma Reference", "links": ["https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT?node-id=745-8612#1564151128"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0128", "style": "", "text": "This is only available for select materials + specifically only finishes that have a grain direction (e.g., wood graining or marble/stone veining)", "links": [], "images": [], "comments": ["9"], "heading": "Urban Standard Height Logic"}
+{"id": "P0129", "style": "", "text": "Below is the list of materials for which this feature is available for:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0130", "style": "", "text": "Essenze – all finishes", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0131", "style": "", "text": "HPL – all finishes except for: Cepp Stone (TKP), Rox Black (TKQ) + Brera Brown (TKN)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0132", "style": "", "text": "3D – all finishes except for: Colortech Bianco 10B, Colortech Grigio fume 10F, Cemento Cenere 1A1, Cemento Tortora 1A2, Cemento Creta 1A3, Cemento Oltremare 1A4, Cemento Ghiaccio 1A5, Pelle Pecari Tortora 1PE", "links": [], "images": [], "comments": ["9"], "heading": "Urban Standard Height Logic"}
+{"id": "P0133", "style": "", "text": "Please see conditions below:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0134", "style": "", "text": "Grain Direction: Horizontal - only available when there are 2 or more cabinets in the user configuration. Book matching is not applicable for Horizontal when only 1 cabinet is in the user's configuration", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0135", "style": "", "text": "Grain Direction: Vertical - available regardless of # of cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0136", "style": "", "text": "Pricing is calculated per drawer – to discuss further", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0137", "style": "", "text": "Book matching has an associated upcharge that is assessed per drawer, see here from the SKU Import sheet. Meaning the pricing logic needs to account for he  # of drawers in a user's configuration, then apply the proper count of Book Matching charges. See a couple of examples below.", "links": ["https://docs.google.com/spreadsheets/d/1uCOysG4G_ODEKgMx0tteUK0oH9FB29BgPlEwDBCdDNc/edit?disco=AAAB2hVS6u8"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0138", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0139", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0140", "style": "", "text": "", "links": [], "images": ["media/image74.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0141", "style": "", "text": "Vertical Book Matching", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0142", "style": "", "text": "N/A for 1DW or 1DWID cabinet styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0143", "style": "", "text": "Horizontal Book Matching", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0144", "style": "", "text": "N/A for single cabinet units", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0145", "style": "", "text": "Open Shelf Cabinet relative positioning logic in a configuration", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0146", "style": "", "text": "Horizontal Book Matching is available only for drawer cabinets positioned side-by-side/abutting each other.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0147", "style": "", "text": "In a scenario like the image below, when an OS cab is sandwiched b/w 2 other cabinets, Horizontal Book Matching is not available, and should be greyed out. Only Vertical Book Matching would be available in this scenario.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0148", "style": "", "text": "", "links": [], "images": ["media/image125.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0149", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0150", "style": "", "text": "The Rule:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0151", "style": "", "text": "Horizontal Book Matching should only be available if: two drawer cabinets (SB + SCs) are positioned side-by-side, and the selected finish is available for Grain Direction in the first place", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0152", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0153", "style": "", "text": "Other Examples", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0154", "style": "", "text": "See a couple of other scenarios + the quantity of Book Matching charges", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0155", "style": "", "text": "", "links": [], "images": ["media/image62.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0156", "style": "", "text": "", "links": [], "images": ["media/image47.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0157", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0158", "style": "", "text": "Auto deselect ‘Book Matching’ checkbox when a users actions make Book Matching incompatible (e.g. Cabinet Style change from 2DW → 1DW when Vertical Book Matching selected  or   when a cabinet is deleted, leaving only one cabinet in the configuration when Horizontal Book Matching is selected)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0159", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0160", "style": "", "text": "# of Sink Bases", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0161", "style": "", "text": "Double basins – Smallest size 60cm SB | 60cm SB", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0162", "style": "", "text": "Cannot do greater than 2 SBs?????", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0163", "style": "", "text": "Triple basin – N/A", "links": [], "images": [], "comments": ["10"], "heading": "Urban Standard Height Logic"}
+{"id": "P0164", "style": "", "text": "Minimum top dimension – 200cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0165", "style": "", "text": "Glass countertop material N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0166", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0167", "style": "", "text": "Max Cabinet configuration length (user notification)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0168", "style": "", "text": "Once vanity configuration exceeds 260cm (102-⅜”) – a blanket notification should display that only certain countertops are available at + above this dimension", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0169", "style": "", "text": "Separate countertop logic will grey out countertop materials that are N/A based on the total vanity length – See Counterop: Sizes | Max length section", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0170", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0171", "style": "", "text": "Drag & Drop Rules", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0172", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0173", "style": "", "text": "Cannot be stacked – 50, 53 + 56cm cabs are not compatible for this", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0174", "style": "", "text": "Can be remotely positioned when a thick countertop is used (same CT rules)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0175", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0176", "style": "", "text": "Can be offset and remote - same rules apply", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0177", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0178", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0179", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0180", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0181", "style": "", "text": "Side Panels", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0182", "style": "", "text": "Optional", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0183", "style": "", "text": "", "links": [], "images": ["media/image24.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0184", "style": "", "text": "Dimensions", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0185", "style": "", "text": "Height + Depth must match the cabinet", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0186", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0187", "style": "", "text": "Adds 1cm to the Left + Right of the vanity", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0188", "style": "", "text": "The countertop needs to be 2cm longer to accommodate them", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0189", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0190", "style": "", "text": "Quantity", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0191", "style": "", "text": "Typically are sold as a pair. There are exceptions to this when an:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0192", "style": "", "text": "OS cabinet is used on the end of a vanity, presuming an Urban handle is being used –– SPs are N/A for OS cabinets at the end of a configuration", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0193", "style": "", "text": "OSS cabinet is used (SPs are N/A for OSS cabs)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0194", "style": "", "text": "If only 1 cabinet is in the users configuration - when selecting a SP option add it to both sides of the cabinet", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0195", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0196", "style": "", "text": "'Internal' cabinets cannot have SPs", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0197", "style": "", "text": "i.e., cabinets in the middle of a configuration cannot have Side Panels (this applies to configurations with 3 or more cabs). For example, if a configuration is made up of 3 cabinets, the middle cabinet cannot have Side Panels. Only the end cabs can have Side Panels. See the graphic.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0198", "style": "", "text": "", "links": [], "images": ["media/image126.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0199", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0200", "style": "", "text": "Repositioning Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0201", "style": "", "text": "When repositioning cabs, the Side Panels need to be repositioned as well. This applies in scenarios where OS or OSS cabs are used, as there are compatibility restrictions. See an example.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0202", "style": "", "text": "", "links": [], "images": ["media/image38.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0203", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0204", "style": "", "text": "OSS cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0205", "style": "", "text": "OSS cabs cannot have Side Panels", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0206", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0207", "style": "", "text": "See General Logic + Handle Style logic", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0208", "style": "", "text": "", "links": [], "images": ["media/image123.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0209", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0210", "style": "", "text": "Rules when Handle Style + Drawer Style are changed after SPs have already been applied to a cabinet", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0211", "style": "", "text": "If No Groove SP is used in the configured design", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0212", "style": "", "text": "Use the corresponding No Groove SP based on the Drawer Style or Handle Style that the user changes to", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0213", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0214", "style": "", "text": "If Grooved SP is used in the configured design", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0215", "style": "", "text": "Use the corresponding/compatible Grooved SP based on the Drawer Style or Handle Style that a user changes to", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0216", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0217", "style": "", "text": "Side Panel Groove Color", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0218", "style": "", "text": "When adding a side panel to a cabinet with a UG or CG handle, the side panel should match the color of the cabinet – both the: (1) cabinet color and (2) groove color", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0219", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0220", "style": "", "text": "Single Cabinet SB Configurations", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0221", "style": "", "text": "When selecting a Side Panel option the SPs should be added to both sides of the cabinet", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0222", "style": "", "text": "", "links": [], "images": ["media/image124.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0223", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0224", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0225", "style": "", "text": "Side Panel Logic & User messages Implemented 6/6/26", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0226", "style": "", "text": "", "links": [], "images": ["media/image101.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0227", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0228", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0229", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0230", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0231", "style": "", "text": "Countertop overhangs", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0232", "style": "", "text": "Counterops slightly extend beyond the bounding vanity dimensions. See particulars:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0233", "style": "", "text": "Left + Right side overhand – ⅛” (3mm)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0234", "style": "", "text": "Front overhang – 3/16” (5mm)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0235", "style": "", "text": "Sizes | Max length", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0236", "style": "", "text": "Determined by material type + basin style limitations in certain cases – see below", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0237", "style": "", "text": "Grey out options N/A based on size + explain to users why (max top size for Glass 260cm…..)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0238", "style": "", "text": "Required???", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0239", "style": "", "text": "Make required?", "links": [], "images": [], "comments": ["11"], "heading": "Urban Standard Height Logic"}
+{"id": "P0240", "style": "", "text": "Countertop Styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0241", "style": "", "text": "Undermount", "links": [], "images": [], "comments": ["12"], "heading": "Urban Standard Height Logic"}
+{"id": "P0242", "style": "", "text": "Only available in select top materials", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0243", "style": "", "text": "When ‘Undermount selected – notification to user that specs will be + need to be confirmed w. our team to confirm compatibility", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0244", "style": "", "text": "Thick countertops (4”, 5-⅛”, 5-½”)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0245", "style": "", "text": "Require additional ghost brackets - see logic below", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0246", "style": "", "text": "Single basin ≤ 120cm – 2 brackets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0247", "style": "", "text": "Single basin 121-179 – 3 brackets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0248", "style": "", "text": "Single basin 180-220 – 4 brackets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0249", "style": "", "text": "Single basin 221-300 – 5 brackets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0250", "style": "", "text": "Double basin 120-160 – 3 brackets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0251", "style": "", "text": "Double basin 161-220 – 4 brackets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0252", "style": "", "text": "Double basin 221-300 – 5 brackets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0253", "style": "", "text": "", "links": [], "images": ["media/image87.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0254", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0255", "style": "", "text": "Offsetting countertops", "links": [], "images": [], "comments": ["13"], "heading": "Urban Standard Height Logic"}
+{"id": "P0256", "style": "", "text": "Must be a thick countertop (4”, 5-⅛”, 5-½”)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0257", "style": "", "text": "", "links": [], "images": ["media/image69.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0258", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0259", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0260", "style": "", "text": "Basin Styles (Integrated | Vessel | Undermount)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0261", "style": "", "text": "Quantity dictated by the # of SBs in the configuration", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0262", "style": "", "text": "Basin Size options – dictated by minimum cab size", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0263", "style": "", "text": "e.g. if SBs are 60cm - cannot use a Prisma 60", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0264", "style": "", "text": "Top length limitations", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0265", "style": "", "text": "Some basin styles dictate total countertop/vanity length – See chart", "links": ["https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0266", "style": "", "text": "Basin positioning", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0267", "style": "", "text": "Left-to-right – Basins (always) centered on the SB", "links": [], "images": [], "comments": ["14"], "heading": "Urban Standard Height Logic"}
+{"id": "P0268", "style": "", "text": "Front-to-back – Positioning altered based on faucet type (wall vs deck)", "links": [], "images": [], "comments": ["15"], "heading": "Urban Standard Height Logic"}
+{"id": "P0269", "style": "", "text": "", "links": [], "images": ["media/image29.png", "media/image52.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0270", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0271", "style": "", "text": "Integrated", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0272", "style": "", "text": "Only displays when ‘Countertop Style’ = Integrated", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0273", "style": "", "text": "Basin Size/Options dictated by SB sizes", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0274", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0275", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0276", "style": "", "text": "Only displays when ‘Countertop Style’ = Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0277", "style": "", "text": "If a specific Vessel selected –", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0278", "style": "", "text": "Add to each SB in the configuration (if 2 SBs, add to both)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0279", "style": "", "text": "If no Vessel selected (adding specific NOT REQUIRED)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0280", "style": "", "text": "Show hole cut-out in top", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0281", "style": "", "text": "Add to each SB in the configuration (if 2 SBs, add to both)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0282", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0283", "style": "", "text": "Rules for Vessel Sink Use", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0284", "style": "", "text": "I’d like to add a rule for vessel sink style usage. We should grey out the Vessel sink options when the Sink Base cabinet size is 23.6” or 27.6”.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0285", "style": "", "text": "“None” should be the default option", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0286", "style": "", "text": "Tooltip hover copy to display over the vessel sink options: “Not available for selected sink base cabinet size”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0287", "style": "", "text": "We’re doing this b/c aesthetically the vessel sink options we’re offering in this experience are fairly large and only look aesthetically proper in certain instances", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0288", "style": "", "text": "", "links": [], "images": ["media/image57.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0289", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0290", "style": "", "text": "Undermount", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0291", "style": "", "text": "Only available in select top materials", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0292", "style": "", "text": "When ‘Undermount’ selected – notification to the user that specs will be need to be provided on their end + need to be confirmed w/ our team to confirm compatibility", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0293", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0294", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0295", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0296", "style": "", "text": "Max Countertop Lengths – Material, Top Style Basin Style", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0297", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0298", "style": "", "text": "See consolidated Countertop | Basin Styles RulesLogic GSheet", "links": ["https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/edit?gid=0#gid=0"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0299", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0300", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0301", "style": "", "text": "Mineralmarmo", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0302", "style": "", "text": "Top thickness: ½”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0303", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0304", "style": "", "text": "2 colors (Gloss White + Matte White)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0305", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0306", "style": "", "text": "1 integrated basin (Diamond)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0307", "style": "", "text": "Minimum SB cab size: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0308", "style": "", "text": "", "links": [], "images": ["media/image50.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0309", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0310", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0311", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0312", "style": "", "text": "Top Style:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0313", "style": "", "text": "Vessel: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0314", "style": "", "text": "", "links": [], "images": ["media/image71.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0315", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0316", "style": "", "text": "Integrated: 340cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0317", "style": "", "text": "", "links": [], "images": ["media/image94.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0318", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0319", "style": "", "text": "Tekormud", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0320", "style": "", "text": "Top thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0321", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0322", "style": "", "text": "5 colors", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0323", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0324", "style": "", "text": "1 integrated basin (TIVI)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0325", "style": "", "text": "Minimum SB cab size: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0326", "style": "", "text": "", "links": [], "images": ["media/image32.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0327", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0328", "style": "", "text": "Undermount??? - offer?", "links": [], "images": [], "comments": ["16"], "heading": "Urban Standard Height Logic"}
+{"id": "P0329", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0330", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0331", "style": "", "text": "Vessel or Undermount: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0332", "style": "", "text": "", "links": [], "images": ["media/image72.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0333", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0334", "style": "", "text": "Integrated: 340cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0335", "style": "", "text": "", "links": [], "images": ["media/image20.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0336", "style": "", "text": "", "links": [], "images": ["media/image2.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0337", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0338", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0339", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0340", "style": "", "text": "Syntesi", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0341", "style": "", "text": "Top thickness: ½”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0342", "style": "", "text": "Depths: 50.5cm ONLY", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0343", "style": "", "text": "2 colors (matte white, gloss white)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0344", "style": "", "text": "Select top sizes only", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0345", "style": "", "text": "60, 70, 80, 90, 105, 120, 140", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0346", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0347", "style": "", "text": "1 integrated basin (Syntesi)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0348", "style": "", "text": "48cm size", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0349", "style": "", "text": "Minimum SB cab size: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0350", "style": "", "text": "58cm size", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0351", "style": "", "text": "Minimum SB cab size: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0352", "style": "", "text": "", "links": [], "images": ["media/image34.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0353", "style": "", "text": "Rules / Logic", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0354", "style": "", "text": "Only available for single cabinet vanity configurations (e.g. not multi-cabinet concepts)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0355", "style": "", "text": "Material n/a when side panels are used", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0356", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0357", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0358", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0359", "style": "", "text": "Ocritech", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0360", "style": "", "text": "Top thickness: 3/8”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0361", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0362", "style": "", "text": "46 D is only available for select basin styles (Rayo, Roll, Quadra)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0363", "style": "", "text": "2 colors (Matte white, gloss white)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0364", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0365", "style": "", "text": "5 integrated basins", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0366", "style": "", "text": "Oly 55", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0367", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0368", "style": "", "text": "", "links": [], "images": ["media/image82.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0369", "style": "", "text": "D 50 Only", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0370", "style": "", "text": "Oly 56", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0371", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0372", "style": "", "text": "", "links": [], "images": ["media/image43.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0373", "style": "", "text": "D 50 Only", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0374", "style": "", "text": "", "links": [], "images": ["media/image3.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0375", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0376", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0377", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0378", "style": "", "text": "Rayo", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0379", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0380", "style": "", "text": "", "links": [], "images": ["media/image97.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0381", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0382", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0383", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0384", "style": "", "text": "Roll", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0385", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0386", "style": "", "text": "", "links": [], "images": ["media/image122.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0387", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0388", "style": "", "text": "Orion", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0389", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0390", "style": "", "text": "", "links": [], "images": ["media/image98.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0391", "style": "", "text": "D 50 Only", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0392", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0393", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0394", "style": "", "text": "Quadra", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0395", "style": "", "text": "Minimum SB: 70cm (override)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0396", "style": "", "text": "", "links": [], "images": ["media/image108.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0397", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0398", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0399", "style": "", "text": "Undermount - N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0400", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0401", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0402", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0403", "style": "", "text": "Vessel: 290cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0404", "style": "", "text": "", "links": [], "images": ["media/image114.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0405", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0406", "style": "", "text": "Integrated: 290cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0407", "style": "", "text": "", "links": [], "images": ["media/image8.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0408", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0409", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0410", "style": "", "text": "Tekorlux", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0411", "style": "", "text": "Top Thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0412", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0413", "style": "", "text": "54 colors (same as lacquer colors above + matte white + gloss white)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0414", "style": "", "text": "Black + 5 Metalizzato colors - n/a", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0415", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0416", "style": "", "text": "4 integrated basins  (multiple sizes)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0417", "style": "", "text": "Rectangular 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0418", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0419", "style": "", "text": "Max Top Size: 251cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0420", "style": "", "text": "", "links": [], "images": ["media/image68.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0421", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0422", "style": "", "text": "Quadra 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0423", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0424", "style": "", "text": "Max Top Size: 251cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0425", "style": "", "text": "", "links": [], "images": ["media/image85.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0426", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0427", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0428", "style": "", "text": "Trip 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0429", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0430", "style": "", "text": "Max Top Size: 271cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0431", "style": "", "text": "", "links": [], "images": ["media/image121.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0432", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0433", "style": "", "text": "Ron 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0434", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0435", "style": "", "text": "Max Top Size: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0436", "style": "", "text": "Depth limitation: 50.5cm ONLY", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0437", "style": "", "text": "", "links": [], "images": ["media/image116.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0438", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0439", "style": "", "text": "Undermount??? - offer?", "links": [], "images": [], "comments": ["17"], "heading": "Urban Standard Height Logic"}
+{"id": "P0440", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0441", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0442", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0443", "style": "", "text": "Vessel or Undermount: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0444", "style": "", "text": "", "links": [], "images": ["media/image53.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0445", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0446", "style": "", "text": "Integrated: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0447", "style": "", "text": "Max length dictated by basin style above", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0448", "style": "", "text": "", "links": [], "images": ["media/image120.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0449", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0450", "style": "", "text": "Syntesi", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0451", "style": "", "text": "Top Thickness: ½”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0452", "style": "", "text": "Depth: 50.5cm ONLY", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0453", "style": "", "text": "2 Colors: Gloss White (TAN) or Matte White (TAP)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0454", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0455", "style": "", "text": "1 integrated basin style", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0456", "style": "", "text": "Syntesi 48", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0457", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0458", "style": "", "text": "Countertop Style", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0459", "style": "", "text": "Integrated Only", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0460", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0461", "style": "", "text": "Other Rules", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0462", "style": "", "text": "Multi-cabinet units are N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0463", "style": "", "text": "Only select single SB sizes: 60, 70, 80, 90, 105, 120", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0464", "style": "", "text": "Intrplayer Actions:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0465", "style": "", "text": "Hide 'Add', 'Duplicate' + Reposition options", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0466", "style": "", "text": "Cabinet Builder:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0467", "style": "", "text": "Users should not be able to add a cabinet. All should be greyed out", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0468", "style": "", "text": "Accessories: Side Panels", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0469", "style": "", "text": "Side Panels are N/A. Grey these out, these are not available with this material", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0470", "style": "", "text": "Pre-Built Mode", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0471", "style": "", "text": "This material option should be available based on the logic above. Single Cab Units only + No Side Panels", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0472", "style": "", "text": "Side Panels N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0473", "style": "", "text": "Not available for use with Side Panels (grey out/hide SPs)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0474", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0475", "style": "", "text": "HPL", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0476", "style": "", "text": "Top Thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0477", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0478", "style": "", "text": "12 colors", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0479", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0480", "style": "", "text": "4 integrated basin styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0481", "style": "", "text": "Cover 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0482", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0483", "style": "", "text": "", "links": [], "images": ["media/image91.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0484", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0485", "style": "", "text": "Prisma 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0486", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0487", "style": "", "text": "", "links": [], "images": ["media/image109.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0488", "style": "", "text": "Quadra 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0489", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0490", "style": "", "text": "", "links": [], "images": ["media/image46.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0491", "style": "", "text": "Strip 48", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0492", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": ["18", "19"], "heading": "Urban Standard Height Logic"}
+{"id": "P0493", "style": "", "text": "", "links": [], "images": ["media/image40.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0494", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0495", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0496", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0497", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0498", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0499", "style": "", "text": "Vessel: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0500", "style": "", "text": "", "links": [], "images": ["media/image44.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0501", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0502", "style": "", "text": "Integrated: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0503", "style": "", "text": "", "links": [], "images": ["media/image27.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0504", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0505", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0506", "style": "", "text": "Fenix", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0507", "style": "", "text": "Top Thickness: ½”, 4” or 5-⅛”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0508", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0509", "style": "", "text": "9 colors", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0510", "style": "", "text": "Basin Styles:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0511", "style": "", "text": "4 integrated basin styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0512", "style": "", "text": "Cover 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0513", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0514", "style": "", "text": "", "links": [], "images": ["media/image91.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0515", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0516", "style": "", "text": "Prisma 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0517", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0518", "style": "", "text": "", "links": [], "images": ["media/image109.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0519", "style": "", "text": "Quadra 50", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0520", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0521", "style": "", "text": "", "links": [], "images": ["media/image46.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0522", "style": "", "text": "Strip 48", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0523", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": ["20", "21"], "heading": "Urban Standard Height Logic"}
+{"id": "P0524", "style": "", "text": "", "links": [], "images": ["media/image40.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0525", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0526", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0527", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0528", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0529", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0530", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0531", "style": "", "text": "Vessel: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0532", "style": "", "text": "", "links": [], "images": ["media/image51.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0533", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0534", "style": "", "text": "Integrated: 270cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0535", "style": "", "text": "", "links": [], "images": ["media/image31.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0536", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0537", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0538", "style": "", "text": "Porcelain", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0539", "style": "", "text": "Top thickness: ⅜”, 2-⅜”, 4”, 5-½”(5.5”)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0540", "style": "", "text": "Depth: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0541", "style": "", "text": "36 colors", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0542", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0543", "style": "", "text": "4 Integrated", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0544", "style": "", "text": "Cover 48", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0545", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0546", "style": "", "text": "", "links": [], "images": ["media/image48.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0547", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0548", "style": "", "text": "Strip 48", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0549", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0550", "style": "", "text": "", "links": [], "images": ["media/image64.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0551", "style": "", "text": "Quadra 48", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0552", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0553", "style": "", "text": "", "links": [], "images": ["media/image119.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0554", "style": "", "text": "Prisma 48", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0555", "style": "", "text": "Minimum SB: 60cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0556", "style": "", "text": "", "links": [], "images": ["media/image11.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0557", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0558", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0559", "style": "", "text": "Undermount N/A", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0560", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0561", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0562", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0563", "style": "", "text": "Vessel: 290cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0564", "style": "", "text": "", "links": [], "images": ["media/image95.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0565", "style": "", "text": "Integrated: 290cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0566", "style": "", "text": "", "links": [], "images": ["media/image17.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0567", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0568", "style": "", "text": "Glass", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0569", "style": "", "text": "Top thickness: ⅜”", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0570", "style": "", "text": "Depth: 50.5 Only", "links": [], "images": [], "comments": ["22", "23"], "heading": "Urban Standard Height Logic"}
+{"id": "P0571", "style": "", "text": "58 colors (same as lacquered)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0572", "style": "", "text": "Gloss + Matte", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0573", "style": "", "text": "Basin Styles", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0574", "style": "", "text": "2 integrated basins", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0575", "style": "", "text": "Nettuno", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0576", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0577", "style": "", "text": "Max Top Size: 260cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0578", "style": "", "text": "", "links": [], "images": ["media/image63.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0579", "style": "", "text": "Ovale", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0580", "style": "", "text": "Minimum SB: 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0581", "style": "", "text": "Max Top Size: 260cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0582", "style": "", "text": "", "links": [], "images": ["media/image25.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0583", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0584", "style": "", "text": "Undermount don’t offer (can be done though (p.65/127)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0585", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0586", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0587", "style": "", "text": "Max Top size:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0588", "style": "", "text": "Vessel: 260cm (override - leave lower)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0589", "style": "", "text": "", "links": [], "images": ["media/image100.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0590", "style": "", "text": "Integrated: 260cm (override - leave lower – max size for nettuno + ovale 260cm)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0591", "style": "", "text": "", "links": [], "images": ["media/image12.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0592", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0593", "style": "", "text": "", "links": [], "images": ["media/image61.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0594", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0595", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0596", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0597", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0598", "style": "", "text": "Inner LED lights – Per drawer", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0599", "style": "", "text": "Dynamic size to fit the given cabinet size", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0600", "style": "", "text": "2 paths", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0601", "style": "", "text": "Autofill – Add it to all drawers, w/ a single click", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0602", "style": "", "text": "Per diem – add to only select cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0603", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0604", "style": "", "text": "UI Design: Per Diem path –", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0605", "style": "", "text": "This should be a modal window that recreates their design, then users click which cabinets they would like to add the LEDs to", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0606", "style": "", "text": "Or", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0607", "style": "", "text": "Use the configuration in the player for users to make the selections for which cabinets they want to add LEDs to", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0608", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0609", "style": "", "text": "", "links": [], "images": ["media/image81.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0610", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0611", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0612", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0613", "style": "", "text": "Inner Cabinet Dividers", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0614", "style": "", "text": "A   B    C    versions for both cabinet depths", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0615", "style": "", "text": "See PDFs here", "links": ["https://drive.google.com/drive/folders/1p3_Yu1ORGVCnxeyQN_N3wTXFyvHooaWN"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0616", "style": "", "text": "50.5cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0617", "style": "", "text": "", "links": [], "images": ["media/image111.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0618", "style": "", "text": "See PDF here", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0619", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0620", "style": "", "text": "46cm", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0621", "style": "", "text": "", "links": [], "images": ["media/image110.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0622", "style": "", "text": "See PDF here", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0623", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0624", "style": "", "text": "2 paths", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0625", "style": "", "text": "Autofill –", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0626", "style": "", "text": "Add recommended dividers to all drawers based on: (1) Cabinet Type (SB vs SC) + (2) Cabinet Size (Width + Depth), w/ a single click based on logic above", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0627", "style": "", "text": "Within this auto-recommendation path, users could:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0628", "style": "", "text": "Remove specific dividers, if they don't need them for a specific drawer or what have you", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0629", "style": "", "text": "Add dividers that will actually fit", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0630", "style": "", "text": "There should be a clear or reset button that reloads the initial 'Autofill' recommendation for users", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0631", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0632", "style": "", "text": "A la carte –", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0633", "style": "", "text": "Users can add dividers à la carte to select cabinets/drawers, using the same logic as above", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0634", "style": "", "text": "Users can remove as well", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0635", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0636", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0637", "style": "", "text": "UI Design: A la carte path –", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0638", "style": "", "text": "This should be a modal window that recreates their design – looking downwards with the drawer open – then users select/click:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0639", "style": "", "text": "1) Which cabinets they would like to add the dividers to +", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0640", "style": "", "text": "2) What Cabinet Divider options they want to add based on compatibility (based on cabinet type (SB vs SC) + size)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0641", "style": "", "text": "Or", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0642", "style": "", "text": "Use the configuration in the player for this", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0643", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0644", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0645", "style": "", "text": "", "links": [], "images": ["media/image118.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0646", "style": "", "text": "Logic", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0647", "style": "", "text": "Cabinet Width changes: When users change the width of a cabinet with dividers, the dividers should be removed/cleared.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0648", "style": "", "text": "Cabinet Depth changes: switch the dividers to the corresponding style in the proper depth – see below", "links": ["https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?tab=t.0#bookmark=id.d79860wd9nzz"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0649", "style": "", "text": "When a user changes drawer style (e.g. 1DW→2DW) follow the logic below:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0650", "style": "", "text": "1DW or 1DWID → 2DW  dividers stay as is", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0651", "style": "", "text": "1DW→1DWID  dividers stay as is", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0652", "style": "", "text": "1DWID → 1DW  dividers stay as is", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0653", "style": "", "text": "2DW → 1DW – bottom drawer dividers transfer, top drawer dividers are cleared", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0654", "style": "", "text": "2DW --> 1DWID – dividers stay as is", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0655", "style": "", "text": "Pre-Built to Custom Mode", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0656", "style": "", "text": "Divider selections should carry over from Pre-Built Mode to Custom Mode.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0657", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0658", "style": "", "text": "Towel Bar", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0659", "style": "", "text": "Side-mount – 5 colors", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0660", "style": "", "text": "", "links": [], "images": ["media/image112.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0661", "style": "", "text": "Positioning | Quantity", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0662", "style": "", "text": "Can be Left, Right or both", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0663", "style": "", "text": "", "links": [], "images": ["media/image115.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0664", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0665", "style": "", "text": "Faucet Hole Quantity", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0666", "style": "", "text": "Options: 0, 1, 2 or 3", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0667", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0668", "style": "", "text": "Rules for 1, 2 or 3 hole selections", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0669", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0670", "style": "", "text": "Default positioning - is centered, behind the integrated basin or vessel (I call this ‘Standard’). There are limitations/caveats to this general rule that are dictated by:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0671", "style": "", "text": "(1) Countertop Depth (50.5cm vs 46cm)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0672", "style": "", "text": "(2) Countertop Style (Integrated vs Vessel)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0673", "style": "", "text": "(3) Basin Style (for Integrated style)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0674", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0675", "style": "", "text": "See the table here, specifically Column O + P for the default faucet hole positioning based on the criteria above. There are other qualifier criteria nested in the cells. See a breakdown/guide for the chart below", "links": ["https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/edit?disco=AAAB1_1Dgwc"], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0676", "style": "", "text": "", "links": [], "images": ["media/image26.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0677", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0678", "style": "", "text": "Below is a legend for the Faucet Hole Position Name naming convention in the table", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0679", "style": "", "text": "", "links": [], "images": ["media/image117.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0680", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0681", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0682", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0683", "style": "", "text": "Left/Right and Diagonally Left/Right Faucet Positions", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0684", "style": "", "text": "These are only available for 1-hole faucets (I have this noted in the linked table above)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0685", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0686", "style": "", "text": "Custom Positioning", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0687", "style": "", "text": "We offer custom faucet hole positioning, but I don't want to attempt to codify the logic.", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0688", "style": "", "text": "Instead, can we create another attribute to offer this as a check box option + can we communicate that this can be done technically after the fact. Let’s nest this under ‘Faucet Holes’. See content/styling below", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0689", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0690", "style": "", "text": "‘Need custom positioning’", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0691", "style": "", "text": "We’ll coordinate these specification details with you or your team", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0692", "style": "", "text": "", "links": [], "images": ["media/image66.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0693", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0694", "style": "", "text": "Faucet Hole Spacing", "links": [], "images": [], "comments": ["24"], "heading": "Urban Standard Height Logic"}
+{"id": "P0695", "style": "", "text": "Rules", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0696", "style": "", "text": "Not an option for 0 or 1 hole – this should be greyed out", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0697", "style": "", "text": "Standard spacing 4” on center", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0698", "style": "", "text": "Only display if the Faucet Hole Quantity is 2 or 3 hole", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0699", "style": "", "text": "Minimum spacing …..4”?", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0700", "style": "", "text": "Max spacing ……………", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0701", "style": "", "text": "Custom – see above", "links": [], "images": [], "comments": ["24"], "heading": "Urban Standard Height Logic"}
+{"id": "P0702", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0703", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0704", "style": "", "text": "Faucet Hole Placement", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0705", "style": "", "text": "L-to-R placement it should be centered on the basin", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0706", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0707", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0708", "style": "", "text": "Front-to-back placement", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0709", "style": "", "text": "", "links": [], "images": ["media/image21.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0710", "style": "", "text": "This is dependent a few factors:", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0711", "style": "", "text": "If Faucet Hole = 0 the basin gets moved back", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0712", "style": "", "text": "If Countertop Style = Vessel……………", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0713", "style": "", "text": "If Integrated Basin has an overflow…….", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0714", "style": "", "text": "If integrated Basin + no overflow - spacing equidistant", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0715", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0716", "style": "", "text": "", "links": [], "images": ["media/image92.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0717", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0718", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0719", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0720", "style": "", "text": "Electrical Outlet", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0721", "style": "", "text": "Future", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0722", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0723", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0724", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0725", "style": "", "text": "Pricing Logic Details", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0726", "style": "", "text": "Cabinet Color & Handle Groove Color", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0727", "style": "", "text": "When cabinet color + handle groove color do not match the cabinet pricing used the highest price finish category should be used (e.g. if the cabinet color is 3D material and the Handle Groove Color is HPL - the HPL price should be used)", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0728", "style": "", "text": "", "links": [], "images": ["media/image42.png"], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0729", "style": "", "text": "Countertops + Side Panels", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0730", "style": "", "text": "For now do not include the additional 1cm (per SP) Side Panels add to a vanity when calculating the total countertop length.", "links": [], "images": [], "comments": ["25"], "heading": "Urban Standard Height Logic"}
+{"id": "P0731", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0732", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0733", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0734", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0735", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0736", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Standard Height Logic"}
+{"id": "P0737", "style": "Heading1", "text": "Urban Low Height Logic – comparison", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0738", "style": "", "text": "For replicating WebGL config", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0739", "style": "", "text": "Modifications for Urban Low Height", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0740", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0741", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0742", "style": "", "text": "Cabinet models", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0743", "style": "", "text": "Use existing Urban Low Height Models already in Vivid Manage (from Pre-Render Config X project) – Minimal rework for WebGL X", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0744", "style": "", "text": "SBs – 1 Drawer", "links": ["https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SB", "https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SB"], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0745", "style": "", "text": "Widths: 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0746", "style": "", "text": "Depth: 50.5cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0747", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0748", "style": "", "text": "SCs – 1 Drawer", "links": ["https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SC", "https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=Urban+Low+Height+1+Drawer+SC"], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0749", "style": "", "text": "Widths: 25, 35, 50, 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0750", "style": "", "text": "Depth: 50.5cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0751", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0752", "style": "", "text": "OS – Open Shelves", "links": ["https://app.vivid3d.tech/Hastings/projects/67c9747b221ce027a4471252?page=1&limit=25&search=duplex+1+shelf"], "images": [], "comments": ["26"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0753", "style": "", "text": "25, 35, 50, 60, 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0754", "style": "", "text": "Depth 50.5cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0755", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0756", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0757", "style": "", "text": "Create Additional cabinet Heights + Depths", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0758", "style": "", "text": "SBs – 1 Drawer only", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0759", "style": "", "text": "Widths: 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0760", "style": "", "text": "Depths: 50.5 + 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0761", "style": "", "text": "Heights: 25 + 35cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0762", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0763", "style": "", "text": "Widths: 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0764", "style": "", "text": "Depths: 46cm", "links": [], "images": [], "comments": ["27"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0765", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0766", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0767", "style": "", "text": "SCs – 1 Drawer only", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0768", "style": "", "text": "Widths: 25, 35, 50, 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0769", "style": "", "text": "Depths: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0770", "style": "", "text": "Heights: 25 + 35cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0771", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0772", "style": "", "text": "Widths: 25, 35, 50, 60, 70, 80, 90, 105, 120cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0773", "style": "", "text": "Depths: 46cm", "links": [], "images": [], "comments": ["28"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0774", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0775", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0776", "style": "", "text": "OS – Open Shelves", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0777", "style": "", "text": "25, 35, 50, 60, 70cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0778", "style": "", "text": "Depth 46cm", "links": [], "images": [], "comments": ["29"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0779", "style": "", "text": "Heights: 28 + 38cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0780", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0781", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0782", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0783", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0784", "style": "", "text": "Selecting Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0785", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0786", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0787", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0788", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0789", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0790", "style": "", "text": "Exception – ‘Central Groove’ is not an option (b/c only 1 Drawer units are available for Urban LH", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0791", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0792", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0793", "style": "", "text": "Cabinet Dimensions", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0794", "style": "", "text": "Heights", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0795", "style": "", "text": "All individual cabinet heights in a configuration must match (e.g cabs must be all 25H or 28H or 35H or 38H)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0796", "style": "", "text": "Cabinet configurations - cabinets can be composed in a plethora of ways to create different configurations that vary in totl height e.g. see below", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0797", "style": "", "text": "", "links": [], "images": ["media/image107.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0798", "style": "", "text": "Depths", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0799", "style": "", "text": "All cabinet depths in a config must match", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0800", "style": "", "text": "Can be overridden – see logic + notification protocol above, but for Depth", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0801", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0802", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0803", "style": "", "text": "Cabinet Positioning | Configuration | Logic", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0804", "style": "", "text": "Configurability possibilities are much more robust than merely abutting cabinets, as with urban Standard Height. See some examples below.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0805", "style": "", "text": "Note to self", "links": [], "images": [], "comments": ["30"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0806", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0807", "style": "", "text": "Simple Abutted Design", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0808", "style": "", "text": "", "links": [], "images": ["media/image67.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0809", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0810", "style": "", "text": "Multi-level | Offsetting | Staggering", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0811", "style": "", "text": "Cabinets can be overlapped as much or as little as a user wants (drag’n’drop to the exact spot the user wants)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0812", "style": "", "text": "", "links": [], "images": ["media/image58.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0813", "style": "", "text": "", "links": [], "images": ["media/image39.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0814", "style": "", "text": "Lower-positioned offset cabinets must be an SC or OS", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0815", "style": "", "text": "SC Cabinet: A countertop is needed for the lower SC cabinet; this should match the cabinet color by default. The default countertop material for the lower cabinet should match the cabinet (see the red arrow above), but users can change it if they’d like. I’d like to give users a simple 1-click action if they are looking to match the top countertop color vs cabinet color, like a check box", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0816", "style": "", "text": "OS Cabinet: No countertop is needed", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0817", "style": "", "text": "", "links": [], "images": ["media/image5.png", "media/image58.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0818", "style": "", "text": "Heights: This can only be done with 25H, 28H 35H or 38H cabinet heights", "links": [], "images": [], "comments": ["31", "32"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0819", "style": "", "text": "Depths: Countertop depth and cabinet depth must match", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0820", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0821", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0822", "style": "", "text": "Stacked Units", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0823", "style": "", "text": "For stacked 2-Drawer look units, just add a 2nd Low Height drawer beneath it", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0824", "style": "", "text": "The cabinet on the bottom must be a SC", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0825", "style": "", "text": "", "links": [], "images": ["media/image33.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0826", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0827", "style": "", "text": "Floating Countertop applications", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0828", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0829", "style": "", "text": "Offset Countertop | Cabinet connected to the top", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0830", "style": "", "text": "Cabinets can be overlapped as much or as little as a user wants (drag’n’drop to the exact spot the user wants)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0831", "style": "", "text": "Lower-positioned offset cabinets must be an SC or OS", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0832", "style": "", "text": "SC Cabinet: A countertop is needed for the lower SC cabinet; it should match the cabinet color by default. The default countertop material for the lower cabinet should match the cabinet (see the red arrow below), but users can change it if they’d like. I’d like to give users a simple 1-click action if they are looking to match the top countertop color vs cabinet color, like a check box", "links": [], "images": [], "comments": ["33"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0833", "style": "", "text": "OS Cabinet: No countertop is needed", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0834", "style": "", "text": "", "links": [], "images": ["media/image105.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0835", "style": "", "text": "", "links": [], "images": ["media/image130.png", "media/image90.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0836", "style": "", "text": "", "links": [], "images": ["media/image113.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0837", "style": "", "text": "Depth relationships", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0838", "style": "", "text": "Rules:", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0839", "style": "", "text": "This concept is only available for thick countertops (4”, 5.1” or 5.5”)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0840", "style": "", "text": "Cabinet position – Lower cabinet edge/end cannot be positioned where the trap is positioned (see image below)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0841", "style": "", "text": "", "links": [], "images": ["media/image49.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0842", "style": "", "text": "Cabinet Composition – is available for multi-level cabinet compositions, like below", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0843", "style": "", "text": "", "links": [], "images": ["media/image23.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0844", "style": "", "text": "Cabinet Depth – Lower cabinet must match the countertop depth when the cabinet is connected to the countertop", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0845", "style": "", "text": "Cabinet height rule????", "links": [], "images": [], "comments": ["34"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0846", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0847", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0848", "style": "", "text": "Floating Countertop | Cabinet remote position", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0849", "style": "", "text": "Drag-and-Drop placement: Can be positioned anywhere, essentially.", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0850", "style": "", "text": "A remotely positioned cabinet must be an SC or OS", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0851", "style": "", "text": "SC Cabinet: A countertop is needed for the lower SC cabinet; this should match the cabinet color by default. The default countertop material for the lower cabinet should match the cabinet (see the red arrow below), but users can change it if they’d like. I’d like to give users a simple 1-click action if they are looking to match the top countertop color vs cabinet color, like a check box", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0852", "style": "", "text": "OS Cabinet: No countertop is needed", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0853", "style": "", "text": "", "links": [], "images": ["media/image128.png", "media/image9.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0854", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0855", "style": "", "text": "Rules:", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0856", "style": "", "text": "This concept is only available for thick countertops (4”, 5.1” or 5.5”)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0857", "style": "", "text": "Spacing for trap – Min distance away from the bottom of the cabinet if the cabinet is positioned below basin", "links": [], "images": [], "comments": ["35"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0858", "style": "", "text": "Cabinet height – only available for 25H, 28H, 35H or 38H", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0859", "style": "", "text": "Cabinet style – only 1-drawer cab styles (see compatible heights above)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0860", "style": "", "text": "Cabinet composition – must be an abutted cabinet composition (cannot be multi-level)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0861", "style": "", "text": "Cabinet Depth – Lower cabinet cannot be deeper than the countertop. It can be shallower, though", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0862", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0863", "style": "", "text": "OS - same cabinet usage logic", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0864", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0865", "style": "", "text": "OSS - same cabinet usage logic", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0866", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0867", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0868", "style": "", "text": "Side panels", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0869", "style": "", "text": "Models", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0870", "style": "", "text": "No groove", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0871", "style": "", "text": "Depths: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0872", "style": "", "text": "Heights: 25, 28, 35, 38cm      or    50 or 56", "links": [], "images": [], "comments": ["36"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0873", "style": "", "text": "1 groove (upper)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0874", "style": "", "text": "Depths: 50.5 or 46cm", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0875", "style": "", "text": "Heights: 25, 28, 35, 38cm      or    50 or 56", "links": [], "images": [], "comments": ["37"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0876", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0877", "style": "", "text": "Logic", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0878", "style": "", "text": "Optional", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0879", "style": "", "text": "Dimensions", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0880", "style": "", "text": "Height + Depth must match the cabinet", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0881", "style": "", "text": "Adds 1cm to the Left + Right of the vanity", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0882", "style": "", "text": "Countertop needs to be 2cm longer to accommodate them", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0883", "style": "", "text": "Quantity", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0884", "style": "", "text": "Dictated by the # of endpoints - see examples below", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0885", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0886", "style": "", "text": "2 endpoints (most common)", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0887", "style": "", "text": "", "links": [], "images": ["media/image22.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0888", "style": "", "text": "", "links": [], "images": ["media/image7.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0889", "style": "", "text": "3 endpoints", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0890", "style": "", "text": "", "links": [], "images": ["media/image83.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0891", "style": "", "text": "4 end points", "links": [], "images": [], "comments": ["38"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0892", "style": "", "text": "", "links": [], "images": ["media/image103.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0893", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0894", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0895", "style": "", "text": "", "links": [], "images": ["media/image77.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0896", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0897", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0898", "style": "", "text": "Stacked Cabinet SP rules – see here", "links": ["https://docs.google.com/document/d/1BtDeZVwUBpW7QcMK_tm2dkdFlT7Y-Kqv/edit#bookmark=id.n5jo98tx8ero"], "images": [], "comments": ["39", "40"], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0899", "style": "", "text": "See comment thread", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0900", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0901", "style": "", "text": "", "links": [], "images": ["media/image13.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0902", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0903", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0904", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0905", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0906", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0907", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0908", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0909", "style": "", "text": "Countertops", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0910", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0911", "style": "", "text": "Positioning", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0912", "style": "", "text": "Default – positioned directly on the cabinet", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0913", "style": "", "text": "", "links": [], "images": ["media/image28.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0914", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0915", "style": "", "text": "Positioning – Fringe Use Cases", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0916", "style": "", "text": "Remotely positioned – Rule: only available for thick countertops", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0917", "style": "", "text": "", "links": [], "images": ["media/image9.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0918", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0919", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0920", "style": "", "text": "Offset – relative to the cabinet (but connected) – Rule: only available for thick countertops", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0921", "style": "", "text": "", "links": [], "images": ["media/image127.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0922", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0923", "style": "", "text": "", "links": [], "images": ["media/image60.png"], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0924", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0925", "style": "", "text": "All other Countertop Materials, Colors & Basin Style rules", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0926", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0927", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0928", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0929", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0930", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0931", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0932", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0933", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0934", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0935", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0936", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0937", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Low Height Logic – comparison"}
+{"id": "P0938", "style": "Heading1", "text": "Urban Duplex Logic – comparison", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0939", "style": "", "text": "For replicating WebGL config", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0940", "style": "", "text": "Modifications for Urban Duplex", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0941", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0942", "style": "", "text": "Overview", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0943", "style": "", "text": "Generally speaking, Urban Duplex is a combination of Urban Standard Height + Urban Low Height", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0944", "style": "", "text": "You have standard height cabs (56H + 53H) – 2DW 1DW 1DWID", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0945", "style": "", "text": "You have low height cabs (28H 38H) – 1DW", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0946", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0947", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0948", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0949", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0950", "style": "", "text": "Cabinet Models", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0951", "style": "", "text": "All cabinets from Vivid for the pre-render experience project:", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0952", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0953", "style": "", "text": "SCs", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0954", "style": "", "text": "OS + OSS – are already created in WebGL from the Urban Standard Height project (56H + 53H) and will be made with the Urban Low Height project (38H + 28H)", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0955", "style": "", "text": "All cabinet SKUs can be seen here", "links": ["https://docs.google.com/spreadsheets/d/1Kiciol2oxUbDxVLbfvx1WB5myzkFzlffc_FqfF0wKHE/edit?gid=1531606877#gid=1531606877"], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0956", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0957", "style": "", "text": "Selecting Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0958", "style": "", "text": "Cabinet Type → Cabinet Style", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0959", "style": "", "text": "Cabinet Style", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0960", "style": "", "text": "Similar to Urban Standard Height + Urban Low Height", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0961", "style": "", "text": "We may display the different Height cabinets in the Cabinet Styles accordion for users to see this visually", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0962", "style": "", "text": "56H", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0963", "style": "", "text": "53H", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0964", "style": "", "text": "38H", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0965", "style": "", "text": "28H", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0966", "style": "", "text": "", "links": [], "images": ["media/image89.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0967", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0968", "style": "", "text": "Additions – users will need to select the position of the ‘Lateral Panel’", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0969", "style": "", "text": "vs", "links": [], "images": ["media/image76.png", "media/image16.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0970", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0971", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0972", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0973", "style": "", "text": "Urban Duplex only utilizes the Urban upper groove handle - ergo, no handle selection", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0974", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0975", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0976", "style": "", "text": "Cabinet Configure logic", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0977", "style": "", "text": "Cabinet configurations - cabinets can be composed in a plethora of ways to create different configurations that vary in total height, like Urban Low Height e.g. see below", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0978", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0979", "style": "", "text": "Mixing Cabinet Heights", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0980", "style": "", "text": "Only Standard Height cabinets (56H specifically) can be paired with Low Height 28H cabinets specifically b/c the drawer heights need to match when cabinets are abutted together. See the visual below.", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0981", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0982", "style": "", "text": "Abutting cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0983", "style": "", "text": "When Standard Height cabs and Low height cabs are used together, and the cabinets are abutted or connected, the individual drawer heights must match. See images below e.g.", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0984", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0985", "style": "", "text": "", "links": [], "images": ["media/image55.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0986", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0987", "style": "", "text": "", "links": [], "images": ["media/image35.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0988", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0989", "style": "", "text": "Multi-level | Offsetting | Staggering – as defined here", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0990", "style": "", "text": "Cabinet heights must match and can only be done with 38H or 28H cabs", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0991", "style": "", "text": "", "links": [], "images": ["media/image84.png", "media/image129.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0992", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0993", "style": "", "text": "Stacked units – as defined here", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0994", "style": "", "text": "Not available", "links": [], "images": [], "comments": ["41"], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0995", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0996", "style": "", "text": "Floating Countertop Application – as defined here", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0997", "style": "", "text": "", "links": [], "images": ["media/image36.png", "media/image37.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0998", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P0999", "style": "", "text": "Low Height Style cabs only", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1000", "style": "", "text": "Configurations that only utilize low height cabinet styles (38H or 28H) would use full Urban Low height cabinet logic as defined above in the Urban Low Height scoping section", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1001", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1002", "style": "", "text": "Standard Height Style cabs only", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1003", "style": "", "text": "Would use Urban Standard height logic rules", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1004", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1005", "style": "", "text": "OS - same cabinet usage logic", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1006", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1007", "style": "", "text": "OSS - same cabinet usage logic", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1008", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1009", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1010", "style": "", "text": "Cabinet Depths", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1011", "style": "", "text": "Depths must match if cabinets are connected. See use cases:", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1012", "style": "", "text": "(a) Abutted left-to-right", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1013", "style": "", "text": "", "links": [], "images": ["media/image18.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1014", "style": "", "text": "(b) Multi-level | Offsetting | Staggering (connected)", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1015", "style": "", "text": "", "links": [], "images": ["media/image99.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1016", "style": "", "text": "(c) stacked (top-down) depths must match", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1017", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1018", "style": "", "text": "Depths for remotely positioned cabinets can be different:", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1019", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1020", "style": "", "text": "Depth Rule: Floating Application:", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1021", "style": "", "text": "If the user creates an upper and separated lower concept, the lower concept can be shallower in depth, but not deeper", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1022", "style": "", "text": "", "links": [], "images": ["media/image88.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1023", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1024", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1025", "style": "", "text": "Cabinet Color", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1026", "style": "", "text": "Cabinet Panels", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1027", "style": "", "text": "Urban Duplex cabinets have a dual paneled front a: Lateral & Base Panel – colors are selected for each panel (like pre-render X)", "links": ["https://www.hastingsbathcollection.com/products/vanities/urban-duplex"], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1028", "style": "", "text": "Contrasting Handle Groove Color applies", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1029", "style": "", "text": "Drawer Panel Fluting is not available", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1030", "style": "", "text": "", "links": [], "images": ["media/image106.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1031", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1032", "style": "", "text": "Grain Direction is available BUT NOT BOOK MATCHING", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1033", "style": "", "text": "", "links": [], "images": ["media/image14.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1034", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1035", "style": "", "text": "", "links": [], "images": ["media/image59.png"], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1036", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1037", "style": "", "text": "Countertops – Low Height Cabinet Styles (38H + 28H)", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1038", "style": "", "text": "The same Urban Low Height rules apply, see here", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1039", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1040", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1041", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1042", "style": "", "text": "All other Countertop Materials, Colors & Basin Style rules", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1043", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1044", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1045", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1046", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1047", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1048", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1049", "style": "", "text": "Same as Urban Standard Height + Urban Low Height", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1050", "style": "", "text": "Side Panels", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1051", "style": "", "text": "Drawer Dividers", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1052", "style": "", "text": "Towel Bars", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1053", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1054", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1055", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1056", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1057", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1058", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1059", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1060", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1061", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1062", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Duplex Logic – comparison"}
+{"id": "P1063", "style": "Heading1", "text": "Urban Freestanding Logic – comparison", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1064", "style": "", "text": "For replicating WebGL config", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1065", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1066", "style": "", "text": "Overview", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1067", "style": "", "text": "Urban Freestanding is similar to Urban Standard Height from a cabinet configuration logic perspective, despite it being a floor-mounted cabinet design. There is one cabinet configuration wrinkle, though.", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1068", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1069", "style": "", "text": "Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1070", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1071", "style": "", "text": "Cabinet Models", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1072", "style": "", "text": "All cabinets from Vivid for the pre-render experience project:", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1073", "style": "", "text": "SBs", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1074", "style": "", "text": "SCs", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1075", "style": "", "text": "New 1DW Floor-Mount Short Cabinet - see below – see 3D models", "links": ["https://drive.google.com/drive/folders/15Xj2c1RJgLzBmziFE72QAquzPRpSvItm"], "images": [], "comments": ["42", "43", "44"], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1076", "style": "", "text": "OS", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1077", "style": "", "text": "OSS", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1078", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1079", "style": "", "text": "Selecting Cabinets", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1080", "style": "", "text": "Cabinet Type → Cabinet Style, same approach", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1081", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1082", "style": "", "text": "Handle Styles", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1083", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1084", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1085", "style": "", "text": "Cabinet Positioning | Configuration | Logic", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1086", "style": "", "text": "Cabinets are abutted - like Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1087", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1088", "style": "", "text": "Short, floor cabinet wrinkle - see image below", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1089", "style": "", "text": "", "links": [], "images": ["media/image30.png"], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1090", "style": "", "text": "The countertop for this lower cabinet would follow the same logic as here", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1091", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1092", "style": "", "text": "OS - same cabinet usage logic/methodology", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1093", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1094", "style": "", "text": "OSS - same cabinet usage logic/methodology", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1095", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1096", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1097", "style": "", "text": "Side panels", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1098", "style": "", "text": "Use Vivid models", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1099", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1100", "style": "", "text": "Same methodology and usage parameters (as Urban Standard Height)", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1101", "style": "", "text": "Caveat: In this scenario, 2 different heights SPs would be needed", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1102", "style": "", "text": "", "links": [], "images": ["media/image93.png"], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1103", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1104", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1105", "style": "", "text": "Countertops Materials, Colors & Basin Style rules", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1106", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1107", "style": "", "text": "One exception: Urban Freestanding is only available for thin countertops (.4 or .5”)", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1108", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1109", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1110", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1111", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1112", "style": "", "text": "Same as Urban Standard Height", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}
+{"id": "P1113", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Urban Freestanding Logic – comparison"}

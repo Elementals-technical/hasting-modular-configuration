@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"before":{"tree":[["Vessel_Iris_Root"]],"cfg":"Vessel_Iris"},"setConfigResult":{"success":true,"dividerConflicts":[]},"after":{"tree":[[]],"sinkType":"Vessel","VesselColor":"Salvia 415 Lacquered MT"}}
+```

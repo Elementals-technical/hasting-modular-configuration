@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"path":"/prebuilt/faucet-holes","tabs":["Tricot Models"],"nav":["Next: Summary"]}
+```

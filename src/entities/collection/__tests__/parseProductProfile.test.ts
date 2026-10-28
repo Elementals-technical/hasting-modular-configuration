@@ -279,6 +279,26 @@ describe("parseProductProfile", () => {
     });
   });
 
+  it("reads a field's own price tiers and rejects a tier out of 1-4 or a SKU code in lower case", () => {
+    const raw = clone(ushProfile) as { ruleData: Record<string, unknown> };
+    raw.ruleData.priceTiers = { byAttribute: { CabinetColor: { LACM: 1, WDV: 2 } } };
+
+    const accepted = parseProductProfile(raw);
+    expect(accepted.ok ? accepted.profile.ruleData.priceTiers : null).toEqual({
+      byAttribute: { CabinetColor: { LACM: 1, WDV: 2 } },
+    });
+
+    for (const broken of [{ CabinetColor: { WDV: 5 } }, { CabinetColor: { WDV: 1.5 } }, { CabinetColor: { wdv: 2 } }]) {
+      raw.ruleData.priceTiers = { byAttribute: broken };
+      const rejected = parseProductProfile(raw);
+      expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+        code: "ruleData.invalid_section",
+        dataPath: "/ruleData/priceTiers/byAttribute",
+        message: "byAttribute must be a map of field id to { upper-case SKU material code: tier 1-4 }",
+      });
+    }
+  });
+
   it("reports a missing legacy adapter column mapping", () => {
     const raw = clone(ushProfile) as Record<string, unknown>;
     const ruleData = raw.ruleData as Record<string, { columns: Record<string, unknown> }>;

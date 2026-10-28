@@ -1,0 +1,194 @@
+{
+ "description": "Firefox cross-check on local dev: Tricot step order and Cabinet Color price filter (B, C). Read-only; Summary is not opened (no write guard in Firefox).",
+ "steps": [
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/model?collectionId=tricot"
+   },
+   "save": "01-new.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 1500
+   },
+   "save": "02-model.txt",
+   "capture": {
+    "skip": "uid=(e\\d+) button \"Skip\"",
+    "next": "uid=(e\\d+) span text=\"Next: Cabinet Finishes\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${skip}"
+   },
+   "save": "02b-skip.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 500
+   },
+   "save": "02c-model.txt",
+   "capture": {
+    "next": "uid=(e\\d+) span text=\"Next: Cabinet Finishes\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${next}"
+   },
+   "save": "03-click-next.txt"
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 20000
+   },
+   "save": "10-color-text.txt"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 500,
+    "maxDepth": 80,
+    "selector": "[aria-label=\"Cabinet Color\"]"
+   },
+   "save": "11-color.txt",
+   "capture": {
+    "price": "uid=(e\\d+) span text=\"Price\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${price}"
+   },
+   "save": "12-open-price.txt"
+  },
+  {
+   "sleep": 1200
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 500,
+    "maxDepth": 80,
+    "selector": "[role=listbox], [aria-label=\"Cabinet Color\"]"
+   },
+   "save": "13-price-open.txt",
+   "capture": {
+    "std": "uid=(e\\d+) span text=\"Standard \\$\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${std}"
+   },
+   "save": "14-pick-standard.txt"
+  },
+  {
+   "sleep": 2000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 20000
+   },
+   "save": "15-standard-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "16-standard.png"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 500,
+    "maxDepth": 80,
+    "selector": "[aria-label=\"Cabinet Color\"]"
+   },
+   "save": "17-standard.txt",
+   "capture": {
+    "price2": "uid=(e\\d+) span text=\"Standard \\$\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${price2}"
+   },
+   "save": "18-open-price.txt"
+  },
+  {
+   "sleep": 1200
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 500,
+    "maxDepth": 80,
+    "selector": "[role=listbox], [aria-label=\"Cabinet Color\"]"
+   },
+   "save": "19-price-open.txt",
+   "capture": {
+    "cls": "uid=(e\\d+) span text=\"Classic \\$\\$\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${cls}"
+   },
+   "save": "20-pick-classic.txt"
+  },
+  {
+   "sleep": 2000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 20000
+   },
+   "save": "21-classic-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "22-classic.png"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 500,
+    "maxDepth": 80
+   },
+   "save": "30-color-final.txt",
+   "capture": {
+    "next2": "uid=(e\\d+) span text=\"Next: Countertop & Basin\""
+   }
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 50
+   },
+   "save": "40-console-errors.txt"
+  }
+ ]
+}

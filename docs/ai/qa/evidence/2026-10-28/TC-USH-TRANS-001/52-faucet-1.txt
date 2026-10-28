@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"section":"Faucet Holes","items":["0","*1","2","3","Back to Accessories","Next: Summary"]}]
+```

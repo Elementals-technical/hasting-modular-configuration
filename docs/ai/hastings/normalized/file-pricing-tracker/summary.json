@@ -1,0 +1,48 @@
+{
+  "source_id": "file-pricing-tracker",
+  "file": "Hastings-Pricing-Status-Tracker.xlsx",
+  "sha256": "19af2d2ee094d16818dedfa06bebec60c273fcb5b66b7adb73c447fc8c43f9e7",
+  "size_bytes": 57430,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "Data",
+      "dimension": "",
+      "non_empty_rows": 164,
+      "max_row_with_value": 164,
+      "formulas": 0,
+      "links": 1,
+      "notes": 0
+    },
+    {
+      "index": 2,
+      "name": "Internal Tracker",
+      "dimension": "",
+      "non_empty_rows": 80,
+      "max_row_with_value": 82,
+      "formulas": 186,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 3,
+      "name": "Analytics",
+      "dimension": "",
+      "non_empty_rows": 15,
+      "max_row_with_value": 16,
+      "formulas": 96,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 4,
+      "name": "Process",
+      "dimension": "",
+      "non_empty_rows": 15,
+      "max_row_with_value": 19,
+      "formulas": 0,
+      "links": 1,
+      "notes": 0
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import { interpolateMessage, type MessageParams } from "@/shared/lib/reasonText";
+import type { PriceTierOverride } from "@/shared/constants/priceFilters";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import type {
   OptionCapabilities,
@@ -212,6 +213,18 @@ export const selectMaterialHierarchy = (profile: ProductProfile | null) =>
     childValues: children,
     aliases,
   }));
+
+/**
+ * The collection's own price tiers for one field, in the shape the price filters take. Undefined
+ * when the collection declares none for the field, so the shared table applies.
+ */
+export const selectPriceTierOverride = (
+  profile: ProductProfile | null,
+  attributeId: string,
+): PriceTierOverride | undefined => {
+  const bySku = profile?.ruleData.priceTiers?.byAttribute[attributeId];
+  return bySku ? { bySku } : undefined;
+};
 
 export const selectRuleData = <K extends keyof ProfileRuleData>(
   profile: ProductProfile | null,

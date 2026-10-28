@@ -1,0 +1,7 @@
+# Approved personal workflows (change only for an approved workflow-set migration)
+local-implement-change
+local-debug-root-cause
+local-plan-change
+local-execute-plan
+local-review-change
+local-maintain-agent-guidance

@@ -629,8 +629,8 @@
     },
     {
       "attributeId": "FaucetHolesAmount",
-      "status": "unbound",
-      "reason": "Not a delivered Tricot scene option; no guessed key, target or accessory is sent."
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
     },
     {
       "attributeId": "FaucetHolesSpacing",

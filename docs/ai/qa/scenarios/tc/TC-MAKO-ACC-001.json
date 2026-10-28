@@ -1,0 +1,97 @@
+{
+ "description": "Mako custom 2 Drawer: legs / G50 availability (read-only, guarded).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"2 Drawer\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"2 Drawer\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "30-click-2dw.txt",
+   "optional": false
+  },
+  {
+   "sleep": 6000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => (document.body.innerText.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/)||[''])[0]"
+   },
+   "save": "31-price-2dw.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "32-2dw.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const t=document.body.innerText; return Object.fromEntries(['Handle','Leg','G50','G57','Metal','Gold','Silver','Accessories'].map(k=>[k,(t.match(new RegExp(k,'g'))||[]).length])); }"
+   },
+   "save": "33-kw-builder.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "34-next.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const t=document.body.innerText; return Object.fromEntries(['Handle','Leg','G50','G57','Metal','Gold','Silver','Accessories'].map(k=>[k,(t.match(new RegExp(k,'g'))||[]).length])); }"
+   },
+   "save": "35-kw-color.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Handle Color\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Handle Color\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "36-expand.txt",
+   "optional": false
+  },
+  {
+   "sleep": 2000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "37-color-2dw-snapshot.txt"
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "38-color-2dw.png"
+  }
+ ]
+}

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"count":3,"swatches":["Noce Canaletto 933","Rovere Oro 932","Rovere Termocotto 931"],"groups":["Wood Veneer"],"selected":["Rovere Oro 932"],"chips":["Cabinet Color","Order free Swatches","Material","Color","Look","Classic $$","Clear All","Noce Canaletto 933","","Rovere Oro 932","Rovere Termocotto 931","Cabinet Pattern","Handle Groove Color","Next: Countertop & Basin"]}
+```
