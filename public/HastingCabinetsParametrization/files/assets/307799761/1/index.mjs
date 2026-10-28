@@ -1,0 +1,63 @@
+export {
+  COUNTERTOP_INCHES_PER_METER,
+  COUNTERTOP_METERS_PER_INCH,
+  inchesToMeters,
+  metersToInches
+} from './countertop-units.mjs';
+
+export {
+  COUNTERTOP_ATTACHMENT_EPSILON_M,
+  COUNTERTOP_ATTACHMENT_STATE,
+  COUNTERTOP_INTERACTION_STATE,
+  COUNTERTOP_LAYOUT_MODE,
+  COUNTERTOP_READINESS,
+  COUNTERTOP_SCHEMA_VERSION,
+  COUNTERTOP_VALIDATION_STATE,
+  calculateCountertopAttachmentStateM,
+  calculateCountertopEffectiveLengthM,
+  calculateCountertopEffectivePositionM,
+  isCountertopAttachmentState,
+  isCountertopInteractionState,
+  isCountertopLayoutMode,
+  isCountertopReadiness,
+  isCountertopValidationState,
+  resolveCountertopInteractionState,
+  resolveCountertopLayoutMode,
+  resolveCountertopReadiness,
+  resolveCountertopValidationState
+} from './countertop-policy.mjs';
+
+export {
+  COUNTERTOP_MOVEMENT_APPLY_STATUS,
+  COUNTERTOP_MOVEMENT_ERROR,
+  calculateCountertopCanMoveM,
+  calculateCountertopMovementOffsetM,
+  normalizeCountertopMovementGridM,
+  snapCountertopMovementOffsetM,
+  normalizeCountertopMovementBoundsM
+} from './countertop-movement-policy.mjs';
+
+export {
+  createCountertopPublicSnapshot,
+  createCountertopStateM,
+  setCountertopLayoutModeM,
+  setCountertopLengthM,
+  setCountertopMovementBoundsM,
+  setCountertopMovementGridM,
+  setCountertopOffsetM,
+  updateCountertopStateM
+} from './countertop-state.mjs';
+
+export {
+  COUNTERTOP_CHANGE_PHASE,
+  COUNTERTOP_EVENT,
+  CountertopEvents,
+  createCountertopEvents
+} from './countertop-events.mjs';
+
+export {
+  COUNTERTOP_SERVICE_ERROR_CODE,
+  COUNTERTOP_VALIDATION_DIAGNOSTIC_CODE,
+  CountertopService,
+  createCountertopService
+} from './countertop-service.mjs';
