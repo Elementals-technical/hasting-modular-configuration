@@ -163,8 +163,6 @@ const resolveThicknessAvailability = (
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
 // cutout: the profile's noneValue, chosen until a vessel is.
-const HOSTED_SINK_BASIN_REASON = "Lower the countertop onto a sink cabinet to change the basin.";
-
 const resolveBasinAvailability = (
   profile: ProductProfile | null,
   { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
@@ -225,6 +223,35 @@ const resolveVesselColorAvailability = (
     reasonCode: REASON_VESSEL_COLOR_UNAVAILABLE,
   };
 };
+
+const HOSTED_SINK_REASON = {
+  basin: "countertop.hostedSink.basin",
+  style: "countertop.hostedSink.style",
+  vesselColor: "countertop.hostedSink.vesselColor",
+} as const;
+
+// While the top hosts the basin off its Sink Base (`sink.hosted`, after `liftSink`), the scene cannot change that
+// basin, and a basin field names a Sink Base (`resolveChangeRequest`): the basin, its vessel colour and the style
+// that picks it wait until the top is back over a sink cabinet. The field keeps the options it shows, each refused
+// with the reason; a field with no enabled option takes no `autoSelect`.
+const unlessSinkHosted = (
+  sinkHosted: boolean,
+  reasonCode: string,
+  availability: FieldAvailability,
+): FieldAvailability =>
+  sinkHosted
+    ? {
+        ...availability,
+        available: false,
+        allowedValues: [],
+        isOptionAllowed: undefined,
+        optionReason: undefined,
+        reason: undefined,
+        reasonCode,
+        reasonParams: undefined,
+        preferredValue: undefined,
+      }
+    : availability;
 
 // Keyed by the availabilityRef values of ui.json; each entry is a result an existing module already computes.
 const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | null): FieldAvailabilityResults => {
@@ -291,14 +318,25 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       "LegColor.determined": { available: legColorDetermined, visible: legColorDetermined },
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
-      "CountertopStyle.allowed": resolveCountertopStyleAvailability(countertopRuleState),
+      // The hosted-basin lock alone, for a style the matrix does not gate (Urban Low Height).
+      "CountertopStyle.available": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, { available: true }),
+      "CountertopStyle.allowed": unlessSinkHosted(
+        sinkHosted,
+        HOSTED_SINK_REASON.style,
+        resolveCountertopStyleAvailability(countertopRuleState),
+      ),
       "CountertopColor.allowed": resolveCountertopColorAvailability(profile, configurator, countertopRuleState),
       "Thickness.allowed": resolveThicknessAvailability(profile, countertopRuleState),
-      // A hosted sink (carried by the top) has no SB to take a new basin; 3D cannot change it yet.
-      "sinkType.allowed": sinkHosted
-        ? { available: false, allowedValues: [], reason: HOSTED_SINK_BASIN_REASON }
-        : resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
-      "VesselColor.allowed": resolveVesselColorAvailability(profile, configurator, sinkType),
+      "sinkType.allowed": unlessSinkHosted(
+        sinkHosted,
+        HOSTED_SINK_REASON.basin,
+        resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
+      ),
+      "VesselColor.allowed": unlessSinkHosted(
+        sinkHosted,
+        HOSTED_SINK_REASON.vesselColor,
+        resolveVesselColorAvailability(profile, configurator, sinkType),
+      ),
     }),
     [
       allowedFaucetHoles,

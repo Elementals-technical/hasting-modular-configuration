@@ -192,7 +192,10 @@ Push-to-Open, side panels втрачають upper groove. Handle і Height ід
 - Heights: 38, 35, 28, 25 cm.
 - Fluting: None + Vertical/Horizontal A/B; доступність залежить від Lacquer Matte.
 - Cabinet/Countertop colors читаються з configurator 4 через `optionsSource`.
-- Countertop styles: integrated/vessel; `CountertopStyle` є `state-only` для сцени ULH.
+- Countertop styles: integrated/vessel; `CountertopStyle` є `state-only` для сцени ULH. Поле стилю бере
+  `CountertopStyle.available`: матриця стиль не обмежує (Urban Duplex бере `CountertopStyle.allowed`), а поки
+  стільниця тримає basin, стиль заблокований разом із basin і vessel color
+  ([countertop-position-ui.md](../countertop-position-ui.md)).
 - Basin catalog тимчасово повторює Urban values і фільтрується table 589; це не підтверджена
   власна ULH product map семантика.
 

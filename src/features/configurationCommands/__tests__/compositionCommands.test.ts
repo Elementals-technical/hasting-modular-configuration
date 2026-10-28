@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
+import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
+import tricotBindingsDocument from "../../../../public/collections/tricot/runtime-bindings.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { store } from "@/app/store";
@@ -32,6 +34,7 @@ import {
   reset,
   resetProducts,
   setActiveProfile,
+  setCabinetColorMaterial,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 import {
@@ -1041,6 +1044,53 @@ describe("composition commands", () => {
           CabinetSideColor: "Acqua 419 MT",
           FrameColor: "Nero 433 MT",
         });
+      });
+    });
+
+    describe("a cabinet pattern chosen in Prebuilt (Tricot)", () => {
+      beforeEach(() => {
+        const profile = parseProductProfile(tricotProfileDocument);
+        const bindings = parseRuntimeBindings(tricotBindingsDocument);
+        if (!profile.ok || !bindings.ok) throw new Error("the packaged Tricot data must parse");
+
+        store.dispatch(setActiveProfile(profile.profile));
+        store.dispatch(setActiveCollectionId("tricot"));
+        store.dispatch(setActiveRuntimeBindings(bindings.bindings));
+      });
+
+      it("goes into the presets Customize starts from", async () => {
+        const fixture = setup();
+        const tricotModel = [
+          { productType: "Sink-Base", config: { Width: 60, Drawers: "1D", DrawerPanelFluting: "Satin" } },
+          { productType: "Side-Cabinet", config: { Width: 40, Drawers: "1D", DrawerPanelFluting: "Satin" } },
+        ];
+        await applyPreset({ products: tricotModel }, fixture.deps);
+        store.dispatch(
+          addProductPreset(tricotModel.map(({ productType, config }) => ({ name: productType, ...config }))),
+        );
+        // The model's Rovere Oro 932 is a wood veneer, which takes Twill.
+        store.dispatch(setCabinetColorMaterial("WDV"));
+
+        const result = await changeAttribute(
+          {
+            attributeId: "DrawerPanelFluting",
+            value: "Twill",
+            scope: "cabinet",
+            cabinetId: getCabinetEntries(store.getState())[0].stableKey,
+          },
+          {
+            getState: fixture.deps.getState,
+            dispatch: fixture.deps.dispatch,
+            runtime: fixture.runtime.port,
+            flow: "prebuilt",
+          },
+        );
+
+        expect(result.status).toBe("applied");
+        expect(product().productsPresets.map(({ DrawerPanelFluting }) => DrawerPanelFluting)).toEqual([
+          "Twill",
+          "Twill",
+        ]);
       });
     });
 

@@ -1293,11 +1293,15 @@ export const CabinetBuilderPage = () => {
         }
       } else {
         // The scene kept the products of the preset: they are recorded as they are, then shown
-        // with the colours Custom starts from.
+        // with the colours Custom starts from. The cabinet pattern (Tricot) is only recorded: the
+        // scene shows it already, and adopting records no value with a typed projection.
         await composition.adopt({
           runtimeIds: existingIds,
           products: productsPresets.map((preset) => ({ productType: preset.name, config: { ...preset } })),
-          record: startingColors,
+          record: {
+            ...startingColors,
+            ...(firstPreset?.DrawerPanelFluting ? { DrawerPanelFluting: firstPreset.DrawerPanelFluting } : {}),
+          },
         });
 
         const replayed = await replay({

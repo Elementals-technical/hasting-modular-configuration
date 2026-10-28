@@ -73,6 +73,9 @@ LateralPanelColor, в обох flows.
   vessel може опуститися над Side Cabinet URSTD 50 cm, і `landSink` робить її Sink Base поза каталогом (Sink Base
   лише URDPX 60–120 cm, vessel від 80 cm). Правила для такої посадки ще немає.
 - Перетворена шафа зберігає в scene config `ProductType: "UD-sink-cabinet"`; тип застосунок бере з runtime id.
+- Поки стільниця тримає basin після lift, Countertop Style, Basin Style і Vessel Color заблоковані з причиною
+  (`countertop.hostedSink.*`): сцена v79 не перебудовує basin на стільниці
+  ([countertop-position-ui.md](../countertop-position-ui.md)).
 - `excludedFromThisProfile` профілю перелічує, чого він ще не виражає (lower countertop, dividers, LED тощо).
 
 ## Мінімальна перевірка

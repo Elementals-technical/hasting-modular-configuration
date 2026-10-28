@@ -81,7 +81,7 @@ import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import type { SceneRestoreMatch } from "@/entities/configuration";
-import { useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
+import { NOT_CARRIED_ATTRIBUTE_IDS, useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
 import { matchSavedStableKeys, useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
@@ -217,25 +217,32 @@ const readSavedHandle = (
 };
 
 /**
- * The presets with the handle and leg colours each cabinet was saved with (Mako, Lame). Customize
- * records every cabinet's values again from the presets, which hold these as choosing them writes
- * them ("" for legs switched off); a scene config names them only as scene materials, the legs as
- * two keys (ShowLegs and the colour). Product `i` of the restore became preset `i`.
+ * The presets with the values each cabinet was saved with that its scene config does not give them:
+ * the Mako handle and leg colours ("" for legs switched off), the series and lateral panel side of
+ * an Urban Duplex cabinet, the cabinet pattern. Customize records every cabinet's values again from
+ * the presets; a scene config holds these as scene values, some as several keys (ShowLegs and the
+ * leg colour). Sizes and drawers are the scene's. Product `i` of the restore became preset `i`.
  */
-const withSavedCabinetColors = (
+const withSavedCabinetValues = (
   presets: PresetProduct[],
   plan: RestorePlan,
   matches: readonly SceneRestoreMatch[],
+  profile: ProductProfile | null,
 ): PresetProduct[] => {
   const keysBySource = matchSavedStableKeys(plan);
   if (!keysBySource) return presets;
+
+  const cabinetAttributeIds = (profile?.attributes ?? []).flatMap(({ attributeId, scope }) =>
+    scope === "cabinet" && !NOT_CARRIED_ATTRIBUTE_IDS.has(attributeId) ? [attributeId] : [],
+  );
 
   return presets.map((preset, index) => {
     const sourceId = matches[index]?.sourceId;
     const cabinetId = sourceId ? keysBySource.get(sourceId) : undefined;
     if (!cabinetId) return preset;
 
-    const saved = (["HandleColor", "LegColor"] as const).flatMap((attributeId) => {
+    const saved = cabinetAttributeIds.flatMap((attributeId) => {
+      if (attributeId in preset) return [];
       const value = readFragmentValue(plan.fragment, attributeId, { scope: "cabinet", cabinetId });
       return typeof value === "string" ? [[attributeId, value] as const] : [];
     });
@@ -1099,10 +1106,11 @@ export const ModelPage = () => {
           runtimeBindings,
           sceneIds,
         );
-        const effectivePresets = withSavedCabinetColors(
+        const effectivePresets = withSavedCabinetValues(
           scenePresets.length ? scenePresets : presetProducts,
           plan,
           matches,
+          activeProfileRef.current,
         );
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());

@@ -33,6 +33,7 @@ import {
 import type { CountertopSinkLandingStatus, CountertopState } from "@/features/configuratorApi";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
+import { resolveUiReasonText } from "@/shared/lib/reasonText";
 import classManifest from "../../../../public/collections/class/manifest.json";
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
 import classUi from "../../../../public/collections/class/ui.json";
@@ -520,6 +521,67 @@ describe("Urban Duplex offers the thicknesses table 595 gives, by the Urban Low 
       expect(enabledValues("thickness")).toEqual(home);
     },
   );
+});
+
+// The scene cannot change a basin the lifted top hosts, and a basin field names a Sink Base: until the top is back
+// over a sink cabinet the style, the basin and the vessel colour stay as they are, each saying why.
+describe.each([
+  ["Urban Low Height", urbanLowHeight],
+  ["Urban Duplex", urbanDuplex],
+] as const)("%s keeps the basin while the top hosts it", (_name, collection) => {
+  const { fieldOf, shownValues, enabledValues } = fieldsOf(collection);
+  const reasonsOf = (sectionId: string) =>
+    new Set(fieldOf(sectionId)?.options.map(({ enabled, reasonCode }) => (enabled ? "enabled" : reasonCode)));
+  const hostedRefusals = (sectionId: string) =>
+    fieldOf(sectionId)?.options.filter(({ reasonCode }) => reasonCode?.startsWith("countertop.hostedSink.")) ?? [];
+
+  beforeEach(() => {
+    startWith(collection);
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+  afterEach(() => setCountertopRuntimeState(null));
+
+  it("refuses both countertop styles while the top hosts the basin, and offers them again once it lands", () => {
+    expect(enabledValues("countertop-style")).toEqual(["integrated", "vessel"]);
+
+    setCountertopRuntimeState(carried("fits", true));
+    expect(reasonsOf("countertop-style")).toEqual(new Set(["countertop.hostedSink.style"]));
+    expect(resolveUiReasonText({ code: "countertop.hostedSink.style" })).toBe(
+      "Lower the countertop onto a sink cabinet to change the countertop style.",
+    );
+
+    setCountertopRuntimeState(carried("home", false));
+    expect(enabledValues("countertop-style")).toEqual(["integrated", "vessel"]);
+  });
+
+  it("shows the basins of the countertop, as over its Sink Base, every one refused with the reason", () => {
+    const basins = shownValues("basin-style");
+    expect(basins?.length).toBeGreaterThan(0);
+
+    setCountertopRuntimeState(carried("fits", true));
+    expect(shownValues("basin-style")).toEqual(basins);
+    expect(reasonsOf("basin-style")).toEqual(new Set(["countertop.hostedSink.basin"]));
+  });
+
+  it("refuses the colours of a hosted vessel with the reason", () => {
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle("Vessel_Blade11"));
+    expect(enabledValues("vessel-color")?.length).toBeGreaterThan(0);
+
+    setCountertopRuntimeState(carried("fits", true));
+    expect(fieldOf("vessel-color")?.visible).toBe(true);
+    expect(reasonsOf("vessel-color")).toEqual(new Set(["countertop.hostedSink.vesselColor"]));
+  });
+
+  // As a lift the UI did not commit leaves it: the Sink Base still stands and takes a new basin.
+  it("leaves them to the matrix while the top carries a basin it does not host", () => {
+    setCountertopRuntimeState(carried("none", false));
+
+    expect(hostedRefusals("countertop-style")).toEqual([]);
+    expect(hostedRefusals("basin-style")).toEqual([]);
+  });
 });
 
 describe.each(Object.entries(collections))("%s vessel choice follows the USH countertop step", (_id, collection) => {

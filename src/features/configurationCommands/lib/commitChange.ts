@@ -176,8 +176,14 @@ const COMMITTERS: Record<string, Committer> = {
   Depth: (change) => (typeof change.value === "number" ? [setSelectedDimensions({ depth: change.value })] : []),
 };
 
-/** Colours a preset carries, so Customize starts from the colours the user chose. */
-const PRESET_COLOR_ATTRIBUTE_IDS = ["CabinetColor", "HandleGrooveColor", "HandleColor", "LegColor"] as const;
+/** Colours and the cabinet pattern a preset carries, so Customize starts from the ones the user chose. */
+const PRESET_COLOR_ATTRIBUTE_IDS = [
+  "CabinetColor",
+  "HandleGrooveColor",
+  "HandleColor",
+  "LegColor",
+  "DrawerPanelFluting",
+] as const;
 
 type PresetColorAttributeId = (typeof PRESET_COLOR_ATTRIBUTE_IDS)[number];
 
