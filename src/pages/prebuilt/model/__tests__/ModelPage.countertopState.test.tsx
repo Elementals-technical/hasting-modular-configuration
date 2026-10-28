@@ -390,6 +390,81 @@ describe("urban-low-height: a Prebuilt order opened from its link keeps its hand
   });
 });
 
+describe("mako: a Prebuilt order opened from its link keeps its handle and leg colours", () => {
+  const [mako] = CASES;
+  const sourceIds = ["Mako-sink-cabinet-aaa111", "Mako-sink-cabinet-bbb222"];
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(clearRestore());
+    store.dispatch(clearHistory());
+    store.dispatch(setActiveProfile(mako.profile));
+    store.dispatch(setActiveCollectionId(mako.collectionId));
+    store.dispatch(setActiveRuntimeBindings(mako.bindings));
+    mocks.changes.length = 0;
+    mocks.sceneReady = true;
+  });
+
+  /** Two Sink Bases saved with the same colours at each, as the Mako scene paints them all at once. */
+  const savedWith = (colors: Record<string, string>): ConfigurationRecord => ({
+    configuration: Object.fromEntries(
+      sourceIds.map((sourceId) => [
+        sourceId,
+        { ProductType: "Mako-sink-cabinet", Width: 60, Height: 26, Depth: 52, Drawers: "1D" },
+      ]),
+    ),
+    metadata: {
+      path: "/prebuilt/model",
+      orderedProductIds: sourceIds,
+      collectionId: mako.collectionId,
+      uiState: {},
+      configuration: {
+        version: 2,
+        collectionId: mako.collectionId,
+        cabinets: [
+          { stableKey: "cab-1", index: 0 },
+          { stableKey: "cab-2", index: 1 },
+        ],
+        values: { "cabinet:cab-1": colors, "cabinet:cab-2": colors },
+      },
+    },
+  });
+
+  const restore = async (configId: string) => {
+    renderAt(mako, `/prebuilt/model?collectionId=${mako.collectionId}&configId=${configId}`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+  };
+
+  const presetColors = () =>
+    getProductsPresets(store.getState()).map(({ HandleColor, LegColor }) => ({ HandleColor, LegColor }));
+
+  // Customize records each cabinet's values again from the presets (CabinetBuilderPage), and the
+  // scene configs name the handle and the legs only as scene materials.
+  it("hands them to Customize with the presets, cabinet by cabinet", async () => {
+    mocks.record = savedWith({ HandleColor: "Gold", LegColor: "Silver" });
+
+    await restore("7201");
+
+    expect(presetColors()).toEqual([
+      { HandleColor: "Gold", LegColor: "Silver" },
+      { HandleColor: "Gold", LegColor: "Silver" },
+    ]);
+  });
+
+  it("keeps legs switched off", async () => {
+    mocks.record = savedWith({ HandleColor: "Gold", LegColor: "" });
+
+    await restore("7202");
+
+    expect(presetColors()).toEqual([
+      { HandleColor: "Gold", LegColor: "" },
+      { HandleColor: "Gold", LegColor: "" },
+    ]);
+  });
+});
+
 describe.each(CASES)("$collectionId: Customize on a model card", (testCase) => {
   beforeEach(() => {
     store.dispatch(reset());

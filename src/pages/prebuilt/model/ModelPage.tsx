@@ -82,7 +82,7 @@ import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPo
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
-import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
+import { matchSavedStableKeys, useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -214,6 +214,33 @@ const readSavedHandle = (
     .concat(readFragmentValue(fragment, "Handle", { scope: "global" }));
 
   return agreed(saved) ?? agreed(products.map(({ Handle }) => Handle));
+};
+
+/**
+ * The presets with the handle and leg colours each cabinet was saved with (Mako, Lame). Customize
+ * records every cabinet's values again from the presets, which hold these as choosing them writes
+ * them ("" for legs switched off); a scene config names them only as scene materials, the legs as
+ * two keys (ShowLegs and the colour). Product `i` of the restore became preset `i`.
+ */
+const withSavedCabinetColors = (
+  presets: PresetProduct[],
+  plan: RestorePlan,
+  matches: readonly SceneRestoreMatch[],
+): PresetProduct[] => {
+  const keysBySource = matchSavedStableKeys(plan);
+  if (!keysBySource) return presets;
+
+  return presets.map((preset, index) => {
+    const sourceId = matches[index]?.sourceId;
+    const cabinetId = sourceId ? keysBySource.get(sourceId) : undefined;
+    if (!cabinetId) return preset;
+
+    const saved = (["HandleColor", "LegColor"] as const).flatMap((attributeId) => {
+      const value = readFragmentValue(plan.fragment, attributeId, { scope: "cabinet", cabinetId });
+      return typeof value === "string" ? [[attributeId, value] as const] : [];
+    });
+    return { ...preset, ...Object.fromEntries(saved) };
+  });
 };
 
 const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
@@ -1072,7 +1099,11 @@ export const ModelPage = () => {
           runtimeBindings,
           sceneIds,
         );
-        const effectivePresets = scenePresets.length ? scenePresets : presetProducts;
+        const effectivePresets = withSavedCabinetColors(
+          scenePresets.length ? scenePresets : presetProducts,
+          plan,
+          matches,
+        );
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));

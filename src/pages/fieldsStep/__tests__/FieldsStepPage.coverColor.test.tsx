@@ -38,13 +38,24 @@ import freestandingSkuDocument from "../../../../public/collections/urban-freest
 import freestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 import { FieldsStepPage } from "../FieldsStepPage";
 
-const mocks = vi.hoisted(() => ({ read: vi.fn(), lower: vi.fn(), upper: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  read: vi.fn(),
+  lower: vi.fn(),
+  upper: vi.fn(),
+  step: vi.fn(),
+  written: [] as boolean[],
+}));
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => true }));
 vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion");
 vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport", () => ({ useCompactAccordionViewport: () => false }));
 vi.mock("@/features/configuratorApi", async (original) => ({
   ...(await original<typeof import("@/features/configuratorApi")>()),
   createConfiguratorBridge: () => ({ getCabinetCoverColorState: mocks.read, setCabinetCoverColor: mocks.lower }),
+}));
+// Each history step records whether it would be written: what its result says it changed.
+vi.mock("@/entities/history/lib/useHistoryStep", async (original) => ({
+  ...(await original<typeof import("@/entities/history/lib/useHistoryStep")>()),
+  useHistoryStep: () => ({ run: mocks.step }),
 }));
 vi.mock("@/features/configurationCommands", async (original) => ({
   ...(await original<typeof import("@/features/configurationCommands")>()),
@@ -137,6 +148,14 @@ beforeEach(() => {
     return { status: "applied" };
   });
   mocks.upper.mockReset().mockResolvedValue({ status: "applied", plan: [] });
+  mocks.written.length = 0;
+  mocks.step
+    .mockReset()
+    .mockImplementation(async (change: () => Promise<unknown>, applied?: (result: unknown) => boolean) => {
+      const result = await change();
+      mocks.written.push(Boolean(applied?.(result)));
+      return result;
+    });
 });
 afterEach(cleanup);
 
@@ -357,6 +376,30 @@ it("offers Upper and Lower in the Urban Low Height custom flow, as in prebuilt",
 
   expect(mocks.lower).toHaveBeenCalledWith("Pulpis Chiaro TKH");
   expect(mocks.upper).not.toHaveBeenCalled();
+});
+
+// The Lower's colour lives only in the scene, so its step counts the repaint itself.
+it("takes an undo step for each Lower pick that repaints the slabs, and none for one the scene refuses", async () => {
+  renderCountertopStep("/prebuilt/countertop?collectionId=urban-low-height", collection);
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  await waitFor(() =>
+    expect(colors.getByRole("button", { name: "Rox Black TKQ" }).getAttribute("aria-pressed")).toBe("true"),
+  );
+  await act(async () => {
+    fireEvent.click(colors.getByRole("button", { name: "Pulpis Chiaro TKH" }));
+  });
+  expect(mocks.written).toEqual([true]);
+
+  mocks.lower.mockResolvedValueOnce({ status: "error" });
+  await act(async () => {
+    fireEvent.click(colors.getByRole("button", { name: "Rox Black TKQ" }));
+  });
+  expect(mocks.lower).toHaveBeenLastCalledWith("Rox Black TKQ");
+  expect(mocks.written).toEqual([true, false]);
+  expect(colors.getByRole("button", { name: "Pulpis Chiaro TKH" }).getAttribute("aria-pressed")).toBe("true");
 });
 
 it("offers Upper and Lower in the Urban Duplex custom flow, as in prebuilt", async () => {

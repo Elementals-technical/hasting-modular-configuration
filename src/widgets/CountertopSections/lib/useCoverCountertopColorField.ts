@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { sceneValueOf, semanticValueOf, useActiveCollection, type FieldRuntimeState } from "@/entities/collection";
 import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/configuration";
+import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { resolveConfiguratorOptions } from "@/features/collectionCustomization/lib/resolveSectionState";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { CABINET_COVER_COLOR_ATTRIBUTE_ID } from "@/shared/lib/sku";
@@ -22,10 +23,18 @@ export const useCoverCountertopColorField = (enabled: boolean) => {
     [configurator, cover, profile],
   );
   // The scene knows the Upper's colours under the countertop binding's names, and so the Lower's.
+  // A pick is one undo step. The Lower's colour lives only in the scene, so the step is written when
+  // the pick repainted the slabs; the colour it follows by default (useLowerCountertopDefaultColor) takes none.
   const { changeColor } = color;
+  const { run: runStep } = useHistoryStep();
   const changeLowerColor = useCallback(
-    (value: string) => changeColor(sceneValueOf(bindings, CABINET_COVER_COLOR_ATTRIBUTE_ID, value)),
-    [bindings, changeColor],
+    async (value: string) => {
+      await runStep(
+        () => changeColor(sceneValueOf(bindings, CABINET_COVER_COLOR_ATTRIBUTE_ID, value)),
+        (repainted) => repainted,
+      );
+    },
+    [bindings, changeColor, runStep],
   );
   // A material that is one of the Upper's colours reads as itself, any other by its binding.
   const value =
