@@ -142,23 +142,8 @@ describe("DrawerOrganizerLayer: taps", () => {
     expect(steps(store)).toBe(1);
   });
 
-  it("a double tap on ⊕ runs one command while the first is on its way", async () => {
-    useFake(createTestOrganizerPort({ answers: [answerOf("add-first")] }));
-    renderLayer();
-    await sceneShows(frameOf("in-view-empty"));
-    const gate = fake.hold();
-    const plus = screen.getByRole("button", { name: "Add divider column" });
-
-    await act(async () => {
-      fireEvent.click(plus);
-      await vi.waitFor(() => expect(ui(store).busy).toBe(true));
-      fireEvent.click(plus);
-      gate.release();
-    });
-
-    await vi.waitFor(() => expect(ui(store).busy).toBe(false));
-    expect(fake.commands()).toHaveLength(1);
-  });
+  // A second tap while the first command runs is dropped by the editor's busy gate: useOrganizerEditor
+  // "a double click runs one command" (it also taps ⊕ while busy).
 
   it("a tap on a column selects it, and the layer tells the overlay which one", async () => {
     record(

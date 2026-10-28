@@ -35,29 +35,20 @@ describe("PresetList", () => {
     expect(radioNames()).toEqual(["Customize", "Empty", "Preset 1", "Preset 2", "Preset 3", "Preset 4"]);
   });
 
-  it("checks the card the column matches", () => {
-    renderList({ activeId: "preset-4" });
-    expect(radios().map((radio) => radio.getAttribute("aria-checked"))).toEqual([
-      "false",
-      "false",
-      "false",
-      "false",
-      "false",
-      "true",
-    ]);
-  });
-
-  it("checks Customize and says Custom when the column matches no preset", () => {
-    renderList({ activeId: "custom" });
-    const [customize, ...others] = radios();
-    expect(customize.getAttribute("aria-checked")).toBe("true");
-    expect(customize.textContent).toBe("CustomizeCustom");
-    expect(others.every((radio) => radio.getAttribute("aria-checked") === "false")).toBe(true);
-  });
-
-  it("checks nothing without an active id", () => {
-    renderList({ activeId: null });
-    expect(radios().every((radio) => radio.getAttribute("aria-checked") === "false")).toBe(true);
+  // aria-checked of [Customize, Empty, Preset 1..4], and the text of the Customize card.
+  it.each([
+    ["the card the column matches", "preset-4", ["false", "false", "false", "false", "false", "true"], "Customize"],
+    [
+      "Customize and says Custom when the column matches no preset",
+      "custom",
+      ["true", "false", "false", "false", "false", "false"],
+      "CustomizeCustom",
+    ],
+    ["nothing without an active id", null, ["false", "false", "false", "false", "false", "false"], "Customize"],
+  ] as const)("checks %s", (_name, activeId, checked, customizeText) => {
+    renderList({ activeId });
+    expect(radios().map((radio) => radio.getAttribute("aria-checked"))).toEqual(checked);
+    expect(radios()[0].textContent).toBe(customizeText);
   });
 
   it("applies a preset by its id and opens the editor from Customize", () => {

@@ -100,12 +100,6 @@ describe("OrganizerCanvasOverlay: Add column (⊕)", () => {
     expect(parseFloat(plus.style.height)).toBeGreaterThanOrEqual(MIN_TARGET_PX);
   });
 
-  it("adds a column at its slot", () => {
-    const { onPlus } = renderOverlay(frameOf("in-view-empty"));
-    fireEvent.click(screen.getByRole("button", { name: "Add divider column" }));
-    expect(onPlus).toHaveBeenCalledWith(0);
-  });
-
   it.each([
     ["left", "Add divider column (left)"],
     ["right", "Add divider column (right)"],
@@ -124,6 +118,7 @@ describe("OrganizerCanvasOverlay: Add column (⊕)", () => {
     expect(plus.getAttribute("aria-busy")).toBe("false");
   });
 
+  // The click does not depend on the panel: this is also the test of "⊕ adds a column at its slot".
   it("is dimmed and aria-disabled in the editor; the click still reaches the hook, which pulses Save (T10)", () => {
     const { onPlus } = renderOverlay(frameOf("in-view-empty"), { panel: "editor" });
     const plus = screen.getByRole("button", { name: "Add divider column" });
@@ -154,12 +149,6 @@ describe("OrganizerCanvasOverlay: columns", () => {
     const second = screen.getByRole("button", { name: "Divider column 2 of 2" });
     expect(first.getAttribute("aria-pressed")).toBe("false");
     expect(second.getAttribute("aria-pressed")).toBe("true");
-  });
-
-  it("selects a column on a click", () => {
-    const { onColumn } = renderOverlay(frameOf("in-view-zone-full"));
-    fireEvent.click(screen.getByRole("button", { name: "Divider column 2 of 2" }));
-    expect(onColumn).toHaveBeenCalledWith(2);
   });
 
   it("covers the column's hull, at least 44 px each way", () => {
@@ -311,6 +300,7 @@ describe("OrganizerCanvasOverlay: cells of the draft (the editor)", () => {
     expect(hulls.map((hull) => hull.getAttribute("data-selected"))).toEqual(["false", "true"]);
   });
 
+  // The click does not depend on the panel: this is also the test of "a click selects the column".
   it("does not make the tinted cells a target: no button, the clicks go to the column", () => {
     const { onColumn } = renderOverlay(frameOf("in-view-zone-full"), {
       selectedSlot: 2,

@@ -7,7 +7,16 @@ import { setActiveProfile } from "@/entities/product/model/store/slice";
 import { createTestOrganizerPort, type TestOrganizerPort } from "@/features/playCanvasAdapter";
 
 import { DividerOptionsPanel, usePlayerLeftInset } from "../ui/DividerOptionsPanel";
-import { backToPresets, pulseSave, recordDerived, selectColumn, setPanelLayout, setView } from "../model/store/slice";
+import {
+  backToPresets,
+  // The editor tests below have their own `openEditor` (a click on Customize).
+  openEditor as openEditorAction,
+  pulseSave,
+  recordDerived,
+  selectColumn,
+  setPanelLayout,
+  setView,
+} from "../model/store/slice";
 import { createOrganizerTestStore, organizers, record, steps, ui, type OrganizerTestStore } from "./organizerHookSetup";
 import { classCollection, columnsEntry, installMatchMedia, MEDIA, withPage } from "./organizerUiSetup";
 import { answerOf, portResultOf } from "./organizerPortAnswers";
@@ -73,17 +82,15 @@ const renderPanel = (collection = classCollection()) =>
     { wrapper: withPage(store, collection) },
   );
 
-const radios = () => within(screen.getByRole("radiogroup")).getAllByRole("radio");
 const insetCalls = () => fake.calls.filter(({ kind }) => kind === "setViewInsets");
 
 describe("DividerOptionsPanel: when it shows", () => {
-  it("is not there while no column is selected", () => {
-    store.dispatch(setView(TOP));
-    renderPanel();
-    expect(screen.queryByRole("complementary")).toBeNull();
-  });
+  it("is not there without a drawer in view, even with a column selected", () => {
+    // A column selected outside a view puts the preset list in the store; the panel still needs the view.
+    record(store, "cab-1", columnsEntry({ Top: [{ slot: 0, positions: [2] }] }));
+    store.dispatch(selectColumn(COLUMN));
+    expect(ui(store)).toMatchObject({ view: null, selected: COLUMN, panel: "presets" });
 
-  it("is not there without a drawer in view", () => {
     renderPanel();
     expect(screen.queryByRole("complementary")).toBeNull();
   });
@@ -123,19 +130,8 @@ describe("DividerOptionsPanel: when it shows", () => {
 });
 
 describe("DividerOptionsPanel: the preset list (P1)", () => {
-  it("checks the preset the column matches", () => {
-    selectedColumn([2, 4]);
-    renderPanel();
-    expect(radios().filter((radio) => radio.getAttribute("aria-checked") === "true")).toHaveLength(1);
-    expect(screen.getByRole("radio", { name: "Preset 4" }).getAttribute("aria-checked")).toBe("true");
-  });
-
-  it("checks Customize with the word Custom for a column that matches no preset", () => {
-    selectedColumn([1, 3]);
-    renderPanel();
-    expect(screen.getByRole("radio", { name: /Customize/ }).getAttribute("aria-checked")).toBe("true");
-    expect(screen.getByText("Custom")).toBeTruthy();
-  });
+  // Which card is checked for a column is wired here once per value of the active id: a matched preset by
+  // "applies a preset", "custom" by "Save writes the draft"; PresetList's own test checks every value.
 
   it("applies a preset as one step and keeps the list open with that preset active (T11, 28.10: the panel stays)", async () => {
     selectedColumn([2]);
@@ -401,50 +397,44 @@ describe("DividerOptionsPanel: the keys", () => {
 });
 
 describe("DividerOptionsPanel: layout and the room it takes from the 3D view", () => {
-  it("is the desktop panel above 1024 px: 3D keeps 160 px free on the left", () => {
+  // The Class ui.json asks for M2 on a phone; `mobileLayout` overrides it.
+  it.each([
+    ["the desktop panel above 1024 px: 3D keeps 160 px free on the left", [], {}, "desktop", { left: 160 }, "vertical"],
+    [
+      "the bottom strip (M2) on a phone: 72 px free at the bottom, cards in a row",
+      [MEDIA.compact],
+      {},
+      "m2",
+      { bottom: 72 },
+      "horizontal",
+    ],
+    [
+      "the side rail (M1) on a phone when ui.json asks for it: 96 px left, 58 px top",
+      [MEDIA.compact],
+      { mobileLayout: "M1" },
+      "m1",
+      { left: 96, top: 58 },
+      "vertical",
+    ],
+  ] as const)("is %s", (_name, matchingQueries, organizerUi, layout, insets, listDirection) => {
+    media.match(...matchingQueries);
     selectedColumn();
-    renderPanel();
+    renderPanel(classCollection(organizerUi));
 
-    expect(ui(store).layout).toBe("desktop");
-    expect(insetCalls()).toEqual([{ kind: "setViewInsets", insets: { ...NO_INSETS, left: 160 } }]);
-    expect(screen.getByRole("complementary").getAttribute("data-layout")).toBe("desktop");
-    expect(screen.getByRole("radiogroup").parentElement?.getAttribute("data-layout")).toBe("vertical");
-  });
-
-  it("is the bottom strip (M2) on a phone: 72 px free at the bottom, cards in a row", () => {
-    media.match(MEDIA.compact);
-    selectedColumn();
-    renderPanel();
-
-    expect(ui(store).layout).toBe("m2");
-    expect(insetCalls()).toEqual([{ kind: "setViewInsets", insets: { ...NO_INSETS, bottom: 72 } }]);
-    expect(screen.getByRole("radiogroup").parentElement?.getAttribute("data-layout")).toBe("horizontal");
-  });
-
-  it("stays M2 on a phone when ui.json does not ask for M1", () => {
-    media.match(MEDIA.compact);
-    selectedColumn();
-    renderPanel(classCollection({ mobileLayout: undefined }));
-    expect(ui(store).layout).toBe("m2");
-  });
-
-  it("is the side rail (M1) on a phone when ui.json asks for it: 96 px left, 58 px top", () => {
-    media.match(MEDIA.compact);
-    selectedColumn();
-    renderPanel(classCollection({ mobileLayout: "M1" }));
-
-    expect(ui(store).layout).toBe("m1");
-    expect(insetCalls()).toEqual([{ kind: "setViewInsets", insets: { ...NO_INSETS, left: 96, top: 58 } }]);
-    expect(screen.getByRole("radiogroup").parentElement?.getAttribute("data-layout")).toBe("vertical");
+    expect(ui(store).layout).toBe(layout);
+    expect(insetCalls()).toEqual([{ kind: "setViewInsets", insets: { ...NO_INSETS, ...insets } }]);
+    expect(screen.getByRole("complementary").getAttribute("data-layout")).toBe(layout);
+    expect(screen.getByRole("radiogroup").parentElement?.getAttribute("data-layout")).toBe(listDirection);
   });
 
   it.each([
-    ["a short screen", MEDIA.short],
-    ["a landscape phone", MEDIA.landscape],
-  ])("falls back to M2 on %s even when ui.json asks for M1", (_name, query) => {
-    media.match(MEDIA.compact, query);
+    ["when ui.json does not ask for M1", [MEDIA.compact], undefined],
+    ["with a short screen even when ui.json asks for M1", [MEDIA.compact, MEDIA.short], "M1"],
+    ["turned to landscape even when ui.json asks for M1", [MEDIA.compact, MEDIA.landscape], "M1"],
+  ] as const)("stays M2 on a phone %s", (_name, matchingQueries, mobileLayout) => {
+    media.match(...matchingQueries);
     selectedColumn();
-    renderPanel(classCollection({ mobileLayout: "M1" }));
+    renderPanel(classCollection({ mobileLayout }));
     expect(ui(store).layout).toBe("m2");
   });
 
@@ -478,21 +468,14 @@ describe("DividerOptionsPanel: layout and the room it takes from the 3D view", (
 describe("usePlayerLeftInset", () => {
   const read = () => renderHook(() => usePlayerLeftInset(), { wrapper: withPage(store) }).result;
 
-  it("is 160px beside the open desktop panel", () => {
+  it.each([
+    ["160px beside the open desktop panel", "desktop", "160px"],
+    ["96px beside the M1 rail", "m1", "96px"],
+    ["unset for the M2 strip, which sits under the canvas", "m2", undefined],
+  ] as const)("is %s", (_name, layout, inset) => {
     selectedColumn();
-    expect(read().current).toBe("160px");
-  });
-
-  it("is 96px beside the M1 rail", () => {
-    selectedColumn();
-    store.dispatch(setPanelLayout("m1"));
-    expect(read().current).toBe("96px");
-  });
-
-  it("is unset for the M2 strip, which sits under the canvas", () => {
-    selectedColumn();
-    store.dispatch(setPanelLayout("m2"));
-    expect(read().current).toBeUndefined();
+    store.dispatch(setPanelLayout(layout));
+    expect(read().current).toBe(inset);
   });
 
   it("is unset while the panel is closed, and in the editor it is as wide as in the list", () => {
@@ -506,8 +489,17 @@ describe("usePlayerLeftInset", () => {
     cleanup();
 
     selectedColumn();
-    store.dispatch(backToPresets());
-    expect(read().current).toBe("160px");
+    store.dispatch(openEditorAction([2]));
+    expect(ui(store).panel).toBe("editor");
+    const inset = read();
+    expect(inset.current).toBe("160px");
+
+    // Back from the editor to the list: the same width.
+    act(() => {
+      store.dispatch(backToPresets());
+    });
+    expect(ui(store).panel).toBe("presets");
+    expect(inset.current).toBe("160px");
   });
 });
 
