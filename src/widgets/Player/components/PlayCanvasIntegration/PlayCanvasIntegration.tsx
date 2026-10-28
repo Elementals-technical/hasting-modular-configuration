@@ -2753,7 +2753,9 @@ export const PlayCanvasIntegration = ({
         return preset;
       }
 
-      const [scenePreset] = buildPresetFromConfiguration({ [productId]: sceneConfig }, [productId]);
+      const [scenePreset] = buildPresetFromConfiguration({ [productId]: sceneConfig }, activeProfile, runtimeBindings, [
+        productId,
+      ]);
       return scenePreset ? { ...preset, ...scenePreset } : preset;
     });
 
@@ -2773,6 +2775,7 @@ export const PlayCanvasIntegration = ({
     navigate(target ? toTargetUrl(target) : ROUTES.CUSTOM);
     closeCanvasFullMode();
   }, [
+    activeProfile,
     closeCanvasFullMode,
     customMenuSupport,
     customizeModePromptAction,
@@ -2780,6 +2783,7 @@ export const PlayCanvasIntegration = ({
     dispatch,
     navigate,
     productsPresets,
+    runtimeBindings,
   ]);
 
   const handleOpenCabinetStyle = useCallback(() => {
@@ -3339,12 +3343,17 @@ export const PlayCanvasIntegration = ({
       const config = await getConfig(selectedSceneProduct);
       if (!config) return;
 
-      const productType =
-        (typeof config.ProductType === "string" && config.ProductType) ||
+      // The runtime id names what the cabinet is now. A sink lift or landing re-creates the cabinet under a new
+      // id but keeps the `ProductType` of what it was in its scene config (a Sink Base turned Side Cabinet still
+      // says sink), so the config is read only for an id the catalog does not know, `productType` first.
+      const configType =
         (typeof config.productType === "string" && config.productType) ||
+        (typeof config.ProductType === "string" && config.ProductType) ||
         (typeof config.type === "string" && config.type) ||
         null;
-      const resolvedCabinetTypeId = resolveCabinetTypeId(productType ?? selectedSceneProduct, selectedSceneProduct);
+      const resolvedCabinetTypeId =
+        resolveCabinetTypeId(selectedSceneProduct, selectedSceneProduct) ??
+        resolveCabinetTypeId(configType, selectedSceneProduct);
 
       if (resolvedCabinetTypeId !== null) {
         dispatch(setActiveCabinetType(resolvedCabinetTypeId));

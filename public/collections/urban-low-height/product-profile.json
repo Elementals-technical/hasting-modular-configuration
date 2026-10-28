@@ -11,7 +11,7 @@
   },
   "sourceRefs": {
     "configuratorId": 4,
-    "countertopMatrixTableId": 438,
+    "countertopMatrixTableId": 589,
     "cabinetMatrixTableId": 580
   },
   "defaults": {
@@ -590,7 +590,7 @@
   "excludedFromThisProfile": {
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
-    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438. Thickness takes the Urban Standard Height values, offered as table 438 gives them for the colour and depth (team, 28.09.2026).",
+    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the countertop table. Thickness takes the Urban Standard Height values, offered as the countertop table gives them for the colour and depth (team, 28.09.2026). The table is 589 since 2026-09-30: the rows of the shared 438 with the Urban Low Height depths, 50 and 46 cm.",
     "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White; configurator 4 has them in both Mineralmarmo and Ocritech, so neither is excluded until the product side names one (§11).",
     "countertopIntegratedRestrictions": "countertopFallbacks declares no depth, material or basin restriction: none is confirmed for Urban Low Height (§11).",
     "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",

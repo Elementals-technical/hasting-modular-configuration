@@ -2,6 +2,7 @@
   "id": "urban-duplex",
   "label": "Urban Duplex",
   "defaults": {},
+  "requireSourceAgreement": true,
   "local": {
     "presets": "presets.json",
     "ui": "ui.json",

@@ -572,7 +572,10 @@ export const ModelPage = () => {
             const presetProduct = presetProducts.get(id);
             return presetProduct
               ? { ...presetProduct.config, name: presetProduct.productType }
-              : { ...buildPresetFromConfiguration({ [id]: selection })[0], name: products[index].productType };
+              : {
+                  ...buildPresetFromConfiguration({ [id]: selection }, activeProfileRef.current, runtimeBindings)[0],
+                  name: products[index].productType,
+                };
           }),
         ),
       );
@@ -968,7 +971,12 @@ export const ModelPage = () => {
         const configuration = plan.configuration;
         const productConfigIds = matches.map(({ sourceId }) => sourceId);
         const sceneIds = matches.map(({ runtimeId }) => runtimeId);
-        const presetProducts = buildPresetFromConfiguration(configuration, productConfigIds);
+        const presetProducts = buildPresetFromConfiguration(
+          configuration,
+          activeProfileRef.current,
+          runtimeBindings,
+          productConfigIds,
+        );
         if (!presetProducts.length) return;
 
         const uiStateValues = plan.uiState;
@@ -1058,7 +1066,12 @@ export const ModelPage = () => {
           acc[id] = sceneConfigs[index];
           return acc;
         }, {});
-        const scenePresets = buildPresetFromConfiguration(sceneConfiguration, sceneIds);
+        const scenePresets = buildPresetFromConfiguration(
+          sceneConfiguration,
+          activeProfileRef.current,
+          runtimeBindings,
+          sceneIds,
+        );
         const effectivePresets = scenePresets.length ? scenePresets : presetProducts;
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());

@@ -36,6 +36,15 @@ describe("urban-low-height product profile", () => {
     expect(urbanLowHeightManifest.id).toBe("urban-low-height");
   });
 
+  it("names the sources its manifest loads, and the manifest holds it to them", () => {
+    expect(urbanLowHeightManifest.requireSourceAgreement).toBe(true);
+    expect(profile().sourceRefs).toEqual({
+      configuratorId: urbanLowHeightManifest.remote.configurator.id,
+      countertopMatrixTableId: urbanLowHeightManifest.remote.countertopTable.id,
+      cabinetMatrixTableId: urbanLowHeightManifest.remote.cabinetTable.id,
+    });
+  });
+
   it("declares the four confirmed module types", () => {
     expect(selectOptionValues(profile(), "CabinetType")).toEqual([
       "Sink-Base",

@@ -400,6 +400,33 @@ describe("createPlayCanvasRuntimePort: a value sent to more places", () => {
 
     expect(scene.calls[1]).toEqual({ selector: { productType: "UD-open-shelves" }, patch: { CabinetColor: "white" } });
   });
+
+  // A sink lift or landing, an undo or a restored layout re-creates the products under UUID ids.
+  const SINK_UUID = "UD-sink-cabinet-6fcfc4a0-34e5-4800-a09b-1d9067b71e46";
+  const SHELF_UUID = "UD-open-shelves-0b469498-c4dc-4dfa-bcc3-26af650d0706";
+  const SIDE_SHELF_UUID = "UD-open-shelves-side-75e5db00-de42-42d2-805d-e5a7a5003489";
+
+  it("reaches a product the scene re-created under a UUID id", async () => {
+    const { scene, port, ctx } = setUpWith([SINK_UUID, SHELF]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls).toEqual([
+      { selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } },
+      { selector: { productType: "UD-open-shelves" }, patch: { CabinetColor: "white" } },
+    ]);
+  });
+
+  it("still tells an open side shelf with a UUID id from the open shelves", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SHELF_UUID, SIDE_SHELF_UUID]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls).toEqual([
+      { selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } },
+      { selector: { productIds: [SHELF_UUID] }, patch: { CabinetColor: "white" } },
+    ]);
+  });
 });
 
 /**

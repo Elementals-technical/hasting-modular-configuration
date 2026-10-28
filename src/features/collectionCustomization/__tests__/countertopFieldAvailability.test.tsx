@@ -10,11 +10,13 @@ import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/en
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
+import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
-import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
 import datatable593 from "@/entities/collection/__tests__/fixtures/remote/datatable-593.json";
+import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
@@ -39,6 +41,9 @@ import makoUi from "../../../../public/collections/mako/ui.json";
 import tricotManifest from "../../../../public/collections/tricot/manifest.json";
 import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
 import tricotUi from "../../../../public/collections/tricot/ui.json";
+import udManifest from "../../../../public/collections/urban-duplex/manifest.json";
+import udProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import udUi from "../../../../public/collections/urban-duplex/ui.json";
 import ulhManifest from "../../../../public/collections/urban-low-height/manifest.json";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import ulhUi from "../../../../public/collections/urban-low-height/ui.json";
@@ -105,7 +110,22 @@ const tricot = {
 
 const urbanLowHeight = {
   profile: parsedUlhProfile.profile,
-  ready: readyCollectionOf("urban-low-height", ulhManifest, ulhUi, datatable438, ulhConfiguratorGroups),
+  ready: readyCollectionOf("urban-low-height", ulhManifest, ulhUi, datatable589, ulhConfiguratorGroups),
+};
+
+const parsedUdProfile = parseProductProfile(udProfileDocument);
+if (!parsedUdProfile.ok) throw new Error("Packaged Urban Duplex profile failed validation");
+
+// Urban Duplex takes its countertop colours from its own material configurator 13 and its rows from table 595.
+const urbanDuplex = {
+  profile: parsedUdProfile.profile,
+  ready: readyCollectionOf(
+    "urban-duplex",
+    udManifest,
+    udUi,
+    datatable595,
+    configuratorSchema.parse(configurator13).availableOptions,
+  ),
 };
 
 type TestCollection = { profile: ProductProfile; ready: ReturnType<typeof readyCollectionOf> };
@@ -299,7 +319,7 @@ const carried = (status: CountertopSinkLandingStatus, hosted: boolean): Countert
   },
 });
 
-// Table 438 makes glass 50.5 cm deep only, so at the 46 cm of Urban Low Height a glass colour stays in
+// Table 589 makes glass 50 cm deep only, so at the 46 cm of Urban Low Height a glass colour stays in
 // the grid, refused with the depth reason, as the USH countertop step refuses it.
 describe("Urban Low Height countertop colours follow the countertop matrix, as the USH countertop step", () => {
   const { fieldOf } = fieldsOf(urbanLowHeight);
@@ -321,8 +341,8 @@ describe("Urban Low Height countertop colours follow the countertop matrix, as t
     expect(colorOf("Tekorlux", "Bianco 0B MT")?.enabled).toBe(true);
   });
 
-  it("offers the glass colours at 50.5 cm", () => {
-    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+  it("offers the glass colours at 50 cm", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50 }));
 
     expect(colorOf("Glass GL", "Bianco 0B GL")?.enabled).toBe(true);
     expect(colorOf("Glass MT", "Bianco 0B MT")?.enabled).toBe(true);
@@ -330,7 +350,7 @@ describe("Urban Low Height countertop colours follow the countertop matrix, as t
 
   // Client rule (22.10): off its Sink Base the basin rides a 5⅛″ or 5½″ top; glass makes thin tops only.
   describe("while the top carries the sink", () => {
-    beforeEach(() => store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 })));
+    beforeEach(() => store.dispatch(setSelectedDimensions({ width: 80, depth: 50 })));
     afterEach(() => setCountertopRuntimeState(null));
 
     it.each([
@@ -415,12 +435,12 @@ describe("Urban Low Height offers the thicknesses the countertop matrix gives, a
   });
 
   it("enables the thicknesses of the chosen material at the cabinets' depth", () => {
-    // Table 438: an HPL top 46 cm deep is 1/2", 4" or 5-1/8".
+    // Table 589: an HPL top 46 cm deep is 1/2", 4" or 5-1/8".
     expect(enabledValues("thickness")).toEqual(["0.5", "4", "5.125"]);
   });
 
   it("enables none where the table gives the material none, rather than every thickness", () => {
-    // No HPL row of table 438 is 40 cm deep; the price says the top is missing (the countertop gap).
+    // No HPL row of table 589 is 40 cm deep; the price says the top is missing (the countertop gap).
     store.dispatch(setSelectedDimensions({ depth: 40 }));
 
     expect(shownValues("thickness")?.length).toBeGreaterThan(0);
@@ -465,6 +485,41 @@ describe("Urban Low Height offers the thicknesses the countertop matrix gives, a
       expect(fieldOf("thickness")?.preferredValue).toBeUndefined();
     });
   });
+});
+
+// The same client rules as Urban Low Height (22.10, 27.10): Urban Duplex's Thickness options declare the same capabilities.
+describe("Urban Duplex offers the thicknesses table 595 gives, by the Urban Low Height rules", () => {
+  const { fieldOf, enabledValues } = fieldsOf(urbanDuplex);
+
+  beforeEach(() => {
+    startWith(urbanDuplex);
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+  afterEach(() => setCountertopRuntimeState(null));
+
+  it.each([
+    // Table 595: an HPL or Fenix top is 1/2", 4" or 5-1/8"; a Porcelain one 1/2", 2-3/8", 4" or 5-1/2".
+    ["HPL", "Ardesia TKF", ["0.5", "4", "5.125"], "5.125"],
+    ["Fenix", "Bianco Male TFA", ["0.5", "4", "5.125"], "5.125"],
+    ["Porcelain", "Avenue Amber TRC", ["0.5", "2.4", "4", "5.5"], "5.5"],
+  ] as const)(
+    "%s: every thickness over its Sink Base, the top that lifts off it, and 4″ too under a vessel",
+    (_material, color, home, lifting) => {
+      store.dispatch(setActiveCountertopColor(color));
+      expect(enabledValues("thickness")).toEqual(home);
+
+      setCountertopRuntimeState(carried("fits", true));
+      expect(enabledValues("thickness")).toEqual([lifting]);
+      expect(fieldOf("thickness")?.preferredValue).toBe(lifting);
+
+      store.dispatch(setCountertopStyle("vessel"));
+      expect(enabledValues("thickness")).toEqual(["4", lifting]);
+
+      setCountertopRuntimeState(carried("home", false));
+      expect(enabledValues("thickness")).toEqual(home);
+    },
+  );
 });
 
 describe.each(Object.entries(collections))("%s vessel choice follows the USH countertop step", (_id, collection) => {

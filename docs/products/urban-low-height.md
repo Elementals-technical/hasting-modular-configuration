@@ -197,7 +197,8 @@ Push-to-Open, side panels втрачають upper groove. Handle і Height ід
   власна ULH product map семантика.
 
 Rule data навмисно обмежений `cabinetMatrixLegacyAdapter`, `cabinetColorTraits`, `fluting` і
-`countertopFallbacks`. Відсутність USH rule section означає “правила немає”, а не “успадкувати USH”.
+`countertopFallbacks` з product map та `sidePanels`, `vesselCompatibility` і `dragDrop`, доданими на запит
+(`urbanLowHeightProfile.test.ts`). Відсутність USH rule section означає “правила немає”, а не “успадкувати USH”.
 
 ## Runtime bindings
 

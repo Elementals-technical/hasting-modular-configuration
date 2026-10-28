@@ -1,3 +1,5 @@
+import { normalizeOptionValue, resolveCabinetTypeOfRuntimeId, semanticValueOf } from "@/entities/collection";
+import type { ProductProfile, RuntimeBindingSet } from "@/entities/collection";
 import type { PresetProduct } from "@/entities/product/types";
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 
@@ -21,11 +23,23 @@ const readNumber = (record: Record<string, unknown>, keys: string[]): number | u
   return undefined;
 };
 
+/**
+ * Presets from scene configs (`getConfig`, or a saved configuration). The scene names a product after
+ * its scene type ("Mako-sink-cabinet") and a colour after its material ("Agata 407 Lacquered MT"); a
+ * preset holds the cabinet type and the colour as the configuration does, which the collection's
+ * profile and bindings translate back.
+ */
 export const buildPresetFromConfiguration = (
   configuration: Record<string, unknown>,
+  profile: ProductProfile | null,
+  bindings: RuntimeBindingSet | null,
   orderedIds?: string[],
 ): PresetProduct[] => {
   const ids = orderedIds?.length ? orderedIds : Object.keys(configuration);
+  const readColor = (config: Record<string, unknown>, attributeId: string, keys: string[]) => {
+    const sceneValue = readString(config, keys);
+    return sceneValue ? semanticValueOf(bindings, attributeId, sceneValue) : undefined;
+  };
 
   return ids
     .map((id) => {
@@ -34,19 +48,25 @@ export const buildPresetFromConfiguration = (
 
       const config = configRaw as ConfigurationMap[string];
 
-      const name = resolveRuntimeProductType(id, config);
+      // The id names what the cabinet is now; its config keeps the type it was placed as (a lifted sink).
+      const sceneType = resolveRuntimeProductType(id, config);
+      const drawers = readString(config, ["Drawers", "drawers"]);
+      const placedDrawers = drawers ? normalizeOptionValue(profile, "Drawers", drawers) : null;
+      const name =
+        resolveCabinetTypeOfRuntimeId(profile, bindings, id, placedDrawers) ??
+        resolveCabinetTypeOfRuntimeId(profile, bindings, sceneType, placedDrawers) ??
+        sceneType;
 
       const preset: PresetProduct = { name };
 
       const width = readNumber(config, ["Width", "width"]);
       const height = readNumber(config, ["Height", "height"]);
       const depth = readNumber(config, ["Depth", "depth"]);
-      const cabinetColor = readString(config, ["CabinetColor", "cabinetColor"]);
-      const drawers = readString(config, ["Drawers", "drawers"]);
+      const cabinetColor = readColor(config, "CabinetColor", ["CabinetColor", "cabinetColor"]);
       const handle = readString(config, ["Handle", "handle", "HandleType", "handleType"]);
       const sinkType = readString(config, ["sinkType", "SinkType"]);
-      const countertopColor = readString(config, ["CountertopColor", "countertopColor"]);
-      const handleGrooveColor = readString(config, ["HandleGrooveColor", "handleGrooveColor"]);
+      const countertopColor = readColor(config, "CountertopColor", ["CountertopColor", "countertopColor"]);
+      const handleGrooveColor = readColor(config, "HandleGrooveColor", ["HandleGrooveColor", "handleGrooveColor"]);
 
       if (typeof width === "number") preset.Width = width;
       if (typeof height === "number") preset.Height = height;

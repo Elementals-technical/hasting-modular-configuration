@@ -13,7 +13,11 @@ only. Resize ▸ Thickness lists those the matrix gives the colour; the Countert
 `autoSelect` takes the top that lifts (`preferredValue`; 5½″ after a Porcelain colour), so a colour change never
 lowers a lifted top; 4″ under a vessel is picked by the user. A 4″ top does not lift: picked while the top is
 up, it is lowered where it is ("It was lowered onto the cabinets."), still holding the vessel beside the row,
-and Position ▸ Standard lands the vessel in its Sink Base again. A colour whose material has no such row is refused with
+and Position ▸ Standard lands the vessel in its Sink Base again. The scene may take the lowered pose back after its
+checks (Urban Duplex with one cabinet: the Sink Base the top would land on is not covered, `SINK_BASE_NOT_COVERED`
+on scene v79): the UI reads the pose after `whenSettled()`, and a top still up goes to Standard as Position ▸ Standard
+does (`resetOffset`, then `landSink` for the hosted vessel), the vessel back in its Sink Base, with "It was returned to
+the standard position." instead. A colour whose material has no such row is refused with
 `countertop.materialNotAvailableOffSinkBase` ("Not available when the basin is not over a sink base"): a material
 that lifts at no depth (Glass, Mineralmarmo, Syntesi) gets it before the depth and width checks, so Glass at 46 cm
 says the floating top, not the depth; one that lifts at another depth only (Tekorund at 46 cm) keeps the depth

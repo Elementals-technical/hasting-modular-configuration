@@ -1454,7 +1454,7 @@ export const CabinetBuilderPage = () => {
       const orderedIds = matches.map(({ runtimeId }) => runtimeId);
       const topConfigIds = plan.topConfigs.map(({ sourceId }) => sourceId);
 
-      const presetProducts = buildPresetFromConfiguration(configuration, configIds);
+      const presetProducts = buildPresetFromConfiguration(configuration, activeProfile, runtimeBindings, configIds);
 
       dispatch(addProductPreset(presetProducts));
       // The restorer placed these products; they are recorded as the scene holds them.
@@ -1678,7 +1678,7 @@ export const CabinetBuilderPage = () => {
         navigate({ pathname: restorePath, search });
       }
     },
-    [composition, dispatch, navigate, record, replay, resolveCabinetTypeId, search],
+    [activeProfile, composition, dispatch, navigate, record, replay, resolveCabinetTypeId, runtimeBindings, search],
   );
 
   // A configuration opened by id replaces the builder bootstrap: the preset and empty-builder

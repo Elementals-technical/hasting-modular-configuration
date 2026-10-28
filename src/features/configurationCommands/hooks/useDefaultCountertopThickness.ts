@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { getActiveProductProfile } from "@/entities/configuration";
+import { getActiveProductProfile, getDimensionsByCabinet } from "@/entities/configuration";
 import { getIsRestoreOrUndoRunning } from "@/entities/history/model/store/selectors";
 import { getActiveCountertopThickness, getCountertopStyle } from "@/entities/product/model/store/selectors";
 import {
@@ -27,6 +27,9 @@ type DefaultCountertopThicknessContext = {
  * The value is the rules', not the user's, so it takes no history step. A restore or an undo sets
  * the thickness itself, together with the countertop it was saved with, so nothing is set until it
  * ends, as `useAvailabilityResets` waits.
+ *
+ * A collection whose countertop matrix is judged by the actual module sizes (Tricot) refuses the
+ * thickness until the scene has reported them, so the default is tried again once it has.
  */
 export const useDefaultCountertopThickness = (
   { rules, activeMaterialTokens, width, depth }: DefaultCountertopThicknessContext,
@@ -37,6 +40,7 @@ export const useDefaultCountertopThickness = (
   const countertopStyle = useAppSelector(getCountertopStyle);
   const thickness = useAppSelector(getActiveCountertopThickness);
   const isRestoring = useAppSelector(getIsRestoreOrUndoRunning);
+  const cabinetSizes = useAppSelector(getDimensionsByCabinet);
 
   useEffect(() => {
     if (thickness || isRestoring || !activeMaterialTokens.length || !rules.length) return;
@@ -50,5 +54,16 @@ export const useDefaultCountertopThickness = (
       activeCountertopStyle: countertopStyle,
     });
     if (defaultThickness) void change({ attributeId: "Thickness", value: defaultThickness, scope: "countertop" });
-  }, [activeMaterialTokens, change, countertopStyle, depth, isRestoring, profile, rules, thickness, width]);
+  }, [
+    activeMaterialTokens,
+    cabinetSizes,
+    change,
+    countertopStyle,
+    depth,
+    isRestoring,
+    profile,
+    rules,
+    thickness,
+    width,
+  ]);
 };

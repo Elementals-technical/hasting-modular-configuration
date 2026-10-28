@@ -6,13 +6,22 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
+import cabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-592.json";
+import {
+  tricotConfigurator,
+  tricotMatrixProfile,
+  tricotTestBindings,
+} from "@/entities/collection/__tests__/tricotFixtures";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { ReadyCollectionContext } from "@/entities/collection";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
   finishRestore,
+  recordSceneState,
   resetConfiguration,
   setActiveCollectionId,
+  setActiveRuntimeBindings,
+  setAttributeValue,
   startRestore,
   syncCabinets,
 } from "@/entities/configuration";
@@ -319,5 +328,62 @@ describe("useDefaultCountertopThickness", () => {
 
     expect(runtime.calls).toHaveLength(0);
     expect(getActiveCountertopThickness(store.getState())).toBe("4");
+  });
+
+  it("sets the default once the scene reports the cabinets' sizes, which the countertop matrix needs", async () => {
+    // Tricot judges a thickness by its countertop matrix and the actual module sizes (countertopCompatibility).
+    const sinkBaseId = `${tricotTestBindings.productTypes["Sink-Base"]}-1`;
+    store.dispatch(setActiveProfile(tricotMatrixProfile));
+    store.dispatch(setActiveCollectionId("tricot"));
+    store.dispatch(setActiveRuntimeBindings(tricotTestBindings));
+    store.dispatch(
+      setCabinetCatalog(buildCabinetCatalogFromMatrix(cabinetTable, tricotMatrixProfile, tricotTestBindings)),
+    );
+    store.dispatch(syncCabinets([sinkBaseId]));
+    store.dispatch(
+      setAttributeValue({ attributeId: "Drawers", target: { scope: "cabinet", cabinetId: "cab-1" }, value: "1" }),
+    );
+    const tricotWrapper = ({ children }: { children: ReactNode }) => (
+      <ReadyCollectionContext.Provider
+        value={{
+          ...readyCollectionFixture,
+          catalog: { ...readyCollectionFixture.catalog, configurator: tricotConfigurator },
+        }}
+      >
+        <Provider store={store}>
+          <MemoryRouter initialEntries={["/custom/cabinet-builder"]}>{children}</MemoryRouter>
+        </Provider>
+      </ReadyCollectionContext.Provider>
+    );
+    const runtime = createTestRuntimePort();
+
+    renderHook(
+      () =>
+        useDefaultCountertopThickness(
+          {
+            rules: tricotMatrixProfile.countertopRules,
+            activeMaterialTokens: ["Solid Surface"],
+            width: 60,
+            depth: 52,
+          },
+          { runtime: runtime.port },
+        ),
+      { wrapper: tricotWrapper },
+    );
+    await act(async () => Promise.resolve());
+
+    // Before the scene reports the sizes, the command cannot judge the thickness and sets none.
+    expect(getActiveCountertopThickness(store.getState())).toBe("");
+
+    act(() => {
+      store.dispatch(
+        recordSceneState({
+          order: [sinkBaseId],
+          cabinets: [{ runtimeId: sinkBaseId, dimensions: { width: 60, height: 40, depth: 52 } }],
+        }),
+      );
+    });
+
+    await waitFor(() => expect(getActiveCountertopThickness(store.getState())).toBe("0.5"));
   });
 });
