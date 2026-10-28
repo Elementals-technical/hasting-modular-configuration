@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"header":"Select Accessories","labels":["Summary View","Side Panels","None","No groove","Dividers","Towel Bar","Total List Price","Quote","Next: Faucet Details"],"controls":["[ ] Side Panels","[x] None","[ ] No groove","[ ] 1 groove (upper)","[ ] Dividers","[ ] Towel Bar","[ ] Back to Countertop & Basin","[ ] Next: Faucet Details"]}
+```

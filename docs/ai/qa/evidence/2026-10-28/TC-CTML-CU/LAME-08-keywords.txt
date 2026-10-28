@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[["Handle",1],["Leg",1],["G50",0],["G57",0],["Metal",0],["Undertop",1],["Pattern",1],["Frame",0],["Side Color",0],["Groove",0]]
+```

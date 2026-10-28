@@ -1,0 +1,551 @@
+{"id": "P0001", "style": "Heading1", "text": "Tricot — специфікація колекції", "links": [], "images": [], "comments": [], "heading": "Tricot — специфікація колекції"}
+{"id": "P0002", "style": "Heading1", "text": "Специфікація", "links": [], "images": [], "comments": [], "heading": "Специфікація"}
+{"id": "P0003", "style": "Heading2", "text": "1. Огляд колекції", "links": [], "images": [], "comments": [], "heading": "1. Огляд колекції"}
+{"id": "P0004", "style": "", "text": "Пункт", "links": [], "images": [], "comments": [], "heading": "1. Огляд колекції"}
+{"id": "P0005", "style": "", "text": "Значення", "links": [], "images": [], "comments": [], "heading": "1. Огляд колекції"}
+{"id": "P0006", "style": "", "text": "Колекція", "links": [], "images": [], "comments": [], "heading": "1. Огляд колекції"}
+{"id": "P0007", "style": "", "text": "Tricot (\"Tricot Vanity\"), код продукту в SKU TRIC, категорія VAN", "links": [], "images": [], "comments": [], "heading": "1. Огляд колекції"}
+{"id": "P0008", "style": "Heading3", "text": "Що таке Tricot", "links": [], "images": [], "comments": [], "heading": "Що таке Tricot"}
+{"id": "P0009", "style": "Heading3", "text": "Статуси в цій специфікації", "links": [], "images": [], "comments": [], "heading": "Статуси в цій специфікації"}
+{"id": "P0010", "style": "", "text": "Ready – реалізовано й є в тестовій збірці.", "links": [], "images": [], "comments": [], "heading": "Статуси в цій специфікації"}
+{"id": "P0011", "style": "", "text": "Provisional – реалізовано, але значення — наше припущення, що чекає підтвердження клієнта.", "links": [], "images": [], "comments": [], "heading": "Статуси в цій специфікації"}
+{"id": "P0012", "style": "", "text": "Not implemented – у оригіналах клієнта визначено, у збірці немає.", "links": [], "images": [], "comments": [], "heading": "Статуси в цій специфікації"}
+{"id": "P0013", "style": "", "text": "Not in scope – оригінали клієнта не визначають це для Tricot (з посиланням).", "links": [], "images": [], "comments": [], "heading": "Статуси в цій специфікації"}
+{"id": "P0014", "style": "", "text": "UNKNOWN — clarify – оригінали мовчать або суперечать один одному.", "links": [], "images": [], "comments": [], "heading": "Статуси в цій специфікації"}
+{"id": "P0015", "style": "Heading2", "text": "2. Продукти", "links": [], "images": [], "comments": [], "heading": "2. Продукти"}
+{"id": "P0016", "style": "Heading3", "text": "2.1 Сімейства продуктів", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0017", "style": "", "text": "Продукт", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0018", "style": "", "text": "Код", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0019", "style": "", "text": "Ширина (см / дюйми)", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0020", "style": "", "text": "Висота", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0021", "style": "", "text": "Глибина", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0022", "style": "", "text": "Ящики (стиль)", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0023", "style": "", "text": "Ручка", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0024", "style": "", "text": "Патерни", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0025", "style": "", "text": "Раковина", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0026", "style": "", "text": "Sink Base", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0027", "style": "", "text": "SB", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0028", "style": "", "text": "{60, 80, 100, 120} / {23.6, 31.5, 39.4, 47.2}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0029", "style": "", "text": "{40 см / 15.7\"}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0030", "style": "", "text": "{52 см / 20.5\"}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0031", "style": "", "text": "{1DW, 2DW, 1DWID}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0032", "style": "", "text": "{лише паз}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0033", "style": "", "text": "{Loden, Cannette, Twill, Gessato, Satin}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0034", "style": "", "text": "так, одна на Sink Base", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0035", "style": "", "text": "Side Cabinet", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0036", "style": "", "text": "SC", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0037", "style": "", "text": "{40, 60, 80, 100, 120} / {15.7, 23.6, 31.5, 39.4, 47.2}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0038", "style": "", "text": "{40 см}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0039", "style": "", "text": "{52 см}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0040", "style": "", "text": "{1DW, 2DW, 1DWID}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0041", "style": "", "text": "{лише паз}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0042", "style": "", "text": "ті самі п'ять", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0043", "style": "", "text": "ні", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0044", "style": "", "text": "Side Panel (аксесуар)", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0045", "style": "", "text": "SP", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0046", "style": "", "text": "{товщина 0.8\"}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0047", "style": "", "text": "{40 см}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0048", "style": "", "text": "{52 см}", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0049", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0050", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0051", "style": "", "text": "немає (гладка)", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0052", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0053", "style": "", "text": "Sink Base 40 см немає: її немає в прайсі клієнта.", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0054", "style": "", "text": "Висота й глибина мають по одному значенню; вибору висоти чи глибини немає", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0055", "style": "", "text": "Кількість SKU у клієнта: SB 3 стилі × 5 патернів × 4 ширини = 60; SC 3 × 5 × 5 = 75; SP 1 → 136", "links": [], "images": [], "comments": [], "heading": "2.1 Сімейства продуктів"}
+{"id": "P0056", "style": "Heading3", "text": "2.2 Стилі ящиків", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0057", "style": "", "text": "Підпис в UI", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0058", "style": "", "text": "Код", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0059", "style": "", "text": "Значення", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0060", "style": "", "text": "1 Drawer", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0061", "style": "", "text": "1DW", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0062", "style": "", "text": "один ящик", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0063", "style": "", "text": "2 Drawers", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0064", "style": "", "text": "2DW", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0065", "style": "", "text": "два ящики", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0066", "style": "", "text": "1 Drawer + Inner Drawer", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0067", "style": "", "text": "1DWID", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0068", "style": "", "text": "один фасадний ящик із внутрішнім; ціна як у 2DW", "links": [], "images": [], "comments": [], "heading": "2.2 Стилі ящиків"}
+{"id": "P0069", "style": "Heading3", "text": "2.3 Ручка", "links": [], "images": [], "comments": [], "heading": "2.3 Ручка"}
+{"id": "P0070", "style": "", "text": "Завжди паз, вибору немає: \"Handle Styles — No option - it is always grooved\"", "links": [], "images": [], "comments": [], "heading": "2.3 Ручка"}
+{"id": "P0071", "style": "", "text": "Конфігуратор зберігає єдине значення UG (підпис \"Upper Groove\") для Summary і збережених конфігурацій; кроку чи селектора ручки немає", "links": [], "images": [], "comments": [], "heading": "2.3 Ручка"}
+{"id": "P0072", "style": "", "text": "Налаштовується лише колір пазу", "links": [], "images": [], "comments": [], "heading": "2.3 Ручка"}
+{"id": "P0073", "style": "Heading3", "text": "2.4 Патерни (Cabinet Pattern)", "links": [], "images": [], "comments": [], "heading": "2.4 Патерни (Cabinet Pattern)"}
+{"id": "P0074", "style": "", "text": "Набір: {Loden, Cannette, Twill, Gessato, Satin}", "links": [], "images": [], "comments": [], "heading": "2.4 Патерни (Cabinet Pattern)"}
+{"id": "P0075", "style": "", "text": "Кожен патерн прив'язаний до матеріалу корпусу:", "links": [], "images": [], "comments": [], "heading": "2.4 Патерни (Cabinet Pattern)"}
+{"id": "P0076", "style": "", "text": "Loden → лише Lacquered MT;", "links": [], "images": [], "comments": [], "heading": "2.4 Патерни (Cabinet Pattern)"}
+{"id": "P0077", "style": "", "text": "Cannette, Twill, Gessato, Satin → лише Wood Veneer", "links": [], "images": [], "comments": [], "heading": "2.4 Патерни (Cabinet Pattern)"}
+{"id": "P0078", "style": "", "text": "Патерни застосовуються лише до фасадів ящиків, ніколи до бокових панелей", "links": [], "images": [], "comments": [], "heading": "2.4 Патерни (Cabinet Pattern)"}
+{"id": "P0079", "style": "Heading3", "text": "2.5 Типи продуктів, яких у Tricot немає", "links": [], "images": [], "comments": [], "heading": "2.5 Типи продуктів, яких у Tricot немає"}
+{"id": "P0080", "style": "", "text": "Open Shelf, Side Shelf: немає в тексті Tricot і в прайсі", "links": [], "images": [], "comments": [], "heading": "2.5 Типи продуктів, яких у Tricot немає"}
+{"id": "P0081", "style": "Heading2", "text": "3. Кроки і секції", "links": [], "images": [], "comments": [], "heading": "3. Кроки і секції"}
+{"id": "P0082", "style": "", "text": "Обидва сценарії мають п'ять кроків. Кроки 2–5 однакові в обох [code: tricot/ui.json].", "links": [], "images": [], "comments": [], "heading": "3. Кроки і секції"}
+{"id": "P0083", "style": "Heading3", "text": "3.1 Сценарій Prebuilt", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0084", "style": "", "text": "#", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0085", "style": "", "text": "Крок", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0086", "style": "", "text": "Блоки (по порядку)", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0087", "style": "", "text": "Що налаштовується", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0088", "style": "", "text": "Крок у 2D", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0089", "style": "", "text": "1", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0090", "style": "", "text": "Tricot Models", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0091", "style": "", "text": "фільтр Size, фільтр Style, сітка моделей, деталі моделі", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0092", "style": "", "text": "вибір однієї з 41 моделі; \"Customize\" копіює модель у конструктор тумб", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0093", "style": "", "text": "1 Select Model (Size, Style, Model) [2D L2–L55]", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0094", "style": "", "text": "2", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0095", "style": "", "text": "Cabinet Finishes", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0096", "style": "", "text": "Cabinet Color, Cabinet Pattern, Handle Groove Color", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0097", "style": "", "text": "23 кольори корпусу, 5 патернів (з обмеженням за матеріалом), 20 кольорів пазу", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0098", "style": "", "text": "2 Select Cabinet Color, 3 Select Cabinet Pattern, 4 Select Handle Groove Color", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0099", "style": "", "text": "3", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0100", "style": "", "text": "Accessories", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0101", "style": "", "text": "Side Panels", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0102", "style": "", "text": "None / No groove", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0103", "style": "", "text": "5 Side Panels (опційно)", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0104", "style": "", "text": "4", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0105", "style": "", "text": "Countertop & Basin", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0106", "style": "", "text": "Countertop Color, Thickness, Countertop Style, Basin Style (заголовок \"Vessel Sink Style\" для vessel), Vessel Color (лише для vessel)", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0107", "style": "", "text": "71 колір, 5 товщин, Integrated / Vessel, 10 інтегрованих раковин або 3 vessel + \"None\", 20–40 кольорів vessel", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0108", "style": "", "text": "6 Select Countertop Color, 7 Select Countertop Basin Style (Thickness, Countertop Style і vessel у 2D немає, вони визначені в документі WebGL)", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0109", "style": "", "text": "5", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0110", "style": "", "text": "Summary", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0111", "style": "", "text": "ціна і список позицій", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0112", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0113", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "3.1 Сценарій Prebuilt"}
+{"id": "P0114", "style": "Heading3", "text": "3.2 Сценарій Create your own", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0115", "style": "", "text": "#", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0116", "style": "", "text": "Крок", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0117", "style": "", "text": "Блоки", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0118", "style": "", "text": "Що налаштовується", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0119", "style": "", "text": "1", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0120", "style": "", "text": "Tricot Cabinet Builder", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0121", "style": "", "text": "Cabinet Type, Cabinet Style; права панель вибраної тумби: Width, Depth", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0122", "style": "", "text": "додати Sink Base / Side Cabinet; ящики 1DW / 2DW / 1DWID; ширина кожної тумби; глибина показує єдине значення 52 см", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0123", "style": "", "text": "2–5", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0124", "style": "", "text": "як у Prebuilt 2–5", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0125", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0126", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0127", "style": "", "text": "Порядок вибору відповідає клієнтському \"Cabinet Type → Cabinet Style → Size Selection\"", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0128", "style": "", "text": "Селектор Handle має бути прихований у правій панелі (вибору ручки немає)", "links": [], "images": [], "comments": [], "heading": "3.2 Сценарій Create your own"}
+{"id": "P0129", "style": "Heading3", "text": "3.3 Деталі блоків", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0130", "style": "", "text": "Блок", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0131", "style": "", "text": "Контрол", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0132", "style": "", "text": "Джерело опцій", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0133", "style": "", "text": "Коли показаний / активний", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0134", "style": "", "text": "Cabinet Type", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0135", "style": "", "text": "картки з картинками", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0136", "style": "", "text": "Sink Base, Side Cabinet", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0137", "style": "", "text": "третя Sink Base і ширини понад ліміт довжини вимкнені", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0138", "style": "", "text": "Cabinet Style", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0139", "style": "", "text": "картки з картинками", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0140", "style": "", "text": "1DW, 2DW, 1DWID", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0141", "style": "", "text": "інша група ящиків позначена як «змішування обмежене»", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0142", "style": "", "text": "Cabinet Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0143", "style": "", "text": "свотчі з фільтрами Material / Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0144", "style": "", "text": "список кольорів конфігуратора (23)", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0145", "style": "", "text": "завжди", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0146", "style": "", "text": "Cabinet Pattern", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0147", "style": "", "text": "картки з картинками", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0148", "style": "", "text": "5 патернів", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0149", "style": "", "text": "активні лише патерни, дозволені для матеріалу корпусу", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0150", "style": "", "text": "Handle Groove Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0151", "style": "", "text": "свотчі", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0152", "style": "", "text": "список кольорів конфігуратора (20)", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0153", "style": "", "text": "завжди; один колір на всю тумбу", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0154", "style": "", "text": "Side Panels", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0155", "style": "", "text": "картки з картинками", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0156", "style": "", "text": "None, No groove", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0157", "style": "", "text": "\"No groove\" вимкнена, якщо перевищить ліміт довжини", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0158", "style": "", "text": "Countertop Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0159", "style": "", "text": "свотчі з фільтрами Material / Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0160", "style": "", "text": "список кольорів конфігуратора (71)", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0161", "style": "", "text": "кольори, чий матеріал підходить композиції", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0162", "style": "", "text": "Thickness", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0163", "style": "", "text": "свотчі (лише доступні значення)", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0164", "style": "", "text": "0.5\", 0.8\", 3.1\", 4\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0165", "style": "", "text": "значення, дозволені для матеріалу стільниці", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0166", "style": "", "text": "Countertop Style", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0167", "style": "", "text": "картки з картинками", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0168", "style": "", "text": "Integrated, Vessel", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0169", "style": "", "text": "обидва доступні для всіх поточних матеріалів [derived]", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0170", "style": "", "text": "Basin Style", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0171", "style": "", "text": "картки з картинками", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0172", "style": "", "text": "інтегровані раковини вибраного матеріалу або None / Iris / Frame / Plaza", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0173", "style": "", "text": "§5", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0174", "style": "", "text": "Vessel Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0175", "style": "", "text": "свотчі", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0176", "style": "", "text": "список кольорів vessel", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0177", "style": "", "text": "лише коли вибрано vessel (Iris, Frame, Plaza)", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0178", "style": "", "text": "Відхилена опція лишається видимою й вимкненою з текстом причини; Thickness і Basin Style показують лише доступні значення [code: UI FieldControl].", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0179", "style": "", "text": "Фільтри Prebuilt показують Size {All, 24-29\", 30-39\", 40-49\", 50-59\", 60-69\", 70-79\", 80-89\", 90\"+} і Style {All, 1 Drawer, 2 Drawer, Single Basin, Double Basin, Asymmetrical, Open Shelving, Multi-level}; для \"90\"+\", \"Open Shelving\" і \"Multi-level\"", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0180", "style": "", "text": "4. Матеріали", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0181", "style": "", "text": "Звірка кількості: усі списки нижче збігаються з Master File клієнта 1:1 (ті самі назви, порядок, категорії)", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0182", "style": "", "text": "Властивість", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0183", "style": "", "text": "Категорія", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0184", "style": "", "text": "Кількість", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0185", "style": "", "text": "Область", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0186", "style": "", "text": "Cabinet Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0187", "style": "", "text": "Lacquered MT / Wood Veneer", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0188", "style": "", "text": "20 / 3 = 23", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0189", "style": "", "text": "уся тумба", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0190", "style": "", "text": "Cabinet Pattern", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0191", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0192", "style": "", "text": "5", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0193", "style": "", "text": "на кожну тумбу", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0194", "style": "", "text": "Handle Groove Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0195", "style": "", "text": "Lacquered MT", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0196", "style": "", "text": "20", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0197", "style": "", "text": "уся тумба", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0198", "style": "", "text": "Countertop Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0199", "style": "", "text": "Solid Surface / HPL / Porcelain / Glass MT / Glass GL", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0200", "style": "", "text": "2 / 14 / 15 / 20 / 20 = 71", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0201", "style": "", "text": "уся стільниця", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0202", "style": "", "text": "Thickness", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0203", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0204", "style": "", "text": "5", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0205", "style": "", "text": "уся стільниця", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0206", "style": "", "text": "Vessel Color", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0207", "style": "", "text": "Lacquered MT / Lacquered GL", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0208", "style": "", "text": "20 / 20 = 40 (Provisional)", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0209", "style": "", "text": "на кожну vessel", "links": [], "images": [], "comments": [], "heading": "3.3 Деталі блоків"}
+{"id": "P0210", "style": "Heading3", "text": "4.1 Cabinet Color (23)", "links": [], "images": [], "comments": [], "heading": "4.1 Cabinet Color (23)"}
+{"id": "P0211", "style": "", "text": "Lacquered MT (20): Grigio Argento 403 MT; Nebbia 402 MT; Seta 406 MT; Moka 408 MT; Ponente 418 MT; Acqua 419 MT; Salvia 415 MT; Ambra 413 MT; Latte 417 MT; Fumo 401 MT; Metropoli 404 MT; Antracite 400 MT; Nero 433 MT; Sabbia 405 MT; Agata 407 MT; Creta 416 MT; Zaffiro 411 MT; Turchese 410 MT; Asparago 414 MT; Zafferano 412 MT.", "links": [], "images": [], "comments": [], "heading": "4.1 Cabinet Color (23)"}
+{"id": "P0212", "style": "", "text": "Wood Veneer (3): Noce Canaletto 933; Rovere Oro 932; Rovere Termocotto 931.", "links": [], "images": [], "comments": [], "heading": "4.1 Cabinet Color (23)"}
+{"id": "P0213", "style": "", "text": "Дефолт у конфігураторі: Rovere Oro 932 (клієнт дефолтів не задає)", "links": [], "images": [], "comments": [], "heading": "4.1 Cabinet Color (23)"}
+{"id": "P0214", "style": "", "text": "Відображення Wood Veneer на ретесті", "links": [], "images": [], "comments": [], "heading": "4.1 Cabinet Color (23)"}
+{"id": "P0215", "style": "Heading3", "text": "4.2 Cabinet Pattern (5) і обмеження за матеріалом", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0216", "style": "", "text": "Патерн (підпис)", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0217", "style": "", "text": "Дозволений матеріал корпусу", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0218", "style": "", "text": "Токен SKU", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0219", "style": "", "text": "Loden", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0220", "style": "", "text": "лише Lacquered MT", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0221", "style": "", "text": "LOD", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0222", "style": "", "text": "Cannette (підпис \"Cannete\", як у Master File)", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0223", "style": "", "text": "лише Wood Veneer", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0224", "style": "", "text": "CAN", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0225", "style": "", "text": "Twill", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0226", "style": "", "text": "лише Wood Veneer", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0227", "style": "", "text": "TWLL", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0228", "style": "", "text": "Gessato", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0229", "style": "", "text": "лише Wood Veneer", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0230", "style": "", "text": "GES", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0231", "style": "", "text": "Satin (без рельєфу)", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0232", "style": "", "text": "лише Wood Veneer", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0233", "style": "", "text": "SAT", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0234", "style": "", "text": "Наслідок: лакований корпус може мати лише Loden; корпус у шпоні — Cannette, Twill, Gessato або Satin", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0235", "style": "", "text": "Дефолт: Satin", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0236", "style": "", "text": "Патерн — рельєф поверхні фасадів ящиків; колір корпусу лишається видимим", "links": [], "images": [], "comments": [], "heading": "4.2 Cabinet Pattern (5) і обмеження за матеріалом"}
+{"id": "P0237", "style": "Heading3", "text": "4.3 Handle Groove Color (20) [2D L84–L103]", "links": [], "images": [], "comments": [], "heading": "4.3 Handle Groove Color (20) [2D L84–L103]"}
+{"id": "P0238", "style": "", "text": "Lacquered MT (20): ті самі 20 назв, що й у лаків корпусу (Grigio Argento 403 MT … Zafferano 412 MT). Без дерева, глянцю чи металу.", "links": [], "images": [], "comments": [], "heading": "4.3 Handle Groove Color (20) [2D L84–L103]"}
+{"id": "P0239", "style": "", "text": "Якщо колір пазу дорівнює кольору корпусу і колір корпусу змінюється на інший лак, паз йде за ним", "links": [], "images": [], "comments": [], "heading": "4.3 Handle Groove Color (20) [2D L84–L103]"}
+{"id": "P0240", "style": "", "text": "Дефолт у конфігураторі: Nero 433 MT на моделях;", "links": [], "images": [], "comments": [], "heading": "4.3 Handle Groove Color (20) [2D L84–L103]"}
+{"id": "P0241", "style": "Heading3", "text": "4.4 Countertop Color (71)", "links": [], "images": [], "comments": [], "heading": "4.4 Countertop Color (71)"}
+{"id": "P0242", "style": "", "text": "Solid Surface (2): Matte White; Matte White 8cm.", "links": [], "images": [], "comments": [], "heading": "4.4 Countertop Color (71)"}
+{"id": "P0243", "style": "", "text": "HPL (14): Calacatta 259; Impero 260; Kaspio Argento 262; Kaspio Oro 261; Noce Savoia 256; Rivel 257; Rovere Prussia 255; Rovere Slavonia 254; Rovere Texas 264; Silver Voyage 263; Grigio Bromo 253; Bianco Kos 250; Grigio London 252; Nero Ingo 251.", "links": [], "images": [], "comments": [], "heading": "4.4 Countertop Color (71)"}
+{"id": "P0244", "style": "", "text": "Porcelain (15): Calacatta Black 338; Calacatta Oro Opaco 331; Emperador Opaco 322; Invisible White Opaco 332; Invisible White Lucido 334; Mine Goffrato 317; Ardesia Nera 328; Nero Atlante Lucido 326; Pietra Grey Goffrato 323; Pietra Piasentina Goffrato 324; Porfido 337; Sahara Noir Bocciardato 335; Sahara Noir Lucido 339; Statuario Altissimo Lucido 333; Terre Di Saturnia 336.", "links": [], "images": [], "comments": [], "heading": "4.4 Countertop Color (71)"}
+{"id": "P0245", "style": "", "text": "Glass MT (20): 20 назв лаків із суфіксом MT (Grigio Argento 403 MT … Zafferano 412 MT).", "links": [], "images": [], "comments": [], "heading": "4.4 Countertop Color (71)"}
+{"id": "P0246", "style": "", "text": "Glass GL (20): Grigio Argento 403 GL; Nebbia 402 GL; Seta 406 GL; Moka 408 GL; Ponente 418 GL; Acqua 419 GL; Salvia 415 GL; Ambra 413 GL; Latte 417 GL; Fumo 401 GL; Metropoli 404 GL; Antracite 400 GL; Nero 433 GL; Sabbia 405 GL; Agata 407 GL; Creta 416 GL; Zaffiro 411 GL; Turchese 410 GL; Asparago 414 GL; Zafferano 412 GL.", "links": [], "images": [], "comments": [], "heading": "4.4 Countertop Color (71)"}
+{"id": "P0247", "style": "", "text": "Цінова група (для Solid Surface — Provisional): Matte White → SSTL, Matte White 8cm → SSTMT, HPL → HPL, Porcelain → POR, Glass MT → GLSM, Glass GL → GLSG [code: список кольорів конфігуратора]. Клієнт не вказав, до якої групи Solid Surface належать обидва Matte White", "links": [], "images": [], "comments": [], "heading": "4.4 Countertop Color (71)"}
+{"id": "P0248", "style": "Heading3", "text": "4.5 Thickness (5)", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0249", "style": "", "text": "Показано", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0250", "style": "", "text": "Значення (дюйми)", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0251", "style": "", "text": "Код SKU", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0252", "style": "", "text": "Дозволені матеріали [table 593]", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0253", "style": "", "text": "0.5\"", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0254", "style": "", "text": "1/2", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0255", "style": "", "text": ".5", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0256", "style": "", "text": "Solid Surface (раковини LB), HPL, Glass MT/GL", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0257", "style": "", "text": "0.8\"", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0258", "style": "", "text": "3/4", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0259", "style": "", "text": ".8", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0260", "style": "", "text": "Porcelain", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0261", "style": "", "text": "3.1\"", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0262", "style": "", "text": "3-1/8", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0263", "style": "", "text": "3.1", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0264", "style": "", "text": "лише Solid Surface з VA023", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0265", "style": "", "text": "4\"", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0266", "style": "", "text": "4", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0267", "style": "", "text": "4", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0268", "style": "", "text": "HPL", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0269", "style": "", "text": "4.7\"", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0270", "style": "", "text": "4-3/4", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0271", "style": "", "text": "4.7", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0272", "style": "", "text": "Solid Surface (раковини LB), Porcelain", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0273", "style": "", "text": "Дефолту немає; автоматично ставиться перша дозволена для кольору товщина", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0274", "style": "", "text": "Товщин взяті з прайсу Class", "links": [], "images": [], "comments": [], "heading": "4.5 Thickness (5)"}
+{"id": "P0275", "style": "Heading3", "text": "4.6 Vessel Color (40) — Provisional", "links": [], "images": [], "comments": [], "heading": "4.6 Vessel Color (40) — Provisional"}
+{"id": "P0276", "style": "", "text": "Lacquered MT (20) і Lacquered GL (20): назви лаків із суфіксом MT або GL.", "links": [], "images": [], "comments": [], "heading": "4.6 Vessel Color (40) — Provisional"}
+{"id": "P0277", "style": "", "text": "Iris і Frame: лише Lacquered MT; Plaza: Lacquered MT і Lacquered GL. Попередньо вибрані: Iris Salvia 415 MT, Frame Fumo 401 MT, Plaza Antracite 400 MT", "links": [], "images": [], "comments": [], "heading": "4.6 Vessel Color (40) — Provisional"}
+{"id": "P0278", "style": "", "text": "У жодному клієнтському файлі Tricot не визначено; взято з Class", "links": [], "images": [], "comments": [], "heading": "4.6 Vessel Color (40) — Provisional"}
+{"id": "P0279", "style": "Heading2", "text": "5. Раковини", "links": [], "images": [], "comments": [], "heading": "5. Раковини"}
+{"id": "P0280", "style": "", "text": "Раковини стоять лише на Sink Base, по одній на Sink Base; у тумбі одна або дві раковини (максимум 2 Sink Base)", "links": [], "images": [], "comments": [], "heading": "5. Раковини"}
+{"id": "P0281", "style": "", "text": "10 кодів раковин — це список із 2D;", "links": [], "images": [], "comments": [], "heading": "5. Раковини"}
+{"id": "P0282", "style": "", "text": "Відповідність «код → 3D-модель» нижче Provisional для всіх рядків.", "links": [], "images": [], "comments": [], "heading": "5. Раковини"}
+{"id": "P0283", "style": "Heading3", "text": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0284", "style": "", "text": "Код", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0285", "style": "", "text": "3D-модель", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0286", "style": "", "text": "Матеріал стільниці (кольори)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0287", "style": "", "text": "Товщина", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0288", "style": "", "text": "Ширина Sink Base", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0289", "style": "", "text": "Іконка", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0290", "style": "", "text": "Рев'ю відповідності 27.10", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0291", "style": "", "text": "LB440", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0292", "style": "", "text": "Top_HPLPrisma", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0293", "style": "", "text": "Solid Surface (Matte White, Matte White 8cm)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0294", "style": "", "text": "0.5\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0295", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0296", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0297", "style": "", "text": "ок", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0298", "style": "", "text": "LB175", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0299", "style": "", "text": "Top_Tekorlux_Ron", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0300", "style": "", "text": "Solid Surface", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0301", "style": "", "text": "0.5\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0302", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0303", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0304", "style": "", "text": "не та модель — має бути овальна", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0305", "style": "", "text": "LB575", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0306", "style": "", "text": "Top_Tekorlux_Quadra", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0307", "style": "", "text": "Solid Surface", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0308", "style": "", "text": "0.5\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0309", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0310", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0311", "style": "", "text": "ок", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0312", "style": "", "text": "LB856", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0313", "style": "", "text": "Top_HPLStrip", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0314", "style": "", "text": "Solid Surface", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0315", "style": "", "text": "0.5\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0316", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0317", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0318", "style": "", "text": "не та", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0319", "style": "", "text": "VA023", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0320", "style": "", "text": "Top_Tekormud_Tivi", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0321", "style": "", "text": "Solid Surface (цінова група SSTMT)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0322", "style": "", "text": "лише 3.1\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0323", "style": "", "text": "80–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0324", "style": "", "text": "немає", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0325", "style": "", "text": "не та модель", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0326", "style": "", "text": "VA024", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0327", "style": "", "text": "Top_HPLCover", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0328", "style": "", "text": "HPL (14)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0329", "style": "", "text": "0.5\", 4\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0330", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0331", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0332", "style": "", "text": "ок", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0333", "style": "", "text": "LV890", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0334", "style": "", "text": "Top_Tekorlux_Trip", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0335", "style": "", "text": "Porcelain (15)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0336", "style": "", "text": "0.8\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0337", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0338", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0339", "style": "", "text": "прибрати скіс краю", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0340", "style": "", "text": "LV892", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0341", "style": "", "text": "Top_Ocritech_Orion", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0342", "style": "", "text": "Porcelain", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0343", "style": "", "text": "0.8\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0344", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0345", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0346", "style": "", "text": "прибрати перелив", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0347", "style": "", "text": "VA002", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0348", "style": "", "text": "Top_Ocritech_Oly55", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0349", "style": "", "text": "Glass MT (20), Glass GL (20)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0350", "style": "", "text": "0.5\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0351", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0352", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0353", "style": "", "text": "має бути скляна", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0354", "style": "", "text": "VA005", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0355", "style": "", "text": "Top_Tekorlux_Rectangular", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0356", "style": "", "text": "Glass MT, Glass GL", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0357", "style": "", "text": "0.5\"", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0358", "style": "", "text": "60–120", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0359", "style": "", "text": "є", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0360", "style": "", "text": "має бути скляна", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0361", "style": "", "text": "Раковина бере колір стільниці [3D: basin material rule].", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0362", "style": "", "text": "Показуються лише раковини вибраного матеріалу стільниці; раковина активна, лише якщо підходить за товщиною і шириною Sink Base; до вибору кольору стільниці жодна не активна", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0363", "style": "", "text": "Sink Base 60 см з 1DWID не приймає інтегровану раковину (лише vessel)", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0364", "style": "", "text": "VA030 є в прайсі Class, але немає в Master File Tricot, тому не пропонується .", "links": [], "images": [], "comments": [], "heading": "5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0365", "style": "Heading3", "text": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0366", "style": "", "text": "Опція", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0367", "style": "", "text": "3D-модель", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0368", "style": "", "text": "Кольори vessel", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0369", "style": "", "text": "Ширина Sink Base", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0370", "style": "", "text": "SKU", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0371", "style": "", "text": "Статус", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0372", "style": "", "text": "None (лише виріз, vessel не замовляється)", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0373", "style": "", "text": "порожній виріз", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0374", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0375", "style": "", "text": "будь-яка", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0376", "style": "", "text": "лише виріз", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0377", "style": "", "text": "Provisional (немає в оригіналах клієнта)", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0378", "style": "", "text": "Iris", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0379", "style": "", "text": "Vessel_Iris", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0380", "style": "", "text": "Lacquered MT (20)", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0381", "style": "", "text": "будь-яка", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0382", "style": "", "text": "VES-IRIS-X-16.5W-4.3H-16.5D-…", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0383", "style": "", "text": "Provisional; модель ок", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0384", "style": "", "text": "Frame", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0385", "style": "", "text": "Vessel_Frame", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0386", "style": "", "text": "Lacquered MT (20)", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0387", "style": "", "text": "будь-яка", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0388", "style": "", "text": "VES-FRM-X-19.7W-4.3H-13.8D-…", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0389", "style": "", "text": "Provisional; не видно в 3D, ретест [backlog: #76]", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0390", "style": "", "text": "Plaza", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0391", "style": "", "text": "Vessel_Blade11 (заглушка)", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0392", "style": "", "text": "Lacquered MT + GL (40)", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0393", "style": "", "text": "будь-яка", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0394", "style": "", "text": "VES-PLZ-X-23.6W-4.7H-18.9D-…", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0395", "style": "", "text": "Provisional; не та модель, моделі Plaza в сцені немає", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0396", "style": "", "text": "Клієнт називає для Tricot Iris, Frame, Plaza", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0397", "style": "", "text": "Кожна Sink Base із vessel отримує виріз під vessel", "links": [], "images": [], "comments": [], "heading": "5.2 Vessel-раковини (Countertop Style = Vessel) (зараз на тесті, під питанням актуальність звязку до коду)"}
+{"id": "P0398", "style": "Heading3", "text": "5.3 Поведінка", "links": [], "images": [], "comments": [], "heading": "5.3 Поведінка"}
+{"id": "P0399", "style": "", "text": "Дві раковини: кожна Sink Base має свою раковину; усі Sink Base мають спільні колір, товщину й стиль стільниці [code: tricot/product-profile.json].", "links": [], "images": [], "comments": [], "heading": "5.3 Поведінка"}
+{"id": "P0400", "style": "", "text": "Зміна стилю стільниці очищає раковину іншого стилю й вибирає першу дозволену", "links": [], "images": [], "comments": [], "heading": "5.3 Поведінка"}
+{"id": "P0401", "style": "", "text": "У 3D модель раковини змінюється разом із вибором, а її кріплення йде за товщиною стільниці", "links": [], "images": [], "comments": [], "heading": "5.3 Поведінка"}
+{"id": "P0402", "style": "Heading2", "text": "6. Аксесуари", "links": [], "images": [], "comments": [], "heading": "6. Аксесуари"}
+{"id": "P0403", "style": "Heading3", "text": "6.1 Доступно: бокові панелі", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0404", "style": "", "text": "Пункт", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0405", "style": "", "text": "Значення", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0406", "style": "", "text": "Де", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0407", "style": "", "text": "крок \"Accessories\", блок \"Side Panels\" (обидва сценарії)", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0408", "style": "", "text": "Опції", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0409", "style": "", "text": "None; No groove (гладка панель). Підписи в 2D клієнта: \"None\" / \"Yes\"", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0410", "style": "", "text": "Розміщення", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0411", "style": "", "text": "лише на відкритих торцях тумби (\"only to the end of a unit\"); при кількох тумбах користувачу показують, з якого боку стане панель", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0412", "style": "", "text": "На чому можна", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0413", "style": "", "text": "Sink Base і Side Cabinet, усі стилі ящиків (висота 40 см)", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0414", "style": "", "text": "Колір", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0415", "style": "", "text": "як колір і матеріал корпусу; без патерну, без пазу", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0416", "style": "", "text": "Вплив на стільницю", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0417", "style": "", "text": "+1 см до довжини стільниці на кожен активний бік", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0418", "style": "", "text": "Ціна", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0419", "style": "", "text": "за кожен активний бік", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0420", "style": "", "text": "Ліміт", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0421", "style": "", "text": "\"No groove\" вимикається, якщо тумба з панелями перевищить максимальну довжину", "links": [], "images": [], "comments": [], "heading": "6.1 Доступно: бокові панелі"}
+{"id": "P0422", "style": "Heading2", "text": "7. Залежності та правила", "links": [], "images": [], "comments": [], "heading": "7. Залежності та правила"}
+{"id": "P0423", "style": "Heading3", "text": "7.1 Тумби і розміщення", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0424", "style": "", "text": "Якщо Cabinet Type = Sink Base, то Width ∈ {60, 80, 100, 120}; якщо Side Cabinet — Width ∈ {40, 60, 80, 100, 120}", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0425", "style": "", "text": "Висота завжди 40 см, глибина завжди 52 см для всіх типів і стилів ящиків", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0426", "style": "", "text": "Якщо в тумбі вже 2 Sink Base, третю додати не можна (картка вимкнена) . Кількість Side Cabinet не обмежена.", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0427", "style": "", "text": "Якщо додавання або розширення тумби зробить тумбу довшою за 220 см (86.6\"), дія блокується з повідомленням \"Maximum composition length reached…\" . Бокові панелі враховуються (+1 см кожна). .", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0428", "style": "", "text": "Тумби стоять впритул в один ряд; стільниця йде на всі. Вільного розміщення, стекінгу чи окремих тумб немає.", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0429", "style": "", "text": "Якщо хоч одна тумба 2DW, усі тумби мають бути 2DW; 1DW і 1DWID можна змішувати\n- Вибір стилю іншої групи після підтвердження перемикає всі тумби", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0430", "style": "", "text": "Якщо Sink Base 60 см і 1DWID, інтегрована стільниця недоступна (лише vessel); зміна на 1DWID для Sink Base 60 см із інтегрованою стільницею відхиляється", "links": [], "images": [], "comments": [], "heading": "7.1 Тумби і розміщення"}
+{"id": "P0431", "style": "Heading3", "text": "7.2 Оздоблення", "links": [], "images": [], "comments": [], "heading": "7.2 Оздоблення"}
+{"id": "P0432", "style": "", "text": "Якщо колір корпусу Lacquered MT, активний лише Loden; якщо Wood Veneer — активні Cannette, Twill, Gessato, Satin", "links": [], "images": [], "comments": [], "heading": "7.2 Оздоблення"}
+{"id": "P0433", "style": "", "text": "Якщо колір корпусу змінюється на матеріал, який не приймає поточний патерн, патерн стає першим дозволеним (Loden для лаку, Cannette для дерева)", "links": [], "images": [], "comments": [], "heading": "7.2 Оздоблення"}
+{"id": "P0434", "style": "", "text": "Нова тумба бере патерн тумби, якщо він дозволений, інакше Satin, інакше перший дозволений", "links": [], "images": [], "comments": [], "heading": "7.2 Оздоблення"}
+{"id": "P0435", "style": "", "text": "Колір корпусу й колір пазу діють на всю тумбу; патерн зберігається на кожну тумбу . Клієнт дозволяє різні патерни на різних тумбах; чи може користувач задати це для окремої тумби в поточному UI — перевірити на тесті.", "links": [], "images": [], "comments": [], "heading": "7.2 Оздоблення"}
+{"id": "P0436", "style": "", "text": "Якщо колір пазу дорівнює кольору корпусу і колір корпусу змінюється на інший лак, паз йде за ним; на шпон.", "links": [], "images": [], "comments": [], "heading": "7.2 Оздоблення"}
+{"id": "P0437", "style": "Heading3", "text": "7.3 Стільниця і раковина", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0438", "style": "", "text": "Одна стільниця на тумбу, на всю довжину, глибина 52 см, лежить на тумбах 40 см; колір і товщина діють на всю стільницю [3D: countertop] [table 593].", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0439", "style": "", "text": "Матеріал стільниці визначає товщину і інтегровані раковини:", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0440", "style": "", "text": "Матеріал", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0441", "style": "", "text": "Товщина", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0442", "style": "", "text": "Інтегровані раковини", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0443", "style": "", "text": "Мін. Sink Base", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0444", "style": "", "text": "Solid Surface", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0445", "style": "", "text": "0.5\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0446", "style": "", "text": "LB440, LB175, LB575, LB856", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0447", "style": "", "text": "60 см", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0448", "style": "", "text": "Solid Surface", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0449", "style": "", "text": "3.1\"", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0450", "style": "", "text": "VA023", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0451", "style": "", "text": "80 см", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0452", "style": "", "text": "HPL", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0453", "style": "", "text": "0.5\", 4\"", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0454", "style": "", "text": "VA024", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0455", "style": "", "text": "60 см", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0456", "style": "", "text": "Porcelain", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0457", "style": "", "text": "0.8\", 4.7\"", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0458", "style": "", "text": "LV890, LV892", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0459", "style": "", "text": "60 см", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0460", "style": "", "text": "Glass MT / Glass GL", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0461", "style": "", "text": "0.5\"", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0462", "style": "", "text": "VA002, VA005", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0463", "style": "", "text": "60 см", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0464", "style": "", "text": "Якщо змінюється колір стільниці, товщина лишається, якщо ще дозволена, інакше стає першою дозволеною; раковини, що більше не підходять, скидаються і вибирається перша дозволена [code: UI countertop compatibility].", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0465", "style": "", "text": "Якщо товщина дозволена не для всіх Sink Base, зміна відхиляється [code: UI countertop compatibility].", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0466", "style": "", "text": "Якщо Countertop Style = Vessel, Basin Style пропонує None / Iris / Frame / Plaza і з'являється Vessel Color; Iris і Frame — лише Lacquered MT, Plaza — Lacquered MT і GL [code: tricot/product-profile.json].", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0467", "style": "", "text": "Якщо стиль повертається на Integrated, vessel і його колір скидаються [code: UI change plan].", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0468", "style": "", "text": "Якщо товщина 3.1\", 4\" або 4.7\", до ціни додаються два кронштейни [price: Class xlsx Basin StylePricing G43] [code: tricot/sku-profile.json].", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0469", "style": "", "text": "У цій збірці немає раковин поза Sink Base (hosted), зсуву стільниці та плаваючої стільниці [3D: placement] [code: tricot/product-profile.json].", "links": [], "images": [], "comments": [], "heading": "7.3 Стільниця і раковина"}
+{"id": "P0470", "style": "Heading3", "text": "7.4 Бокові панелі", "links": [], "images": [], "comments": [], "heading": "7.4 Бокові панелі"}
+{"id": "P0471", "style": "", "text": "Якщо бокова панель активна, стільниця стає довшою на 1 см з цього боку; якщо це перевищить максимальну довжину, \"No groove\" вимикається [code: UI side panels] [3D: countertop layout].", "links": [], "images": [], "comments": [], "heading": "7.4 Бокові панелі"}
+{"id": "P0472", "style": "", "text": "Бокові панелі лише на повністю відкритих торцях [doc: WebGL Logic P0109] [3D: side panel add-on].", "links": [], "images": [], "comments": [], "heading": "7.4 Бокові панелі"}
+{"id": "P0473", "style": "Heading3", "text": "7.5 Заборонені комбінації (підсумок)", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0474", "style": "", "text": "Комбінація", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0475", "style": "", "text": "Результат", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0476", "style": "", "text": "Sink Base 40 см", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0477", "style": "", "text": "не пропонується", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0478", "style": "", "text": "Третя Sink Base", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0479", "style": "", "text": "вимкнена", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0480", "style": "", "text": "Тумба > 220 см (з боковими панелями)", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0481", "style": "", "text": "блокується (див. відому проблему для Solid Surface)", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0482", "style": "", "text": "2DW разом із 1DW або 1DWID", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0483", "style": "", "text": "не змішуються", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0484", "style": "", "text": "Sink Base 60 см + 1DWID + інтегрована стільниця", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0485", "style": "", "text": "відхиляється", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0486", "style": "", "text": "Loden на Wood Veneer; Cannette/Twill/Gessato/Satin на Lacquered MT", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0487", "style": "", "text": "вимкнено", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0488", "style": "", "text": "VA023 на Sink Base 60 см", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0489", "style": "", "text": "вимкнено", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0490", "style": "", "text": "Раковина іншого матеріалу стільниці", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0491", "style": "", "text": "прихована", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0492", "style": "", "text": "Колір Lacquered GL для Iris / Frame", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0493", "style": "", "text": "вимкнено", "links": [], "images": [], "comments": [], "heading": "7.5 Заборонені комбінації (підсумок)"}
+{"id": "P0494", "style": "Heading2", "text": "8. Ціноутворення", "links": [], "images": [], "comments": [], "heading": "8. Ціноутворення"}
+{"id": "P0495", "style": "", "text": "Разом = Σ тумб + Σ бокових панелей + стільниця + на кожну Sink Base (інтегрована раковина або виріз + vessel) + кронштейни + рядок отворів під змішувач ($0). Кожен рядок — один SKU, ціну дає сервіс цін; конфігуратор не має власного прайсу [code: UI pricing] [price: Tricot xlsx, Class xlsx].", "links": [], "images": [], "comments": [], "heading": "8. Ціноутворення"}
+{"id": "P0496", "style": "Heading3", "text": "8.1 Рядки і склад SKU", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0497", "style": "", "text": "Рядок", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0498", "style": "", "text": "Шаблон SKU", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0499", "style": "", "text": "К-сть", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0500", "style": "", "text": "Ціна залежить від", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0501", "style": "", "text": "Джерело ціни", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0502", "style": "", "text": "Тумба", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0503", "style": "", "text": "VAN-TRIC-<SB/SC>/<1DW/2DW/1DWID>/<LOD/CAN/TWLL/GES/SAT>-<W>W-15.7H-20.5D-CAB-<LACM/WDV>-<colour code>-HDL-LACM-<groove code>", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0504", "style": "", "text": "1 на тумбу", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0505", "style": "", "text": "тип, ящики, ширина, матеріал корпусу (WDV / LACM)", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0506", "style": "", "text": "[price: Tricot xlsx CabinetPricing]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0507", "style": "", "text": "Бокова панель", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0508", "style": "", "text": "VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-<LACM/WDV>-<colour code>", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0509", "style": "", "text": "1 на активний бік", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0510", "style": "", "text": "матеріал корпусу", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0511", "style": "", "text": "[price: Tricot xlsx CabinetPricing A176]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0512", "style": "", "text": "Стільниця", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0513", "style": "", "text": "CT-GB<material>-<INTG/VES>-<W>W-<thickness>H-20.7D[-<material>-<colour code>]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0514", "style": "", "text": "1 на тумбу", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0515", "style": "", "text": "цінова група, товщина, стиль, довжина (тумби + 1 см на бокову панель)", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0516", "style": "", "text": "[price: Class xlsx CountertopPricing]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0517", "style": "", "text": "Інтегрована раковина", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0518", "style": "", "text": "CT-GB<material>-<basin code>-<thickness>H", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0519", "style": "", "text": "1 на Sink Base", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0520", "style": "", "text": "код раковини, цінова група", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0521", "style": "", "text": "[price: Class xlsx Basin StylePricing]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0522", "style": "", "text": "Виріз під vessel", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0523", "style": "", "text": "CT-GB<material>-HCUT", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0524", "style": "", "text": "1 на Sink Base зі стилем vessel", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0525", "style": "", "text": "цінова група", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0526", "style": "", "text": "[price: Class xlsx AccessoriesPricing A3–C10]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0527", "style": "", "text": "Vessel", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0528", "style": "", "text": "VES-<IRIS/FRM/PLZ>-X-<w>W-<h>H-<d>D-<LACM/LACG>-<code>", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0529", "style": "", "text": "1 на Sink Base з Iris/Frame/Plaza", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0530", "style": "", "text": "vessel, оздоблення", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0531", "style": "", "text": "Provisional – ціни vessel із Class; у даних клієнта для Tricot цін vessel немає", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0532", "style": "", "text": "Кронштейн", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0533", "style": "", "text": "CT-GB-BRKT", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0534", "style": "", "text": "2, коли товщина 3.1\", 4\" або 4.7\"", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0535", "style": "", "text": "–", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0536", "style": "", "text": "[price: Class xlsx Basin StylePricing A42–A43]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0537", "style": "", "text": "Отвори під змішувач", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0538", "style": "", "text": "CT-GB<material>-FAHO/0", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0539", "style": "", "text": "1 на стільницю, завжди 0 отворів", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0540", "style": "", "text": "– ($0)", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0541", "style": "", "text": "[price: Class xlsx AccessoriesPricing]", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0542", "style": "", "text": "(У шаблонах SKU / у кутових дужках розділяє варіанти.)", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0543", "style": "", "text": "Приклади [code: UI SKU tests] [price: Tricot xlsx CabinetPricing C2, H2]: VAN-TRIC-SC/1DW/TWLL-15.7W-15.7H-20.5D-CAB-WDV-933-HDL-LACM-412; VAN-TRIC-SC/1DWID/LOD-47.2W-15.7H-20.5D-CAB-LACM-413-HDL-LACM-413; CT-GBHPL-INTG-23.6W-.5H-20.7D-HPL-250; CT-GBPOR-LV890-.8H.", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0544", "style": "", "text": "Цінова група стільниці: від раковини, якщо раковина належить одній групі (VA023 → SSTMT), інакше від кольору (Matte White SSTL, Matte White 8cm SSTMT, HPL, POR, GLSM, GLSG) [code: tricot/sku-profile.json]. Групування Solid Surface — Provisional (§4.4).", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0545", "style": "", "text": "Ширини в SKU — дюйми з одним знаком після коми (60 см = 23.6\"); у SKU Curation клієнта також використовуються см [price: Tricot xlsx SKU Curation] → формат підтвердити (§10.3).", "links": [], "images": [], "comments": [], "heading": "8.1 Рядки і склад SKU"}
+{"id": "P0546", "style": "Heading3", "text": "8.2 Що змінює ціну", "links": [], "images": [], "comments": [], "heading": "8.2 Що змінює ціну"}
+{"id": "P0547", "style": "", "text": "Змінює ціну", "links": [], "images": [], "comments": [], "heading": "8.2 Що змінює ціну"}
+{"id": "P0548", "style": "", "text": "Не змінює ціну", "links": [], "images": [], "comments": [], "heading": "8.2 Що змінює ціну"}
+{"id": "P0549", "style": "", "text": "тип тумби, ширина, стиль ящиків (1DW vs 2DW/1DWID), матеріал корпусу (Wood Veneer vs Lacquered MT); кількість бокових панелей; матеріал, товщина, стиль і довжина стільниці; код раковини; vessel і його оздоблення; кронштейни товстої стільниці", "links": [], "images": [], "comments": [], "heading": "8.2 Що змінює ціну"}
+{"id": "P0550", "style": "", "text": "патерн у межах Wood Veneer (Cannette = Twill = Gessato = Satin); колір пазу; 2DW vs 1DWID; конкретний колір у межах матеріалу [price: Tricot xlsx CabinetPricing]", "links": [], "images": [], "comments": [], "heading": "8.2 Що змінює ціну"}
+{"id": "P0551", "style": "Heading2", "text": "", "links": [], "images": [], "comments": [], "heading": "8.2 Що змінює ціну"}

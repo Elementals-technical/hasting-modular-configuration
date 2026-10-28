@@ -1,0 +1,48 @@
+{
+  "source_id": "sheet-customer-backlog",
+  "file": "backlog (Viktor_Customer).xlsx",
+  "sha256": "d8687fa54c236feed53b60883818ccb17fa7d59203bca63bcf9f6944a6026721",
+  "size_bytes": 58933,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "Модульный",
+      "dimension": "",
+      "non_empty_rows": 3,
+      "max_row_with_value": 3,
+      "formulas": 0,
+      "links": 2,
+      "notes": 0
+    },
+    {
+      "index": 2,
+      "name": "А-дек",
+      "dimension": "",
+      "non_empty_rows": 7,
+      "max_row_with_value": 7,
+      "formulas": 0,
+      "links": 8,
+      "notes": 0
+    },
+    {
+      "index": 3,
+      "name": "2д конфигуратор",
+      "dimension": "",
+      "non_empty_rows": 5,
+      "max_row_with_value": 5,
+      "formulas": 0,
+      "links": 3,
+      "notes": 0
+    },
+    {
+      "index": 4,
+      "name": "Player",
+      "dimension": "",
+      "non_empty_rows": 2,
+      "max_row_with_value": 2,
+      "formulas": 0,
+      "links": 1,
+      "notes": 0
+    }
+  ]
+}

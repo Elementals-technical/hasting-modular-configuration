@@ -1,0 +1,4 @@
+row,A,B,C,D,E,F
+1,№,Задача,,,Оценка,Статус
+2,1.0,Подключить аналитику через postMessage на модульный (продакшен),https://gyazo.com/6875a8fb76f49382e16b19a7ded18007,,1.5 - 2,Done
+3,2.0,Убрать Glass материалы для продукта Class,https://gyazo.com/504975dd8fd5d5ac3e04c795c4de61b6,,0.5,Done

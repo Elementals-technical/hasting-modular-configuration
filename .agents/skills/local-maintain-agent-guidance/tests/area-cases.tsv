@@ -1,0 +1,12 @@
+# prompt<TAB>reference that must be routed (file linked from AGENTS.local.md)
+Проверь SKU и цену countertop в summary	docs/ai/hastings/sku-price-oracle-map.md
+Quote PDF shows a wrong total price	docs/ai/hastings/sku-price-oracle-map.md
+Какие правила клиента для offset/remote в Urban Low Height?	docs/ai/hastings/domain-index.md
+Что затронет изменение толщины столешницы?	docs/ai/hastings/dependency-graph.md
+Документы противоречат друг другу по 4" столешнице	docs/ai/hastings/conflicts-and-decisions.md
+Проверь в браузере drag and drop шкафа в ULH	docs/ai/qa/browser-validation.md
+Модель в PlayCanvas неправильная, нужно передать команде сцены	docs/ai/qa/handoffs/ownership-handoff-template.md
+Какая ветка деплоится на staging?	docs/ai/env/environment-branch-map.md
+Firefox MCP не подключается на Windows	docs/ai/env/windows-mac-mcp-runbook.md
+Документ клиента недоступен, проверь свежесть источников	docs/ai/hastings/source-ledger.csv
+Продолжи вчерашнюю задачу	docs/ai/checkpoint.md

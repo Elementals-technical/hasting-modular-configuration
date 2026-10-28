@@ -1,0 +1,19 @@
+# prompt<TAB>expected workflow (static routing contract; live model routing is probed separately with claude -p)
+Исправь отображение side panels после смены SB на SC, причина в sidePanelMiddleware	local-implement-change
+Добавь подсказку при выборе 1DWID 60 см с integrated top в Tricot	local-implement-change
+Implement the Mako legs option in the Accessories step	local-implement-change
+Додай перевірку максимальної довжини столешниці 220 см для Lame	local-implement-change
+Почему в summary неправильная цена за countertop после смены материала Fenix на Porcelain?	local-debug-root-cause
+SKU side panel не обновляется после изменения конфигурации, непонятно почему	local-debug-root-cause
+The 3D scene shows the basin in the wrong position after undo, find the cause	local-debug-root-cause
+Тест sceneKeysInExport падает после обновления PlayCanvas export	local-debug-root-cause
+Составь план интеграции коллекции Lame	local-plan-change
+Нужен дизайн решения для multi-level countertop в ULH, сначала план	local-plan-change
+Write a PRD and issues for Urban Freestanding short cabinets	local-plan-change
+Выполни утверждённый план plans/tricot-integration/05-side-panels-and-pricing.issue.md	local-execute-plan
+Continue the approved plan for countertop color level tabs	local-execute-plan
+Сделай ревью PR #495 перед мержем в phase-2/production	local-review-change
+Review the diff of my branch against phase-2/staging	local-review-change
+Обнови AGENTS.local.md и добавь правило в guidance	local-maintain-agent-guidance
+Перед git pull проверь коллизии личного слоя	local-maintain-agent-guidance
+Настрой Chrome DevTools MCP для Windows	local-maintain-agent-guidance

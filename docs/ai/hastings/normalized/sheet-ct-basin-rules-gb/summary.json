@@ -1,0 +1,18 @@
+{
+  "source_id": "sheet-ct-basin-rules-gb",
+  "file": "Countertop _ Basin Styles Rules Logic - GB.xlsx",
+  "sha256": "c654015fa7896663384b1ab7f502b338fb7264be931cf03ba2644577000ccfdb",
+  "size_bytes": 131040,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "Sheet1",
+      "dimension": "",
+      "non_empty_rows": 51,
+      "max_row_with_value": 56,
+      "formulas": 0,
+      "links": 0,
+      "notes": 6
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+row,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X
+2,Product SKUs - Class Vanities,,,CLSV,,,,,,,,,,,,,,,,,,,,
+4,,{Product Category}  -  {Product}  -  {Cabinet Type/Cabinet Style} -  {Width}  -  {Height}  -  {Depth}  -  {Product Element #1 (CABF)} - {Material} - {Color Code}  - {Product Element #2 (CABS)} - {Material} - {Color Code}  -  {Product Element #3 (FRM} - {Material} - {Color Code},,,,,,,,,,,,,,,,,,,,,,
+6,,Sink Bases,,,,,,,,,,,,,Side Cabinets,,,,,,,,,
+7,,2 Drawer,52H,,,1 Drawer,40H,,,1DWID,40H,,,,2 Drawer,52H,,,1 Drawer,40H,,,1DWID,40H
+8,,,52D,,,,,,,,,,,,,52D,,,,,,,,
+10,,VAN-CLSV-SB/2DW-60W-52H-52D,,,,VAN-CLSV-SB/1DW-60W-40H-52D,,,,VAN-CLSV-SB/1DWID-60W-40H-52D,,,,,VAN-CLSV-SC/2DW-40W-52H-52D,,,,VAN-CLSV-SC/1DW-40W-40H-52D,,,,VAN-CLSV-SC/1DWID-40W-40H-52D,
+11,,VAN-CLSV-SB/2DW-80W-52H-52D,,,,VAN-CLSV-SB/1DW-80W-40H-52D,,,,VAN-CLSV-SB/1DWID-80W-40H-52D,,,,,VAN-CLSV-SC/2DW-60W-52H-52D,,,,VAN-CLSV-SC/1DW-60W-40H-52D,,,,VAN-CLSV-SC/1DWID-60W-40H-52D,
+12,,VAN-CLSV-SB/2DW-100W-52H-52D,,,,VAN-CLSV-SB/1DW-100W-40H-52D,,,,VAN-CLSV-SB/1DWID-100W-40H-52D,,,,,VAN-CLSV-SC/2DW-80W-52H-52D,,,,VAN-CLSV-SC/1DW-80W-40H-52D,,,,VAN-CLSV-SC/1DWID-80W-40H-52D,
+13,,VAN-CLSV-SB/2DW-120W-52H-52D,,,,VAN-CLSV-SB/1DW-120W-40H-52D,,,,VAN-CLSV-SB/1DWID-120W-40H-52D,,,,,VAN-CLSV-SC/2DW-100W-52H-52D,,,,VAN-CLSV-SC/1DW-100W-40H-52D,,,,VAN-CLSV-SC/1DWID-100W-40H-52D,
+14,,,,,,,,,,,,,,,VAN-CLSV-SC/2DW-120W-52H-52D,,,,VAN-CLSV-SC/1DW-120W-40H-52D,,,,VAN-CLSV-SC/1DWID-120W-40H-52D,

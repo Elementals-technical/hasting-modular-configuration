@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"total":"$4,348.00","block":"Your Configuration\nCabinet\nSink Base\nMako Height cabinet: Sink Base unit, 1 Drawer, G57 handle, 23.6\" W, 10.2\" H, 20.5\" D - Cabinet Color: Lacquered Matt | Antracite 400 MT\n1-Drawer | 23.6W-10.2H-20.5D\nG57\nCabinet\nLACM | Antracite 400 MT\n$1,679.00\nCountertop\nCountertop\nCountertop - Style: Integrated, 23.6\" W, Thickness: 0.5\", Depth: 20.5\", Material: SSTL, Color: Matte White\n0.5\"\nCountertop\nSSTL | Matte White\n$787.00\nCountertop Style\nIntegrated\nBasin\nBasin - Style: LB440\nLB440\n$1,882.00\nAccessories\nSwatches\nAutofill My Swatches\n\nLet us fill your swatch cart with your selected finishes\n\nSwatches list\nFree\nOrder Swatches\n"}
+```

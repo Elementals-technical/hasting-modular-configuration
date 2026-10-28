@@ -1,0 +1,165 @@
+row,A,B,C,D,E,F,G,H,I,J
+1,Key,https://docs.google.com/spreadsheets/d/1l2StScTtafrv5zJHS12MDGKg6yWESDbo7yoCeYag4e8/edit?usp=sharing,Product,Manufacturer,Doc Status,SKU Readiness,Planned Week,Integration Status,Done (дата),Notes / Blockers
+2,Fenix (Countertops),Countertops,Fenix,Azzurra,Updates Needed,Ready to integrate,TBD,In Client Testing,,
+3,HPL (Countertops),Countertops,HPL,Azzurra,Updates Needed,Ready to integrate,TBD,In Client Testing,,
+4,Porcelain (Countertops),Countertops,Porcelain,Azzurra,Updates Needed,Ready to integrate,TBD,In Client Testing,,
+5,Solid Surface (Countertops),Countertops,Solid Surface,Azzurra,Updates Needed,Ready to integrate,TBD,In Client Testing,,
+6,Urban Rough Cut (Countertops),Countertops,Urban Rough Cut,Azzurra,Updates Needed,Ready to integrate,TBD,In Client Testing,,
+7,Urban 45M top (Countertops),Countertops,Urban 45M top,Azzurra,Updates Needed,Ready to integrate,TBD,In Client Testing,,
+8,Tulip Quadra (Mirrors),Mirrors,Tulip Quadra,Arblu,Complete,Ready to integrate,30.06–04.07,In Client Testing,03.07,Done
+9,Luna (Mirrors),Mirrors,Luna,ISA,Complete,Ready to integrate,30.06–04.07,In Client Testing,02.07,Done
+10,Loop (Mirrors),Mirrors,Loop,Azzurra,Complete,Ready to integrate,30.06–04.07,In Client Testing,21.07,Done
+11,Cadre (Mirrors),Mirrors,Cadre,,Complete,missing SKU data,30.06–04.07,In Client Testing,21.07,Done
+12,Desire (Lady),Lady,Desire,,Complete,missing SKU data,30.06–04.07,In Client Testing,21.07,Done
+13,Capri (Lady),Lady,Capri,ISA,Complete,Ready to integrate,30.06–04.07,In Client Testing,01.07,Done
+14,Ponente (Mirrors),Mirrors,Ponente,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,21.07,Done
+15,Levante (Mirrors),Mirrors,Levante,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,21.07,Done
+16,Urban Hexagon (Mirrors),Mirrors,Urban Hexagon,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,06.07,Done
+17,Urban Hexagon Plus (Mirrors),Mirrors,Urban Hexagon Plus,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,21.07,Done
+18,Punto (Mirrors),Mirrors,Punto,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,02.07,Done
+19,Allegro Mirror (Mirrors),Mirrors,Allegro Mirror,Arblu,Complete,Ready to integrate,30.06-04.07,Integrated - Test Local,21.07,
+20,Fold Rectangular (Mirrors),Mirrors,Fold Rectangular,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,03.07,Done
+21,Fold Round (Mirrors),Mirrors,Fold Round,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,03.07,Done
+22,Sonia (Mirrors),Mirrors,Sonia,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,06.07,Done
+23,Sonia Mirror Cabinet (Mirrors),Mirrors,Sonia Mirror Cabinet,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,06.07,Done
+24,R80 (Mirrors),Mirrors,R80,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,,Done
+25,Luna Free (Mirrors),Mirrors,Luna Free,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,03.07,Done
+26,Strato (Mirrors),Mirrors,Strato,,Complete,missing SKU data,30.06-04.07,In Client Testing,21.07,Done
+27,Chiara (Mirrors),Mirrors,Chiara,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,02.07,Done
+28,Luna1 (Lady),Lady,Luna1,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,02.07,Done
+29,Venezia (Lady),Lady,Venezia,ISA,Complete,Ready to integrate,30.06-04.07,In Client Testing,02.07,Done
+30,Roma (Lady),Lady,Roma,,Complete,missing SKU data,30.06-04.07,In Client Testing,21.07,Done
+31,Aurora (Lady),Lady,Aurora,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,03.07,Done
+32,Uniko (Lady),Lady,Uniko,GB,Complete,Ready to integrate,30.06-04.07,In Client Testing,01.07,Done
+33,Tuby (Lady),Lady,Tuby,Arblu,Complete,Ready to integrate,30.06-04.07,In Client Testing,02.07,Done
+34,Lame (Lady),Lady,Lame,GB,Complete,Ready to integrate,30.06-04.07,In Client Testing,02.07,Done
+35,Arya (Lady),Lady,Arya,EBAN,Complete,Ready to integrate,30.06-04.07,In Client Testing,02.07,Done
+36,Tableau (Lady),Lady,Tableau,Azzurra,Complete,Ready to integrate,30.06-04.07,In Client Testing,21.07,Done
+37,Tavolo (Bathroom Accessories),Bathroom Accessories,Tavolo,GSG,Complete,Ready to integrate,06.07-10.16,In Client Testing,06.07,Done
+38,Tulip Dual Shelf (Bathroom Accessories),Bathroom Accessories,Tulip Dual Shelf,Arblu,Complete,Ready to integrate,06.07-10.15,In Client Testing,06.07,Done
+39,Tulip Towel Rack (Bathroom Accessories),Bathroom Accessories,Tulip Towel Rack,Arblu,Complete,Ready to integrate,06.07-10.14,In Client Testing,06.07,Done
+40,Tulip Vittoria Hook (Bathroom Accessories),Bathroom Accessories,Tulip Vittoria Hook,Arblu,Complete,Ready to integrate,06.07-10.13,In Client Testing,13.07,Done
+41,Tulip Paper Roll Holder (Bathroom Accessories),Bathroom Accessories,Tulip Paper Roll Holder,Arblu,Complete,Ready to integrate,06.07-10.12,In Client Testing,13.07,Done
+42,Urban Freestanding Towel Rail (Bathroom Accessories),Bathroom Accessories,Urban Freestanding Towel Rail,Azzurra,Complete,Ready to integrate,06.07-10.11,In Client Testing,13.07,Done
+43,Cork Step (Bathroom Accessories),Bathroom Accessories,Cork Step,Sanycces,Complete,Ready to integrate,06.07-10.10,In Client Testing,10.07,Done
+44,Cima Puff (Bathroom Accessories),Bathroom Accessories,Cima Puff,Sanycces,Complete,Ready to integrate,06.07-10.09,In Client Testing,7.07,Done
+45,Isla Alta (Bathroom Accessories),Bathroom Accessories,Isla Alta,Sanycces,Complete,Ready to integrate,06.07-10.08,In Client Testing,7.07,Done
+46,Duna Pedestal (Pedestals & Consoles),Pedestals & Consoles,Duna Pedestal,Sanycces,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+47,Tuby Anime (Pedestals & Consoles),Pedestals & Consoles,Tuby Anime,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+48,Tuby Anime Handwash (Pedestals & Consoles),Pedestals & Consoles,Tuby Anime Handwash,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,,
+49,Urban Kant (Pedestals & Consoles),Pedestals & Consoles,Urban Kant,Azzurra,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+50,Axo (Pedestals & Consoles),Pedestals & Consoles,Axo,GB,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+51,Vivace (Pedestals & Consoles),Pedestals & Consoles,Vivace,Arblu,Complete,Ready to integrate,06.07-10.07,Integrated - Test Local,,
+52,Allegro Console (Pedestals & Consoles),Pedestals & Consoles,Allegro Console,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,,
+53,Gate (Pedestals & Consoles),Pedestals & Consoles,Gate,GB,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+54,Surf (Pedestals & Consoles),Pedestals & Consoles,Surf,GB,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+55,Tulip Console 96 (Pedestals & Consoles),Pedestals & Consoles,Tulip Console 96,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,,
+56,Tulip Console 115 (Pedestals & Consoles),Pedestals & Consoles,Tulip Console 115,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,,
+57,Tulip Monolith (Pedestals & Consoles),Pedestals & Consoles,Tulip Monolith,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,,
+58,Milo (Pedestals & Consoles),Pedestals & Consoles,Milo,Azzurra,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+59,Milo R (Pedestals & Consoles),Pedestals & Consoles,Milo R,Azzurra,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+60,Oliver (Pedestals & Consoles),Pedestals & Consoles,Oliver,Azzurra,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+61,Oliver R (Pedestals & Consoles),Pedestals & Consoles,Oliver R,Azzurra,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+62,Cody (Pedestals & Consoles),Pedestals & Consoles,Cody,Azzurra,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+63,Lotus (Pedestals & Consoles),Pedestals & Consoles,Lotus,Vetrocolor,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+64,Narciso (Pedestals & Consoles),Pedestals & Consoles,Narciso,Vetrocolor,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+65,Cuadra Joy (Pedestals & Consoles),Pedestals & Consoles,Cuadra Joy,Sanycces,Updates Needed,Ready to integrate,06.07-10.07,In Client Testing,,Done
+66,Circo Joy (Pedestals & Consoles),Pedestals & Consoles,Circo Joy,Sanycces,Updates Needed,Need client clarification,06.07-10.07,In Client Testing,,Done
+67,Petra Column (Pedestals & Consoles),Pedestals & Consoles,Petra Column,GSG,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+68,Petra Console (Pedestals & Consoles),Pedestals & Consoles,Petra Console,GSG,Complete,Ready to integrate,06.07-10.07,In Client Testing,,Done
+69,Catino (Tubs),Tubs,Catino,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,
+70,Duna (Tubs),Tubs,Duna,Sanycces,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,Done
+71,Duna Ofuro (Tubs),Tubs,Duna Ofuro,Sanycces,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,Done
+72,Petra (tub) (Tubs),Tubs,Petra (tub),GSG,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,Done
+73,Sorrento (Tubs),Tubs,Sorrento,Arblu,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,Done
+74,Like (Toilets),Toilets,Like,GSG,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,Done
+75,Hit (Toilets),Toilets,Hit,GSG,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,Done
+76,Petra (toilet) (Toilets),Toilets,Petra (toilet),GSG,Complete,Ready to integrate,06.07-10.07,In Client Testing,13.07,Done
+77,Dot (Lady),Lady,Dot,EBAN,Updates Needed,Ready to integrate,06.07-10.07,In Client Testing,,Done
+78,Etoile (Lady),Lady,Etoile,EBAN,Updates Needed,Ready to integrate,06.07-10.07,In Client Testing,,Done
+79,Isla Baja (Bathroom Accessories),Bathroom Accessories,Isla Baja,Sanycces,Complete,Ready to integrate,06.07-10.07,In Client Testing,7.07,Done
+80,Urban Kros (Storage),Storage,Urban Kros,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+81,Urban Open Shelf Storage (Storage),Storage,Urban Open Shelf Storage,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+82,Urban Closed Storage (Storage),Storage,Urban Closed Storage,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+83,Urban Look Storage (Storage),Storage,Urban Look Storage,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+84,Urban Metal Cubes (Storage),Storage,Urban Metal Cubes,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+85,Urban Cubes (Storage),Storage,Urban Cubes,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+86,Urban Horizontal Storage (Storage),Storage,Urban Horizontal Storage,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+87,Class Storage (Storage),Storage,Class Storage,GB,Updates Needed,Need client clarification,13.07-17.07,In Client Testing,,
+88,Underground Storage (Storage),Storage,Underground Storage,GB,Discontinued,Ready to integrate,13.07-17.07,Not Integrated,,Discontinued
+89,Lame Storage (Storage),Storage,Lame Storage,GB,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+90,Mako Storage (Storage),Storage,Mako Storage,GB,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+91,Dot Storage (Storage),Storage,Dot Storage,EBAN,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+92,Tiffany Storage (Storage),Storage,Tiffany Storage,EBAN,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+93,Etoile Storage (Storage),Storage,Etoile Storage,EBAN,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+94,Tulip Rotating Storage (Storage),Storage,Tulip Rotating Storage,Arblu,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+95,Urban Hexagon Storage (Storage),Storage,Urban Hexagon Storage,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+96,Urban Hexagon Storage Plus (Storage),Storage,Urban Hexagon Storage Plus,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+97,Urban Cleo Vertical (Storage),Storage,Urban Cleo Vertical,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,Integrated - Test Local,,
+98,Urban Cleo Horizontal (Storage),Storage,Urban Cleo Horizontal,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+99,Urban Climb Vertical (Storage),Storage,Urban Climb Vertical,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+100,Urban Climb Free (Storage),Storage,Urban Climb Free,Azzurra,Updates Needed,Ready to integrate,13.07-17.07,In Client Testing,,
+101,Urban Svela (Storage),Storage,Urban Svela,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+102,Urban Svela M (Storage),Storage,Urban Svela M,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+103,Urban Mostra (Storage),Storage,Urban Mostra,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+104,Urban Mostra M (Storage),Storage,Urban Mostra M,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+105,Tuby Anime Ring (Basins),Basins,Tuby Anime Ring,Arblu,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+106,Tuby Anime Ring Handwash (Basins),Basins,Tuby Anime Ring Handwash,Arblu,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+107,Chester (Basins),Basins,Chester,GB,Complete,Ready to integrate,13.07-17.07,In Client Testing,27.07,Done
+108,Play (Basins),Basins,Play,GB,Complete,Ready to integrate,13.07-17.07,In Client Testing,27.07,
+109,Flut 65 | 85 (Basins),Basins,Flut 65 | 85,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,27.07,Done
+110,Zenith (Basins),Basins,Zenith,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,27.07,
+111,Urban Monoliti (Basins),Basins,Urban Monoliti,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+112,Duna (Vessels),Vessels,Duna,Sanycces,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+113,Urban Modo (Vessels),Vessels,Urban Modo,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+114,Urban Morris (Vessels),Vessels,Urban Morris,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+115,Lucena (Vessels),Vessels,Lucena,Sanycces,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+116,Artana (Vessels),Vessels,Artana,Sanycces,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+117,Ciotola 38 | 42 (Vessels),Vessels,Ciotola 38 | 42,Arblu,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+118,Ciotola 55 (Vessels),Vessels,Ciotola 55,Arblu,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+119,Ciotola 61 (Vessels),Vessels,Ciotola 61,Arblu,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+120,Blade 11 (Vessels),Vessels,Blade 11,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+121,Blade 18 (Vessels),Vessels,Blade 18,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+122,Eslida (Vessels),Vessels,Eslida,Sanycces,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+123,Bol (Vessels),Vessels,Bol,Sanycces,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+124,Rondo (Vessels),Vessels,Rondo,Sanycces,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+125,Diamond (Vessels),Vessels,Diamond,GB,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+126,Art (Vessels),Vessels,Art,GB,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+127,Plaza (Vessels),Vessels,Plaza,GB,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+128,Frame (Vessels),Vessels,Frame,GB,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+129,Iris (Vessels),Vessels,Iris,GB,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+130,Tulip Standard (Vessels),Vessels,Tulip Standard,Arblu,Complete,Ready to integrate,13.07-17.07,In Client Testing,,
+131,Ninfea (Vessels),Vessels,Ninfea,Vetrocolor,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+132,Cruise Oval (Vessels),Vessels,Cruise Oval,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+133,Cruise Tondo (Vessels),Vessels,Cruise Tondo,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+134,Cruise Quadro (Vessels),Vessels,Cruise Quadro,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+135,Easy Oval (Vessels),Vessels,Easy Oval,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+136,Easy Quadro (Vessels),Vessels,Easy Quadro,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+137,Easy Rectangular (Vessels),Vessels,Easy Rectangular,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+138,Easy Rectangular Deep (Vessels),Vessels,Easy Rectangular Deep,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+139,Easy Tondo (Vessels),Vessels,Easy Tondo,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+140,Flut Quadro (Vessels),Vessels,Flut Quadro,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+141,Flut Tondo (Vessels),Vessels,Flut Tondo,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+142,Acquarius (Vessels),Vessels,Acquarius,Azzurra,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+143,Petra 42 (Vessels),Vessels,Petra 42,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+144,Petra 60 | 80 (Vessels),Vessels,Petra 60 | 80,GSG,Complete,Ready to integrate,13.07-17.07,In Client Testing,,Done
+145,Tuby Telaio (Pedestals & Consoles),Pedestals & Consoles,Tuby Telaio,Arblu,Complete,missing SKU data,13.07-17.07,In Client Testing,,
+146,Urban Standard Height (Vanities),Vanities,Urban Standard Height,Azzurra,Complete,Ready to integrate,20.07-24.07,In Client Testing,,
+147,Urban Duplex (Vanities),Vanities,Urban Duplex,Azzurra,Complete,missing SKU data,20.07-24.07,In Client Testing,,
+148,Urban Freestanding (Vanities),Vanities,Urban Freestanding,Azzurra,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+149,Urban Low Height (Vanities),Vanities,Urban Low Height,Azzurra,Complete,Ready to integrate,20.07-24.07,In Client Testing,,
+150,Urban Legstand (Vanities),Vanities,Urban Legstand,Azzurra,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+151,Class (Vanities),Vanities,Class,GB,,Need client clarification,20.07-24.07,In Client Testing,,
+152,Lame (Vanities),Vanities,Lame,GB,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+153,Mako (Vanities),Vanities,Mako,GB,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+154,Tricot (Vanities),Vanities,Tricot,GB,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+155,Underground (Vanities),Vanities,Underground,GB,Other Comment,Ready to integrate,20.07-24.07,Not Integrated,,
+156,Onda (Vanities),Vanities,Onda,GB,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+157,Dot (Vanities),Vanities,Dot,EBAN,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+158,Tiffany (Vanities),Vanities,Tiffany,EBAN,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+159,Etoile (Vanities),Vanities,Etoile,EBAN,Updates Needed,Ready to integrate,20.07-24.07,In Client Testing,,
+160,Urban Quadro (Mirrors),Mirrors,Urban Quadro,Azzurra,Complete,Ready to integrate,20.07-24.07,In Client Testing,,
+161,Urban Perimeter (Mirrors),Mirrors,Urban Perimeter,Azzurra,Complete,Ready to integrate,20.07-24.07,In Client Testing,,
+162,Tiquaranta (Mirrors),Mirrors,Tiquaranta,Azzurra,Complete,Ready to integrate,20.07-24.07,In Client Testing,,
+163,Botte (Lady),Lady,Botte,,Complete,missing SKU data,20.07-24.07,In Client Testing,,
+164,Amalfi (Lady),Lady,Amalfi,,Complete,missing SKU data,20.07-24.07,In Client Testing,,

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+"Collection unavailable\n\nThe collection data is invalid and the configurator cannot start.\n\nCollection: urban-low-height\n\nRetry\nOpen default collection"
+```

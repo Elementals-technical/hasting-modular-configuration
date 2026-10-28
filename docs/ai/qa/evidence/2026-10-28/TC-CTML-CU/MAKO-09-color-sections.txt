@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"section":"Cabinet Color","items":["Order free Swatches"]},{"section":"Price","items":["Castagno chiaro 1C1","Castagno Malto 1C2","Castagno Scuro 1C3","Cemento Cenere 1A1","Cemento Creta 1A3","Cemento Ghiaccio 1A5","Cemento Oltremare 1A4","Cemento Tortora 1A2","Colortech Bianco 10B","Colortech Grigio fume 10F","Eucalipto Affumicato 1E2","Eucalipto Naturale 1E1","Noce rigato Canaletto Naturale 1N2","Noce Rigato Chiaro 1N1"]},{"section":"Handle Color","items":[]},{"section":"Handle Color","items":["Back to Mako Cabinet Builder","Next: Countertop & Basin"]}]
+```

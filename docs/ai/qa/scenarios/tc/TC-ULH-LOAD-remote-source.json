@@ -1,0 +1,22 @@
+{
+ "description": "Locate cabinetCover.materialSkus in the remote ULH sources (read-only GET).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only GETs of the remote collection sources the ULH loader uses; reports where `materialSkus` occurs.\n  const urls = ['https://renderadmin.vivid3d.tech/configurators/4?serialize=true&view=full', 'https://renderadmin.vivid3d.tech/datatables/589', 'https://renderadmin.vivid3d.tech/datatables/580'];\n  const out = [];\n  for (const u of urls) {\n    try {\n      const r = await fetch(u, { cache: 'force-cache' });\n      const t = await r.text();\n      const hits = [];\n      let i = t.indexOf('materialSkus');\n      while (i >= 0 && hits.length < 3) { hits.push(t.slice(Math.max(0, i - 160), i + 220)); i = t.indexOf('materialSkus', i + 1); }\n      let updated = null;\n      try { const j = JSON.parse(t); updated = j.updatedAt ?? j.updated_at ?? j.data?.updatedAt ?? j.data?.updated_at ?? null; } catch (e) {}\n      out.push({ url: u.replace('https://renderadmin.vivid3d.tech', ''), status: r.status, bytes: t.length, updatedAt: updated, materialSkusHits: hits.length, context: hits });\n    } catch (e) { out.push({ url: u, error: String(e) }); }\n  }\n  return out;\n}\n"
+   },
+   "save": "30-remote-sources.txt",
+   "optional": false
+  }
+ ]
+}

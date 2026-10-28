@@ -1,0 +1,48 @@
+{
+ "description": "Expand Undertop Color with 60 cm SB (read-only).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => { const api=document.querySelector('iframe')?.contentWindow?.ConfiguratorAPI; const ct=await api.countertop.getState(); return { lengthM: ct.size?.length, depthM: ct.size?.depth }; }"
+   },
+   "save": "04-countertop.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Undertop Color\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Undertop Color\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "05-expand.txt",
+   "optional": false
+  },
+  {
+   "sleep": 2500
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "06-snapshot-expanded.txt"
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "07-undertop.png"
+  }
+ ]
+}

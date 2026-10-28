@@ -1,0 +1,12 @@
+## Network requests
+Showing 1-10 of 10 (Page 1 of 1).
+reqid=3052 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/collections/registry.json [200]
+reqid=3055 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/collections/urban-low-height/manifest.json [200]
+reqid=3061 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/collections/urban-low-height/presets.json [200]
+reqid=3062 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/collections/urban-low-height/sku-profile.json [200]
+reqid=3063 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/collections/urban-low-height/product-profile.json [200]
+reqid=3064 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/collections/urban-low-height/ui.json [200]
+reqid=3065 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/collections/urban-low-height/runtime-bindings.json [200]
+reqid=3066 GET https://renderadmin.vivid3d.tech/configurators/4?serialize=true&view=full [304]
+reqid=3067 GET https://renderadmin.vivid3d.tech/datatables/589 [304]
+reqid=3068 GET https://renderadmin.vivid3d.tech/datatables/580 [304]

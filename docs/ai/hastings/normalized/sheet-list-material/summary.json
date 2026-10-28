@@ -1,0 +1,78 @@
+{
+  "source_id": "sheet-list-material",
+  "file": "list material (1).xlsx",
+  "sha256": "7e27b55e9c4e5666083a05e13e22de03b7026f723fb30309796a6c93f1a70b55",
+  "size_bytes": 194426,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "Sheet1",
+      "dimension": "",
+      "non_empty_rows": 284,
+      "max_row_with_value": 284,
+      "formulas": 0,
+      "links": 0,
+      "notes": 10
+    },
+    {
+      "index": 2,
+      "name": "Countertop Color",
+      "dimension": "",
+      "non_empty_rows": 237,
+      "max_row_with_value": 240,
+      "formulas": 0,
+      "links": 0,
+      "notes": 6
+    },
+    {
+      "index": 3,
+      "name": "Cabinet Color",
+      "dimension": "",
+      "non_empty_rows": 223,
+      "max_row_with_value": 223,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 4,
+      "name": "Vessel Color",
+      "dimension": "",
+      "non_empty_rows": 68,
+      "max_row_with_value": 68,
+      "formulas": 0,
+      "links": 0,
+      "notes": 6
+    },
+    {
+      "index": 5,
+      "name": "Material Pricing Tiers",
+      "dimension": "",
+      "non_empty_rows": 35,
+      "max_row_with_value": 39,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 6,
+      "name": "AZZ Material Enhancements",
+      "dimension": "",
+      "non_empty_rows": 168,
+      "max_row_with_value": 176,
+      "formulas": 0,
+      "links": 0,
+      "notes": 8
+    },
+    {
+      "index": 7,
+      "name": "GB Material Enhancements",
+      "dimension": "",
+      "non_empty_rows": 116,
+      "max_row_with_value": 134,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    }
+  ]
+}
