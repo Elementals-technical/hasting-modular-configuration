@@ -20,7 +20,8 @@ import { FieldsStepPage } from "../FieldsStepPage";
 
 /**
  * Client feedback for Tricot, Cabinet Color | Price Filter: "Standard $ – all Lacquered MT colors",
- * "Classic $$ – all Wood Veneer colors". The grid and its full mode filter the same colours.
+ * "Classic $$ – all Wood Veneer colors". The grid and its full mode filter the same colours. Handle
+ * Groove Color, all Lacquered MT, is Standard $ alone.
  */
 
 vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
@@ -31,14 +32,17 @@ vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
 }));
 vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport");
 
-const cabinetColors = configurator12.availableOptions
-  .filter(({ proxyName }) => proxyName === "Select Cabinet Color")
-  .flatMap(({ options }) =>
-    options.flatMap(({ variants }) => variants.map(({ name, metadata }) => ({ name, metadata }))),
-  );
+const variantsOf = (group: string) =>
+  configurator12.availableOptions
+    .filter(({ proxyName }) => proxyName === group)
+    .flatMap(({ options }) =>
+      options.flatMap(({ variants }) => variants.map(({ name, metadata }) => ({ name, metadata }))),
+    );
+const cabinetColors = variantsOf("Select Cabinet Color");
 const coloursOf = (sku: string) => cabinetColors.filter(({ metadata }) => metadata.sku === sku).map(({ name }) => name);
 const LACQUERED_MT = coloursOf("LACM");
 const WOOD_VENEER = coloursOf("WDV");
+const GROOVE_COLOURS = variantsOf("Select Handle Groove Color").map(({ name }) => name);
 
 const renderColorStep = () => {
   const collection = buildReadyCollection("tricot", tricotManifestDocument, tricotUiDocument);
@@ -65,7 +69,14 @@ const pickPrice = (scope: HTMLElement, current: string, tier: string) => {
 const shownColours = (scope: HTMLElement) =>
   cabinetColors.map(({ name }) => name).filter((name) => within(scope).queryAllByText(name).length > 0);
 
-describe("Tricot Cabinet Color price filter", () => {
+const priceTiersOf = (scope: HTMLElement) => {
+  fireEvent.click(within(scope).getByRole("button", { name: "Price" }));
+  return within(screen.getByRole("listbox", { name: "Price" }))
+    .getAllByRole("option")
+    .map((option) => option.firstElementChild?.textContent);
+};
+
+describe("Tricot colour price filters", () => {
   beforeEach(() => {
     store.dispatch(reset());
     store.dispatch(resetConfiguration());
@@ -94,12 +105,17 @@ describe("Tricot Cabinet Color price filter", () => {
     renderColorStep();
     const section = screen.getByRole("region", { name: "Cabinet Color" });
 
-    fireEvent.click(within(section).getByRole("button", { name: "Price" }));
-    const tiers = within(screen.getByRole("listbox", { name: "Price" }))
-      .getAllByRole("option")
-      .map((option) => option.firstElementChild?.textContent);
+    expect(priceTiersOf(section)).toEqual(["Show all", "Standard $", "Classic $$"]);
+  });
 
-    expect(tiers).toEqual(["Show all", "Standard $", "Classic $$"]);
+  it("ranks all 20 Lacquered MT handle groove colours as Standard $ alone", () => {
+    renderColorStep();
+    const section = screen.getByRole("region", { name: "Handle Groove Color" });
+
+    expect(GROOVE_COLOURS).toHaveLength(20);
+    expect(priceTiersOf(section)).toEqual(["Show all", "Standard $"]);
+    fireEvent.click(within(screen.getByRole("listbox", { name: "Price" })).getByText("Standard $"));
+    expect(shownColours(section).sort()).toEqual([...GROOVE_COLOURS].sort());
   });
 
   it("filters the same colours in full mode as in the grid", () => {

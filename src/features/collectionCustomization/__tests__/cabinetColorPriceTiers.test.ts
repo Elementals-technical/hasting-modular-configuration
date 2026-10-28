@@ -47,6 +47,14 @@ describe("cabinet colour price tiers of a collection", () => {
     expect(skusByTier(options, tricotProfile)).toEqual({ "tier-1": ["LACM"], "tier-2": ["WDV"] });
   });
 
+  it("rank all 20 of Tricot's Lacquered MT handle groove colours as Standard $ alone", () => {
+    const options = toGridOptions(tricotConfigurator.groupsByName["Select Handle Groove Color"]);
+    const override = selectPriceTierOverride(tricotProfile, "HandleGrooveColor");
+
+    expect(buildTierFilterOptions(options, override).map(({ value }) => value)).toEqual(["tier-1"]);
+    expect(filterOptionsByTier(options, "tier-1", override)).toHaveLength(20);
+  });
+
   it("rank Class Wood Veneer as Specialty $$$ and leave its other colours as the shared table ranks them", () => {
     const options = toGridOptions(classCabinetColors);
     const shared = skusByTier(options, null);
@@ -61,7 +69,7 @@ describe("cabinet colour price tiers of a collection", () => {
 
   it("are the shared table's for a collection or a field without its own", () => {
     expect(selectPriceTierOverride(ushProfile, "CabinetColor")).toBeUndefined();
-    expect(selectPriceTierOverride(tricotProfile, "HandleGrooveColor")).toBeUndefined();
+    expect(selectPriceTierOverride(tricotProfile, "CountertopColor")).toBeUndefined();
     expect(selectPriceTierOverride(null, "CabinetColor")).toBeUndefined();
   });
 });

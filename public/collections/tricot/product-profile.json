@@ -7,7 +7,7 @@
     "skuWorkbook": "Tricot Vanities - SKUs + Pricing.xlsx",
     "status": "source-backed preparation; partial approved runtime handoff integrated",
     "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies.",
-    "priceTiers": "Client feedback 'Modular Build - Dev Feedback', Tricot, Cabinet Color | Price Filter: Standard $ = all Lacquered MT colors, Classic $$ = all Wood Veneer colors."
+    "priceTiers": "Client feedback 'Modular Build - Dev Feedback', Tricot, Cabinet Color | Price Filter: Standard $ = all Lacquered MT colors, Classic $$ = all Wood Veneer colors. Handle Groove Color, all Lacquered MT, follows the same rule: Standard $ only (dev request 2026-10-28)."
   },
   "sourceRefs": {
     "configuratorId": 12,
@@ -409,7 +409,7 @@
   ],
   "ruleData": {
     "countertopCompatibility": { "tableId": 593 },
-    "priceTiers": { "byAttribute": { "CabinetColor": { "LACM": 1, "WDV": 2 } } },
+    "priceTiers": { "byAttribute": { "CabinetColor": { "LACM": 1, "WDV": 2 }, "HandleGrooveColor": { "LACM": 1 } } },
     "vesselCompatibility": {
       "hiddenStyles": [],
       "allowedMaterialsByStyle": {
