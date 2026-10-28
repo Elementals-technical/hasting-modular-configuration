@@ -25,8 +25,10 @@ import {
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import {
+  addProductPreset,
   recordComposition,
   reset,
+  resetProducts,
   setActiveProfile,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
@@ -441,15 +443,22 @@ describe("composition commands", () => {
           .map(({ sku }) => sku.replace(/^.*?-(HDL-.*)$/, "$1"));
       };
 
-      const chooseHandleColor = async (
+      const chooseCabinetValue = async (
         { runtime, deps }: ReturnType<typeof setup>,
+        attributeId: string,
         value: string,
         cabinet = getCabinetEntries(store.getState())[0],
       ) =>
         changeAttribute(
-          { attributeId: "HandleColor", value, scope: "cabinet", cabinetId: cabinet.stableKey },
+          { attributeId, value, scope: "cabinet", cabinetId: cabinet.stableKey },
           { getState: deps.getState, dispatch: deps.dispatch, runtime: runtime.port, flow: "custom" },
         );
+
+      const chooseHandleColor = (
+        fixture: ReturnType<typeof setup>,
+        value: string,
+        cabinet = getCabinetEntries(store.getState())[0],
+      ) => chooseCabinetValue(fixture, "HandleColor", value, cabinet);
 
       it("is recorded at every cabinet when a field changes it, and sent to the scene once", async () => {
         const fixture = setup();
@@ -513,6 +522,66 @@ describe("composition commands", () => {
           "Antracite 400 MT",
         ]);
         expect(handleBlocks()).toEqual(["HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD"]);
+      });
+
+      describe("chosen in Prebuilt", () => {
+        /** A model in Prebuilt, which keeps its products as the presets Customize starts from. */
+        const placeModel = async (fixture: ReturnType<typeof setup>) => {
+          await applyPreset({ products: makoModel }, fixture.deps);
+          store.dispatch(
+            addProductPreset(makoModel.map(({ productType, config }) => ({ name: productType, ...config }))),
+          );
+        };
+
+        /**
+         * Customize as CabinetBuilderPage starts it: the products the scene kept are recorded as the
+         * presets name them, and the builder adds the next cabinet with the first preset's config.
+         * Returns the config the added cabinet reaches the scene with.
+         */
+        const customizeAndAdd = async ({ composition, deps }: ReturnType<typeof setup>) => {
+          const runtimeIds = product().productIds;
+          const presets = product().productsPresets;
+          store.dispatch(resetProducts());
+          await adoptComposition(
+            { runtimeIds, products: presets.map((preset) => ({ productType: preset.name, config: { ...preset } })) },
+            deps,
+          );
+          await addCabinet(
+            { product: { productType: "Sink-Cabinet", config: { ...presets[0] } }, placement: { kind: "end" } },
+            deps,
+          );
+
+          const call = lastCall(composition);
+          return call.op === "add" ? call.product.config : null;
+        };
+
+        it("goes with the model into Customize, and so to the cabinet the builder adds", async () => {
+          const fixture = setup();
+          await placeModel(fixture);
+          await chooseHandleColor(fixture, "Gold");
+
+          expect((await customizeAndAdd(fixture))?.HandleColor).toBe("Gold");
+          expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+        });
+
+        it("takes the legs' colour along the same way", async () => {
+          const fixture = setup();
+          await placeModel(fixture);
+          await chooseCabinetValue(fixture, "LegColor", "Gold");
+
+          expect((await customizeAndAdd(fixture))?.LegColor).toBe("Gold");
+          expect(heldBy("LegColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+        });
+
+        it("keeps legs switched off in Customize, and puts none on the cabinet the builder adds", async () => {
+          const fixture = setup();
+          await placeModel(fixture);
+          await chooseCabinetValue(fixture, "LegColor", "");
+
+          expect((await customizeAndAdd(fixture))?.LegColor).toBe("");
+          // No cabinet holds a leg colour, so none is priced on legs.
+          expect(heldBy("LegColor")).toEqual([undefined, undefined, undefined, undefined]);
+        });
       });
 
       it("starts the first cabinet of an empty composition at the collection's handle colour", async () => {

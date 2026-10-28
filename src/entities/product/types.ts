@@ -13,7 +13,7 @@ export type PresetProduct = {
   HandleGrooveColor?: string;
   /** Mako: the colour of the handles. */
   HandleColor?: string;
-  /** Mako: the model stands on legs of this colour ("None": the cabinet colour). */
+  /** Mako: the model stands on legs of this colour ("None": the cabinet colour; "": legs switched off). */
   LegColor?: string;
 };
 

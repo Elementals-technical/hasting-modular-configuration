@@ -5,6 +5,7 @@ import {
   normalizeOptionValue,
   selectAttribute,
   selectLegacySpelling,
+  selectResetValue,
   selectRuntimeBinding,
 } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -176,7 +177,7 @@ const COMMITTERS: Record<string, Committer> = {
 };
 
 /** Colours a preset carries, so Customize starts from the colours the user chose. */
-const PRESET_COLOR_ATTRIBUTE_IDS = ["CabinetColor", "HandleGrooveColor"] as const;
+const PRESET_COLOR_ATTRIBUTE_IDS = ["CabinetColor", "HandleGrooveColor", "HandleColor", "LegColor"] as const;
 
 type PresetColorAttributeId = (typeof PRESET_COLOR_ATTRIBUTE_IDS)[number];
 
@@ -256,8 +257,13 @@ export const commitPlan = (changes: readonly PlannedChange[], context: CommitCon
           actions.push(...commitChange({ ...change, target }, context));
         }
 
-        // A cleared groove is not written into the presets, as the handle change never did.
-        if (isPresetColor(change.attributeId) && asText(change)) {
+        // A cleared groove is not written into the presets, as the handle change never did. A value
+        // the profile names as the reset one is (legs switched off), or Customize would bring back
+        // the model's.
+        if (
+          isPresetColor(change.attributeId) &&
+          (asText(change) || asText(change) === selectResetValue(context.profile, change.attributeId))
+        ) {
           presetColors[change.attributeId] = asText(change);
         }
     }
