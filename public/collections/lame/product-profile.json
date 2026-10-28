@@ -312,6 +312,16 @@
       ]
     },
     {
+      "attributeId": "DividersOption",
+      "scope": "global",
+      "initialValue": "None",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Customize", "label": "Customize", "order": 20 }
+      ]
+    },
+    {
       "attributeId": "DividersStyle",
       "scope": "drawer",
       "options": [
@@ -343,6 +353,7 @@
         "forcedHeight": "forced_height_cm"
       }
     },
+    "drawerOrganizers": { "profile": "ROW-MTL-43" },
     "drawerStyleGroups": [["1"], ["2"]],
     "vesselCompatibility": {
       "hiddenStyles": [],
@@ -365,7 +376,21 @@
     "change.valueNotInCatalog": "This option is not available in this collection.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "drawers.requiredHeight": "Required for selected drawers",
-    "vessel.colorUnavailable": "Not available for selected vessel sink style."
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "organizer.hintOpenDrawer": "Click ‘Open Drawer’ on a drawer to add divider columns.",
+    "organizer.lockedZone": "Drain area — dividers can't be placed here.",
+    "organizer.trimmed": "{n} column(s) no longer fit and were removed.",
+    "organizer.drawerRemoved": "{n} column(s) were removed with the drawer.",
+    "organizer.drawerFull": "This drawer is full.",
+    "organizer.unavailable": "Dividers aren't available for this cabinet size.",
+    "organizer.placeFailed": "Couldn't place the column. Try again.",
+    "organizer.maxPositions": "A column holds up to 5 inserts.",
+    "organizer.typeChanged": "Dividers were removed because the cabinet type changed.",
+    "organizer.columnRemoved": "Column removed.",
+    "organizer.cleared": "Dividers removed.",
+    "organizer.undoHint": "Use Undo to bring them back.",
+    "organizer.oakPending": "Oak organizers are not available yet.",
+    "organizer.updateRequired": "These dividers were saved by a newer version. Reload the page to edit them."
   },
   "excludedFromThisProfile": {
     "sourceRefs": "Configurator 14 (modular-config-phase-2-materials-(Lame)), cabinet table 596 (matrix-cabinet-lame) and countertop table 597 (matrix-coutnertop-lame) come from the manifest. Configurator 14 holds the Lame palettes only (40 cabinet, 22 handle, 70 thin countertop, 40 vessel and 22 leg cap colours); the two tables hold Lame data only.",

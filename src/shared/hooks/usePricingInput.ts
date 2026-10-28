@@ -6,6 +6,7 @@ import {
   getActiveRuntimeBindings,
   getCabinetEntries,
   getDimensionsByCabinet,
+  getOrganizersByCabinet,
   getValuesByAttributeId,
 } from "@/entities/configuration/model/store/selectors";
 import {
@@ -74,6 +75,7 @@ export const usePricingInput = () => {
   const hasBootstrappedCabinetBuilder = useAppSelector(getHasBootstrappedCabinetBuilder);
   const cabinetEntries = useAppSelector(getCabinetEntries);
   const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
+  const organizersByCabinet = useAppSelector(getOrganizersByCabinet);
   const configurationValues = useAppSelector(getValuesByAttributeId);
   const activeCabinetType = useAppSelector(getActiveCabinetType);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -136,6 +138,7 @@ export const usePricingInput = () => {
       cabinetCovers,
       cabinetEntries,
       dimensionsByCabinet,
+      organizersByCabinet,
       committedCountertopLengthCm: countertopRuntimeSize?.lengthCm,
       tandemCountertopLengthsCm: countertopRuntimeSize?.tandemLengthsCm,
       configurationValues,
@@ -180,6 +183,7 @@ export const usePricingInput = () => {
       cabinetCovers,
       cabinetEntries,
       dimensionsByCabinet,
+      organizersByCabinet,
       countertopRuntimeSize?.lengthCm,
       countertopRuntimeSize?.tandemLengthsCm,
       configurationValues,

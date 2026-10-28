@@ -35,6 +35,17 @@ export type { SidePanelPortDeps } from "./lib/createSidePanelPort";
 export { createTestSidePanelPort } from "./lib/testSidePanelPort";
 export type { TestSidePanelPort } from "./lib/testSidePanelPort";
 
+export { createOrganizerPort } from "./lib/createOrganizerPort";
+export type {
+  OrganizerPort,
+  OrganizerPortDeps,
+  OrganizerPreview,
+  OrganizerRuntimePort,
+  OrganizerViewAddress,
+} from "./lib/createOrganizerPort";
+export { createTestOrganizerPort } from "./lib/testOrganizerPort";
+export type { TestOrganizerAnswer, TestOrganizerCall, TestOrganizerPort } from "./lib/testOrganizerPort";
+
 export { fitCountertop, restoreCountertopConfigs } from "./lib/countertopScene";
 export type { CountertopSize } from "./lib/countertopScene";
 export { ensureCabinetHeights } from "./lib/ensureCabinetHeights";

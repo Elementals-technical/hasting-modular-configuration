@@ -6,6 +6,7 @@ import {
   type CabinetColorTraitsRuleData,
   type CabinetMatrixLegacyAdapter,
   type CountertopFallbacksRuleData,
+  type DrawerOrganizersRuleData,
   type DragDropRuleData,
   type DrawerStyleGroups,
   type UndeterminedRule,
@@ -499,6 +500,9 @@ const RULE_SECTION_FIELDS = {
       "a map of vessel style to { materialTokens, colorCodes }",
     ],
   },
+  drawerOrganizers: {
+    profile: NON_EMPTY_STRING,
+  },
   dragDrop: {
     enabled: [isBoolean, "a boolean"],
   },
@@ -694,6 +698,7 @@ const parseRuleSections = (
     materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
     cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
+    drawerOrganizers: parseRuleSection<DrawerOrganizersRuleData>(ruleData, "drawerOrganizers", collect),
     dragDrop: parseRuleSection<DragDropRuleData>(ruleData, "dragDrop", collect),
   };
 

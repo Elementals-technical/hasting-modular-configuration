@@ -244,6 +244,8 @@ export type CustomizationSchema = {
   playerMenu?: CustomizationPlayerMenu;
   /** Style sidebar of the cabinet builder: the selectors the collection shows. */
   styleSidebar?: CustomizationStyleSidebar;
+  /** Drawer organizers (Ph2): wording of the panel and the preset cards; absent = the defaults of the code. */
+  drawerOrganizers?: CustomizationDrawerOrganizers;
   /** Cabinet style cards of the cabinet builder: the models a drawer style comes in by height. */
   cabinetStyle?: CustomizationCabinetStyle;
 };
@@ -258,6 +260,19 @@ export type CustomizationSchema = {
 export type CustomizationCountertopSettings = {
   lengthLimitsIn?: { min: number; max: number };
   lengthPresetsIn?: number[];
+};
+
+/**
+ * Wording and layout of the drawer organizer panel. The positions of the presets are not here: the
+ * code owns them (features/drawerOrganizers/model/presets.ts), this block only overrides their labels.
+ * `mobileLayout`: M1 grows the 3D window while a column is selected, M2 is a tray under it.
+ */
+export type CustomizationDrawerOrganizers = {
+  panelTitle?: string;
+  customizeLabel?: string;
+  /** Label of a preset card, by preset id. */
+  presets?: Record<string, { label?: string }>;
+  mobileLayout?: "M1" | "M2";
 };
 
 /** Properties of a configurator colour the colour grid filters and prices by. */

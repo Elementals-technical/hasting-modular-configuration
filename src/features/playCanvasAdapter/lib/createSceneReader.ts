@@ -4,6 +4,7 @@ import type {
   SceneCabinetState,
   SceneStateResult,
 } from "@/entities/configuration";
+import { DRAWER_ORGANIZERS_KEY, readDrawerOrganizers } from "@/entities/configuration/model/drawerOrganizers";
 import { readSceneProducts } from "@/utils/functions/playcanvas/sceneBridge";
 import type { SceneProductsRead } from "@/utils/functions/playcanvas/sceneBridge";
 
@@ -11,6 +12,9 @@ import type { SceneProductsRead } from "@/utils/functions/playcanvas/sceneBridge
  * Reads the actual result of the scene for C (I04): the composition order and the size of
  * each product, taken from that product's own config. The scene fires no events for sizes
  * or order, so C calls this after the actions that change them.
+ *
+ * A Ph2 organizer product also reports its `DrawerOrganizers` key. A product without the key keeps
+ * the old shape (no `organizers` field), so C leaves its organizers copy untouched.
  */
 
 /** The scene side of the reader. Tests pass a fake; the app uses sceneBridge. */
@@ -49,7 +53,16 @@ export const createSceneReader = ({ scene = defaultScene }: SceneReaderDeps = {}
 
     const cabinets: SceneCabinetState[] = runtimeIds.flatMap((runtimeId) => {
       const config = result.configs[runtimeId];
-      return config ? [{ runtimeId, dimensions: readDimensions(config) }] : [];
+      if (!config) return [];
+      return [
+        {
+          runtimeId,
+          dimensions: readDimensions(config),
+          ...(DRAWER_ORGANIZERS_KEY in config
+            ? { organizers: readDrawerOrganizers(config[DRAWER_ORGANIZERS_KEY]) }
+            : {}),
+        },
+      ];
     });
 
     return { status: "ready", order: [...result.order], cabinets };

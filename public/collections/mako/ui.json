@@ -56,6 +56,11 @@
           "path": "/prebuilt/countertop"
         },
         {
+          "stepId": "accessories",
+          "path": "/prebuilt/accessories",
+          "screen": "accessories"
+        },
+        {
           "stepId": "faucet-holes",
           "path": "/prebuilt/faucet-holes"
         },
@@ -79,6 +84,11 @@
         {
           "stepId": "countertop",
           "path": "/custom/countertop"
+        },
+        {
+          "stepId": "accessories",
+          "path": "/custom/accessories",
+          "screen": "accessories"
         },
         {
           "stepId": "faucet-holes",
@@ -111,6 +121,11 @@
       "label": "Countertop & Basin",
       "kind": "fields",
       "sectionIds": ["countertop-color", "thickness", "countertop-style", "basin-style", "vessel-color"]
+    },
+    "accessories": {
+      "label": "Accessories",
+      "kind": "fields",
+      "sectionIds": ["dividers"]
     },
     "faucet-holes": {
       "label": "Faucet Details",
@@ -232,6 +247,19 @@
         }
       ]
     },
+    "dividers": {
+      "label": "Drawer Dividers",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "DividersOption",
+          "control": "swatches",
+          "hints": {
+            "Customize": "Click the ⊕ button to place a divider column. Select added columns to customize it."
+          }
+        }
+      ]
+    },
     "faucet-holes-amount": {
       "label": "Faucet Holes",
       "defaultOpen": true,
@@ -243,5 +271,9 @@
         }
       ]
     }
+  },
+  "drawerOrganizers": {
+    "panelTitle": "Divider Options",
+    "mobileLayout": "M2"
   }
 }

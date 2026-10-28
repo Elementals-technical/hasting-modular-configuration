@@ -128,6 +128,13 @@ export interface ConfiguratorClient {
   ): Promise<CountertopLengthAtPointer | null>;
   /** Rejects with API_METHOD_UNAVAILABLE when the build has no `countertop.resizeFrom`. */
   resizeCountertopFrom(side: CountertopResizeSide, lengthM: number): Promise<unknown>;
+  /** `organizers` events, the current state first. Resolves null when the build has no `organizers`. */
+  onOrganizers(event: "change" | "view", callback: (payload: unknown) => void): Promise<ConfiguratorUnsubscribe | null>;
+  /** Organizer view frames and background taps. Resolves null when the build has no `organizersOverlay`. */
+  onOrganizersOverlay(
+    event: "change" | "pointer",
+    callback: (payload: unknown) => void,
+  ): Promise<ConfiguratorUnsubscribe | null>;
   dispose(): void;
 }
 
@@ -569,6 +576,47 @@ class DefaultConfiguratorClient implements ConfiguratorClient {
         });
       }
       return this.bridge.resizeCountertopFrom(side, lengthM);
+    });
+  }
+
+  onOrganizers(event: "change" | "view", callback: (payload: unknown) => void): Promise<ConfiguratorUnsubscribe | null> {
+    return this.enqueue(async () => {
+      if (!this.bridge.subscribeOrganizers) return null;
+      let active = true;
+      const rawUnsubscribe = await this.bridge.subscribeOrganizers(event, (payload) => {
+        if (active) callback(payload);
+      });
+      if (!rawUnsubscribe) return null;
+      const unsubscribe = () => {
+        if (!active) return;
+        active = false;
+        this.subscriptions.delete(unsubscribe);
+        rawUnsubscribe();
+      };
+      this.subscriptions.add(unsubscribe);
+      return unsubscribe;
+    });
+  }
+
+  onOrganizersOverlay(
+    event: "change" | "pointer",
+    callback: (payload: unknown) => void,
+  ): Promise<ConfiguratorUnsubscribe | null> {
+    return this.enqueue(async () => {
+      if (!this.bridge.subscribeOrganizersOverlay) return null;
+      let active = true;
+      const rawUnsubscribe = await this.bridge.subscribeOrganizersOverlay(event, (payload) => {
+        if (active) callback(payload);
+      });
+      if (!rawUnsubscribe) return null;
+      const unsubscribe = () => {
+        if (!active) return;
+        active = false;
+        this.subscriptions.delete(unsubscribe);
+        rawUnsubscribe();
+      };
+      this.subscriptions.add(unsubscribe);
+      return unsubscribe;
     });
   }
 

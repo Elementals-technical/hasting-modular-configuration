@@ -1,5 +1,7 @@
 import type { AttributeScope, RuntimeBindingSet } from "@/entities/collection";
 
+import type { DrawerOrganizersRead } from "./drawerOrganizers";
+
 /**
  * Configuration state model — what the user has chosen, addressed by target.
  *
@@ -70,6 +72,12 @@ export type ConfigurationState = {
    * the saved per-product config already carries the size.
    */
   dimensionsByCabinet: Record<StableCabinetKey, CabinetDimensions>;
+  /**
+   * Read-only copy of each product's `DrawerOrganizers` scene key (Ph2 organizers), recorded from command
+   * receipts, scene events and the scene reader. The scene owns the key: this copy is in neither the
+   * snapshot nor the saved fragment. A product without organizers has no entry (never `absent`).
+   */
+  organizersByCabinet: Record<StableCabinetKey, DrawerOrganizersRead>;
   /** Monotonic counter behind stableKey generation; never reused within a session. */
   nextCabinetSeq: number;
   /**

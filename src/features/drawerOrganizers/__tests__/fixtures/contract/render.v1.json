@@ -1,0 +1,151 @@
+{
+  "fixture": "render.v1",
+  "fixtureRevision": 2,
+  "contractVersion": 1,
+  "codec": {
+    "id": "cells-v1",
+    "positionCount": 5,
+    "maxActive": 5,
+    "wallOrder": "walls[i] = Ph2_Divider_Wall_{i+1}; i = 0 nearest the facade (+Z)",
+    "rule": "button k (1 = back cell) turns on Wall_{6-k} when k >= 2 and Wall_{5-k} when k <= 4 (OPUS-C §3.3)",
+    "cases": [
+      { "positions": [], "walls": [false, false, false, false] },
+      { "positions": [1], "walls": [false, false, false, true] },
+      { "positions": [2], "walls": [false, false, true, true] },
+      { "positions": [3], "walls": [false, true, true, false] },
+      { "positions": [4], "walls": [true, true, false, false] },
+      { "positions": [5], "walls": [true, false, false, false] },
+      { "positions": [1, 2], "walls": [false, false, true, true] },
+      { "positions": [1, 3], "walls": [false, true, true, true] },
+      { "positions": [1, 4], "walls": [true, true, false, true] },
+      { "positions": [1, 5], "walls": [true, false, false, true] },
+      { "positions": [2, 3], "walls": [false, true, true, true] },
+      { "positions": [2, 4], "walls": [true, true, true, true] },
+      { "positions": [2, 5], "walls": [true, false, true, true] },
+      { "positions": [3, 4], "walls": [true, true, true, false] },
+      { "positions": [3, 5], "walls": [true, true, true, false] },
+      { "positions": [4, 5], "walls": [true, true, false, false] }
+    ]
+  },
+  "presets": [
+    { "id": "empty", "sheetConfig": null, "positions": [], "walls": [false, false, false, false] },
+    { "id": "preset-1", "sheetConfig": 1, "positions": [2], "walls": [false, false, true, true] },
+    { "id": "preset-2", "sheetConfig": 2, "positions": [4], "walls": [true, true, false, false] },
+    { "id": "preset-3", "sheetConfig": 3, "positions": [3], "walls": [false, true, true, false] },
+    { "id": "preset-4", "sheetConfig": 4, "positions": [2, 4], "walls": [true, true, true, true] }
+  ],
+  "plans": [
+    {
+      "name": "example-1",
+      "note": "OPUS-C §4.1 example 1; xM = 0.1 * slot (tolerance 1e-9).",
+      "params": { "collection": "class", "role": "SC", "width": 120, "drawersMode": "2D" },
+      "state": {
+        "version": 1,
+        "Top": {
+          "style": "Metal",
+          "columns": [{ "slot": -1, "positions": [2] }, { "slot": 0, "positions": [] }, { "slot": 1, "positions": [2, 4] }]
+        },
+        "Bot": { "style": "Metal", "columns": [{ "slot": -5, "positions": [3] }, { "slot": -4, "positions": [3] }] }
+      },
+      "expected": {
+        "drawers": {
+          "Top": {
+            "profileId": "ROW-MTL-43",
+            "divPoint": "Class_Top_Drawer_DivPoint",
+            "material": "Ph2 Dividers Walls",
+            "modules": [
+              { "slot": -1, "xM": -0.1, "walls": [false, false, true, true] },
+              { "slot": 0, "xM": 0, "walls": [false, false, false, false] },
+              { "slot": 1, "xM": 0.1, "walls": [true, true, true, true] }
+            ]
+          },
+          "Bot": {
+            "profileId": "ROW-MTL-43",
+            "divPoint": "Class_Bot_Drawer_DivPoint",
+            "material": "Ph2 Dividers Walls",
+            "modules": [
+              { "slot": -5, "xM": -0.5, "walls": [false, true, true, false] },
+              { "slot": -4, "xM": -0.4, "walls": [false, true, true, false] }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "example-2",
+      "note": "OPUS-C §4.1 example 2 (SB 60).",
+      "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+      "state": {
+        "version": 1,
+        "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [3] }, { "slot": 2, "positions": [] }] },
+        "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [1, 4] }] }
+      },
+      "expected": {
+        "drawers": {
+          "Top": {
+            "profileId": "ROW-MTL-43",
+            "divPoint": "Class_Top_Drawer_DivPoint",
+            "material": "Ph2 Dividers Walls",
+            "modules": [
+              { "slot": -2, "xM": -0.2, "walls": [false, true, true, false] },
+              { "slot": 2, "xM": 0.2, "walls": [false, false, false, false] }
+            ]
+          },
+          "Bot": {
+            "profileId": "ROW-MTL-43",
+            "divPoint": "Class_Bot_Drawer_DivPoint",
+            "material": "Ph2 Dividers Walls",
+            "modules": [{ "slot": 0, "xM": 0, "walls": [true, true, false, true] }]
+          }
+        }
+      }
+    },
+    {
+      "name": "mako-sb60-1d",
+      "note": "Mako SB Height 26: the single drawer is Top.",
+      "params": { "collection": "mako", "role": "SB", "width": 60, "drawersMode": "1D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [2] }] } },
+      "expected": {
+        "drawers": {
+          "Top": {
+            "profileId": "ROW-MTL-43",
+            "divPoint": "Mako_Top_Drawer_DivPoint",
+            "material": "Ph2 Dividers Walls",
+            "modules": [{ "slot": -2, "xM": -0.2, "walls": [false, false, true, true] }]
+          },
+          "Bot": null
+        }
+      }
+    },
+    {
+      "name": "lame-sc60-1d",
+      "note": "Lame 1D: the single drawer is Top.",
+      "params": { "collection": "lame", "role": "SC", "width": 60, "drawersMode": "1D" },
+      "state": {
+        "version": 1,
+        "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [3] }, { "slot": 1, "positions": [] }] }
+      },
+      "expected": {
+        "drawers": {
+          "Top": {
+            "profileId": "ROW-MTL-43",
+            "divPoint": "Lame_Top_Drawer_DivPoint",
+            "material": "Ph2 Dividers Walls",
+            "modules": [
+              { "slot": 0, "xM": 0, "walls": [false, true, true, false] },
+              { "slot": 1, "xM": 0.1, "walls": [false, false, false, false] }
+            ]
+          },
+          "Bot": null
+        }
+      }
+    },
+    {
+      "name": "empty",
+      "note": "No state: nothing to render in either drawer.",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "expected": { "drawers": { "Top": null, "Bot": null } }
+    }
+  ]
+}

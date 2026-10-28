@@ -110,9 +110,34 @@ describe("resolveScreenTarget", () => {
     expect(resolveScreenTarget(ush, "custom", "accessories")?.stepId).toBe("accessories-custom");
   });
 
+  it("finds the accessories step of Class in each flow", () => {
+    expect(resolveScreenTarget(classSchema, "prebuilt", "accessories")).toEqual({
+      stepId: "accessories",
+      path: "/prebuilt/accessories",
+    });
+    expect(resolveScreenTarget(classSchema, "custom", "accessories")).toEqual({
+      stepId: "accessories",
+      path: "/custom/accessories",
+    });
+  });
+
   it("finds nothing for a collection without the page", () => {
-    expect(resolveScreenTarget(classSchema, "prebuilt", "accessories")).toBeNull();
-    expect(resolveScreenTarget(classSchema, "custom", "accessories")).toBeNull();
+    // Class without its accessories step: no step names the screen.
+    const withoutPage: CustomizationSchema = {
+      ...classSchema,
+      flows: Object.fromEntries(
+        CUSTOMIZATION_FLOW_IDS.map((flowId) => [
+          flowId,
+          {
+            ...classSchema.flows[flowId],
+            steps: classSchema.flows[flowId].steps.filter(({ screen }) => screen !== "accessories"),
+          },
+        ]),
+      ) as CustomizationSchema["flows"],
+    };
+
+    expect(resolveScreenTarget(withoutPage, "prebuilt", "accessories")).toBeNull();
+    expect(resolveScreenTarget(withoutPage, "custom", "accessories")).toBeNull();
   });
 });
 

@@ -1,0 +1,156 @@
+{
+  "fixture": "frames.v1",
+  "fixtureRevision": 2,
+  "contractVersion": 1,
+  "projector": {
+    "kind": "linear-top",
+    "originPx": { "x": 400, "y": 300 },
+    "pxPerM": 1000,
+    "viewport": { "width": 800, "height": 600 }
+  },
+  "geometry": {
+    "pitchM": 0.1,
+    "halfWidthM": 0.05,
+    "halfDepthM": 0.215,
+    "cellsZ": [-0.215, -0.1278, -0.0426, 0.0426, 0.1278, 0.215],
+    "closeAnchorM": { "x": 0, "z": 0.255 },
+    "radiusPx": 50,
+    "pixelDecimals": 2,
+    "tolerancePx": 0.5
+  },
+  "cases": [
+    {
+      "name": "in-view-empty",
+      "note": "Empty Top in view: one plus at slot 0 in the projector origin; no entries while in view.",
+      "input": {
+        "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+        "productId": "cab-1",
+        "state": null,
+        "view": { "productId": "cab-1", "drawer": "Top" },
+        "revision": 1,
+        "entryAnchors": null
+      },
+      "expected": {
+        "revision": 1,
+        "viewport": { "width": 800, "height": 600 },
+        "visible": true,
+        "view": { "productId": "cab-1", "drawer": "Top" },
+        "plus": [
+          {
+            "id": "Top:0",
+            "drawer": "Top",
+            "slot": 0,
+            "side": "center",
+            "center": { "x": 400, "y": 300 },
+            "radiusPx": 50
+          }
+        ],
+        "columns": [],
+        "lock": null,
+        "entries": [],
+        "closeAnchor": { "x": 400, "y": 555 }
+      }
+    },
+    {
+      "name": "in-view-zone-full",
+      "note": "OPUS-C example 2, Top in view: FULL -> no plus; columns -2 and +2 around the zone -1..1.",
+      "input": {
+        "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+        "productId": "cab-1",
+        "state": {
+          "version": 1,
+          "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [3] }, { "slot": 2, "positions": [] }] },
+          "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [1, 4] }] }
+        },
+        "view": { "productId": "cab-1", "drawer": "Top" },
+        "revision": 1,
+        "entryAnchors": null
+      },
+      "expected": {
+        "revision": 1,
+        "viewport": { "width": 800, "height": 600 },
+        "visible": true,
+        "view": { "productId": "cab-1", "drawer": "Top" },
+        "plus": [],
+        "columns": [
+          {
+            "slot": -2,
+            "hull": [{ "x": 150, "y": 85 }, { "x": 250, "y": 85 }, { "x": 250, "y": 515 }, { "x": 150, "y": 515 }],
+            "center": { "x": 200, "y": 300 },
+            "cells": [
+              [{ "x": 150, "y": 85 }, { "x": 250, "y": 85 }, { "x": 250, "y": 172.2 }, { "x": 150, "y": 172.2 }],
+              [{ "x": 150, "y": 172.2 }, { "x": 250, "y": 172.2 }, { "x": 250, "y": 257.4 }, { "x": 150, "y": 257.4 }],
+              [{ "x": 150, "y": 257.4 }, { "x": 250, "y": 257.4 }, { "x": 250, "y": 342.6 }, { "x": 150, "y": 342.6 }],
+              [{ "x": 150, "y": 342.6 }, { "x": 250, "y": 342.6 }, { "x": 250, "y": 427.8 }, { "x": 150, "y": 427.8 }],
+              [{ "x": 150, "y": 427.8 }, { "x": 250, "y": 427.8 }, { "x": 250, "y": 515 }, { "x": 150, "y": 515 }]
+            ]
+          },
+          {
+            "slot": 2,
+            "hull": [{ "x": 550, "y": 85 }, { "x": 650, "y": 85 }, { "x": 650, "y": 515 }, { "x": 550, "y": 515 }],
+            "center": { "x": 600, "y": 300 },
+            "cells": [
+              [{ "x": 550, "y": 85 }, { "x": 650, "y": 85 }, { "x": 650, "y": 172.2 }, { "x": 550, "y": 172.2 }],
+              [{ "x": 550, "y": 172.2 }, { "x": 650, "y": 172.2 }, { "x": 650, "y": 257.4 }, { "x": 550, "y": 257.4 }],
+              [{ "x": 550, "y": 257.4 }, { "x": 650, "y": 257.4 }, { "x": 650, "y": 342.6 }, { "x": 550, "y": 342.6 }],
+              [{ "x": 550, "y": 342.6 }, { "x": 650, "y": 342.6 }, { "x": 650, "y": 427.8 }, { "x": 550, "y": 427.8 }],
+              [{ "x": 550, "y": 427.8 }, { "x": 650, "y": 427.8 }, { "x": 650, "y": 515 }, { "x": 550, "y": 515 }]
+            ]
+          }
+        ],
+        "lock": {
+          "fromSlot": -1,
+          "toSlot": 1,
+          "hull": [{ "x": 250, "y": 85 }, { "x": 550, "y": 85 }, { "x": 550, "y": 515 }, { "x": 250, "y": 515 }],
+          "center": { "x": 400, "y": 300 }
+        },
+        "entries": [],
+        "closeAnchor": { "x": 400, "y": 555 }
+      }
+    },
+    {
+      "name": "out-of-view",
+      "note": "OPUS-C example 2, no view: only entries (one per existing drawer, Top before Bot); anchors come from the fixture input.",
+      "input": {
+        "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+        "productId": "cab-1",
+        "state": {
+          "version": 1,
+          "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [3] }, { "slot": 2, "positions": [] }] },
+          "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [1, 4] }] }
+        },
+        "view": null,
+        "revision": 1,
+        "entryAnchors": { "Top": { "x": 400, "y": 420 }, "Bot": { "x": 400, "y": 520 } }
+      },
+      "expected": {
+        "revision": 1,
+        "viewport": { "width": 800, "height": 600 },
+        "visible": true,
+        "view": null,
+        "plus": [],
+        "columns": [],
+        "lock": null,
+        "entries": [
+          {
+            "productId": "cab-1",
+            "drawer": "Top",
+            "anchor": { "x": 400, "y": 420 },
+            "count": 2,
+            "eligible": true,
+            "open": false
+          },
+          {
+            "productId": "cab-1",
+            "drawer": "Bot",
+            "anchor": { "x": 400, "y": 520 },
+            "count": 1,
+            "eligible": true,
+            "open": false
+          }
+        ],
+        "closeAnchor": null
+      }
+    }
+  ]
+}

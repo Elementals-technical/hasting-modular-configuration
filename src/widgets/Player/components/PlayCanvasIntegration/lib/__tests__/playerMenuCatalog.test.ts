@@ -73,11 +73,10 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
-  it("leaves out what Class has no data for: the accessories page and a handle choice", () => {
+  it("leaves out what Class has no data for: a handle choice", () => {
     for (const flowId of CUSTOMIZATION_FLOW_IDS) {
       const { items } = supportOf("class", flowId);
 
-      expect(items.has("accessories")).toBe(false);
       expect(items.has("handle-style")).toBe(false);
       expect(items.has("color")).toBe(true);
       expect(items.has("basin-style")).toBe(true);

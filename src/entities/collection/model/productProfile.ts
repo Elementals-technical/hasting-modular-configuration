@@ -320,6 +320,14 @@ export type SteppedCabinetModule = {
 };
 
 /**
+ * The Ph2 drawer organizers of a collection: the id of the organizer profile (for example `ROW-MTL-43`).
+ * The table behind the id (presets, codec, limits) lives in code, features/drawerOrganizers/model/presets.ts.
+ */
+export type DrawerOrganizersRuleData = {
+  profile: string;
+};
+
+/**
  * Rule parameters: the algorithms stay in code, their lists, limits and exclusions live here.
  *
  * Every section except the cabinet matrix adapter is optional. An absent section means the
@@ -356,6 +364,8 @@ export type ProfileRuleData = {
   materialNormalization?: MaterialNormalizationRuleData;
   vesselCompatibility?: VesselCompatibilityRuleData;
   cabinetColorTraits?: CabinetColorTraitsRuleData;
+  /** Absent = the collection does not offer the Ph2 drawer organizers. */
+  drawerOrganizers?: DrawerOrganizersRuleData;
   dragDrop?: DragDropRuleData;
 };
 

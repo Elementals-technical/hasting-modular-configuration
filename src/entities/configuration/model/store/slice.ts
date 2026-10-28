@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import type { RuntimeBindingSet } from "@/entities/collection";
 
+import type { DrawerOrganizersRead } from "../drawerOrganizers";
 import { maxSeqFromKeys, rebindSavedCabinets, reconcileOrder, registerCabinets, resolveStableKey } from "../identity";
 import type { SceneStateResult } from "../runtimePort";
 import { isSameTarget } from "../types";
@@ -27,6 +28,30 @@ const pruneDimensions = (state: ConfigurationState) => {
   }
 };
 
+/** The organizers of products that are no longer placed must not be read, priced or cleared for a new one. */
+const pruneOrganizers = (state: ConfigurationState) => {
+  const placed = new Set(state.cabinets.map((entry) => entry.stableKey));
+
+  for (const stableKey of Object.keys(state.organizersByCabinet)) {
+    if (!placed.has(stableKey)) delete state.organizersByCabinet[stableKey];
+  }
+};
+
+/**
+ * Records what the scene holds for one product: `absent` removes its entry, an equal entry keeps its
+ * reference, so consumers (the price) do not recompute on every event.
+ */
+const writeOrganizers = (state: ConfigurationState, stableKey: StableCabinetKey, entry: DrawerOrganizersRead) => {
+  if (entry.status === "absent") {
+    if (stableKey in state.organizersByCabinet) delete state.organizersByCabinet[stableKey];
+    return;
+  }
+
+  const recorded = state.organizersByCabinet[stableKey];
+  if (recorded && JSON.stringify(recorded) === JSON.stringify(entry)) return;
+  state.organizersByCabinet[stableKey] = entry;
+};
+
 /**
  * Holds only what the typed product slice cannot address today: the active collection,
  * stable product identity/order, and values of attributes that have been migrated off
@@ -43,6 +68,7 @@ const initialState: ConfigurationState = {
   cabinets: [],
   nextCabinetSeq: 1,
   dimensionsByCabinet: {},
+  organizersByCabinet: {},
   valuesByAttributeId: {},
   restore: { configId: null, status: "idle", reason: null, message: null },
   runtimeSync: { needsSync: false },
@@ -69,6 +95,7 @@ const configurationSlice = createSlice({
       state.cabinets = entries;
       state.nextCabinetSeq = nextSeq;
       pruneDimensions(state);
+      pruneOrganizers(state);
     },
 
     /** Applies the composition order reported by the scene. */
@@ -109,6 +136,14 @@ const configurationSlice = createSlice({
         if (!unchanged) state.dimensionsByCabinet[stableKey] = { ...dimensions };
       }
 
+      // Only a Ph2 organizer product carries `organizers`; every other product leaves the copy untouched.
+      for (const { runtimeId, organizers } of cabinets) {
+        if (organizers === undefined) continue;
+        const stableKey = resolveStableKey(state.cabinets, runtimeId);
+        if (stableKey) writeOrganizers(state, stableKey, organizers);
+      }
+      pruneOrganizers(state);
+
       // A successful reader pass is the synchronization point after a partial command.
       state.runtimeSync.needsSync = false;
     },
@@ -125,6 +160,14 @@ const configurationSlice = createSlice({
       state.cabinets = rebindSavedCabinets(stableKeys, runtimeIds);
       state.nextCabinetSeq = Math.max(state.nextCabinetSeq, maxSeqFromKeys(stableKeys) + 1);
       pruneDimensions(state);
+      // The scene was rebuilt: its reader and its `change{restore}` events fill the copy again.
+      state.organizersByCabinet = {};
+    },
+
+    /** What the scene holds for one product's organizers, from a command receipt or a scene event. */
+    recordOrganizers(state, action: PayloadAction<{ stableKey: StableCabinetKey; entry: DrawerOrganizersRead }>) {
+      const { stableKey, entry } = action.payload;
+      writeOrganizers(state, stableKey, entry);
     },
 
     setAttributeValue(
@@ -192,6 +235,7 @@ const configurationSlice = createSlice({
         maxSeqFromKeys(cabinets.map((entry) => entry.stableKey)) + 1,
       );
       pruneDimensions(state);
+      pruneOrganizers(state);
     },
 
     resetConfiguration(state) {
@@ -246,6 +290,7 @@ export const {
   recordSceneState,
   requestSceneStateSync,
   restoreCabinets,
+  recordOrganizers,
   setAttributeValue,
   clearAttributeValue,
   dropValuesForCabinet,

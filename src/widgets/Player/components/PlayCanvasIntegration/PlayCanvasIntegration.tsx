@@ -73,6 +73,7 @@ import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneP
 import { updateDimensionDataForProduct } from "@/utils/functions/playcanvas/updateDimensionData";
 import { fitCountertop } from "@/features/playCanvasAdapter";
 import { clearDividerZones } from "@/features/dividers";
+import { DrawerOrganizerLayer, selectOrganizersEnabled } from "@/features/drawerOrganizers";
 import { setVisibleDrawerButtons } from "@/utils/functions/playcanvas/setVisibleDrawerButtons";
 import {
   DIVIDER_RESIZE_RESTORE_EVENT,
@@ -235,7 +236,7 @@ import {
 } from "./lib/vesselBasinSelection";
 
 // 🔧 UPDATE THIS VERSION WHEN DEPLOYING NEW PLAYCANVAS BUILD
-const PLAYCANVAS_VERSION = "038";
+const PLAYCANVAS_VERSION = "039";
 const PLAYCANVAS_SRC = `/HastingCabinetsParametrization/index.html?v=${PLAYCANVAS_VERSION}`;
 
 /** Stable code; the text comes from the collection's `messages`. */
@@ -461,6 +462,8 @@ export const PlayCanvasIntegration = ({
 
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
+  // Ph2 drawer organizers (Class, Mako, Lame): the scene's own divider widgets stay out of their way.
+  const organizersEnabled = useAppSelector(selectOrganizersEnabled);
   const customizationSchema = useActiveCollection((collection) => collection.catalog.customization ?? null);
   const countertopLengthSettings = customizationSchema?.countertop;
   const countertopLengthLimitsIn = useMemo(
@@ -513,7 +516,15 @@ export const PlayCanvasIntegration = ({
     [navigate],
   );
   const isCabinetBuilderPage = navigation?.currentStep?.kind === "cabinet-builder";
-  const isAccessoriesPage = location.pathname.endsWith("/accessories");
+  // The accessories screen of the flow, whatever the path is called (Tricot's is `/side-panels`).
+  // Only a collection with Ph2 organizers goes by it; every other one is told by the path alone, as before.
+  const currentScreen = navigation
+    ? customizationSchema?.flows[navigation.flowId]?.steps.find(
+        (step) => step.stepId === navigation.currentStep?.stepId,
+      )?.screen
+    : undefined;
+  const isAccessoriesPage =
+    location.pathname.endsWith("/accessories") || (organizersEnabled && currentScreen === "accessories");
   const isSummaryPage = navigation?.isSummary ?? false;
   const isPrebuiltRef = useRef(isPrebuilt);
   const isPlayCanvasReady = usePlayCanvasReady();
@@ -1864,7 +1875,8 @@ export const PlayCanvasIntegration = ({
         // resize is a step even before the store shows it.
         await runStep(
           async () => {
-            const restoreTargets = await clearDividersForWidthResize([cabinetId]);
+            // With organizers 3D keeps or drops the columns itself and says so (`change`), so nothing is cleared here.
+            const restoreTargets = organizersEnabled ? [] : await clearDividersForWidthResize([cabinetId]);
 
             // The command owns the scene call and the recorded width: it addresses the cabinet by
             // its stable key, so a scene that rejects the resize leaves no width in state.
@@ -1901,6 +1913,7 @@ export const PlayCanvasIntegration = ({
       selectedSceneProduct,
       runStep,
       clearDividersForWidthResize,
+      organizersEnabled,
       syncCountertopConfig,
       dispatchDividerResizeRestore,
       changeDimension,
@@ -4043,6 +4056,9 @@ export const PlayCanvasIntegration = ({
           onCommitted={syncCommittedCountertop}
         />
       )}
+
+      {/* Ph2 drawer organizers: the controls over the drawer, and the notices (under the refusal notice). */}
+      {organizersEnabled && <DrawerOrganizerLayer key={playCanvasSrc} ready={isPlayCanvasReady} />}
 
       {shouldShowEmptySceneRedirectButton && (
         <button

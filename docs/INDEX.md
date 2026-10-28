@@ -27,6 +27,7 @@ These links use the current portfolio layout; the maps live outside this Git rep
 - [`side-panel-logic.md`](side-panel-logic.md) — How side panels are offered, limited, removed and added to the quote.
 - [`cabinet-drag-and-drop-ui.md`](cabinet-drag-and-drop-ui.md) — How the cabinet Drag & Drop control on the canvas behaves.
 - [`countertop-position-ui.md`](countertop-position-ui.md) — How the countertop Position control behaves.
+- [`drawer-organizers-ui.md`](drawer-organizers-ui.md) — How Ph2 drawer organizers (Class, Mako, Lame) are offered, edited, priced and restored.
 
 ## Records
 
