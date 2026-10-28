@@ -828,6 +828,19 @@ const productSlice = createSlice({
       state.compositionVersion += 1;
       applyRulesToState(state);
     },
+    /**
+     * A history move that kept the products in the scene (step B) puts the two organizer options back as the
+     * snapshot holds them. A restore like `restoreProductState`, not a command: the command stays the one writer
+     * of these values (C06), and nothing else of the product state moves.
+     */
+    restoreDividerOptions(state, action: PayloadAction<{ DividersOption?: string; DividersStyle?: string }>) {
+      const { DividersOption, DividersStyle } = action.payload;
+      if (DividersOption !== undefined) state.productOptions.DividersOption = DividersOption;
+      if (DividersStyle !== undefined) {
+        state.productOptions.DividersStyle = DividersStyle;
+        state.selectedDividerType = normalizeDividerType(DividersStyle);
+      }
+    },
   },
 });
 
@@ -884,6 +897,7 @@ export const {
   resetCabinetBuilderBootstrap,
   setHasBootstrappedCabinetBuilder,
   restoreProductState,
+  restoreDividerOptions,
   updateAllPlacedCabinetStyles,
   switchAllCabinetsDrawerStyle,
 } = productSlice.actions;
