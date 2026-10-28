@@ -231,6 +231,7 @@ import {
   canExecuteSetConfigSelectionAction,
   findVesselBasinSelectionInfo,
   isVesselBasinSelectionInfo,
+  resolveVesselBasinActionValues,
   VESSEL_PLACEHOLDER_SINK_TYPE,
 } from "./lib/vesselBasinSelection";
 
@@ -2321,27 +2322,13 @@ export const PlayCanvasIntegration = ({
         return;
       }
 
-      const actionConfig = action.config;
-
       try {
         getSelectTool()?.deselectAll();
         await waitForNextAnimationFrame();
-        // USH shows one basin for the whole configuration, so the scene's choice for this basin is
+        // The basin is one value for the whole configuration, so the scene's choice for this basin is
         // shown on every sink base, as the basin fields do, and recorded as the configuration's.
-        // Choosing the vessel cutout makes the countertop a vessel one.
-        const send = Object.fromEntries(
-          (["sinkType", "VesselColor"] as const).flatMap((key) =>
-            typeof actionConfig[key] === "string" ? [[key, actionConfig[key] as string]] : [],
-          ),
-        );
-        const replayed = await runStep(() =>
-          replay({
-            send,
-            recordOnly:
-              send.sinkType === VESSEL_PLACEHOLDER_SINK_TYPE ? { CountertopStyle: VESSEL_PLACEHOLDER_SINK_TYPE } : {},
-            record: true,
-          }),
-        );
+        const { send, recordOnly } = resolveVesselBasinActionValues(action.config, activeProfile);
+        const replayed = await runStep(() => replay({ send, recordOnly, record: true }));
         if (replayed.status !== "applied" || replayed.skipped.length > 0) {
           console.warn("[PlayCanvasIntegration] The basin choice did not reach the scene", replayed);
         }
@@ -2352,7 +2339,7 @@ export const PlayCanvasIntegration = ({
         setDropdownState((prev) => ({ ...prev, visible: false }));
       }
     },
-    [replay, runStep],
+    [activeProfile, replay, runStep],
   );
 
   const resolveProductTypeFromId = useCallback((productId: string, config?: Record<string, unknown>) => {

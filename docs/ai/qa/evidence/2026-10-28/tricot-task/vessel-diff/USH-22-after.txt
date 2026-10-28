@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"sinkPoints":["Sink_Point"],"picked":"Sink_Point","info":[],"config":null}
+```

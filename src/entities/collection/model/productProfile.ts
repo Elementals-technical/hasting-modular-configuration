@@ -273,6 +273,14 @@ export type VesselCompatibilityRuleData = {
 };
 
 /**
+ * The collection's own price tiers for colour fields (1 Standard $ … 4 Exclusive $$$$), read
+ * before the shared table. Field id -> SKU material code (upper-case) -> tier.
+ */
+export type PriceTiersRuleData = {
+  byAttribute: Record<string, Record<string, number>>;
+};
+
+/**
  * How a cabinet colour of the configurator is read into the material and finish the fluting
  * and grain rules check. The configurator carries neither as a field of its own.
  */
@@ -355,6 +363,7 @@ export type ProfileRuleData = {
   countertopFallbacks?: CountertopFallbacksRuleData;
   materialNormalization?: MaterialNormalizationRuleData;
   vesselCompatibility?: VesselCompatibilityRuleData;
+  priceTiers?: PriceTiersRuleData;
   cabinetColorTraits?: CabinetColorTraitsRuleData;
   dragDrop?: DragDropRuleData;
 };

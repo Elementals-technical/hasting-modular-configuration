@@ -53,8 +53,9 @@
       "steps": [
         { "stepId": "model", "path": "/prebuilt/model" },
         { "stepId": "color", "path": "/prebuilt/color" },
-        { "stepId": "side-panels", "path": "/prebuilt/side-panels", "screen": "accessories" },
         { "stepId": "countertop", "path": "/prebuilt/countertop" },
+        { "stepId": "side-panels", "path": "/prebuilt/side-panels", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/prebuilt/faucet-holes" },
         { "stepId": "summary", "path": "/prebuilt/summary" }
       ]
     },
@@ -63,8 +64,9 @@
       "steps": [
         { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
         { "stepId": "color", "path": "/custom/color" },
-        { "stepId": "side-panels", "path": "/custom/side-panels", "screen": "accessories" },
         { "stepId": "countertop", "path": "/custom/countertop" },
+        { "stepId": "side-panels", "path": "/custom/side-panels", "screen": "accessories" },
+        { "stepId": "faucet-holes", "path": "/custom/faucet-holes" },
         { "stepId": "summary", "path": "/custom/summary" }
       ]
     }
@@ -87,6 +89,7 @@
       "kind": "fields",
       "sectionIds": ["countertop-color", "thickness", "countertop-style", "basin-style", "vessel-color"]
     },
+    "faucet-holes": { "label": "Faucet Details", "kind": "fields", "sectionIds": ["faucet-holes-amount"] },
     "summary": { "label": "Summary", "kind": "summary" }
   },
   "sections": {
@@ -175,6 +178,17 @@
           "optionsRef": "VesselColor",
           "availabilityRef": "VesselColor.allowed",
           "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "faucet-holes-amount": {
+      "label": "Faucet Holes",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "FaucetHolesAmount",
+          "control": "swatches",
+          "availabilityRef": "FaucetHolesAmount.allowed"
         }
       ]
     }

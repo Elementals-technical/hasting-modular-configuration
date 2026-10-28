@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"count":1,"swatches":["Latte 417 MT"],"groups":["Lacquered MT"],"selected":[],"chips":["Cabinet Color","Order free Swatches","Material","Color","Look","Standard $","Clear All","Latte 417 MT","","Cabinet Pattern","Handle Groove Color","Next: Accessories"]}
+```

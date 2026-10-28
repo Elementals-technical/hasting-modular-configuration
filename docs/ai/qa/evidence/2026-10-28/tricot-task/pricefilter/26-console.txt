@@ -1,0 +1,26 @@
+## Console messages
+Showing 1-24 of 24 (Page 1 of 1).
+msgid=5 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args)
+msgid=6 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=11 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args)
+msgid=15 [warn] [PlayCanvas] ConfiguratorAPI.setVisibleButtons not ready (1 args)
+msgid=17 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=19 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=20 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=22 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=24 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [3 times]
+msgid=27 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=28 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=30 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=31 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=37 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=38 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=40 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=41 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [3 times]
+msgid=44 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=45 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [3 times]
+msgid=48 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=49 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=51 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=52 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=63 [warn] [useAvailabilityResets] DrawerPanelFluting was not cleared [object Object] (2 args)

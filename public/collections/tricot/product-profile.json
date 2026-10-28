@@ -6,7 +6,8 @@
     "source": "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
     "skuWorkbook": "Tricot Vanities - SKUs + Pricing.xlsx",
     "status": "source-backed preparation; partial approved runtime handoff integrated",
-    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies."
+    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies.",
+    "priceTiers": "Client feedback 'Modular Build - Dev Feedback', Tricot, Cabinet Color | Price Filter: Standard $ = all Lacquered MT colors, Classic $$ = all Wood Veneer colors."
   },
   "sourceRefs": {
     "configuratorId": 12,
@@ -19,7 +20,8 @@
     "HandleGrooveColor": "Agata 407 MT",
     "CountertopColor": "BIANCO KOS 250",
     "sinkType": "VA024",
-    "CountertopStyle": "integrated"
+    "CountertopStyle": "integrated",
+    "FaucetHolesAmount": "0"
   },
   "attributes": [
     {
@@ -367,10 +369,22 @@
       "attributeId": "VesselColor",
       "scope": "basin",
       "optionsSource": "configurator:Select Vessel Color"
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "scope": "countertop",
+      "defaultValue": "0",
+      "options": [
+        { "value": "0", "label": "0", "order": 10 },
+        { "value": "1", "label": "1", "order": 20 },
+        { "value": "2", "label": "2", "order": 30 },
+        { "value": "3", "label": "3", "order": 40 }
+      ]
     }
   ],
   "ruleData": {
     "countertopCompatibility": { "tableId": 593 },
+    "priceTiers": { "byAttribute": { "CabinetColor": { "LACM": 1, "WDV": 2 } } },
     "vesselCompatibility": {
       "hiddenStyles": [],
       "allowedMaterialsByStyle": {

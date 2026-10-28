@@ -21,5 +21,10 @@ Mode A; Russian reports; Claude Code only; old unprefixed skills migrated to `lo
 - Scene-pointer scenarios (DnD, in-scene "+", swap) BLOCKED in the scripted harness; Playwright browsers not installed.
 - 3 configuration records created on the dev backend by the Summary auto-save before the write-guard existed (HO-002).
 
+## Tricot client feedback task (2026-10-28, uncommitted)
+- Implemented in the working tree, nothing committed or deployed: vessel Delete (`vesselBasinSelection.ts`, `replayValues.ts` basin fan-out), per-collection price tiers (`ruleData.priceTiers`, Tricot LACM 1 / WDV 2, Class WDV 3), Tricot step order + Faucet Details (default 0).
+- Verified: targeted vitest, `tsc`, eslint/prettier on changed files; Chrome on local dev (evidence `qa/evidence/2026-10-28/tricot-task/README.md`). Wood Veneer loading not reproduced (staging + local).
+- Open: USH vessel Delete in the browser (needs a vessel-compatible top); UFS WDV tier and Class LAM/SGLS tiers are client questions; team PRD `plans/tricot-integration.prd.md` is stale on the step order.
+
 ## Next
 User actions from the final report; then run the BLOCKED/NOT_RUN P0 rows with native MCP tools (session started in the repo root), starting with HO-001…HO-005 regressions.

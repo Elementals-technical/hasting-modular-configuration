@@ -1,3 +1,4 @@
+import { selectAttribute, type ProductProfile } from "@/entities/collection";
 import type {
   SelectionAction,
   SelectionActionConfig,
@@ -44,3 +45,35 @@ export const canExecuteSetConfigSelectionAction = (
   typeof action.productId === "string" &&
   action.productId.length > 0 &&
   isSelectionActionConfig(action.config);
+
+export type VesselBasinActionValues = {
+  send: Record<string, string>;
+  recordOnly: Record<string, string>;
+};
+
+/**
+ * The configuration values a vessel-basin action of the scene stands for.
+ *
+ * The scene names "no vessel, keep the cutout" with its placeholder sink type "Vessel"; a
+ * collection names it with its sinkType noneValue ("Vessel" in Urban, "None" in Class, Tricot,
+ * Mako and Lame). Replayed as the scene's spelling, the choice has no translation where the
+ * two differ and never reaches the scene, so the placeholder is read as the noneValue. Choosing
+ * the cutout makes the countertop a vessel one.
+ */
+export const resolveVesselBasinActionValues = (
+  config: SelectionActionConfig,
+  profile: ProductProfile | null,
+): VesselBasinActionValues => {
+  const send = Object.fromEntries(
+    (["sinkType", "VesselColor"] as const).flatMap((key) =>
+      typeof config[key] === "string" ? [[key, config[key] as string]] : [],
+    ),
+  );
+
+  if (send.sinkType !== VESSEL_PLACEHOLDER_SINK_TYPE) return { send, recordOnly: {} };
+
+  return {
+    send: { ...send, sinkType: selectAttribute(profile, "sinkType")?.noneValue ?? VESSEL_PLACEHOLDER_SINK_TYPE },
+    recordOnly: { CountertopStyle: VESSEL_PLACEHOLDER_SINK_TYPE },
+  };
+};

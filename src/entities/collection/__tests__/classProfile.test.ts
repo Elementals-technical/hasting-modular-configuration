@@ -124,12 +124,18 @@ describe("class product profile", () => {
     expect(selectOptionValues(profile(), "Height")).not.toContain("53");
   });
 
-  it("declares the drawer style groups and the vessel colours as rule sections", () => {
+  it("declares the drawer style groups, the vessel colours and the price tiers as rule sections", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual([
       "cabinetMatrixLegacyAdapter",
       "drawerStyleGroups",
+      "priceTiers",
       "vesselCompatibility",
     ]);
+  });
+
+  // The client's Material Pricing Tiers, GB block: Wood Veneer is Tier 3; the shared table ranks no WDV.
+  it("ranks its Wood Veneer cabinet colours as Specialty $$$", () => {
+    expect(profile().ruleData.priceTiers).toEqual({ byAttribute: { CabinetColor: { WDV: 3 } } });
   });
 
   it("gives each of its vessels, and only them, a palette and a starting colour", () => {

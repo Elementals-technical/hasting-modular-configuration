@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+["{\"m\":\"cabinetCover.whenSettled\",\"a\":[]}","{\"m\":\"cabinetCover.whenSettled\",\"a\":[]}","{\"m\":\"setConfigBatch\",\"a\":[{\"productType\":\"Tricot-sink-cabinet\"},{\"sinkType\":\"Vessel\"}]}","{\"m\":\"cabinetCover.whenSettled\",\"a\":[]}","{\"m\":\"cabinetCover.whenSettled\",\"a\":[]}","{\"m\":\"cabinetCover.whenSettled\",\"a\":[]}","{\"m\":\"cabinetCover.whenSettled\",\"a\":[]}","{\"m\":\"setConfigBatch\",\"a\":[{\"productType\":\"Tricot-sink-cabinet\"},{\"VesselColor\":\"\"}]}"]
+```

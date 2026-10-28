@@ -62,3 +62,43 @@ describe("countertop material price filters", () => {
     expect(filterOptionsByTier(options, otherTierValue)).toEqual([]);
   });
 });
+
+const buildCabinetColor = (title: string, sku: string, material: string, colors: string[] = []): ProductOptionData => ({
+  id: title,
+  title,
+  desc: material,
+  isShortDesc: false,
+  metadata: { sku, materials: [material], colors, value: title },
+});
+
+describe("cabinet colour price tiers", () => {
+  const latte = buildCabinetColor("Latte 417 MT", "LACM", "Lacquered MT", ["White"]);
+  const salvia = buildCabinetColor("Salvia 415 MT", "LACM", "Lacquered MT", ["Green"]);
+  const rovere = buildCabinetColor("Rovere Oro 932", "WDV", "Wood Veneer");
+  const options = [latte, salvia, rovere];
+
+  it("ranks by the shared table without a collection's own tiers: white lacquer first, wood veneer in no tier", () => {
+    expect(buildTierFilterOptions(options).map(({ value }) => value)).toEqual(["tier-1", "tier-2"]);
+    expect(filterOptionsByTier(options, "tier-1")).toEqual([latte]);
+    expect(filterOptionsByTier(options, "tier-2")).toEqual([salvia]);
+  });
+
+  it("ranks by the collection's own tiers before the shared table and its white lacquer rule", () => {
+    const override = { bySku: { LACM: 1, WDV: 2 } };
+
+    expect(buildTierFilterOptions(options, override)).toEqual([
+      expect.objectContaining({ label: "Standard $", value: "tier-1" }),
+      expect.objectContaining({ label: "Classic $$", value: "tier-2" }),
+    ]);
+    expect(filterOptionsByTier(options, "tier-1", override)).toEqual([latte, salvia]);
+    expect(filterOptionsByTier(options, "tier-2", override)).toEqual([rovere]);
+  });
+
+  it("leaves a SKU the collection does not rank to the shared table", () => {
+    const override = { bySku: { WDV: 3 } };
+
+    expect(filterOptionsByTier(options, "tier-1", override)).toEqual([latte]);
+    expect(filterOptionsByTier(options, "tier-2", override)).toEqual([salvia]);
+    expect(filterOptionsByTier(options, "tier-3", override)).toEqual([rovere]);
+  });
+});

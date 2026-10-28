@@ -1,0 +1,20 @@
+{
+ "description": "snapshot",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "snap.txt"
+  }
+ ]
+}
