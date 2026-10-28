@@ -9,21 +9,23 @@ export type CabinetCoverSkuInput = {
   widthCm: number | null;
   depthCm: number | null;
   thicknessIn: number;
-  /** The cover's applied colour material SKU (`3D`, `LACM`, `ESS`) and colour code (`10B`, `06A`). */
+  /** The cover's applied colour material SKU (`HPL`, `FX`, `POR`) and colour code (`TKH`, `TFA`). */
   materialSku: string | null;
   colorCode: string | null;
 };
 
-/** The colour attribute a collection's covers take their palette from: a cabinet colour, or the countertop's. */
-export const resolveCabinetCoverColorAttributeId = (cover: { colorAttributeId?: string }): string =>
-  cover.colorAttributeId ?? "CabinetColor";
+/**
+ * The attribute whose colours the cover comes in: the Upper's, in every collection (user, 2026-10-28).
+ * The Lower takes the Upper's palette and materials, and reaches the scene as the Upper's colours do.
+ */
+export const CABINET_COVER_COLOR_ATTRIBUTE_ID = "CountertopColor";
 
 const positive = (value: number | null): value is number =>
   typeof value === "number" && Number.isFinite(value) && value > 0;
 
 /**
  * The decorative cover: `CT-{prefix}{material}-{style}-{W}W-{T}H-{D}D-{material}-{colour}`, in the
- * Upper's style, e.g. `CT-UR3D-VES-33.5W-.5H-19.9D-3D-10B`. Null while a part is unknown.
+ * Upper's style, e.g. `CT-URHPL-VES-33.5W-.5H-19.9D-HPL-TKH`. Null while a part is unknown.
  */
 export const buildCabinetCoverSku = ({
   prefix,

@@ -7,7 +7,7 @@ import lameProfileDocument from "../../../../public/collections/lame/product-pro
 import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import { store } from "@/app/store";
-import type { ProductProfile, RuntimeBindingSet } from "@/entities/collection";
+import type { ProductProfile, RuntimeBinding, RuntimeBindingSet } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
@@ -71,9 +71,27 @@ describe("isBroadcastCabinetValue", () => {
     expect(broadcastOf(profileOf(classProfileDocument), classRuntimeBindings)).toEqual([]);
   });
 
+  it("finds the handle and leg colours of Lame, which its scene paints on every cabinet as Mako's does", () => {
+    expect(broadcastOf(profileOf(lameProfileDocument), bindingsOf(lameBindingsDocument))).toEqual([
+      "HandleColor",
+      "LegColor",
+    ]);
+  });
+
   it("does not count a value the scene never receives", () => {
-    // Lamè records its handle and leg colours without a scene call.
-    expect(broadcastOf(profileOf(lameProfileDocument), bindingsOf(lameBindingsDocument))).toEqual([]);
+    // The same Lame handle and leg colours, recorded without a scene call.
+    const recordedOnly = (binding: RuntimeBinding): RuntimeBinding =>
+      binding.attributeId === "HandleColor" || binding.attributeId === "LegColor"
+        ? { attributeId: binding.attributeId, status: "state-only", reason: "Recorded without a scene call." }
+        : binding;
+    const lameBindings = bindingsOf(lameBindingsDocument);
+
+    expect(
+      broadcastOf(profileOf(lameProfileDocument), {
+        ...lameBindings,
+        bindings: lameBindings.bindings.map(recordedOnly),
+      }),
+    ).toEqual([]);
   });
 
   it("does not count a value of another scope, or any value without the collection's bindings", () => {
@@ -178,11 +196,16 @@ describe("selectPlacedWithValues", () => {
     expect(selectBroadcastValues(store.getState())).toEqual({ LateralPanelSide: "R" });
   });
 
-  it("gives nothing in a collection whose bindings ask for none", () => {
-    // The frame colour of Class is as wide as the configuration, but its binding does not ask.
+  it("starts a Class product in the collection's side and frame colours, which its scene keeps per product", () => {
     open(profileOf(classProfileDocument), "class", classRuntimeBindings);
-    expect(selectPlacedWithValues(store.getState())).toEqual({});
 
+    expect(selectPlacedWithValues(store.getState())).toEqual({
+      CabinetSideColor: "Nero 433 MT",
+      FrameColor: "Nero 433 MT",
+    });
+  });
+
+  it("gives nothing in a collection whose bindings ask for none", () => {
     open(makoProfile, "mako", makoRuntimeBindings);
     expect(selectPlacedWithValues(store.getState())).toEqual({});
 

@@ -44,8 +44,11 @@ export type CountertopOverlayBridge = Pick<
   | "countertopLengthAtPointer"
   | "resizeCountertopFrom"
 >;
-/** `apply` also ends a session from outside (a committed sink move replaces the composition under it). */
-export type CountertopDragModeHandle = { enter(): void; standard(): void; apply(): void };
+/**
+ * `enterLength` opens the same session for the length alone: the overlay and its handles, the top's body
+ * not draggable. `apply` also ends a session from outside (a committed sink move replaces the composition under it).
+ */
+export type CountertopDragModeHandle = { enter(): void; enterLength(): void; standard(): void; apply(): void };
 export type CountertopDragStatus = { supported: boolean; available: boolean; active: boolean; busy: boolean };
 
 type Props = {
@@ -109,6 +112,8 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
   const [supported, setSupported] = useState(false);
   const [active, setActive] = useState(false);
   const [overlay, setOverlay] = useState(false);
+  /** The session lets the top's body be dragged: Drag & Drop, not Length. */
+  const [movable, setMovable] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reasonText = useReasonText();
@@ -204,7 +209,8 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
 
   const canEnter = () => available && !pendingRef.current && !sessionRef.current;
 
-  const startSession = () => {
+  /** `drag`: the top's body can be dragged (Drag & Drop); false for Length, where only its ends change. */
+  const startSession = (drag: boolean) => {
     void run(async () => {
       const api = getApi();
       if (!api) throw new Error("The countertop API is not available");
@@ -214,8 +220,10 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       const session: Session = { api, snapshot, bridge: createBridge(), stopOverlay: null, overlay: false };
       sessionRef.current = session;
       setActive(true);
+      setMovable(drag);
       try {
-        await api.setDragEnabled(true);
+        // The overlay, its handles and `resizeFrom` do not need the drag: it only lets the body move.
+        if (drag) await api.setDragEnabled(true);
         await quiet(session.bridge.setCountertopLengthLimits?.(limitsInToMetres(lengthLimitsIn)), false);
         session.stopOverlay = await quiet(
           session.bridge.subscribeCountertopOverlay?.((frame) => {
@@ -247,14 +255,19 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       setIsIntroOpen(true);
       return;
     }
-    startSession();
+    startSession(true);
+  };
+
+  /** Length: no layout intro, which shows moving the top. */
+  const enterLength = () => {
+    if (canEnter()) startSession(false);
   };
 
   // Enters past the flag, so a blocked storage cannot bounce the user back into the intro.
   const handleIntroContinue = () => {
     setCountertopLayoutIntroSeen();
     setIsIntroOpen(false);
-    if (canEnter()) startSession();
+    if (canEnter()) startSession(true);
   };
 
   const handleIntroClose = () => setIsIntroOpen(false);
@@ -313,7 +326,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
     });
   };
 
-  useImperativeHandle(ref, () => ({ enter, standard, apply }));
+  useImperativeHandle(ref, () => ({ enter, enterLength, standard, apply }));
 
   /** `getState().resizeBoundsM[side]` first (phase-1 §6a); older builds: frame, then collection limits. */
   const resizeLimits = (side: CountertopResizeSide) => {
@@ -428,6 +441,7 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       {overlay && (
         <CountertopDragOverlay
           store={store}
+          movable={movable}
           lengthAtPointer={lengthAtPointer}
           pending={pending}
           onApply={apply}

@@ -26,10 +26,14 @@ export type PricingLineGroup =
   | "bookMatching"
   /** The legs a composition stands on (collections priced from their SKU profile). */
   | "legs"
+  /** The cap at the foot of each leg, in a colour of its own (Lame). */
+  | "legCap"
   /** Brackets of a thick countertop (collections priced from their SKU profile). */
   | "bracket"
   /** The thin cover on the cabinet tops under a lifted countertop (Urban Low Height). */
-  | "cabinetCover";
+  | "cabinetCover"
+  /** The undertop under the whole composition, priced per cm of its width (Lame). */
+  | "undertop";
 
 /** One line of the order: what is priced and how many pieces of it. */
 export type PricingLine = {
@@ -43,6 +47,11 @@ export type PricingLine = {
   sourceId?: string;
   /** Actual countertop width the top line is priced for. */
   widthCm?: number;
+  /**
+   * The finish the line is ordered in where no attribute holds it: a Lower slab's (`cabinetCover`), which
+   * the scene paints, as the Upper's palette names its colour and the SKU names its material.
+   */
+  finish?: { color: string; materialSku: string };
 };
 
 /**
@@ -90,6 +99,8 @@ export type PricingInput = {
   organizersByCabinet?: Readonly<Record<StableCabinetKey, DrawerOrganizersRead>>;
   /** Applied runtime countertop length. Overrides only the priced top, never cabinet or basin geometry. */
   committedCountertopLengthCm?: number;
+  /** Lengths of the tandem tops (sink bases set apart under a thin top): one more countertop line each. */
+  tandemCountertopLengthsCm?: readonly number[];
   /** C's values by attribute and address; a collection priced from its SKU profile reads them. */
   configurationValues: Readonly<Record<string, readonly ScopedValue[]>>;
   activeCabinetType: ProductState["activeCabinetType"];

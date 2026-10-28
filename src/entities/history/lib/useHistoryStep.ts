@@ -5,6 +5,7 @@ import type { Store } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 
 import { getIsHistoryRestoring } from "../model/store/selectors";
+import { runInHistoryOrder } from "./runInHistoryOrder";
 import { useDeferredHistorySnapshot } from "./useDeferredHistorySnapshot";
 
 /**
@@ -12,8 +13,10 @@ import { useDeferredHistorySnapshot } from "./useDeferredHistorySnapshot";
  *
  * The state is read before the action, but written to the history only once the action has changed
  * what an undo restores. An action the rules or the scene refuse, or one that picks the value already
- * chosen, leaves the history — and redo — as they were. An action started while an undo, a redo or a
- * saved configuration is being restored waits until the restore is over.
+ * chosen, leaves the history — and redo — as they were. Actions, undo and redo run one after another
+ * in the order they were started (`runInHistoryOrder`), so a step must not start another step inside
+ * its change: the inner one would wait for it. An action started while a saved configuration is being
+ * restored waits until the restore is over.
  */
 export type HistoryStep = {
   /**
@@ -48,7 +51,8 @@ const configurationFingerprint = (state: RootState): string => {
 
 /**
  * Resolves once no snapshot is being restored (`history.isRestoring` is false): at once when none is,
- * otherwise when the running undo, redo or saved-configuration restore ends.
+ * otherwise when the saved-configuration restore ends. An undo or a redo sets the flag too, but runs
+ * in the history order, so no step starts during one.
  */
 const whenRestoreEnds = (store: Store<RootState>): Promise<void> => {
   // Nothing is being restored: the action goes on at once.
@@ -63,9 +67,6 @@ const whenRestoreEnds = (store: Store<RootState>): Promise<void> => {
   });
 };
 
-// A step started while another runs — a handler that calls another, or two actions at once — is part
-// of the one already open, so an action stays one entry with the state it started from.
-let openSteps = 0;
 let lastStepId = 0;
 
 export function useHistoryStep(): HistoryStep {
@@ -74,34 +75,31 @@ export function useHistoryStep(): HistoryStep {
 
   return useMemo(
     () => ({
-      async run(change, applied) {
-        // An undo or redo rebuilds the scene and then shows its snapshot's values on it. An action
-        // run meanwhile would stay in the state but be overwritten in the scene, and leave no history
-        // entry, so the redo of the undone step would still be offered. It waits for the restore instead.
-        await whenRestoreEnds(store);
+      run(change, applied) {
+        return runInHistoryOrder(async () => {
+          // A saved configuration being restored rebuilds the scene and then shows its values on it.
+          // An action run meanwhile would stay in the state but be overwritten in the scene. It waits
+          // for the restore instead.
+          await whenRestoreEnds(store);
 
-        if (openSteps > 0) return change();
+          lastStepId += 1;
+          const owner = `history-step-${lastStepId}`;
+          const before = configurationFingerprint(store.getState());
+          const changed = () => configurationFingerprint(store.getState()) !== before;
 
-        openSteps += 1;
-        lastStepId += 1;
-        const owner = `history-step-${lastStepId}`;
-        const before = configurationFingerprint(store.getState());
-        const changed = () => configurationFingerprint(store.getState()) !== before;
-
-        try {
-          await deferred.capture(owner);
-          const result = await change();
-          if (changed() || applied?.(result)) deferred.commit(owner);
-          else deferred.discard(owner);
-          return result;
-        } catch (error) {
-          // What the action changed before it failed can still be undone.
-          if (changed()) deferred.commit(owner);
-          else deferred.discard(owner);
-          throw error;
-        } finally {
-          openSteps -= 1;
-        }
+          try {
+            await deferred.capture(owner);
+            const result = await change();
+            if (changed() || applied?.(result)) deferred.commit(owner);
+            else deferred.discard(owner);
+            return result;
+          } catch (error) {
+            // What the action changed before it failed can still be undone.
+            if (changed()) deferred.commit(owner);
+            else deferred.discard(owner);
+            throw error;
+          }
+        });
       },
     }),
     [deferred, store],

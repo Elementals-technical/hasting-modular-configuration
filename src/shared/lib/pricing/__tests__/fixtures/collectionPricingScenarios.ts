@@ -12,15 +12,21 @@ import urbanLowHeightProfileDocument from "../../../../../../public/collections/
 import urbanLowHeightSkuProfileDocument from "../../../../../../public/collections/urban-low-height/sku-profile.json";
 
 import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
+import configurator8 from "@/entities/collection/__tests__/fixtures/remote/configurator-8.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import configurator14 from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
+import cabinetTable581 from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
+import cabinetTable596 from "@/entities/collection/__tests__/fixtures/remote/datatable-596.json";
 import { collectionSkuProfileSchema, type CollectionSkuProfile, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import type { CabinetDimensions, CabinetEntry, ScopedValue, ValueTarget } from "@/entities/configuration";
+import type { ProductDatatable } from "@/entities/product/api";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { PricingInput } from "@/shared/lib/pricing/types";
 import { createSkuBuilders } from "@/shared/lib/sku";
 
@@ -38,82 +44,49 @@ const parseProfile = (document: unknown): ProductProfile => {
   return result.profile;
 };
 
-/** Configurator 9: the colours of Mako, and for now of Class too, name their material there. */
+/** Configurator 9: the colours of Mako name their material there. */
 const configurator9Groups = configurator9.availableOptions as unknown as ConfiguratorAvailableOption[];
 const configurator9Catalog: ConfiguratorGroupCatalog = {
   groups: configurator9Groups,
   groupsByName: Object.fromEntries(configurator9Groups.map((group) => [group.proxyName, group])),
 };
 
-/**
- * Class's colours as its own configurator will carry them.
- *
- * Class's manifest reads configurator 9 while configurator 8 is still a copy of it, and 9 holds
- * only the shared lacquers. Its SKU profile names five more front materials, so the fronts that
- * make a Class cabinet a Class cabinet are added here: until 8 is filled, a real Class order with
- * one of them cannot be priced.
- */
-const CLASS_OWN_FRONTS: readonly { value: string; sku: string; material: string }[] = [
-  { value: "CALACATTA BLACK 338", sku: "POR", material: "Porcelain" },
-  { value: "NERO ATLANTE LUCIDO 326", sku: "POR", material: "Porcelain" },
-  { value: "INVISIBLE WHITE LUCIDO 334", sku: "POR", material: "Porcelain" },
-  { value: "Fume", sku: "SGLS", material: "Smoke Glass" },
-  { value: "GGrigio Argento 403 GL", sku: "GLSG", material: "Glass GL" },
-  { value: "Nativo Cotto 961", sku: "LAM", material: "Laminates" },
-];
-
-const classConfigurator: ConfiguratorGroupCatalog = (() => {
-  const groups = configurator9Groups.map((group) =>
-    group.proxyName === "Select Cabinet Color"
-      ? {
-          ...group,
-          options: group.options.map((option, index) =>
-            index === 0
-              ? {
-                  ...option,
-                  variants: [
-                    ...option.variants,
-                    ...CLASS_OWN_FRONTS.map(({ value, sku, material }, position) => ({
-                      id: 90_000 + position,
-                      name: value,
-                      image: null,
-                      enabled: true,
-                      description: "",
-                      metadata: { value, label: value, sku, Material: material },
-                    })),
-                  ],
-                }
-              : option,
-          ),
-        }
-      : group,
-  );
-
-  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
-})();
+/** Configurator 8, Class's own: its fronts, and the side and frame colours in sections of their own. */
+const configurator8Groups = configurator8.availableOptions as unknown as ConfiguratorAvailableOption[];
 
 export const CLASS = {
   profile: parseProfile(classProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(classSkuProfileDocument),
-  configurator: classConfigurator,
+  configurator: {
+    groups: configurator8Groups,
+    groupsByName: Object.fromEntries(configurator8Groups.map((group) => [group.proxyName, group])),
+  } satisfies ConfiguratorGroupCatalog,
 };
 
+const makoProfile = parseProfile(makoProfileDocument);
+
 export const MAKO = {
-  profile: parseProfile(makoProfileDocument),
+  profile: makoProfile,
   skuProfile: collectionSkuProfileSchema.parse(makoSkuProfileDocument),
   configurator: configurator9Catalog,
+  // Table 581: the cabinets the builder places, which a Mako cabinet's sizes are checked against.
+  cabinetCatalog: buildCabinetCatalogFromMatrix(cabinetTable581 as ProductDatatable, makoProfile),
 };
 
 /** Configurator 14, Lame's own. */
 const configurator14Groups = configurator14.availableOptions as unknown as ConfiguratorAvailableOption[];
 
+const lameProfile = parseProfile(lameProfileDocument);
+
 export const LAME = {
-  profile: parseProfile(lameProfileDocument),
+  profile: lameProfile,
   skuProfile: collectionSkuProfileSchema.parse(lameSkuProfileDocument),
   configurator: {
     groups: configurator14Groups,
     groupsByName: Object.fromEntries(configurator14Groups.map((group) => [group.proxyName, group])),
   },
+  // Table 596: the cabinets the builder places, which a Lame cabinet's sizes are checked against.
+  cabinetCatalog: buildCabinetCatalogFromMatrix(cabinetTable596 as ProductDatatable, lameProfile),
 };
 
 /** Configurator 4: the colours Urban Low Height shares with Urban Standard Height. */
@@ -156,6 +129,8 @@ type Collection = {
   profile: ProductProfile;
   skuProfile: CollectionSkuProfile;
   configurator?: ConfiguratorGroupCatalog;
+  /** The collection's cabinet table as the builder holds it; the pricing input's own otherwise. */
+  cabinetCatalog?: ConfiguratorCatalog;
 };
 
 export type CollectionCabinet = { stableKey: string; runtimeId: string; size: CabinetDimensions };
@@ -164,7 +139,7 @@ export const at = (target: ValueTarget, value: string): ScopedValue => ({ target
 
 /** A `PricingInput` of a collection priced from its SKU profile: no scene, no USH options. */
 export const collectionPricingInput = (
-  { profile, skuProfile, configurator }: Collection,
+  { profile, skuProfile, configurator, cabinetCatalog }: Collection,
   cabinets: readonly CollectionCabinet[],
   values: Record<string, ScopedValue[]>,
   overrides: Partial<PricingInput> = {},
@@ -185,6 +160,7 @@ export const collectionPricingInput = (
     countertopStyle: "",
     sinkType: "",
     faucetHolesAmount: "",
+    ...(cabinetCatalog ? { cabinetCatalog } : {}),
     ...overrides,
   });
 

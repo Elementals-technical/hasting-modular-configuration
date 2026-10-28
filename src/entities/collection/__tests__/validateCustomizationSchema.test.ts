@@ -424,8 +424,8 @@ describe("validateCustomizationSchema", () => {
     ).toBe(true);
   });
 
-  it("accepts such a value with what the cabinet must hold to be offered it", () => {
-    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", when: { Series: "URDPX" } }];
+  it("accepts such a value with what the cabinet must hold to be offered it, and the name of its selector", () => {
+    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", label: "Lateral Panel", when: { Series: "URDPX" } }];
 
     expect(
       validateCustomizationSchema({
@@ -445,6 +445,10 @@ describe("validateCustomizationSchema", () => {
       // A condition names values; one without any is no condition, and an id still stands once.
       [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide" }] } }, "playerMenu.attributes"],
       [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: {} }] } }, "playerMenu.attributes"],
+      [
+        { playerMenu: { attributes: [{ attributeId: "LateralPanelSide", label: " ", when: { Series: "URDPX" } }] } },
+        "playerMenu.attributes",
+      ],
       [
         { playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: { Series: 1 } }] } },
         "playerMenu.attributes",
@@ -490,6 +494,44 @@ describe("validateCustomizationSchema", () => {
       [{ playerMenu: { resize: ["Width", "Width"] } }, "playerMenu.resize[1]"],
     ] as const) {
       const result = validateCustomizationSchema({ ...uiJson, ...override });
+
+      expect(result.ok, dataPath).toBe(false);
+      if (result.ok) return;
+      expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "invalid-schema", dataPath }));
+    }
+  });
+
+  it("accepts the height models of the cabinet style cards", () => {
+    for (const cabinetStyle of [
+      {},
+      {
+        heightStyles: [
+          { id: "standard", heights: [38, 35] },
+          { id: "slim", label: "Slim", heights: [28, 25] },
+        ],
+      },
+    ]) {
+      expect(validateCustomizationSchema({ ...uiJson, cabinetStyle }).ok).toBe(true);
+    }
+  });
+
+  it("rejects a height model without an id, a label or heights of its own", () => {
+    const standard = { id: "standard", heights: [38, 35] };
+
+    for (const [cabinetStyle, dataPath] of [
+      [[], "cabinetStyle"],
+      [{ heightStyles: {} }, "cabinetStyle.heightStyles"],
+      [{ heightStyles: [{ id: "", heights: [38] }] }, "cabinetStyle.heightStyles[0].id"],
+      [{ heightStyles: [standard, { id: "standard", heights: [28] }] }, "cabinetStyle.heightStyles[1].id"],
+      [{ heightStyles: [standard, { id: "slim", label: "", heights: [28] }] }, "cabinetStyle.heightStyles[1].label"],
+      [{ heightStyles: [standard, { id: "slim", label: 3, heights: [28] }] }, "cabinetStyle.heightStyles[1].label"],
+      [{ heightStyles: [{ id: "slim", heights: [] }] }, "cabinetStyle.heightStyles[0].heights"],
+      [{ heightStyles: [{ id: "slim", heights: ["28"] }] }, "cabinetStyle.heightStyles[0].heights"],
+      [{ heightStyles: [{ id: "slim", heights: [0] }] }, "cabinetStyle.heightStyles[0].heights"],
+      // A height stands for one card: the composition at 35 cm cannot be of two models.
+      [{ heightStyles: [standard, { id: "slim", heights: [35, 25] }] }, "cabinetStyle.heightStyles[1].heights[0]"],
+    ] as const) {
+      const result = validateCustomizationSchema({ ...uiJson, cabinetStyle });
 
       expect(result.ok, dataPath).toBe(false);
       if (result.ok) return;

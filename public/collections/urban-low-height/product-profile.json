@@ -11,7 +11,7 @@
   },
   "sourceRefs": {
     "configuratorId": 4,
-    "countertopMatrixTableId": 438,
+    "countertopMatrixTableId": 589,
     "cabinetMatrixTableId": 580
   },
   "defaults": {
@@ -140,10 +140,31 @@
         { "value": "0.375", "label": "0.4\"", "order": 10 },
         { "value": "0.4", "label": "0.4\"", "order": 20 },
         { "value": "0.5", "label": "0.5\"", "order": 30 },
-        { "value": "2.4", "label": "2.4\"", "order": 40, "aliases": ["2.375", "2.5"] },
-        { "value": "4", "label": "4\"", "order": 50 },
-        { "value": "5.125", "label": "5.1\"", "order": 60 },
-        { "value": "5.5", "label": "5.5\"", "order": 70 }
+        {
+          "value": "2.4",
+          "label": "2.4\"",
+          "order": 40,
+          "aliases": ["2.375", "2.5"],
+          "capabilities": { "countertopSlides": true }
+        },
+        {
+          "value": "4",
+          "label": "4\"",
+          "order": 50,
+          "capabilities": { "countertopSlides": true, "countertopCarriesVessel": true, "countertopLengthResize": true }
+        },
+        {
+          "value": "5.125",
+          "label": "5.1\"",
+          "order": 60,
+          "capabilities": { "countertopSlides": true, "countertopLifts": true, "countertopLengthResize": true }
+        },
+        {
+          "value": "5.5",
+          "label": "5.5\"",
+          "order": 70,
+          "capabilities": { "countertopSlides": true, "countertopLifts": true, "countertopLengthResize": true }
+        }
       ]
     },
     {
@@ -433,6 +454,7 @@
     }
   ],
   "ruleData": {
+    "dragDrop": { "enabled": true },
     "cabinetMatrixLegacyAdapter": {
       "tableId": 580,
       "columns": {
@@ -543,6 +565,7 @@
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.requiredHeight": "Required for selected handle",
     "handle.selectDrawersForHeight": "Select drawers to determine height for selected handle",
+    "drawers.mixingRestricted": "Cannot mix 1 Drawer and 1 Drawer Slim cabinet styles in one vanity configuration.",
     "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
     "fluting.notAvailable": "Fluting is not available for the selected cabinet material.",
     "fluting.notInCollection": "Fluting is not available in this collection.",
@@ -551,18 +574,23 @@
     "sidePanel.sideShelfUnavailable": "Side panels are not available for Open Side Shelf cabinets.",
     "sidePanel.exactLengthBlocked": "Side panels are not available when total vanity length is exactly {lengthCm} cm ({lengthIn}\").",
     "sidePanel.shelvesAtBothEnds": "Side panels are not available when Open Shelf or Open Side Shelf cabinets are positioned at both ends.",
+    "countertop.compositionLengthReached": "Maximum composition length reached for the selected countertop setup ({maxCm} cm / {maxIn}\").",
+    "countertop.compositionLengthReachedNoMax": "Maximum composition length reached for the selected countertop setup.",
+    "countertop.rowLengthReached": "Maximum length reached for this level with the selected countertop setup ({maxCm} cm / {maxIn}\").",
+    "cabinet.sinkBaseInCountertopRow": "A Sink Base can only be added to the upper level, under the countertop.",
     "countertop.sidePanelsExceedMaxLength": "Enabling side panels would exceed max countertop length (with panels: {withPanelsCm} cm / {withPanelsIn}\", max {maxCm} cm / {maxIn}\").",
     "vessel.colorUnavailable": "Not available for selected vessel sink style.",
     "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
     "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
     "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
+    "countertop.materialNotAvailableOffSinkBase": "Not available when the basin is not over a sink base",
     "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
-    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the shared table 438. Thickness takes the Urban Standard Height values, offered as table 438 gives them for the colour and depth (team, 28.09.2026).",
+    "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the countertop table. Thickness takes the Urban Standard Height values, offered as the countertop table gives them for the colour and depth (team, 28.09.2026). The table is 589 since 2026-09-30: the rows of the shared 438 with the Urban Low Height depths, 50 and 46 cm.",
     "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White; configurator 4 has them in both Mineralmarmo and Ocritech, so neither is excluded until the product side names one (§11).",
     "countertopIntegratedRestrictions": "countertopFallbacks declares no depth, material or basin restriction: none is confirmed for Urban Low Height (§11).",
     "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",

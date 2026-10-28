@@ -648,6 +648,7 @@
     "cabinet.notAvailableForType": "Not available for selected cabinet type",
     "cabinet.noCommonHeight": "No common supported height across selected products",
     "cabinet.heightLocked": "Height locked by existing products",
+    "cabinet.sideShelfLimit": "Vanity configurations allow a maximum of two Open Side Shelf units.",
     "handle.heightLocked": "Not available for current configuration height ({heightCm} cm / {heightIn}\" locked)",
     "handle.notAvailableForOpenCabinet": "Not available for open cabinets",
     "countertop.integratedDepthRestricted": "Integrated basin style not available for 46cm (18.1\") depth configurations",
@@ -680,7 +681,7 @@
     "thinThickness": "Thin countertops only (P1133). Only 1/2\" is confirmed (Fenix, HPL: table 438). Porcelain 3/8\" or 1/2\" waits for GEN-TOP-05; the Solid-Surface token for GEN-MAT-01.",
     "solidSurfaceBasin": "Solid-Surface: Rectangular has no row in table 438; it is the Urban Standard Height candidate Top_Tekorlux_Rectangular until GEN-MAT-01.",
     "sidePanelAvailability": "Side panels are as tall as the cabinet body without the plinth and come in two heights (P1125, Block2 Q0050). Their SKUs and allowed grooves wait for UFS-SP-01; until then Urban Freestanding offers the panels Urban Low Height offers (team, 2026-10-07): no groove or one upper groove beside an Upper or Central Groove cabinet (91 cm), no groove beside a Push-to-Open one (88 cm), none beside an open shelf. A Central Groove cabinet starts with the panel without a groove, as Urban Low Height has no central groove to follow.",
-    "heightsAndDepths": "Heights 91H (Upper/Central Groove) and 88H (Push-to-Open), each with a 3 cm plinth, and depths 50/46 are in the cabinet table. The scene registers UF-sink-cabinet, UF-side-cabinet, UF-open-shelves and UF-open-shelves-side at 50/53/82/88 and 45/50, and draws the shared UF leg at 45 and 50 only.",
-    "openShelves": "Open Shelf 25/35/50 cm and Open Side Shelf 15 cm (price list) are in the cabinet table at their height with the 3 cm plinth: the 88H shelf as 91 next to Upper/Central Groove cabinets, the 85H shelf and the Open Side Shelf as 88 next to Push-to-Open, as the docs propose until UFS-SIZ-02. Placed as UF-open-shelves and UF-open-shelves-side; the scene lays them out at 50/53/82/88 only, so a 91 shelf keeps its 88 cm template shape, as the cabinets beside it do. Their SKU height is the table height less the plinth."
+    "heightsAndDepths": "Heights 91H (Upper/Central Groove) and 88H (Push-to-Open), each with a 3 cm plinth, and depths 50/46 are in the cabinet table. The scene registers UF-sink-cabinet, UF-side-cabinet, UF-open-shelves and UF-open-shelves-side at 53/56/88/91 and 46/50, and draws the shared UF leg at 46 and 50.",
+    "openShelves": "Open Shelf 25/35/50 cm and Open Side Shelf 15 cm (price list) are in the cabinet table at their height with the 3 cm plinth: the 88H shelf as 91 next to Upper/Central Groove cabinets, the 85H shelf and the Open Side Shelf as 88 next to Push-to-Open, as the docs propose until UFS-SIZ-02. Placed as UF-open-shelves and UF-open-shelves-side; the scene lays them out at 53/56/88/91. Their SKU height is the table height less the plinth."
   }
 }

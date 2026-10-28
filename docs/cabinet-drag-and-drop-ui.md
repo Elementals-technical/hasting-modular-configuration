@@ -12,16 +12,48 @@ the cabinet placement API of the configurator iframe (`cabinetPlacement.*`) and 
    shows the scene's "+" for the cabinet being added (`placementButtonsVisible` of the sidebar slice,
    passed as `offerAdd`). A press calls `beginAdd` with the configured cabinet right away; like any
    press outside the sidebar it also closes the sidebar, so its "+" go away for the drag. There is no
-   modal: the cabinet appears in the scene next to the selected (or last) cabinet and can be dragged
-   at once. On every other step a cabinet draft opens only from the cabinet menu.
+   modal: the cabinet appears in the scene and can be dragged at once. Where it starts:
+   - In a composition in rows (ULH Multi-Level) it starts at the right end of a row the builder's "+"
+     would allow it in: a Sink Base in the countertop's row, another cabinet there while its width
+     fits, else in a row with room. `chooseAddPlacement` picks it among the scene's placement options
+     (`pickRowEnd` in `configurator-rule-core/countertop/cabinetRows.ts`). The scene picks its start
+     by free space alone, so it put a Sink Base in the lower row, red with `SINK_BASES_SPLIT`
+     (client, 27.10.2026).
+   - In one row and in columns (Urban Duplex) the scene's choice stands: the right end of the selected
+     cabinet's row, else the right end furthest along the wall.
+
+   On an empty composition the press places the first cabinet as the empty scene's "+" does,
+   without a draft (`addFirstCabinet`): the scene lays a countertop only for a cabinet its own add
+   places, never for one a draft commits. On every other step a cabinet draft opens only from the
+   cabinet menu.
 2. While the draft is open the toolbar in the top-right corner shows **Cancel**. PlayCanvas tints the cabinet
-   **green** on a free spot and **red** when it overlaps another cabinet (and outlines the cabinets
-   it overlaps). A red draft cannot be applied: `canApply` is false, the runtime would refuse with
+   **green** on a free spot and **red** when it overlaps another cabinet or the primary countertop slab
+   (and outlines the objects it overlaps). The runtime checks the actual slab dimensions, including custom
+   length and Remote tops without sink traps. A top carried by a moved sink base follows that draft;
+   generated covers remain part of the prospective cover plan. A red draft cannot be applied: `canApply` is false, the runtime would refuse with
    `PLACEMENT_COLLISION`; the UI disables Apply and shows a hint.
+   `validation.reasons` distinguishes `CABINET_COLLISION` (another cabinet) from `COUNTERTOP_COLLISION`
+   (the slab); each has its own message and affected IDs. A mixed overlap returns both reasons;
+   the single UI hint prioritizes cabinet, then countertop, then floor. Both codes are invalid/red in
+   this cabinet flow, independently of the countertop editor's warning behavior.
 3. The icons follow the cabinet: the **move** icon (`frontCenter`), **Apply** and **discard (x)**
    under its bottom-right corner (`bottomRight`). They are this app's SVGs, placed from the
    overlay frames that PlayCanvas publishes whenever the camera, the drag or the status changes.
 4. Apply commits and syncs the composition (`onCompositionCommitted`); Cancel / x discards the draft.
+
+## Reposition in the cabinet menu
+
+The selected cabinet's menu offers **Reposition** in a collection with cabinet Drag & Drop
+(`ruleData.dragDrop.enabled` in the collection profile), including when it is the only cabinet in the
+scene. Other collections offer Reposition only with two or more cabinets.
+
+- **Create Your Own.** Reposition is a submenu: Move Left and Move Right appear only where the cabinet
+  has a neighbour to swap with, and **Drag & Drop** appears while the scene supports the move (disabled
+  while it can't start one). The only cabinet gets the submenu with Drag & Drop alone, and no
+  Reposition at all where the scene can't drag it.
+- **Prebuilt.** Reposition is a single item that opens the customize prompt, the same for one cabinet
+  as for several. It is offered from the collection's profile flag, so it does not wait for the scene.
+- **Syntesi single-cabinet-only top.** The only cabinet gets no Reposition in either flow.
 
 ## History
 

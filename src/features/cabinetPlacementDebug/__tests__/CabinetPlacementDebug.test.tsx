@@ -3,13 +3,10 @@ import { createRef } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { ConfiguratorClient } from "@/features/configuratorApi";
-import type { RuntimeBindingSet } from "@/entities/collection";
+import { ConfiguratorError, type CabinetPlacementOption, type ConfiguratorClient } from "@/features/configuratorApi";
+import { isDragDropEnabled, parseProductProfile, type RuntimeBindingSet } from "@/entities/collection";
 import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
-import {
-  isDragDropCollection,
-  resolveCabinetDebugSelection,
-} from "../lib/resolveCabinetDebugSelection";
+import { resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
 
 const selection = {
   definitionId: "Example-side-cabinet",
@@ -693,6 +690,22 @@ describe("Cabinet drag and drop overlay", () => {
     fireEvent.click(screen.getByRole("button", { name: "Apply" }));
     expect(client.apply).not.toHaveBeenCalled();
 
+    // The separate countertop reason keeps the red overlay and blocks Apply too.
+    emit("cabinetPlacement.change", {
+      ...preview,
+      canApply: false,
+      collision: { status: "colliding", collidesWith: ["custom-top-id"] },
+      validation: { status: "invalid", reasons: [{ code: "COUNTERTOP_COLLISION", affectedProductIds: ["custom-top-id"] }] },
+    });
+    emitFrame(frame({ status: "colliding", collidesWith: ["custom-top-id"], canApply: false }));
+    expect(screen.getByTestId("cabinet-draft-overlay").dataset.status).toBe("colliding");
+    const blockedByTop = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect(blockedByTop.disabled).toBe(true);
+    expect(blockedByTop.title).toBe("This cabinet overlaps the countertop. Move it to a free spot to apply.");
+    expect(screen.getByText(/overlaps the countertop/)).toBeTruthy();
+    fireEvent.click(blockedByTop);
+    expect(client.apply).not.toHaveBeenCalled();
+
     // A corner at the viewport edge: Apply / discard stay on screen.
     emit("cabinetPlacement.change", preview);
     emitFrame(frame({ points: { ...frame().points, bottomRight: { x: 795, y: 598 } } }));
@@ -759,7 +772,7 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config,
         selectedProductId: "Example-side-cabinet-abcdefghi",
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings: null,
       }),
     ).toEqual({ definitionId: "Example-side-cabinet", selection: config });
@@ -768,13 +781,13 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: null,
         selectedProductId: "Example-side-cabinet-abcdefghi",
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings: null,
       }),
     ).toBeNull();
   });
 
-  it("resolves scene IDs and active cabinet types through the collection's runtime bindings", () => {
+  it("resolves scene IDs and the type the builder adds through the collection's runtime bindings", () => {
     const bindings: RuntimeBindingSet = {
       schemaVersion: 1,
       collectionId: "example",
@@ -785,7 +798,7 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: selection.selection,
         selectedProductId: "Example-side-cabinet-abcdefghi",
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings,
       }),
     ).toEqual(selection);
@@ -793,7 +806,7 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: selection.selection,
         selectedProductId: null,
-        activeCabinetType: "Open-Shelf",
+        addedCabinetType: "Open-Shelf",
         bindings,
       }),
     ).toEqual({ definitionId: "Example-open-shelf", selection: selection.selection });
@@ -801,10 +814,33 @@ describe("Cabinet debug selection and mode", () => {
       resolveCabinetDebugSelection({
         config: { ...selection.selection, productType: "Example-open-shelf" },
         selectedProductId: null,
-        activeCabinetType: null,
+        addedCabinetType: null,
         bindings,
       })?.definitionId,
     ).toBe("Example-open-shelf");
+  });
+
+  it("resolves the cabinet the builder adds, not the placed one a click in the canvas put in its config", () => {
+    const bindings: RuntimeBindingSet = {
+      schemaVersion: 1,
+      collectionId: "example",
+      bindings: [],
+      productTypes: { "Sink-Base": "Example-sink-cabinet", "Side-Cabinet": "Example-side-cabinet" },
+    };
+    // The builder adds a sink base; the side cabinet clicked in the canvas left its scene config.
+    const placedSideCabinetConfig = {
+      ...selection.selection,
+      ProductType: "Example-side-cabinet",
+      productType: "Example-side-cabinet",
+    };
+    expect(
+      resolveCabinetDebugSelection({
+        config: placedSideCabinetConfig,
+        selectedProductId: "Example-side-cabinet-abcdefghi",
+        addedCabinetType: "Sink-Base",
+        bindings,
+      })?.definitionId,
+    ).toBe("Example-sink-cabinet");
   });
 });
 
@@ -1058,12 +1094,148 @@ describe("Drag to Place", () => {
   });
 });
 
+describe("Drag to Place starts the draft where the host chooses", () => {
+  const rowEnd = (id: string, anchorCabinetId: string, x: number) => ({
+    id,
+    kind: "right",
+    anchorCabinetId,
+    availability: "available",
+    frameId: "wall",
+    positionM: { x, y: 0, z: 0 },
+  });
+  const lowerRight = rowEnd("lower-right", "lower-c", 1.9);
+  const upperRight = rowEnd("upper-right", "side-c", 1.35);
+  type Choose = (options: readonly CabinetPlacementOption[]) => CabinetPlacementOption | null;
+
+  const startAdd = async (f: ReturnType<typeof fixture>, chooseAddPlacement: Choose) => {
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        prepareSelection={() => selection}
+        chooseAddPlacement={chooseAddPlacement}
+        selectedProductId={null}
+        createClient={f.createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.mouseDown(add);
+  };
+
+  it("opens the draft at the option the host picks among those the scene offers for the cabinet", async () => {
+    const f = fixture();
+    f.client.getPlacementOptions.mockResolvedValue([lowerRight, upperRight]);
+    const choose = vi.fn<Choose>((options) => options.find(({ id }) => id === "upper-right") ?? null);
+    await startAdd(f, choose);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    // The options are read for the very selection the draft is opened with: an option is valid only for it.
+    expect(f.client.getPlacementOptions).toHaveBeenCalledExactlyOnceWith({
+      definitionId: selection.definitionId,
+      selection: selection.selection,
+      operation: "add",
+    });
+    expect(choose).toHaveBeenCalledExactlyOnceWith([lowerRight, upperRight]);
+    expect(f.client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "upper-right",
+    });
+  });
+
+  it("leaves the start to the scene when the host picks none", async () => {
+    const f = fixture();
+    await startAdd(f, () => null);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(f.client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
+  });
+
+  it("reads the options again once when the scene changed between the two reads", async () => {
+    const f = fixture();
+    f.client.getPlacementOptions
+      .mockResolvedValueOnce([{ ...upperRight, id: "stale" }])
+      .mockResolvedValueOnce([upperRight]);
+    f.client.beginAdd.mockRejectedValueOnce(new ConfiguratorError("STALE_OPTION"));
+    await startAdd(f, (options) => options[0] ?? null);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(f.client.getPlacementOptions).toHaveBeenCalledTimes(2);
+    expect(f.client.beginAdd).toHaveBeenLastCalledWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "upper-right",
+    });
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+describe("Drag to Place on an empty composition", () => {
+  const renderAdd = (f: ReturnType<typeof fixture>) => {
+    const addFirstCabinet = vi.fn(async () => undefined);
+    const before = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={f.createClient}
+        addFirstCabinet={addFirstCabinet}
+        onBeforeCompositionChange={before}
+      />,
+    );
+    return { addFirstCabinet, before };
+  };
+  const pressAdd = async () => {
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+  };
+
+  it("places the first cabinet as the builder's + does, without a draft: the scene lays its countertop then", async () => {
+    const f = fixture();
+    f.client.getCabinetsState.mockResolvedValue({ cabinets: [], selectedCabinetId: "" });
+    const { addFirstCabinet, before } = renderAdd(f);
+
+    await pressAdd();
+
+    await waitFor(() => expect(addFirstCabinet).toHaveBeenCalledOnce());
+    expect(f.client.beginAdd).not.toHaveBeenCalled();
+    expect(f.client.getPlacementOptions).not.toHaveBeenCalled();
+    expect(before).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("opens a draft as before once the composition holds a cabinet", async () => {
+    const f = fixture();
+    const { addFirstCabinet } = renderAdd(f);
+
+    await pressAdd();
+
+    await screen.findByRole("button", { name: "Apply" });
+    expect(f.client.beginAdd).toHaveBeenCalledOnce();
+    expect(addFirstCabinet).not.toHaveBeenCalled();
+  });
+});
+
 describe("Drag & Drop collections", () => {
-  it("enables cabinet/countertop Drag & Drop for ULH and Urban Duplex only", () => {
-    expect(isDragDropCollection("urban-low-height")).toBe(true);
-    expect(isDragDropCollection("urban-duplex")).toBe(true);
-    for (const id of ["urban-standard-height", "class", "mako", "", null, undefined]) {
-      expect(isDragDropCollection(id)).toBe(false);
-    }
+  const profiles = Object.values(
+    import.meta.glob("/public/collections/*/product-profile.json", { eager: true, import: "default" }),
+  ).map((document) => {
+    const parsed = parseProductProfile(document);
+    if (!parsed.ok) throw new Error("a shipped profile failed validation");
+    return parsed.profile;
+  });
+
+  it("enables cabinet/countertop Drag & Drop where the profile says so: ULH and Urban Duplex only", () => {
+    expect(profiles.length).toBeGreaterThanOrEqual(8);
+    expect(
+      profiles
+        .filter(isDragDropEnabled)
+        .map(({ collectionId }) => collectionId)
+        .sort(),
+    ).toEqual(["urban-duplex", "urban-low-height"]);
+    expect(isDragDropEnabled(null)).toBe(false);
   });
 });

@@ -258,10 +258,10 @@ describe("FieldsStepPage colour fields", () => {
     expect(screen.queryByRole("region", { name: "Handle Groove Color (Optional)" })).toBeNull();
   });
 
-  it("leaves out the Urban Low Height fluting section, which the collection switches off", () => {
+  it("shows the Urban Low Height fluting section, now that the scene draws the fluting", () => {
     renderColorStep();
 
-    expect(screen.queryByRole("region", { name: "Drawer Panel Fluting" })).toBeNull();
+    expect(screen.getByRole("region", { name: "Drawer Panel Fluting" })).toBeTruthy();
   });
 
   it("lays its filters out in one row across the section, as the Urban colour sections do", () => {

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import { resolveCountertopFallbackTexture } from "@/entities/countertop";
 
@@ -145,8 +146,8 @@ describe("buildConfiguratorOptions", () => {
     const options = buildConfiguratorOptions(vessels);
 
     expect(options.map(({ value, image }) => [value, image])).toEqual([
-      ["Antracite Matte OCF", resolveCountertopFallbackTexture("Antracite Matte OCF")],
-      ["Cemento Matte OCD", resolveCountertopFallbackTexture("Cemento Matte OCD")],
+      ["Antracite Matte OCF", resolveCountertopFallbackTexture("Antracite Matte OCF", undefined)],
+      ["Cemento Matte OCD", resolveCountertopFallbackTexture("Cemento Matte OCD", undefined)],
     ]);
     expect(options.every(({ image }) => Boolean(image))).toBe(true);
   });
@@ -180,5 +181,43 @@ describe("buildConfiguratorOptions", () => {
         .filter(({ value }) => whites.includes(value))
         .map(({ value, image, traits }) => [value, image, traits?.hex]),
     ).toEqual(whites.map((value) => [value, undefined, "#FFFFFF"]));
+  });
+
+  it("pictures the metallics, the veneers, Torba and two porcelains configurator 11 leaves with neither", () => {
+    const sections = ["Select Cabinet Color", "Select Handle Groove Color", "Select Countertop Color"].map(
+      (proxyName) =>
+        configurator11.availableOptions.find((group) => group.proxyName === proxyName) as ConfiguratorAvailableOption,
+    );
+    const options = sections.flatMap(buildConfiguratorOptions);
+
+    expect(options.filter(({ image, traits }) => !image && !traits?.hex).map(({ value }) => value)).toEqual([]);
+  });
+
+  it("finds a lacquer's picture by the colour code before its finish, one picture for every finish", () => {
+    const aluminium = resolveCountertopFallbackTexture("Metallizzato Alluminio M1 GL", undefined);
+
+    expect(aluminium).toBeDefined();
+    expect(resolveCountertopFallbackTexture("Metallizzato Alluminio M1 ST", undefined)).toBe(aluminium);
+    expect(resolveCountertopFallbackTexture("Metallizzato Antracite M5 GL", undefined)).not.toBe(aluminium);
+    expect(resolveCountertopFallbackTexture("Torba DS MT", undefined)).toBeDefined();
+    // A colour code without a picture stays without one.
+    expect(resolveCountertopFallbackTexture("Grigio Bromo FE GL", undefined)).toBeUndefined();
+  });
+
+  it("keeps the colour configurator 11 gives a swatch: only one with neither takes a picture", () => {
+    const options = ["Select Cabinet Color", "Select Countertop Color"].flatMap((proxyName) =>
+      buildConfiguratorOptions(
+        configurator11.availableOptions.find((group) => group.proxyName === proxyName) as ConfiguratorAvailableOption,
+      ),
+    );
+    const swatch = (value: string) => {
+      const option = options.find((candidate) => candidate.value === value);
+      return { image: Boolean(option?.image), hex: Boolean(option?.traits?.hex) };
+    };
+
+    expect(swatch("Torba DS MT")).toEqual({ image: true, hex: false });
+    for (const value of ["Torba DS GL", "Torba DS ST", "Colortech Grigio fume 10F", "Nero Assoluto Matte TQ9"]) {
+      expect(swatch(value)).toEqual({ image: false, hex: true });
+    }
   });
 });

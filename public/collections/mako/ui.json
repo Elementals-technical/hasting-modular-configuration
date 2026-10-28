@@ -197,7 +197,8 @@
         {
           "attributeId": "CountertopColor",
           "control": "colors",
-          "optionsRef": "CountertopColor"
+          "optionsRef": "CountertopColor",
+          "availabilityRef": "CountertopColor.allowed"
         }
       ]
     },

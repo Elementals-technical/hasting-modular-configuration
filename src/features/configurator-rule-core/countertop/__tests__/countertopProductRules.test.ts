@@ -1,16 +1,22 @@
 import { describe, expect, it } from "vitest";
 
-import type {
-  CountertopFallbacksRuleData,
-  ProductProfile,
-  SyntesiRuleData,
-  VesselCompatibilityRuleData,
+import {
+  parseProductProfile,
+  type CountertopFallbacksRuleData,
+  type ProductProfile,
+  type SyntesiRuleData,
+  type VesselCompatibilityRuleData,
 } from "@/entities/collection";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { countertopDatatableSchema } from "@/entities/collection/model/schemas";
+import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 
 import { resolveCountertopCabinetCompositionConstraint } from "../compositionConstraints";
-import { getMaterialAliases, materialMatchesRule } from "../parse";
+import { evaluateCountertopMaterial } from "../materialAvailability";
+import { getMaterialAliases, materialMatchesRule, parseCountertopMatrix } from "../parse";
+import { buildCountertopRuleState } from "../rules";
 import {
   isIntegratedCountertopDepthRestrictedByBasin,
   isIntegratedCountertopDepthRestrictedByMaterial,
@@ -316,5 +322,122 @@ describe("material aliases", () => {
     ["HPL", "Fenix", false],
   ])("matches %j against the rule material %j: %j", (optionMaterial, ruleMaterial, matches) => {
     expect(materialMatchesRule(optionMaterial, ruleMaterial)).toBe(matches);
+  });
+});
+
+// Client rules: off its Sink Base the basin rides a top that lifts (5⅛″ or 5½″, 22.10), or a 4″ one under a vessel
+// (27.10). What may float is the collection's data: Urban Low Height's Thickness options declare `countertopLifts`
+// and, on 4″, `countertopCarriesVessel`.
+describe("a basin with no Sink Base under it", () => {
+  const rules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable589));
+  const ulhProfile: ProductProfile = (() => {
+    const parsed = parseProductProfile(ulhProfileDocument);
+    if (!parsed.ok) throw new Error("The Urban Low Height profile failed validation");
+    return parsed.profile;
+  })();
+  const thicknessesOf = (material: string, depth: number, activeCountertopStyle: string, sinkOffSinkBase?: boolean) =>
+    [
+      ...buildCountertopRuleState({
+        rules,
+        activeMaterialTokens: [material],
+        width: 80,
+        depth,
+        activeCountertopStyle,
+        activeBasinStyle: null,
+        activeThickness: null,
+        profile: ulhProfile,
+        sinkOffSinkBase,
+      }).allowedThicknesses,
+    ].sort((left, right) => left - right);
+
+  // Table 589: HPL is 1/2", 4" or 5-1/8"; Porcelain 1/2", 2-3/8", 4" or 5-1/2".
+  it("keeps only the top that lifts over an integrated sink off its Sink Base", () => {
+    expect(thicknessesOf("HPL", 46, "integrated")).toEqual([0.5, 4, 5.125]);
+    expect(thicknessesOf("HPL", 46, "integrated", true)).toEqual([5.125]);
+    expect(thicknessesOf("Porcelain", 46, "integrated")).toEqual([0.5, 2.4, 4, 5.5]);
+    expect(thicknessesOf("Porcelain", 46, "integrated", true)).toEqual([5.5]);
+  });
+
+  it("keeps the 4″ top as well over a vessel off its Sink Base", () => {
+    expect(thicknessesOf("HPL", 46, "vessel")).toEqual([0.5, 4, 5.125]);
+    expect(thicknessesOf("HPL", 46, "vessel", true)).toEqual([4, 5.125]);
+    expect(thicknessesOf("Porcelain", 46, "vessel")).toEqual([0.5, 2.4, 4, 5.5]);
+    expect(thicknessesOf("Porcelain", 46, "Vessel", true)).toEqual([4, 5.5]);
+  });
+
+  it("leaves a material with thin tops only no thickness there", () => {
+    expect(thicknessesOf("Glass", 50, "integrated")).toEqual([0.375]);
+    expect(thicknessesOf("Glass", 50, "integrated", true)).toEqual([]);
+    expect(thicknessesOf("Mineralmarmo", 50, "integrated")).toEqual([0.5]);
+    expect(thicknessesOf("Mineralmarmo", 50, "integrated", true)).toEqual([]);
+  });
+
+  it("lets no thickness float in a collection whose options do not lift", () => {
+    const ushThicknesses = buildCountertopRuleState({
+      rules,
+      activeMaterialTokens: ["HPL"],
+      width: 80,
+      depth: 46,
+      activeCountertopStyle: "integrated",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile: ushProfile,
+      sinkOffSinkBase: true,
+    }).allowedThicknesses;
+    expect([...ushThicknesses]).toEqual([]);
+  });
+
+  const colourOf = (material: string, depth: number, sinkOffSinkBase?: boolean, activeCountertopStyle = "integrated") =>
+    evaluateCountertopMaterial([material], {
+      activeBasinStyle: null,
+      activeCountertopStyle,
+      activeProfile: ulhProfile,
+      cabinetCompositionCount: 1,
+      countertopRules: rules,
+      depth,
+      sinkBaseWidth: 80,
+      sinkOffSinkBase,
+      totalWidth: 80,
+    });
+
+  it("refuses the colours of a material without such a top, and only while the basin is off its Sink Base", () => {
+    for (const thinOnly of ["Glass", "Mineralmarmo", "Syntesi"]) {
+      expect(colourOf(thinOnly, 50)).toEqual({ isCompatible: true, failedBy: null });
+      expect(colourOf(thinOnly, 50, true)).toEqual({ isCompatible: false, failedBy: "offSinkBase" });
+    }
+    for (const lifting of ["HPL", "Fenix", "Porcelain", "Tekorlux", "Ocritech"])
+      expect(colourOf(lifting, 50, true)).toEqual({ isCompatible: true, failedBy: null });
+  });
+
+  it("judges a vessel off its Sink Base by its 4″ rows as well", () => {
+    // A material with a 4″ row only (no 5-1/8″ or 5-1/2″): a vessel may ride it off its Sink Base, an integrated basin not.
+    const fourOnly = [
+      { ...rules.find((rule) => rule.material === "HPL")!, material: "FourOnly", topThicknesses: ["4"] },
+    ];
+    const fourOnlyOf = (style: string) =>
+      evaluateCountertopMaterial(["FourOnly"], {
+        activeBasinStyle: null,
+        activeCountertopStyle: style,
+        activeProfile: ulhProfile,
+        cabinetCompositionCount: 1,
+        countertopRules: fourOnly,
+        depth: 46,
+        sinkBaseWidth: null,
+        sinkOffSinkBase: true,
+        totalWidth: null,
+      });
+    expect(fourOnlyOf("vessel")).toEqual({ isCompatible: true, failedBy: null });
+    expect(fourOnlyOf("integrated")).toEqual({ isCompatible: false, failedBy: "offSinkBase" });
+    // Thin-only materials stay out under a vessel too.
+    expect(colourOf("Glass", 50, true, "vessel")).toEqual({ isCompatible: false, failedBy: "offSinkBase" });
+  });
+
+  it("names the floating top before the depth for a material that lifts at no depth, the depth for one that lifts elsewhere", () => {
+    // Glass is 3/8" only, and 50 cm deep only: lowering the top would not make it at 46 cm either.
+    expect(colourOf("Glass", 46)).toEqual({ isCompatible: false, failedBy: "depth" });
+    expect(colourOf("Glass", 46, true)).toEqual({ isCompatible: false, failedBy: "offSinkBase" });
+    // Tekorund lifts (5-1/8"), but an integrated Tekorund top is 50 cm deep only.
+    expect(colourOf("Tekorund", 46)).toEqual({ isCompatible: false, failedBy: "depth" });
+    expect(colourOf("Tekorund", 46, true)).toEqual({ isCompatible: false, failedBy: "depth" });
   });
 });

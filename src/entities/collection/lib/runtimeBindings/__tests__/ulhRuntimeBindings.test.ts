@@ -91,9 +91,24 @@ describe("urban-low-height runtime bindings", () => {
     expect(patchOf("HandleGrooveColor", "None")).toEqual({ HandleGrooveColor: "None" });
   });
 
-  it("record the countertop style and the fluting without a scene call", () => {
-    for (const attributeId of ["CountertopStyle", "DrawerPanelFluting"]) {
-      expect(isStateOnlyResolution(resolveRuntimeBinding(ulhRuntimeBindings, attributeId, "x"))).toBe(true);
-    }
+  it("record the countertop style without a scene call", () => {
+    expect(isStateOnlyResolution(resolveRuntimeBinding(ulhRuntimeBindings, "CountertopStyle", "x"))).toBe(true);
+  });
+
+  it("send the fluting to every product in prebuilt, to the placed cabinets in custom, and a cleared one as None", () => {
+    // RuleOverlayFluting textures the ULH_Overlay_* that the handle shows.
+    expect(resolveRuntimeBinding(ulhRuntimeBindings, "DrawerPanelFluting", "FlutingVerticalA", "prebuilt")).toMatchObject({
+      ok: true,
+      target: { kind: "all" },
+      patch: { DrawerPanelFluting: "FlutingVerticalA" },
+    });
+    expect(resolveRuntimeBinding(ulhRuntimeBindings, "DrawerPanelFluting", "FlutingHorizontalB", "custom")).toMatchObject({
+      ok: true,
+      target: { kind: "cabinets" },
+      patch: { DrawerPanelFluting: "FlutingHorizontalB" },
+    });
+    expect(resolveRuntimeBinding(ulhRuntimeBindings, "DrawerPanelFluting", "", "custom")).toMatchObject({
+      patch: { DrawerPanelFluting: "None" },
+    });
   });
 });

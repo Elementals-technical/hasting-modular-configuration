@@ -1,0 +1,35 @@
+---
+description: TypeScript rules for tagging-modules-tool — no any or ts-ignore, no assertion-built contract objects, untyped data through validators, where a type lives, PlayCanvas iframe and window access, listener typing. Read when writing or changing TypeScript.
+globs: src/**/*.ts, src/**/*.tsx
+alwaysApply: false
+---
+
+# TypeScript rules
+
+`tsc` enforces `strict`, unused locals and parameters, `verbatimModuleSyntax` (use `import type` for type-only imports) and `erasableSyntaxOnly` (no `enum`, runtime `namespace` or parameter properties); see `tsconfig.app.json`.
+
+1. **No `any`, no `@ts-ignore`** — [enforced] by ESLint `no-explicit-any` and `ban-ts-comment`.
+   - Existing violations are mostly PlayCanvas code; add none.
+   - `@ts-expect-error` with a description passes lint; don't use it to silence a contract mismatch either.
+2. **Don't build a contract object with an assertion.** Outside validators (rule 3) and the scene host (rule 5):
+   - no `{} as T`, `{ … } as T` or `as unknown as T` to make a type check pass;
+   - annotate (`const x: T = { … }`) or use `satisfies T`;
+   - fix the real mismatch: the object shape, the mapper, the validator or the hand-written API type.
+
+   The existing `({} as Record<string, unknown>)` fallbacks in pages and sidebars are legacy.
+3. **Untyped data** (JSON files, API responses) enters as `unknown` and is narrowed by its validator:
+   - a zod schema (`src/entities/collection/model/schemas.ts`);
+   - a parser that returns diagnostics (`src/entities/collection/lib/runtimeBindings/parseRuntimeBindings.ts`).
+
+   Inside such guards, `Record<string, unknown>` is the plain-object type.
+4. **Where a type lives** — search there before creating one; don't duplicate an existing shape:
+   - backend responses → `src/entities/<slice>/api/types.ts` (hand-written);
+   - collection documents → next to their validator in `src/entities/collection/model/`;
+   - store → `RootState` / `AppDispatch`, type-only from `@/app/store`;
+   - UI-only view models → next to the component or in the slice's `model/`.
+5. **PlayCanvas iframe and `window`** — not enforced:
+   - Reach the iframe and scene globals only in `src/utils/functions/playcanvas/` and `src/features/playCanvasAdapter/`, through the runtime-checked host type `PlayCanvasHost` in `src/utils/functions/playcanvas/sceneBridge.ts`. Extend `sceneBridge` instead of writing `window as any` or `// @ts-ignore` elsewhere.
+   - Files outside those folders that still reach the iframe are legacy: `src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx`, both accessories pages, `src/features/interactiveConfiguratorTutorial/lib/getPlayCanvasPlusButtonViewportRect.ts`, `src/shared/hooks/usePlayCanvasReady.ts`.
+   - Globals added on purpose are declared with `declare global { interface Window … }` next to their code (e.g. `src/utils/functions/playcanvas/apiLogger.ts`).
+6. **Redux listeners** — [needs decision] `startListening.withTypes<RootState, AppDispatch>()` is available (RTK 2.11) but not used. `getState() as RootState` appears in `src/app/store/optionsListener.ts` and in several features, including command code (`src/features/configurationCommands/lib/sceneStateSync.ts`). Prefer `withTypes` in a new listener; don't rewrite existing ones as a side task.
+7. **Components** — [observed] arrow functions with props typed on the parameter: `export const X = ({ a }: Props) => …`.

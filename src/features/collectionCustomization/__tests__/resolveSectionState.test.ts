@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { parseProductProfile } from "@/entities/collection";
 import { configuratorColorGroups } from "@/entities/collection/__tests__/fixtures/configuratorColorGroups";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
@@ -8,6 +9,8 @@ import { ushProfile as profile } from "@/entities/collection/__tests__/ushProfil
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
 import makoUiJson from "../../../../public/collections/mako/ui.json";
+import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
+import ulhUiJson from "../../../../public/collections/urban-low-height/ui.json";
 import uiJson from "../../../../public/collections/urban-standard-height/ui.json";
 import { resolveSectionFields } from "../lib/resolveSectionState";
 
@@ -173,6 +176,28 @@ describe("resolveSectionFields", () => {
     expect(options.find((option) => option.value === "UpperG")?.reason).toBe("Too long.");
   });
 
+  it("gives each refused option the reason of its own where the availability names one, and the field's otherwise", () => {
+    const resolved = resolveSectionFields(
+      schema,
+      "side-panels",
+      profile,
+      {},
+      {
+        "SidePanels.available": {
+          available: true,
+          reasonCode: "field.reason",
+          isOptionAllowed: (option) => option.value === "None",
+          optionReason: (option) => (option.value === "NoG" ? { reasonCode: "own.reason" } : undefined),
+        },
+      },
+    );
+    const reasonOf = (value: string) => resolved[0]?.field.options.find((option) => option.value === value)?.reasonCode;
+
+    expect(reasonOf("None")).toBeUndefined();
+    expect(reasonOf("NoG")).toBe("own.reason");
+    expect(reasonOf("UpperG")).toBe("field.reason");
+  });
+
   it("hides a field whose availability result says it is not visible", () => {
     const resolved = resolveSectionFields(
       schema,
@@ -228,5 +253,38 @@ describe("resolveSectionFields", () => {
   it("returns no fields for an unknown or missing section", () => {
     expect(resolveSectionFields(schema, "does-not-exist", profile, {}, {})).toEqual([]);
     expect(resolveSectionFields(null, "drawer-panel-custom", profile, {}, {})).toEqual([]);
+  });
+});
+
+describe("resolveSectionFields with variant pictures", () => {
+  const ulhSchema = readCustomizationSchema(ulhUiJson);
+  const parsedUlhProfile = parseProductProfile(ulhProfileDocument);
+  if (!parsedUlhProfile.ok) throw new Error("Urban Low Height profile must parse");
+
+  const styleImages = (imageContext: Record<string, string>) =>
+    Object.fromEntries(
+      (
+        resolveSectionFields(ulhSchema, "countertop-style", parsedUlhProfile.profile, {}, {}, null, imageContext)[0]
+          ?.field.options ?? []
+      ).map(({ value, image }) => [value, image]),
+    );
+
+  it("shows the Slim countertop styles at a Slim height", () => {
+    for (const Height of ["28", "25"]) {
+      expect(styleImages({ Height })).toEqual({
+        integrated: "images/countertop-style/Integrated-slim.png",
+        vessel: "images/countertop-style/Vessel-slim.png",
+      });
+    }
+  });
+
+  it("keeps the plain pictures at another height or without one", () => {
+    const plain = {
+      integrated: "images/countertop-style/Integrated.png",
+      vessel: "images/countertop-style/Vessel.png",
+    };
+
+    expect(styleImages({ Height: "38" })).toEqual(plain);
+    expect(styleImages({})).toEqual(plain);
   });
 });

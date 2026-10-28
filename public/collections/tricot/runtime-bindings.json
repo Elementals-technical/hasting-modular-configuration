@@ -161,17 +161,23 @@
           },
           "Zafferano 412 MT": {
             "CabinetColor": "Zafferano 412 Lacquered MT"
+          },
+          "Noce Canaletto 933": {
+            "CabinetColor": "Noce Canaletto 933"
+          },
+          "Rovere Oro 932": {
+            "CabinetColor": "Rovere Oro 932"
+          },
+          "Rovere Termocotto 931": {
+            "CabinetColor": "Rovere Termocotto 931"
           }
         },
         "unboundValues": {
-          "Noce Canaletto 933": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
-          "Rovere Oro 932": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
-          "Rovere Termocotto 931": "Exact wood-veneer material asset/alias is absent from the delivered local PlayCanvas export; do not substitute another wood.",
-          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig while a wood is pending and the cabinet was placed without a color. Accepted on readback, never sent."
+          "Antracite Matte OCF": "Not a Tricot color: the export's default CabinetColor of both Tricot products, read back by getConfig from a cabinet placed before its color reached the scene. Accepted on readback, never sent."
         }
       },
       "order": 50,
-      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export. A wood is pending (user decision, 2026-10-08): the cabinet is placed without a color and the scene shows its default Antracite Matte OCF, while the state and the price keep the wood; a wood command stays unsupported."
+      "note": "Apply the approved per-product field to placed cabinets only, never unrelated scene products. All 20 lacquer assets are verified in the delivered export; the 3 wood-veneer assets are in the export under their exact catalog names since the 2026-10-15 export and are sent as they are."
     },
     {
       "attributeId": "HandleGrooveColor",
@@ -274,7 +280,7 @@
         }
       },
       "order": 70,
-      "note": "Per-module Cabinet Pattern (handoff). Export v44 reads CabinetPattern on both Tricot products (RulePatternCabinetTricot, priority 70) and spells Gessato as Gessatto. Satin, the scene default, shows no pattern; approved defaults are still sent, not replaced by it. The scene does not check the material: Loden on matte lacquer and the other four on wood veneer is the profile's rule (ruleData.fluting). getConfig reads the key back; the profile alias maps Gessatto to Gessato."
+      "note": "Per-module Cabinet Pattern (handoff). Export v44 reads CabinetPattern on both Tricot products (RulePatternCabinetTricot, priority 70) and spells Gessato as Gessatto. Satin shows no pattern; it is the collection's default since 2026-10-28 (user) and is sent as the others are. The scene does not check the material: Loden on matte lacquer and the other four on wood veneer is the profile's rule (ruleData.fluting). getConfig reads the key back; the profile alias maps Gessatto to Gessato."
     },
     {
       "attributeId": "CabinetType",

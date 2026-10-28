@@ -3,6 +3,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import {
   createConfiguratorClient,
   isCommandPlacementSession,
+  type CabinetPlacementOption,
   type CabinetsState,
   type ConfiguratorClient,
   type CabinetDraftState,
@@ -28,6 +29,16 @@ type Props = {
    * composition commands would place them. Without it, `selection` is placed as it is.
    */
   prepareSelection?: () => CabinetPlacementSelection | null;
+  /**
+   * Where an Add starts, among the places the scene offers for the cabinet: the scene picks its start by
+   * free space alone, so a Sink Base could start in a row its rules refuse. Null leaves the choice to the scene.
+   */
+  chooseAddPlacement?: (options: readonly CabinetPlacementOption[]) => CabinetPlacementOption | null;
+  /**
+   * Places the first cabinet of an empty composition as the builder's "+" there does: the scene lays a
+   * countertop only for a cabinet its own add places, never for one a draft commits.
+   */
+  addFirstCabinet?: () => Promise<void>;
   selectedProductId: string | null;
   /** The builder shows its "+" buttons for the cabinet being added: "Drag to Place" is offered with them. */
   offerAdd?: boolean;
@@ -70,10 +81,12 @@ const errorMessage = (error: unknown): string => {
   return detail && detail !== `{"code":"${code}"}` ? `${message} · ${detail}` : message;
 };
 const isTerminal = (lifecycle: unknown) => ["committed", "cancelled", "error"].includes(String(lifecycle));
+const isStaleOption = (error: unknown) => error instanceof Error && "code" in error && error.code === "STALE_OPTION";
 
 /**
  * Cabinet Drag & Drop. "Drag to Place", offered above the composition while the builder shows its "+"
- * buttons, opens an Add draft of the configured cabinet right away; elsewhere a draft opens only from
+ * buttons, opens an Add draft of the configured cabinet right away, at the place `chooseAddPlacement`
+ * picks (else where the scene puts it); elsewhere a draft opens only from
  * the cabinet menu (`reposition`). PlayCanvas tints the draft green (free spot) or red (overlaps a
  * cabinet; Apply blocked) and publishes screen anchors, where this component puts the move icon, Apply
  * and discard (x). "Cancel" shows while the draft is open. A PlayCanvas build without the overlay (or a
@@ -84,6 +97,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     ready,
     selection,
     prepareSelection,
+    chooseAddPlacement,
+    addFirstCabinet,
     selectedProductId,
     offerAdd = false,
     createClient = createConfiguratorClient,
@@ -109,6 +124,10 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   onAbandonedRef.current = onCompositionChangeAbandoned;
   const prepareSelectionRef = useRef(prepareSelection);
   prepareSelectionRef.current = prepareSelection;
+  const chooseAddPlacementRef = useRef(chooseAddPlacement);
+  chooseAddPlacementRef.current = chooseAddPlacement;
+  const addFirstCabinetRef = useRef(addFirstCabinet);
+  addFirstCabinetRef.current = addFirstCabinet;
   const receiptSyncRef = useRef(new Map<string, Promise<void>>());
   const refreshCapabilitiesRef = useRef<(() => Promise<void>) | null>(null);
   const [connected, setConnected] = useState(false);
@@ -364,6 +383,11 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     let announced = false;
     void command(async (client) => {
       if (!client) return;
+      // No draft for the first cabinet: its place is the only one, and the host's add lays the countertop.
+      if (kind === "add" && addFirstCabinetRef.current && (await client.getCabinetsState()).cabinets.length === 0) {
+        await addFirstCabinetRef.current();
+        return;
+      }
       await onBeforeChangeRef.current?.();
       announced = true;
       let next: CabinetDraftState;
@@ -375,8 +399,28 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
         const state = await client.getCabinetsState();
         startState = state;
         if (!showDebugTools && state.cabinets.length > 0) {
-          // Normal path: let the runtime start the draft at its best free end-of-row slot.
-          next = await client.beginAdd(chosen.definitionId, chosen.selection);
+          // Normal path: at the place the host picks among the scene's, else at the scene's best free
+          // end-of-row slot. The options are read for this very selection: an option is valid only for it.
+          const begin = async () => {
+            const choose = chooseAddPlacementRef.current;
+            const option = choose
+              ? choose(
+                  await client.getPlacementOptions({
+                    definitionId: chosen.definitionId,
+                    selection: chosen.selection,
+                    operation: "add",
+                  }),
+                )
+              : null;
+            return option
+              ? client.beginAdd(chosen.definitionId, chosen.selection, { kind: "option", optionId: option.id })
+              : client.beginAdd(chosen.definitionId, chosen.selection);
+          };
+          // A scene change between the two reads outdates the option: read the options once more.
+          next = await begin().catch((failure: unknown) => {
+            if (!isStaleOption(failure)) throw failure;
+            return begin();
+          });
         } else {
           // Debug side selector (or empty-composition seed): resolve an explicit option.
           const anchor = state.selectedCabinetId ?? selectedProductId;

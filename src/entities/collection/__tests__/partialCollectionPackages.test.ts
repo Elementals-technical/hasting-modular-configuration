@@ -33,6 +33,7 @@ import urbanDuplexSkuProfile from "../../../../public/collections/urban-duplex/s
 import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 
 import configurator4 from "./fixtures/remote/configurator-4.json";
+import configurator8 from "./fixtures/remote/configurator-8.json";
 import configurator9 from "./fixtures/remote/configurator-9.json";
 import configurator11 from "./fixtures/remote/configurator-11.json";
 import configurator13 from "./fixtures/remote/configurator-13.json";
@@ -118,9 +119,10 @@ const cabinetTables: Record<string, unknown> = {
   594: datatable594,
 };
 
-/** The configurator each manifest names: USH's 4, Mako's 9, and Urban Freestanding's and Urban Duplex's own. */
+/** The configurator each manifest names: USH's 4, Mako's 9, and Class's, Urban Freestanding's and Urban Duplex's own. */
 const configurators: Record<string, unknown> = {
   4: configurator4,
+  8: configurator8,
   9: configurator9,
   11: configurator11,
   13: configurator13,
@@ -194,8 +196,8 @@ describe("partial production collection packages", () => {
   });
 
   it.each([
-    // Class places its own scene products (I) and has the composition of every model, and its own
-    // cabinet and countertop tables; Mako places its own scene products (I) and has the composition of
+    // Class places its own scene products (I) and has the composition of every model, its own
+    // cabinet and countertop tables and its own configurator; Mako places its own scene products (I) and has the composition of
     // every model, its own tables and its own configurator.
     [
       "class",
@@ -205,7 +207,7 @@ describe("partial production collection packages", () => {
       true,
       [[579, abortSignal]],
       578,
-      9,
+      8,
     ],
     [
       "mako",
@@ -554,7 +556,8 @@ describe("partial production collection packages", () => {
     // Priced from its own SKU words (D04), not the USH cabinet mappings.
     expect(data.catalog.skuProfile?.collectionId).toBe("urban-duplex");
     expect(data.catalog.cabinetSkuMappings).toBeUndefined();
-    // The profile names the tables the manifest loads.
+    // The profile names the tables the manifest loads, and the manifest holds it to them.
+    expect(data.manifest.requireSourceAgreement).toBe(true);
     expect(data.catalog.productProfile?.sourceRefs).toEqual({
       configuratorId: data.manifest.remote?.configurator?.id,
       countertopMatrixTableId: data.manifest.remote?.countertopTable?.id,

@@ -6,6 +6,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+skills/
+
 # Build outputs
 dist/
 server-dist/
@@ -99,6 +101,7 @@ temp/
 docs/*
 !docs/
 !docs/INDEX.md
+!docs/ecosystem-map.md
 !docs/parent-configurator-integration.md
 !docs/side-panel-logic.md
 !docs/side-panel-reasons-refactor.md
@@ -124,3 +127,9 @@ docs/*
 iphone-safari-debugging
 
 .mcp.json
+
+# Playwright (npm run e2e)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

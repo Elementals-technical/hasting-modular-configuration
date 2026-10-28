@@ -23,7 +23,7 @@ import { buildChangePlan } from "./buildChangePlan";
 import { resolveConfirmation } from "./confirmationPolicy";
 import { findSinkBaseKeys } from "./isSinkBase";
 import { resolveTarget } from "./resolveTarget";
-import { checkUndetermined } from "./undeterminedGate";
+import { checkUndetermined, planUndeterminedResets } from "./undeterminedGate";
 import { validateChange } from "./validateChange";
 import { evaluateCountertopChange } from "./countertopCompatibility";
 import type {
@@ -182,6 +182,7 @@ export const evaluateChange = (
     cabinets,
     configurator,
     placedCabinetStyles: state.rootStateUI.product.placedCabinetStyles,
+    runtimeBindings: getActiveRuntimeBindings(state),
   });
 
   if (!planResult.ok) {
@@ -200,10 +201,12 @@ export const evaluateChange = (
           : entry,
       )
     : planResult.plan;
+  // A value the new drawers leave undetermined goes with them (the legs of a one-drawer Mako cabinet).
+  const undeterminedResets = planUndeterminedResets(planResult.plan, state, activeProfile);
 
   return {
     kind: "planned",
-    plan: [...requestedPlan, ...countertop.dependencies],
+    plan: [...requestedPlan, ...undeterminedResets, ...countertop.dependencies],
     confirmation: resolveConfirmation(change, planResult.plan, activeProfile, cabinets.length),
     collectionId: activeProfile.collectionId,
   };

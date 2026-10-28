@@ -1,6 +1,12 @@
 {
   "collectionId": "urban-freestanding",
   "optionImages": {
+    "DrawerPanelFluting": {
+      "FlutingVerticalA": "images/drawer-panel/Fluting_Vertical_TypeA.png",
+      "FlutingVerticalB": "images/drawer-panel/Fluting_Vertical_TypeB.png",
+      "FlutingHorizontalA": "images/drawer-panel/Fluting_Horizontal_TypeA.png",
+      "FlutingHorizontalB": "images/drawer-panel/Fluting_Horizontal_TypeB.png"
+    },
     "sinkType": {
       "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
       "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
@@ -28,7 +34,8 @@
       "Sink-Base": "images/cabinet/sink-base-2-drawer.png",
       "Sink-Cabinet": "images/cabinet/side-cabinet-2-drawer.png",
       "Short-Cabinet": "images/cabinet/side-cabinet-1-drawer.png",
-      "Open-Shelf": "images/cabinet/open-shelf.png"
+      "Open-Shelf": "images/cabinet/open-shelf.png",
+      "Side-Shelf": "images/cabinet/open-side-shelf.png"
     },
     "Drawers": {
       "2": "images/cabinet/drawers-2.png",
@@ -70,7 +77,7 @@
       "kind": "cabinet-builder",
       "sectionIds": ["cabinet-type", "cabinet-style"]
     },
-    "cabinet": { "label": "Color", "kind": "fields", "sectionIds": ["cabinet-color", "handle-groove"] },
+    "cabinet": { "label": "Color", "kind": "fields", "sectionIds": ["cabinet-color", "handle-groove", "drawer-panel"] },
     "countertop": {
       "label": "Countertop & Basin",
       "kind": "fields",
@@ -103,6 +110,16 @@
           "control": "colors",
           "optionsRef": "HandleGrooveColor",
           "availabilityRef": "Handle.supportsGrooveColor"
+        }
+      ]
+    },
+    "drawer-panel": {
+      "label": "Drawer Panel Fluting",
+      "fields": [
+        {
+          "attributeId": "DrawerPanelFluting",
+          "control": "options-grid",
+          "availabilityRef": "DrawerPanelFluting.available"
         }
       ]
     },

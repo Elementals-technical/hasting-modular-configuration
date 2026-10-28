@@ -50,6 +50,27 @@ Continue входить у Drag & Drop і позначає intro як побач
 входить. Слайди перелічені в `CountertopLayoutIntroModal.tsx`; крапки з'являються, коли слайдів більше
 одного. Gate живе в `CountertopDragMode.enter` (`src/features/countertopPlacement/ui/`).
 
+## Віддалена стільниця: Sink Base стає Side Cabinet
+
+Клієнт, 23.10.2026: коли товста стільниця стоїть віддалено (раковина не над Sink Base,
+`isSinkOffSinkBase`), Sink Base, з якого вона забрала раковину, стає Side Cabinet. Раковину несе лише піднята стільниця:
+зсув стільниці, що лежить, лишає її в Sink Base. Коли стільниця забирає раковину, сцена шле `sink-lift`, і
+`useSinkLanding` комітить `cabinets.liftSink`: Sink Base стає Side Cabinet своєї пари з тими самими
+розмірами, ручкою й кольорами. Якщо стільницю опустили в тому самому drag, `liftSink` її не бере
+(`INVALID_INPUT`), тож UI піднімає її на 2 см, комітить і опускає назад. Lift, що не пройшов, повертає
+стільницю (`countertop.sinkLiftFailed`). Новий Sink Base, доданий, поки стільниця віддалена, не
+забороняється. Над двома Sink Base сцена раковин не
+забирає: піднята стільниця несе обидві, а шафи лишаються Sink Base, як і раніше, доки сцена не навчиться
+піднімати дві. Standard або раковина, опущена над Side Cabinet, повертає Sink Base (`landSink`). Деталі —
+`docs/countertop-position-ui.md`.
+
+Перевірено в браузері 23.10.2026 (ULH 46″ #16, 61″ Multi-Level #29, UD 34″ #10): підйом і жест «підняти,
+відвести, опустити» (вбік від ряду та повністю поза рядом) дають Side Cabinet, один запис історії, Undo/Redo;
+Standard повертає Sink Base. На 48″ Double (ULH #17, UD #20) стільниця піднімається з обома раковинами, обидві
+шафи лишаються Sink Base, як до зміни. Відомо: на Multi-Level після Redo
+сцена ставить стільницю з раковиною в іншу позу, і Standard тоді не повертає Sink Base (так само без цієї
+зміни); підсумок Prebuilt називає перетворену шафу за пресетом, «Sink Base».
+
 ## Ряди: Undo / Redo і збережені конфігурації
 
 У ULH шафи можуть стояти у два ряди, а стільниця — бути зсунутою, піднятою, мати власну довжину й
@@ -61,7 +82,8 @@ Continue входить у Drag & Drop і позначає intro як побач
 
 - **Де це живе.** Читання й запис документа — лише `features/playCanvasAdapter/lib/sceneLayout.ts`.
   `captureFreeLayout` (`features/cabinetPlacementDebug/lib/`) вмикає це тільки для Drag & Drop
-  колекцій; `main.tsx` реєструє його для історії (`setSceneLayoutCapture`).
+  колекцій (`ruleData.dragDrop` у профілі колекції); `main.tsx` реєструє його для історії
+  (`setSceneLayoutCapture`).
 - **Коли layout немає.** Інша колекція, відкритий чернетковий drag шафи (сцена відповідає
   `COMPOSITION_BUSY`), збереження, зроблене до цієї зміни, або документ, який сцена не прийняла, —
   композиція відновлюється старим шляхом, в один ряд. Дія користувача через це не блокується.
@@ -79,6 +101,30 @@ Continue входить у Drag & Drop і позначає intro як побач
 колір у Prebuilt-моделі 60″ Multi-Level; Prebuilt → Custom → Resize; стільниця 5.1″ (підйом із
 раковиною, довжина, Cancel, Standard); Side Panels і Towel Bar без дублів; збереження й відкриття
 посилання з двома рядами. Urban Standard Height: Undo / Redo без змін, збереження layout не несе.
+
+## Ряди: «+» Cabinet Builder
+
+Sink Base стоїть лише в ряду стільниці, поруч з іншими Sink Base (клієнт, 22.10.2026). Інший ряд
+(нижній рівень Multi-Level) міряє свою довжину сам, проти того самого максимуму
+(`configurator-rule-core/countertop/cabinetRows.ts`). «+», куди обрана шафа стати не може, сховано:
+фільтр будує sidebar (`plusFilterFor` з `useCabinetRowCapacity`), а клік по «+» перевіряється ще раз
+(`checkPlus`) і пояснює відмову. Duplicate — так само.
+
+Сцена питає фільтр лише про «+», що несуть своє місце (`plus`: колонки Urban Duplex). Рядові «+» ULH
+(`setAnchors(..., { multiRow: true })`) його не несуть, тож сцена показувала їх усі. Поки вона не питає
+й про них, це робить `filterRowEndPlus` у `utils/functions/playcanvas/sceneBridge.ts`: обгортає
+`_isPlusVisible` менеджера «+» і називає рядовий «+» так, як сцена свої (`left:<cabinet>`). Лише для
+композиції в рядах; один ряд і колонки — як було. Sink Base, перетягнутий на нижній рівень (Drag to
+Place), не пускає сама сцена: `SINK_BASES_SPLIT`, «All sink bases must be in one row.».
+
+Drag to Place починає чернетку біля правого кінця ряду, куди шафу пустив би «+»: Sink Base — у ряду
+стільниці, інша шафа — там, поки вистачає довжини, інакше в ряду з місцем (клієнт, 27.10.2026). Місце
+обирає `chooseAddPlacement` у `PlayCanvasIntegration` серед опцій сцени (`pickRowEnd` у `cabinetRows.ts`).
+Сама сцена обирає старт лише за вільним місцем і ставила Sink Base у нижній ряд, червоним.
+
+Перевірено в браузері 22.10.2026 на моделі 61″ Multi-Level у Custom: для Sink Base «+» лише біля
+верхнього рівня, для Side Cabinet — біля обох; Duplicate Sink Base — лише біля верхнього. Urban Duplex
+і Urban Standard Height показують ті самі «+», що й сцена.
 
 ## Cabinet catalog
 
@@ -99,14 +145,19 @@ card із builder. Повернення card потребує scene product і �
 `cabinetMatrixLegacyAdapter.columns.heightsByHandle`, тому builder пропонує лише висоти вибраного handle,
 а зміна handle пересуває висоту до найближчої дозволеної (38 ↔ 35, 28 ↔ 25).
 
-Користувач обирає висоту у двох місцях; обидва показують лише дві висоти вибраного handle
+Користувач обирає висоту у трьох місцях; кожне показує лише дві висоти вибраного handle
 (Upper Groove — 28 і 38 cm, Push-to-Open — 25 і 35 cm):
 
+- акордеон Cabinet Style — дві моделі one-drawer шафи: «1 Drawer» (38 / 35 cm) і «1 Drawer Slim»
+  (28 / 25 cm);
 - right sidebar Cabinet Builder — selector Height поруч із Width / Depth / Handle;
 - меню поставленої шафи — Resize ▸ Height.
 
-Обидва місця вмикає `ui.json` колекції, а не код:
+Усі три місця вмикає `ui.json` колекції, а не код:
 
+- `cabinetStyle.heightStyles` — моделі drawer style за висотою, по картці на модель у заданому порядку.
+  ULH оголошує `standard` (38, 35) і `slim` з `label: "Slim"` (28, 25); картка стоїть на першій висоті
+  моделі, яку дозволяє handle. Без ключа style має одну картку.
 - `styleSidebar.fields` — selectors правого sidebar у заданому порядку. Без нього sidebar показує
   Width, Depth, Handle; ULH оголошує `["Width", "Depth", "Height", "Handle"]`.
 - `playerMenu.resize` — розміри пункту Resize у заданому порядку. Без нього — Width і Depth; ULH
@@ -119,6 +170,14 @@ card із builder. Повернення card потребує scene product і �
 Висота спільна для композиції. Поки шаф немає, вибір стосується наступної шафи; після розміщення зміна
 йде через `changeDimension` (`{ attributeId: "Height", scope: "global" }`) і змінює всі шафи одразу, як
 Depth. Порожній builder стартує з 38 cm — це `defaultValue` атрибута `Height` у `product-profile.json`.
+
+Картки моделей Cabinet Style. У порожньому builder обидві звичайні, і вибір задає висоту першої шафи.
+Після розміщення картка висоти, на якій стоять шафи, додає шафу; інша показана сірою (як style, що не
+змішується) з підказкою `drawers.mixingRestricted` із `messages` профілю. Після підтвердження
+«Update Design?» вона переводить усі шафи на свою висоту одним кроком історії — тим самим
+`changeDimension`, що й Height у sidebar. Slim-рендерів ще немає, тому обидві картки показують ту саму
+картинку. Рядки `optionImageVariants.Drawers` з `Height: "28"` / `"25"` треба ставити перед загальним
+рядком `{ "CabinetType": "Sink-Base" }`: перемагає перший збіг.
 
 Висоти іншого handle Height не пропонує: щоб їх отримати, користувач змінює Handle. Зміна handle
 (`{ attributeId: "Handle" }`) пересуває висоту до найближчої, яку приймає новий handle: з поставленими
@@ -133,12 +192,16 @@ Push-to-Open, side panels втрачають upper groove. Handle і Height ід
 - Heights: 38, 35, 28, 25 cm.
 - Fluting: None + Vertical/Horizontal A/B; доступність залежить від Lacquer Matte.
 - Cabinet/Countertop colors читаються з configurator 4 через `optionsSource`.
-- Countertop styles: integrated/vessel; `CountertopStyle` є `state-only` для сцени ULH.
+- Countertop styles: integrated/vessel; `CountertopStyle` є `state-only` для сцени ULH. Поле стилю бере
+  `CountertopStyle.available`: матриця стиль не обмежує (Urban Duplex бере `CountertopStyle.allowed`), а поки
+  стільниця тримає basin, стиль заблокований разом із basin і vessel color
+  ([countertop-position-ui.md](../countertop-position-ui.md)).
 - Basin catalog тимчасово повторює Urban values і фільтрується table 589; це не підтверджена
   власна ULH product map семантика.
 
 Rule data навмисно обмежений `cabinetMatrixLegacyAdapter`, `cabinetColorTraits`, `fluting` і
-`countertopFallbacks`. Відсутність USH rule section означає “правила немає”, а не “успадкувати USH”.
+`countertopFallbacks` з product map та `sidePanels`, `vesselCompatibility` і `dragDrop`, доданими на запит
+(`urbanLowHeightProfile.test.ts`). Відсутність USH rule section означає “правила немає”, а не “успадкувати USH”.
 
 ## Runtime bindings
 
@@ -186,13 +249,27 @@ URSTD SKU лише тому, що ULH ділить configurator 4 з USH.
 
 ### Lower / CoverCountertop: колір, SKU і pricing (2026-10-12)
 
-Prebuilt Countertop Color має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`.
+Countertop Color у Prebuilt і Custom має Upper/Lower, якщо сцена реально опублікувала `Cabinet_Cover`
+(`sku-profile.cabinetCover.flows`; з 2026-10-22 обидва flow, як у Urban Duplex).
 Upper використовує наявний CountertopColor flow; Lower викликає native
 `ConfiguratorAPI.cabinetCover.configure({ materialId })`, без зміни кольору Upper або тумб.
-Lower бере палітру Cabinet Color, але лише підтверджені Ryan матеріали **3D, LACM, LACG, ST, BM, ESS** і
-**HPL** (команда, 2026-10-14: Lower за замовчуванням має колір тумби, а тумби ULH стартують у HPL; GEN-SKU-03
-до Ryan відкритий); allowlist міститься в `sku-profile.cabinetCover.materialSkus`. Matrix 589 для Upper не
-обмежує декоративний Lower.
+
+**З 2026-10-28 (користувач) Lower має ті самі кольори й матеріали, що Upper, у кожній колекції:** палітру
+Countertop Color (`CABINET_COVER_COLOR_ATTRIBUTE_ID`). Це замінює матеріали декоративної панелі
+3D/LACM/LACG/ST/BM/ESS/HPL з палітри Cabinet Color (Ryan, команда 2026-10-12/14), тож
+`cabinetCover.materialSkus` і `colorAttributeId` у контракті більше немає. Правила matrix 589 для Upper
+(товщина, глибина, раковина) Lower не обмежують.
+
+- Lower пишеться так само, як Upper: матеріал swatch (або той, що називає код кольору, як `TAN` → `SSSYN`) і код
+  кольору. Колір, якого немає в палітрі Upper (наприклад, колір тумби, у який сцена кладе плиту без запиту),
+  не отримує SKU, і gap блокує complete total.
+- До сцени й назад колір Lower іде через binding `CountertopColor`, як і в Upper: overrides
+  (`Sahara Noir Silky Matte TR8` → `Sahara Noir Silky Matte`, у UD також `Matte White` → `Solid Surface Matte White`).
+  Матеріал зі сцени, який сам є кольором палітри, читається як є.
+- Поки Lower не вибрано на вкладці, `useLowerCountertopDefaultColor` просить сцену про колір Upper і слідує
+  за його змінами. Колекція може назвати свій атрибут (`cabinetCover.defaultColorAttributeId`, UD: Lateral Panel),
+  якщо його колір є в палітрі Upper; інакше береться колір Upper. Колір, вибраний на вкладці Lower, лишається,
+  а відновлений колір поза палітрою замінюється.
 
 SKU Lower читає **фактично опублікований materialId кожного сегмента**, а не колір першої тумби:
 `CT-UR{material}-{style}-{W}W-.5H-{D}D-{material}-{colour}`. Стиль — той самий, що в Upper: Integrated →
@@ -232,7 +309,10 @@ scene first-import cache та save/history featureSettings — окремі пи
   композиції змінюють через Sink Base або Side Cabinet.
 - Зміна висоти не пересуває ряди по вертикалі: нижній ряд дворядної композиції лишається на своїй
   позначці. Перевірено в браузері 12.10.2026 на моделі 60″ Multi-Level у Custom: після 38 → 28 cm між
-  рядами лишається зазор 10 cm (верх нижньої шафи −10 cm, низ верхньої 0).
+  рядами лишається зазор 10 cm (верх нижньої шафи −10 cm, низ верхньої 0). Так само після перемикання
+  на «1 Drawer Slim» у Cabinet Style.
+- Ціна Slim (28 / 25 cm) не перевірена: SKU пише `11H` / `9.8H`, а за коментарем у
+  `urbanDuplexSkus.test.ts` сервер може читати URLH `11H` як рядок `15.0H`.
 - Open Shelf ширше 70 cm (80–120 cm при висоті 28/25 cm) не пропонується: колонку `widths_cm_by_height`
   table 580 ніхто не читає.
 - Countertop/basin contract частково позичений у USH; table 589 не є доказом повної ULH семантики.

@@ -45,7 +45,7 @@ describe("Tricot default model price", () => {
     const { lines, gaps } = buildCollectionPricingLines(defaultModel());
 
     expect(lines.map(({ group, sku, widthCm }) => ({ group, sku, ...(widthCm ? { widthCm } : {}) }))).toEqual([
-      { group: "cabinet", sku: "VAN-TRIC-SB/1DW/CAN-23.6W-15.7H-20.5D-CAB-WDV-932-HDL-LACM-407" },
+      { group: "cabinet", sku: "VAN-TRIC-SB/1DW/SAT-23.6W-15.7H-20.5D-CAB-WDV-932-HDL-LACM-407" },
       { group: "countertop", sku: "CT-GBHPL-INTG-23.6W-.5H-20.7D-HPL-250", widthCm: 60 },
       { group: "basin", sku: "CT-GBHPL-VA024-.5H" },
       { group: "faucetHoles", sku: "CT-GBHPL-FAHO/0" },

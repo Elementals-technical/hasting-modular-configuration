@@ -22,11 +22,19 @@ describe("Reposition of the selected cabinet", () => {
     expect(options(build(["a", "b", "c"], "b"))).toEqual(["reposition-left", "reposition-right", "reposition-drag"]);
   });
 
-  it("is left out while the cabinet is the only one, where the scene can drag it too", () => {
-    expect(build(["a"], "a")).toEqual([]);
+  it("offers only Drag & Drop for the only cabinet, and no Reposition where the scene cannot drag it", () => {
+    expect(options(build(["a"], "a"))).toEqual(["reposition-drag"]);
     expect(build(["a"], "a", cannotDrag)).toEqual([]);
     // A cabinet the composition does not hold has nothing to reposition.
     expect(build(["a", "b"], "c")).toEqual([]);
+  });
+
+  it("keeps Drag & Drop of the only cabinet, disabled, while another placement is open", () => {
+    const [reposition] = build(["a"], "a", { supported: true, available: false });
+
+    expect(reposition.children?.map(({ id, disabled }) => ({ id, disabled }))).toEqual([
+      { id: "reposition-drag", disabled: true },
+    ]);
   });
 
   it("offers only the moves where the scene cannot drag a cabinet", () => {

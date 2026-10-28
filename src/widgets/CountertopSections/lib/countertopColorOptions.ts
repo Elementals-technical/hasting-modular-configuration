@@ -142,7 +142,7 @@ export const buildCountertopColorOptions = (
               desc: normalizeMaterialLabel(option.name || group.proxyName || variant.name),
               isShortDesc: false,
               metadata: {
-                image: meta.image ?? resolveCountertopFallbackTexture(variant.name),
+                image: meta.image ?? resolveCountertopFallbackTexture(variant.name, meta.hex?.trim()),
                 value: meta.value ?? variant.name,
                 codeColor: metaCodeColor,
                 sku: meta.sku,

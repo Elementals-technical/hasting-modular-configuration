@@ -7,8 +7,12 @@ export {
   heightsOfDrawerStyle,
   isDrawerStyleHeightRestricted,
   resolveDrawerStyleSwitch,
+  resolvePlacedDrawerHeights,
 } from "./lib/drawerStyleHeightRule";
+export { resolveHeightsByHandle } from "./lib/handleForcedHeight";
 export { buildHandleStyleConfigPatch } from "./lib/handleStyleConfig";
+export { resolveHeightStyleCards } from "./lib/heightStyles";
+export type { HeightStyleCard } from "./lib/heightStyles";
 export { REASON_HANDLE_HEIGHT_LOCKED } from "./lib/handleRule";
 export { findPlacedCabinetRule } from "./lib/placedCabinetRule";
 export { isLeavingSideShelfHandle, isSideShelfBlockedByHandle } from "./lib/sideShelfHandleRule";

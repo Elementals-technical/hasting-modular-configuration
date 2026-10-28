@@ -1,7 +1,8 @@
-import type { ProductProfile } from "@/entities/collection";
+import type { ProductProfile, RuntimeBindingSet } from "@/entities/collection";
 import {
   hasCapability,
   normalizeOptionValue,
+  resolveRuntimeBinding,
   selectAttribute,
   selectMessage,
   selectOption,
@@ -16,6 +17,7 @@ import {
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { flutingRule } from "@/features/configurator-rule-core/options/rules/flutingRule";
 import { resolveColorTraits } from "./resolveColorTraits";
+import { toSceneValue } from "./sceneValue";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   findCabinetRule,
@@ -65,6 +67,8 @@ export type BuildChangePlanArgs = {
   placedCabinetStyles?: Readonly<Record<string, string>>;
   /** Configurator sections of the active collection, for the material of a colour it lists (Urban Freestanding). */
   configurator?: ConfiguratorGroupCatalog | null;
+  /** Runtime bindings of the active collection, for a groove colour the scene could not take. */
+  runtimeBindings?: RuntimeBindingSet | null;
 };
 
 export type BuildChangePlanResult = { ok: true; plan: PlannedChange[] } | ({ ok: false } & ChangeBlockedReason);
@@ -77,6 +81,16 @@ const SELECTION_FIELD_BY_ATTRIBUTE: Record<string, "cabinetType" | "drawers" | "
 };
 
 const configurationTarget = (): ValueTarget => ({ scope: "global" });
+
+/**
+ * Whether the runtime port would send a groove in this colour, judged as it judges it (`applyPlan`
+ * spells a strict catalog's value first). Without bindings nothing tells, so the groove may follow.
+ */
+const sceneTakesGroove = (profile: ProductProfile, bindings: RuntimeBindingSet | null, value: string): boolean => {
+  if (!bindings) return true;
+  const sceneValue = bindings.strictProductConfig ? toSceneValue(profile, bindings, "HandleGrooveColor", value) : value;
+  return resolveRuntimeBinding(bindings, "HandleGrooveColor", sceneValue).ok;
+};
 
 const isDrawerCabinet = (runtimeId: string, catalog: ConfiguratorCatalog): boolean => {
   const rule = findPlacedCabinetRule(catalog, runtimeId);
@@ -158,6 +172,7 @@ export const buildChangePlan = ({
   cabinets = [],
   configurator = null,
   placedCabinetStyles = {},
+  runtimeBindings = null,
 }: BuildChangePlanArgs): BuildChangePlanResult => {
   const isDrawers = attributeId === "Drawers";
   // A placed cabinet's rule, told apart from a tall type of its scene product by its drawer style.
@@ -184,13 +199,15 @@ export const buildChangePlan = ({
     origin: "requested",
   }));
 
-  // A groove in the cabinet colour follows the cabinet to its new colour, as the colour pages do.
+  // A groove in the cabinet colour follows the cabinet to its new colour, as the colour pages do. Not to a
+  // colour the scene refuses for a groove (a Tricot wood): the whole change would be refused with it.
   if (attributeId === "CabinetColor") {
     const grooveCatalog = selectAttribute(profile, "HandleGrooveColor")?.options;
     if (
       cabinetColor &&
       handleGrooveColor === cabinetColor &&
-      (!grooveCatalog || grooveCatalog.some((option) => option.value === value))
+      (!grooveCatalog || grooveCatalog.some((option) => option.value === value)) &&
+      sceneTakesGroove(profile, runtimeBindings, value)
     ) {
       plan.push({
         attributeId: "HandleGrooveColor",

@@ -22,11 +22,13 @@ export type AddedCabinetInput = {
   side: ScenePlusKind;
 };
 
+type AddedCabinet = Omit<AddedCabinetInput, "anchorRuntimeId" | "side">;
+
 /**
- * The cabinet the builder's plus button adds beside a placed one. A sink base takes the
+ * The cabinet the builder adds, by its plus button or by Drag & Drop. A sink base takes the
  * basin and countertop style of the configuration; a vessel basin gets its colour once placed.
  */
-export const buildAddedCabinetRequest = ({
+export const buildAddedCabinet = ({
   cabinetType,
   config,
   width,
@@ -34,9 +36,7 @@ export const buildAddedCabinetRequest = ({
   countertopStyle,
   vesselColor,
   profile = null,
-  anchorRuntimeId,
-  side,
-}: AddedCabinetInput): AddCabinetRequest => {
+}: AddedCabinet): Pick<AddCabinetRequest, "product" | "afterPlacement"> => {
   const isSinkBase = cabinetType.toLowerCase().includes("sink-base");
   const isVesselStyle = countertopStyle?.toLowerCase() === "vessel";
   const resolvedSinkType = sinkType || (isVesselStyle ? "Vessel" : "");
@@ -58,7 +58,16 @@ export const buildAddedCabinetRequest = ({
 
   return {
     product: { productType: cabinetType, config: productConfig },
-    placement: placementForPlus(side, anchorRuntimeId),
     afterPlacement: vesselColor && isVessel ? { VesselColor: vesselColor } : undefined,
   };
 };
+
+/** The cabinet the builder's plus button adds beside a placed one (`buildAddedCabinet`). */
+export const buildAddedCabinetRequest = ({
+  anchorRuntimeId,
+  side,
+  ...cabinet
+}: AddedCabinetInput): AddCabinetRequest => ({
+  ...buildAddedCabinet(cabinet),
+  placement: placementForPlus(side, anchorRuntimeId),
+});

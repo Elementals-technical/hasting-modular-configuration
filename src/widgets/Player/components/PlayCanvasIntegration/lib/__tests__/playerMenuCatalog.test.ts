@@ -133,7 +133,7 @@ describe("resolvePlayerMenuSupport", () => {
 
   it("offers only the items that need nothing while no collection is loaded", () => {
     expect([...resolvePlayerMenuSupport(null, null, "custom").items].sort()).toEqual(
-      ["countertop-position", "delete", "duplicate", "open", "reposition", "resize"].sort(),
+      ["countertop-length", "countertop-position", "delete", "duplicate", "open", "reposition", "resize"].sort(),
     );
   });
 

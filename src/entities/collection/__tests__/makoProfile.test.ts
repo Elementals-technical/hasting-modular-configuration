@@ -41,6 +41,15 @@ describe("mako product profile", () => {
     expect(makoManifest.local.productProfile).toBe("product-profile.json");
   });
 
+  it("names the sources its manifest loads, and the manifest holds it to them", () => {
+    expect(makoManifest.requireSourceAgreement).toBe(true);
+    expect(profile().sourceRefs).toEqual({
+      configuratorId: makoManifest.remote.configurator.id,
+      countertopMatrixTableId: makoManifest.remote.countertopTable.id,
+      cabinetMatrixTableId: makoManifest.remote.cabinetTable.id,
+    });
+  });
+
   it("declares Sink Base and Side Cabinet only (map section 1)", () => {
     expect(selectOptionValues(profile(), "CabinetType")).toEqual(["Sink-Base", "Sink-Cabinet"]);
   });

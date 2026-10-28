@@ -2,8 +2,14 @@ import { useCallback } from "react";
 import { useLocation } from "react-router-dom";
 
 import { useSaveConfigurationMutation } from "@/entities";
+import type { ProductProfile } from "@/entities/collection";
 import type { SceneLayout } from "@/entities/configuration";
-import { getActiveCollectionId, getRestoreState, getRuntimeSyncState } from "@/entities/configuration/model/store/selectors";
+import {
+  getActiveCollectionId,
+  getActiveProductProfile,
+  getRestoreState,
+  getRuntimeSyncState,
+} from "@/entities/configuration/model/store/selectors";
 import { captureFreeLayout } from "@/features/cabinetPlacementDebug/lib/captureFreeLayout";
 import {
   getHasSubmittedCart,
@@ -50,11 +56,11 @@ export type BuildConfigurationRequestOptions = {
  * describes another composition (the scene changed between the two reads) and is left out.
  */
 const readSavedLayout = async (
-  collectionId: string | null,
+  profile: ProductProfile | null,
   orderedProductIds: readonly string[],
 ): Promise<SceneLayout | null> => {
   try {
-    const layout = await captureFreeLayout(collectionId);
+    const layout = await captureFreeLayout(profile);
     if (!layout) return null;
 
     const saved = new Set(orderedProductIds);
@@ -74,6 +80,7 @@ export const useBuildConfigurationRequest = () => {
   const { pathname } = useLocation();
 
   const savePayload = useAppSelector(selectConfigurationSavePayload);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const selectedMaterials = useAppSelector(getSelectedMaterials);
   const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
   const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
@@ -85,7 +92,7 @@ export const useBuildConfigurationRequest = () => {
 
       if (!orderedProductIds.length) return null;
 
-      const sceneLayout = await readSavedLayout(savePayload.fragment.collectionId, orderedProductIds);
+      const sceneLayout = await readSavedLayout(activeProfile, orderedProductIds);
 
       const metadata = buildConfigurationMetadata({
         path: options.path ?? pathname,
@@ -103,7 +110,15 @@ export const useBuildConfigurationRequest = () => {
 
       return { configuration, metadata };
     },
-    [hasSubmittedCart, isAutofillEnabled, manualSelectedMaterials, pathname, savePayload, selectedMaterials],
+    [
+      activeProfile,
+      hasSubmittedCart,
+      isAutofillEnabled,
+      manualSelectedMaterials,
+      pathname,
+      savePayload,
+      selectedMaterials,
+    ],
   );
 };
 

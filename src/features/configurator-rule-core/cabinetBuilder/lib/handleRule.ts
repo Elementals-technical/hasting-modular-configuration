@@ -13,7 +13,7 @@ import { findCabinetRule, type ConfiguratorCatalog } from "@/shared/config/confi
 import { cmToInches } from "@/shared/lib/sku";
 
 import type { OptionState, RuleContext, RuleResult } from "../model/types";
-import { toHandleRelations } from "./handleForcedHeight";
+import { resolveHeightsByHandle, toHandleRelations } from "./handleForcedHeight";
 import { findPlacedCabinetRule } from "./placedCabinetRule";
 
 /** Stable reason codes; the English fallback text lives in profile.messages. */
@@ -184,8 +184,10 @@ export const handleRule = (
     supportsHeightForAllProducts(context.selectedProductIds, catalog, forcedHeight);
   const handleAllowsDrawers =
     handleForcedHeight === null || (effectiveHandle !== null && isDrawerAllowedFor(effectiveHandle));
-  // A handle may allow several heights instead of forcing one (Urban Low Height: 38/28 or 35/25).
-  const handleHeights = effectiveHandle ? (relations?.heightsByHandle[effectiveHandle] ?? []) : [];
+  // A handle may allow several heights instead of forcing one (Urban Low Height: 38/28 or 35/25);
+  // an open shelf takes those of the cabinets it stands with.
+  const heightsByHandle = resolveHeightsByHandle(catalog, activeRule, context.selectedProductIds);
+  const handleHeights = effectiveHandle ? (heightsByHandle[effectiveHandle] ?? []) : [];
   const offersHandleHeight = heightOptions.some((option) => option.enabled && handleHeights.includes(option.value));
   // So may the drawers, whatever the handle (Urban Duplex: one drawer at 53 cm, Slim at 38 or 28).
   const drawersHeights = selection.drawers ? (relations?.heightsByDrawers[selection.drawers] ?? []) : [];

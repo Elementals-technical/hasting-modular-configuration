@@ -103,8 +103,8 @@ describe("collection contracts", () => {
     });
     expect(classManifest.defaultPresetId).toBeUndefined();
     expect(classManifest.remote).toEqual({
-      // Class has no configurator of its own yet; 8 is still a copy of Mako's 9, so it reads 9.
-      configurator: { id: 9, view: "full", serialize: true },
+      // Class's own configurator: Mako's 9 plus the side and frame colour sections.
+      configurator: { id: 8, view: "full", serialize: true },
       countertopTable: { id: 578 },
       cabinetTable: { id: 579 },
     });

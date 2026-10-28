@@ -4,7 +4,10 @@ type SidebarState = {
   isOpen: boolean;
   activeStep: string | null;
   isOpenStyleSidebar: boolean;
-  /** The style sidebar shows the scene's "+" buttons for the cabinet being added. */
+  /**
+   * The style sidebar shows the scene's "+" buttons for the cabinet being added and a width fits the
+   * countertop's own row: the player offers Drag to Place beside them.
+   */
   placementButtonsVisible: boolean;
 };
 

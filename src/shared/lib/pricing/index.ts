@@ -21,3 +21,5 @@ export {
   type SummaryPricedItem,
   type SummaryPricedSection,
 } from "./summaryLinePrice";
+export { tandemCountertopItems, tandemCountertopLineId } from "./tandemCountertopLines";
+export { cabinetCoverItems, type CabinetCoverItem } from "./cabinetCoverItems";

@@ -4,7 +4,7 @@ import { tricotRuntimeBindings } from "@/entities/collection/__tests__/tricotFix
 
 import ufBindingsDocument from "../../../../../../public/collections/urban-freestanding/runtime-bindings.json";
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
-import { semanticValueOf } from "../resolveRuntimeBinding";
+import { sceneValueOf, semanticValueOf } from "../resolveRuntimeBinding";
 import { classRuntimeBindings } from "./classRuntimeBindingsFixture";
 
 const ufResult = parseRuntimeBindings(ufBindingsDocument);
@@ -38,5 +38,22 @@ describe("semanticValueOf", () => {
   // its own, and also the scene name the Syntesi Bianco Gloss TAN is sent as.
   it("translates a scene name that is also a colour of its own, which callers must not ask for", () => {
     expect(semanticValueOf(ufBindings, "CountertopColor", "Bianco Gloss TAL")).toBe("Bianco Gloss TAN");
+  });
+});
+
+// A scene feature that takes an attribute's values under its own call (the Lower countertop's material)
+// sends them as the binding does.
+describe("sceneValueOf", () => {
+  it("sends a value under the name its binding gives it, and reads back as that value", () => {
+    expect(sceneValueOf(ufBindings, "CountertopColor", "Matte White")).toBe("Solid Surface Matte White");
+    expect(sceneValueOf(ufBindings, "CountertopColor", "Sahara Noir Silky Matte TR8")).toBe("Sahara Noir Silky Matte");
+    expect(semanticValueOf(ufBindings, "CountertopColor", "Solid Surface Matte White")).toBe("Matte White");
+    expect(sceneValueOf(tricotRuntimeBindings, "CabinetColor", "Zafferano 412 MT")).toBe("Zafferano 412 Lacquered MT");
+  });
+
+  it("sends as it is a value the binding does not rename, and any value without bindings", () => {
+    expect(sceneValueOf(ufBindings, "CountertopColor", "Bianco Male TFA")).toBe("Bianco Male TFA");
+    expect(sceneValueOf(ufBindings, "NotBound", "Matte White")).toBe("Matte White");
+    expect(sceneValueOf(null, "CountertopColor", "Matte White")).toBe("Matte White");
   });
 });

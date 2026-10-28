@@ -21,6 +21,11 @@
 - `LegColor` також керує `ShowLegs`; empty ховає legs. Моделі на legs і перемикач «Enable Legs, Then Color»
   дають власний колір `Antracite 400 MT` (`defaultValue` атрибута), тож зміна Cabinet Color legs не
   перефарбовує. `None` показує legs у cabinet color і лишається тільки для збережених раніше конфігурацій.
+- Шафа, яку переводять на 1DW, втрачає LegColor у тому ж наборі змін (`planUndeterminedResets` за
+  `MAKO-LEG-002`): сцена, state і ціна стоять без legs, і повернення на 2DW їх не відновлює.
+- Стартова стільниця — `Matte White` (Solid Surface, SSTL .5″) з basin `LB440`, як на картинках моделей
+  (`defaults`); її отримують і моделі, і перша шафа порожнього builder. Countertop Color вимикає кольори, яких
+  таблиця 577 не робить (Fenix, `Matte White 8cm`), через `availabilityRef: "CountertopColor.allowed"`.
 - CountertopStyle bound; basin і VesselColor state-only, бо Mako scene поки не має basin sub-product.
 - Drawer style groups забороняють змішувати 1- і 2-drawer cabinets.
 
@@ -32,13 +37,18 @@
 ## Pricing
 
 `sku-profile.json` має `status: partial`, cabinet series `MAKOV`, countertop series `GB` і окремий legs
-SKU contract. Gaps: vessel (блокує total) і Solid Surface group ambiguity. Ціну органайзерів шухляд описує
-[`drawer-organizers-ui.md`](../drawer-organizers-ui.md).
+SKU contract. Gaps: vessel (блокує total), Solid Surface group ambiguity і divider pricing assumption.
+Шафа ціниться лише з повного вводу (`requireCompleteInput`, як Lame): розмір не з таблиці 581 (ще не
+прочитаний, `X`), невибраний HandleColor або колір без коду (цифри в назві чи `codeByValue`; Gold — `GLD` з
+configurator 9) дають не SKU, а gap «Incomplete price». Так configurator 9 пропонує кольори інших колекцій
+з буквеними кодами (`Agata BD MT`), і вони стоять без ціни, доки product не вирішить палітру Mako.
+Ціну органайзерів шухляд описує [`drawer-organizers-ui.md`](../drawer-organizers-ui.md).
 
 ## Відомі межі
 
 - Basin/vessel attributes не візуалізуються сценою.
-- Legs підтверджені лише для 2DW; UI/profile ще не мають повного availability rule.
+- Legs підтверджені лише для 2DW; на 1DW Leg Color заблоковано і скидається, але коли поле показувати,
+  відкрито (Q-MAKO-002).
 - Product sources не визначають, чи можна змішувати handle/color/leg choices у композиції.
 - G50 length by cabinet width та точна vessel product data залишаються відкритими.
 

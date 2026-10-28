@@ -28,9 +28,9 @@ import { isReadyCollectionData, type CollectionRuntimeDependencies } from "../mo
  * The Lame package: its own data, its own material configurator 14 and its own Render Admin tables,
  * cabinets 596 and countertops 597.
  *
- * The PlayCanvas export has no Lame product yet: Lame is in the production registry, and its runtime
- * bindings hold every cabinet type back until the scene has one. This test loads it on its own and proves
- * the package loads as the shell needs it.
+ * The PlayCanvas export places Lame-sink-cabinet and Lame-side-cabinet (export v66): Lame is in the
+ * production registry, and its runtime bindings place both cabinet types. This test loads it on its own
+ * and proves the package loads as the shell needs it.
  */
 
 const registryUrl = "https://app.test/collections/registry.json";
@@ -129,12 +129,12 @@ describe("lame collection package", () => {
     expect(data.catalog.productProfile?.collectionId).toBe("lame");
     expect(data.catalog.skuProfile?.collectionId).toBe("lame");
     expect(data.catalog.customization?.collectionId).toBe("lame");
-    // The scene has no Lame product yet (I): both cabinet types wait for one.
-    expect(data.catalog.runtimeBindings?.productTypes).toEqual({});
-    expect(Object.keys(data.catalog.runtimeBindings?.unplacedProductTypes ?? {})).toEqual([
-      "Sink-Base",
-      "Sink-Cabinet",
-    ]);
+    // Both cabinet types are the scene's Lame products (I).
+    expect(data.catalog.runtimeBindings?.productTypes).toEqual({
+      "Sink-Base": "Lame-sink-cabinet",
+      "Sink-Cabinet": "Lame-side-cabinet",
+    });
+    expect(data.catalog.runtimeBindings?.unplacedProductTypes).toBeUndefined();
     expect(data.catalog.presets).toHaveLength(43);
     expect(data.catalog.presets?.[0]?.img).toBe(
       new URL("lame/images/Lame Vanity · 24_ 1-Drawer.png", collectionsRootUrl).href,
@@ -145,8 +145,11 @@ describe("lame collection package", () => {
     const { catalog, sources } = (await loadLame()).data;
     const lameCabinet = { depths: [52], heights: [26, 52], drawers: ["1", "2"], handlesAllowed: ["G58"] };
 
-    // The builder shows no card until the scene has Lame products (unplacedProductTypes).
-    expect(catalog.cabinets?.typeCabinetRules).toEqual([]);
+    // The builder shows a card for each type, placed as the scene's Lame product.
+    expect(catalog.cabinets?.typeCabinetRules.map(({ code, sceneProductType }) => [code, sceneProductType])).toEqual([
+      ["Sink-Base", "Lame-sink-cabinet"],
+      ["Sink-Cabinet", "Lame-side-cabinet"],
+    ]);
     const cabinetTable = sources.remote.cabinetTable;
     const profile = catalog.productProfile;
     if (!cabinetTable || !profile) throw new Error("Lame has no cabinet table or profile");
@@ -168,9 +171,6 @@ describe("lame collection package", () => {
         forcedHeightByDrawers: { "1": 26, "2": 52 },
       }),
     ]);
-    // Without a scene product the rules know no scene type for a cabinet type yet.
-    expect(table.map(({ sceneProductType }) => sceneProductType)).toEqual([undefined, undefined]);
-
     const integratedBasins = selectOptions(catalog.productProfile ?? null, "sinkType")
       .filter(({ category }) => category === "integrated")
       .map(({ value }) => value);
@@ -205,7 +205,13 @@ describe("lame collection package", () => {
       expect(attribute, attributeId).not.toBeNull();
       expect(Boolean(attribute?.options?.length || attribute?.optionsSource), attributeId).toBe(true);
     }
-    expect(schema.steps.color?.sectionIds).toEqual(["cabinet-color", "cabinet-pattern", "handle-color", "leg-color"]);
+    expect(schema.steps.color?.sectionIds).toEqual([
+      "cabinet-color",
+      "cabinet-pattern",
+      "handle-color",
+      "leg-color",
+      "undertop-color",
+    ]);
   });
 
   it("ships every option picture it declares", () => {

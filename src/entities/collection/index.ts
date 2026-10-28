@@ -30,6 +30,7 @@ export type {
   CabinetColorTraitsRuleData,
   CabinetMatrixLegacyAdapter,
   CountertopFallbacksRuleData,
+  DragDropRuleData,
   DrawerStyleGroups,
   UndeterminedRule,
   FlutingRuleData,
@@ -60,6 +61,7 @@ export type { ParseProductProfileResult, ProfileDiagnostic, ProfileDiagnosticCod
 
 export {
   hasCapability,
+  isDragDropEnabled,
   isDrawerStyleMixingRestricted,
   isKnownOption,
   isVesselBasin,
@@ -126,6 +128,7 @@ export {
   findMissingBindings,
   isStateOnlyResolution,
   resolveRuntimeBinding,
+  sceneValueOf,
   selectRuntimeBinding,
   semanticValueOf,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";
@@ -156,6 +159,8 @@ export {
 
 // Customization schema — owned by B: the UI description of steps, sections and fields.
 export type {
+  CabinetHeightStyle,
+  CustomizationCabinetStyle,
   CustomizationFieldControl,
   CustomizationFieldDefinition,
   CustomizationFlow,
@@ -191,6 +196,7 @@ export {
   PLAYER_MENU_RESIZE_IDS,
   STYLE_SIDEBAR_FIELD_IDS,
   perCabinetAttributeId,
+  perCabinetAttributeLabel,
 } from "./model/customizationSchema";
 export { resolveCustomizationImageUrls } from "./lib/customization/resolveCustomizationImageUrls";
 

@@ -35,7 +35,7 @@
     "cabinet": {
       "label": "Color",
       "kind": "fields",
-      "sectionIds": ["panel-color", "lateral-panel-side"]
+      "sectionIds": ["panel-color"]
     },
     "countertop": {
       "label": "Countertop & Basin",
@@ -74,10 +74,6 @@
           "tab": { "label": "Lateral Panel", "icon": "images/panel/lateral-panel.svg" }
         }
       ]
-    },
-    "lateral-panel-side": {
-      "label": "Lateral Panel",
-      "fields": [{ "attributeId": "LateralPanelSide", "control": "options-grid" }]
     },
     "countertop-color": {
       "label": "Countertop Color",
@@ -172,6 +168,10 @@
     "Handle": {
       "UG": "images/handle/UpperGHandle.png"
     },
+    "CountertopStyle": {
+      "integrated": "images/countertop-style/Integrated.png",
+      "vessel": "images/countertop-style/Vessel.png"
+    },
     "sinkType": {
       "Top_Tekorlux_Rectangular": "images/basin/Rectangular.jpg",
       "Top_HPL/Fenix_Strip_Gres": "images/basin/fenix_Strip.jpg",
@@ -215,10 +215,10 @@
   },
   "styleSidebar": {
     "fields": ["Width", "Depth", "Height", "Handle"],
-    "attributes": [{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }]
+    "attributes": [{ "attributeId": "LateralPanelSide", "label": "Lateral Panel", "when": { "Series": "URDPX" } }]
   },
   "playerMenu": {
     "resize": ["Width", "Depth", "Height"],
-    "attributes": [{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }]
+    "attributes": [{ "attributeId": "LateralPanelSide", "label": "Lateral Panel", "when": { "Series": "URDPX" } }]
   }
 }

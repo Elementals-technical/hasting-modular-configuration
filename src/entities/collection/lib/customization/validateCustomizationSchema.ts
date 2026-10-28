@@ -511,6 +511,7 @@ const validateOrderedIds = (
 const perCabinetAttributeIdOf = (entry: unknown): string | null => {
   if (isNonEmptyString(entry)) return entry;
   if (!isRecord(entry) || !isNonEmptyString(entry.attributeId) || !isRecord(entry.when)) return null;
+  if (entry.label !== undefined && !isNonEmptyString(entry.label)) return null;
 
   const conditions = Object.entries(entry.when);
   return conditions.length > 0 && conditions.every(([, value]) => typeof value === "string") ? entry.attributeId : null;
@@ -524,7 +525,7 @@ const validateAttributeIds = (entries: unknown, dataPath: string, diagnostics: C
     diagnostics.push({
       code: "invalid-schema",
       dataPath,
-      message: `${dataPath} must be an array of attribute ids, each listed once, alone or as { attributeId, when }`,
+      message: `${dataPath} must be an array of attribute ids, each listed once, alone or as { attributeId, label?, when }`,
     });
   }
 };
@@ -543,6 +544,76 @@ const validateStyleSidebar = (styleSidebar: unknown, diagnostics: CustomizationS
     { code: "unknown-sidebar-field", of: "a selector of the style sidebar" },
     diagnostics,
   );
+};
+
+/** Each model is a card of its own, and a height names the one card the composition stands for. */
+const validateCabinetStyle = (cabinetStyle: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (cabinetStyle === undefined) return;
+  if (!isRecord(cabinetStyle)) {
+    diagnostics.push({ code: "invalid-schema", dataPath: "cabinetStyle", message: "cabinetStyle must be an object" });
+    return;
+  }
+  const styles = cabinetStyle.heightStyles;
+  if (styles === undefined) return;
+  if (!Array.isArray(styles)) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "cabinetStyle.heightStyles",
+      message: "cabinetStyle.heightStyles must be an array of height styles",
+    });
+    return;
+  }
+  const ids = new Set<string>();
+  const heights = new Set<number>();
+  styles.forEach((style: unknown, index: number) => {
+    const dataPath = `cabinetStyle.heightStyles[${index}]`;
+    if (!isRecord(style) || !isNonEmptyString(style.id)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `${dataPath}.id`,
+        message: "a height style must have a non-empty id",
+      });
+      return;
+    }
+    if (ids.has(style.id)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `${dataPath}.id`,
+        message: `"${style.id}" is listed twice`,
+      });
+    }
+    ids.add(style.id);
+    if (style.label !== undefined && !isNonEmptyString(style.label)) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `${dataPath}.label`,
+        message: "label must be a non-empty string",
+      });
+    }
+    const styleHeights = style.heights;
+    if (
+      !Array.isArray(styleHeights) ||
+      styleHeights.length === 0 ||
+      !styleHeights.every((height) => typeof height === "number" && Number.isFinite(height) && height > 0)
+    ) {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `${dataPath}.heights`,
+        message: "heights must be a non-empty array of positive heights in cm",
+      });
+      return;
+    }
+    styleHeights.forEach((height: number, heightIndex: number) => {
+      if (heights.has(height)) {
+        diagnostics.push({
+          code: "invalid-schema",
+          dataPath: `${dataPath}.heights[${heightIndex}]`,
+          message: `${height} cm is already named by a height style`,
+        });
+      }
+      heights.add(height);
+    });
+  });
 };
 
 const validatePlayerMenu = (playerMenu: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
@@ -609,6 +680,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validatePlayerMenu(input.playerMenu, diagnostics);
   validateStyleSidebar(input.styleSidebar, diagnostics);
   validateDrawerOrganizers(input.drawerOrganizers, diagnostics);
+  validateCabinetStyle(input.cabinetStyle, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };
 

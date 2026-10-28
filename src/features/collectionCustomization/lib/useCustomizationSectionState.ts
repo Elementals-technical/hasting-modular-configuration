@@ -12,6 +12,7 @@ import {
   selectBookMatchingState,
   selectFlutingState,
   selectGrainDirectionState,
+  selectOptionImageContext,
 } from "@/entities/product/model/store/derivedSelectors";
 import {
   getActiveCountertopColor,
@@ -24,6 +25,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
 import {
+  canThicknessFloat,
   evaluateCountertopMaterial,
   filterThicknessValuesByCountertopRules,
   findIntegratedBasinRules,
@@ -92,14 +94,26 @@ const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRul
 // The countertop colours the matrix makes at the current depth, widths and composition, as the USH
 // countertop screen enables them. Each option is judged by its own material, so a colour two
 // materials list (an MT lacquer, as Tekorlux and as Glass MT) is refused where only one of them is
-// made. The reason names the check every refused colour failed, or the selection when they differ.
+// made, and says the check its own material failed, as the USH screen says it: off its Sink Base a
+// glass colour is refused for the floating top while a Tekormud one is for the depth. The field's
+// reason names the check every refused colour failed, or the selection when they differ.
 const resolveCountertopColorAvailability = (
   profile: ProductProfile | null,
   configurator: ConfiguratorGroupCatalog | null,
   { materialRuleInputs }: CountertopRuleState,
 ): FieldAvailability => {
-  const judge = ({ traits }: FieldOptionState) =>
-    evaluateCountertopMaterial(traits?.materials ?? [], materialRuleInputs);
+  // The verdict depends on the materials alone: one judgement per material list, for every option that lists it.
+  const verdicts = new Map<string, ReturnType<typeof evaluateCountertopMaterial>>();
+  const judge = ({ traits }: FieldOptionState) => {
+    const materials = traits?.materials ?? [];
+    const key = materials.join("\u0000");
+    let verdict = verdicts.get(key);
+    if (!verdict) {
+      verdict = evaluateCountertopMaterial(materials, materialRuleInputs);
+      verdicts.set(key, verdict);
+    }
+    return verdict;
+  };
   const failures = new Set(
     resolveConfiguratorOptions(profile, "CountertopColor", configurator).flatMap(
       (option) => judge(option).failedBy ?? [],
@@ -110,6 +124,10 @@ const resolveCountertopColorAvailability = (
   return {
     available: true,
     isOptionAllowed: (option) => judge(option).isCompatible,
+    optionReason: (option) => {
+      const { failedBy } = judge(option);
+      return failedBy ? { reasonCode: REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] } : undefined;
+    },
     reasonCode:
       failures.size === 1 && failure
         ? REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failure]
@@ -119,18 +137,23 @@ const resolveCountertopColorAvailability = (
 
 // The thicknesses the matrix gives the current colour, depth, style and widths, as the USH countertop
 // screen offers them. Where it gives none, none is enabled: another row's thickness would price a top
-// the table does not make.
+// the table does not make. Off its Sink Base a top that lifts is the one taken for a thickness the
+// rules drop (a colour change keeps a lifted top up); a 4″ top under a vessel is the user's pick.
 const resolveThicknessAvailability = (
   profile: ProductProfile | null,
-  { allowedThicknesses }: CountertopRuleState,
+  { allowedThicknesses, materialRuleInputs }: CountertopRuleState,
 ): FieldAvailability => {
   const values = selectOptions(profile, "Thickness").map(({ value }) => value);
+  const allowedValues = allowedThicknesses.size
+    ? filterThicknessValuesByCountertopRules({ values, allowedThicknesses }).map(String)
+    : [];
 
   return {
     available: true,
-    allowedValues: allowedThicknesses.size
-      ? filterThicknessValuesByCountertopRules({ values, allowedThicknesses }).map(String)
-      : [],
+    allowedValues,
+    preferredValue: materialRuleInputs.sinkOffSinkBase
+      ? allowedValues.find((value) => canThicknessFloat(profile, Number(value)))
+      : undefined,
   };
 };
 
@@ -140,8 +163,6 @@ const resolveThicknessAvailability = (
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
 // cutout: the profile's noneValue, chosen until a vessel is.
-const HOSTED_SINK_BASIN_REASON = "Lower the countertop onto a sink cabinet to change the basin.";
-
 const resolveBasinAvailability = (
   profile: ProductProfile | null,
   { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
@@ -202,6 +223,35 @@ const resolveVesselColorAvailability = (
     reasonCode: REASON_VESSEL_COLOR_UNAVAILABLE,
   };
 };
+
+const HOSTED_SINK_REASON = {
+  basin: "countertop.hostedSink.basin",
+  style: "countertop.hostedSink.style",
+  vesselColor: "countertop.hostedSink.vesselColor",
+} as const;
+
+// While the top hosts the basin off its Sink Base (`sink.hosted`, after `liftSink`), the scene cannot change that
+// basin, and a basin field names a Sink Base (`resolveChangeRequest`): the basin, its vessel colour and the style
+// that picks it wait until the top is back over a sink cabinet. The field keeps the options it shows, each refused
+// with the reason; a field with no enabled option takes no `autoSelect`.
+const unlessSinkHosted = (
+  sinkHosted: boolean,
+  reasonCode: string,
+  availability: FieldAvailability,
+): FieldAvailability =>
+  sinkHosted
+    ? {
+        ...availability,
+        available: false,
+        allowedValues: [],
+        isOptionAllowed: undefined,
+        optionReason: undefined,
+        reason: undefined,
+        reasonCode,
+        reasonParams: undefined,
+        preferredValue: undefined,
+      }
+    : availability;
 
 // Keyed by the availabilityRef values of ui.json; each entry is a result an existing module already computes.
 const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | null): FieldAvailabilityResults => {
@@ -268,14 +318,25 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       "LegColor.determined": { available: legColorDetermined, visible: legColorDetermined },
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
-      "CountertopStyle.allowed": resolveCountertopStyleAvailability(countertopRuleState),
+      // The hosted-basin lock alone, for a style the matrix does not gate (Urban Low Height).
+      "CountertopStyle.available": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, { available: true }),
+      "CountertopStyle.allowed": unlessSinkHosted(
+        sinkHosted,
+        HOSTED_SINK_REASON.style,
+        resolveCountertopStyleAvailability(countertopRuleState),
+      ),
       "CountertopColor.allowed": resolveCountertopColorAvailability(profile, configurator, countertopRuleState),
       "Thickness.allowed": resolveThicknessAvailability(profile, countertopRuleState),
-      // A hosted sink (carried by the top) has no SB to take a new basin; 3D cannot change it yet.
-      "sinkType.allowed": sinkHosted
-        ? { available: false, allowedValues: [], reason: HOSTED_SINK_BASIN_REASON }
-        : resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
-      "VesselColor.allowed": resolveVesselColorAvailability(profile, configurator, sinkType),
+      "sinkType.allowed": unlessSinkHosted(
+        sinkHosted,
+        HOSTED_SINK_REASON.basin,
+        resolveBasinAvailability(profile, countertopRuleState, countertopStyle, countertopColor),
+      ),
+      "VesselColor.allowed": unlessSinkHosted(
+        sinkHosted,
+        HOSTED_SINK_REASON.vesselColor,
+        resolveVesselColorAvailability(profile, configurator, sinkType),
+      ),
     }),
     [
       allowedFaucetHoles,
@@ -311,12 +372,13 @@ const useSectionInputs = () => {
   // colours) is shown as the composition holds it; the typed options keep their own values.
   const values = useMemo(() => ({ ...compositionValues, ...productOptions }), [compositionValues, productOptions]);
   const availabilityResults = useFieldAvailabilityResults(configurator);
+  const imageContext = useAppSelector(selectOptionImageContext);
 
-  return { schema, configurator, profile, values, availabilityResults };
+  return { schema, configurator, profile, values, availabilityResults, imageContext };
 };
 
 export const useCustomizationStepSections = (stepId: string): ResolvedCustomizationSection[] => {
-  const { schema, configurator, profile, values, availabilityResults } = useSectionInputs();
+  const { schema, configurator, profile, values, availabilityResults, imageContext } = useSectionInputs();
 
   return useMemo(
     () =>
@@ -331,10 +393,18 @@ export const useCustomizationStepSections = (stepId: string): ResolvedCustomizat
             ...(section.labelWhenVessel ? { labelWhenVessel: section.labelWhenVessel } : {}),
             defaultOpen: section.defaultOpen ?? false,
             ...(section.fieldTabs ? { fieldTabs: section.fieldTabs } : {}),
-            fields: resolveSectionFields(schema, sectionId, profile, values, availabilityResults, configurator),
+            fields: resolveSectionFields(
+              schema,
+              sectionId,
+              profile,
+              values,
+              availabilityResults,
+              configurator,
+              imageContext,
+            ),
           },
         ];
       }),
-    [availabilityResults, configurator, values, profile, schema, stepId],
+    [availabilityResults, configurator, values, profile, schema, stepId, imageContext],
   );
 };

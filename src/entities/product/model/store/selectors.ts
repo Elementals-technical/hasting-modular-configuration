@@ -3,8 +3,10 @@ import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import { resolveCabinetTypeOfRuntimeId } from "@/entities/collection";
 import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/configuration";
+import { resolveHeightsByHandle, resolvePlacedDrawerHeights } from "@/features/configurator-rule-core/cabinetBuilder";
 import { findCabinetRule, seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
+import { cabinetTypesAtLimit } from "../../lib/cabinetTypeLimits";
 import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
 import { selectPlacedSeriesHeights } from "./seriesCabinets";
 
@@ -45,17 +47,34 @@ const NO_HEIGHT_CHOICES: number[] = [];
  *
  * The cabinets of a composition share a height, so one that another series supplies leaves only
  * the heights it comes in itself: an Urban Standard Height cabinet keeps Urban Duplex at 53 cm.
+ * For the same reason an Urban Low Height open shelf, which has no handle, offers the heights the
+ * handle gives the placed cabinets, and an Urban Duplex shelf, which has no drawers, those the
+ * drawers of the placed cabinets come in (one drawer: 53, 38 or 28 cm; two drawers: none to choose).
  */
 export const getHeightChoices = createSelector(
-  [getDimensionOptions, getActiveCabinetRule, selectPlacedSeriesHeights],
-  (options, rule, seriesHeights): number[] => {
+  [
+    getDimensionOptions,
+    getActiveCabinetRule,
+    getCabinetCatalog,
+    getSelectedProducts,
+    (state: RootState) => state.rootStateUI.product.placedCabinetStyles,
+    selectPlacedSeriesHeights,
+  ],
+  (options, rule, catalog, placedProductIds, placedCabinetStyles, seriesHeights): number[] => {
     const decidesHeights = (heights: Record<string, number[]> | undefined) => Object.keys(heights ?? {}).length > 0;
-    if (!decidesHeights(rule?.heightsByHandle) && !decidesHeights(rule?.heightsByDrawers)) return NO_HEIGHT_CHOICES;
+    const heightsByHandle = resolveHeightsByHandle(catalog, rule, placedProductIds);
+    const placedDrawerHeights =
+      rule && rule.drawers.length === 0 && !decidesHeights(heightsByHandle)
+        ? resolvePlacedDrawerHeights(catalog, placedProductIds, placedCabinetStyles)
+        : null;
+    if (!decidesHeights(heightsByHandle) && !decidesHeights(rule?.heightsByDrawers) && placedDrawerHeights === null)
+      return NO_HEIGHT_CHOICES;
 
     // The rules leave enabled only the heights of the handle and drawers in use.
     const choices = options.height
       .filter((option) => !option.disabled)
       .map((option) => Number(option.value))
+      .filter((height) => placedDrawerHeights === null || placedDrawerHeights.includes(height))
       .filter((height) => seriesHeights === null || seriesHeights.includes(height));
 
     return choices.length > 1 ? choices : NO_HEIGHT_CHOICES;
@@ -110,6 +129,7 @@ export const getCabinetBuilderProductConfig = createSelector(
     getHandleGrooveColor,
     getDrawerPanelFluting,
     getGrainDirection,
+    getActiveCountertopThickness,
   ],
   (
     selectedProductConfig,
@@ -119,6 +139,7 @@ export const getCabinetBuilderProductConfig = createSelector(
     handleGrooveColor,
     drawerPanelFluting,
     grainDirection,
+    countertopThickness,
   ) => {
     if (
       selectedDimensions.width === null ||
@@ -138,6 +159,8 @@ export const getCabinetBuilderProductConfig = createSelector(
       HandleGrooveColor: handleGrooveColor,
       DrawerPanelFluting: drawerPanelFluting,
       GrainDirection: grainDirection,
+      // The countertop's, which every cabinet holds: a sink base mounts its basin by it.
+      ...(countertopThickness ? { Thickness: countertopThickness } : {}),
     };
   },
 );
@@ -162,22 +185,16 @@ export const getPlacedDividers = (state: RootState) => state.rootStateUI.product
 export const getPlacedCabinetStyles = (state: RootState) => state.rootStateUI.product.placedCabinetStyles;
 
 /**
- * Placed products of one cabinet type. The scene names a product after its own scene type
- * (`Sink-Base-…` in Urban, `Class-sink-cabinet-…` in Class), so the type is read through the
- * collection's runtime bindings rather than from a prefix of the id.
+ * The cabinet types the vanity already holds as many of as it takes, each with why another one cannot
+ * be added: the builder's cards, its "+" and the player's Duplicate read it. The scene names a product
+ * after its own scene type (`Sink-Base-…` in Urban, `Class-sink-cabinet-…` in Class), so the type is
+ * read through the collection's runtime bindings rather than from a prefix of the id.
  */
-const countPlacedCabinetsOfType = (state: RootState, cabinetType: string) => {
-  const profile = getActiveProductProfile(state);
-  const bindings = getActiveRuntimeBindings(state);
-
-  return state.rootStateUI.product.productIds.filter(
-    (id) => resolveCabinetTypeOfRuntimeId(profile, bindings, id) === cabinetType,
-  ).length;
-};
-
-export const getSinkBaseCount = (state: RootState) => countPlacedCabinetsOfType(state, "Sink-Base");
-
-export const getSideShelfCount = (state: RootState) => countPlacedCabinetsOfType(state, "Side-Shelf");
+export const selectCabinetTypesAtLimit = createSelector(
+  [(state: RootState) => state.rootStateUI.product.productIds, getActiveProductProfile, getActiveRuntimeBindings],
+  (productIds, profile, bindings) =>
+    cabinetTypesAtLimit(productIds.map((id) => resolveCabinetTypeOfRuntimeId(profile, bindings, id))),
+);
 
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 

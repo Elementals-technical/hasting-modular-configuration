@@ -26,12 +26,18 @@ export const UI_REASON_TEXTS: Record<string, string> = {
   COUNTERTOP_VERTICAL_LOCKED: "This countertop can only slide left or right.",
   COUNTERTOP_BELOW_COVER: "The countertop can't go lower than the cabinet top here.",
   /* Countertop movement mode by thickness (shown when the mode switches). */
-  "countertop.mode.offset": "4″ countertop: it can only slide left or right.",
+  "countertop.mode.offset": "This countertop can only slide left or right.",
   "countertop.mode.free": "This countertop can be moved and lifted.",
   "countertop.mode.none": "This countertop stays in the standard position.",
   /** Appended when the switch auto-corrected the pose. */
   "countertop.mode.lowered": "It was lowered onto the cabinets.",
   "countertop.mode.reset": "It was returned to the standard position.",
+  /** The top carried the sink off its sink cabinet, but the cabinet could not become a side cabinet. */
+  "countertop.sinkLiftFailed": "The sink could not move with the countertop, so the countertop went back.",
+  /* The top hosts the basin off its sink cabinet: the basin and what picks it wait until the top is back over one. */
+  "countertop.hostedSink.basin": "Lower the countertop onto a sink cabinet to change the basin.",
+  "countertop.hostedSink.style": "Lower the countertop onto a sink cabinet to change the countertop style.",
+  "countertop.hostedSink.vesselColor": "Lower the countertop onto a sink cabinet to change the vessel color.",
   /* Scene refusals of an add, duplicate or swap (features/sceneRefusalNotice). */
   UF_HEIGHT_RUN_VIOLATION:
     "The tall cabinets must stand together: a shorter cabinet can only go at either end of them.",

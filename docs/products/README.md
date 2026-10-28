@@ -106,10 +106,12 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
   `playerMenu.attributes` (підменю в Details меню поставленої шафи). Для шафи, виділеної на сцені,
   змінюється лише вона; без виділення sidebar задає значення шафі, яку зараз додають. Binding такого
   attribute мусить мати `perProduct: true`, інакше колекція не завантажиться
-  (`runtime.not-per-product`). Urban Duplex так показує сторону Lateral Panel; поле на кроці Color
-  і далі ставить її всім шафам. Елемент списку може мати умову:
-  `{ "attributeId": "LateralPanelSide", "when": { "Series": "URDPX" } }` — значення пропонують лише шафі,
-  яка сама тримає ці значення (Urban Duplex: шафи інших серій панелі не мають).
+  (`runtime.not-per-product`). Urban Duplex так показує сторону Lateral Panel, і лише так: окремого
+  поля на кроці Color немає (з 27.10). Елемент списку може мати умову:
+  `{ "attributeId": "LateralPanelSide", "label": "Lateral Panel", "when": { "Series": "URDPX" } }` —
+  значення пропонують лише шафі, яка сама тримає ці значення (Urban Duplex: шафи інших серій панелі не
+  мають). `label` — назва selector і підменю; без нього береться label розділу, що показує лише це
+  поле, інакше id.
 - Шафи, які колекції постачає інша серія, описує profile: `ruleData.seriesModules` — на кожну серію і тип
   шафи свої `widthsCm` і `heightsByDrawers` (Urban Duplex: Side Cabinet серій `URSTD` і `URLH`). З них
   каталог отримує варіант правила типу з полем `series`; глибини, handle і продукт сцени — від власного
@@ -137,7 +139,12 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
   дає profile: `cabinetMatrixLegacyAdapter.columns.heightsByHandle` — висоти кожного handle з колонок
   таблиці (Urban Low Height), або `cabinetMatrixLegacyAdapter.heightsByDrawers` — висоти стилю шухляд,
   коли таблиця форсує для нього одну (Urban Duplex: `"1": [53, 38, 28]`, бо table 594 каже `1DW:53`,
-  а 1DW продається ще й як Slim 38 і 28 cm). Обидва місця вмикає `ui.json` (`styleSidebar.fields`,
+  а 1DW продається ще й як Slim 38 і 28 cm). Полиця без handle і шухляд ділить висоту композиції:
+  Urban Low Height Open Shelf бере `heightsByHandle` поставлених шаф (`resolveHeightsByHandle`), Urban
+  Duplex Open Shelf і Open Side Shelf — висоти, спільні для шухляд поставлених шаф
+  (`resolvePlacedDrawerHeights`: поруч з 1DW — 53/38/28, поруч з 2DW чи 1DWID вибору немає). Сцена
+  v74 не знає висоти 38 для Open Side Shelf (`RuleHeightUDOpenShelvesSide`: `[56, 53, 28]`), тож на
+  15″ та лишає попередній меш, хоч би де висоту обрали. Обидва місця вмикає `ui.json` (`styleSidebar.fields`,
   `playerMenu.resize`); висоту нової композиції задає `defaultValue` attribute `Height`. Стиль, якого
   немає у висоті вже поставлених шаф (Urban Duplex: 1DWID поруч зі Slim), перемикає їх усі після
   підтвердження — так само, як стиль іншої групи `drawerStyleGroups`.
@@ -159,3 +166,4 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 - [Urban Standard Height](urban-standard-height.md).
 - [Class](class.md).
 - [Mako](mako.md).
+- [Urban Duplex](urban-duplex.md).

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { ProductProfile } from "@/entities/collection";
 import { getActiveCountertopThickness } from "@/entities/product/model/store/selectors";
-import { parseThicknessValue } from "@/features/configurator-rule-core/countertop";
+import { findThicknessOption, parseThicknessValue } from "@/features/configurator-rule-core/countertop";
 import {
   classifyCountertopError,
   isLiftedCountertop,
@@ -18,12 +19,8 @@ import { commitHostedSinkLanding } from "./hostedSinkLanding";
 export type CountertopMovementMode = "none" | "offset" | "free";
 
 const METRES_PER_INCH = 0.0254;
-// The options are far apart; a 4″ mesh may measure as 0.1 m (3.94″).
+// A mesh may measure off its option (a 4″ top as 0.1 m, 3.94″): the nearest option this close is the top's.
 const THICKNESS_TOLERANCE_IN = 0.25;
-/** Thin slabs (0.375 / 0.4 / 0.5″) never move. */
-const THIN_BELOW_IN = 1;
-const OFFSET_ONLY_IN = 4;
-const FREE_THICKNESSES_IN = [2.4, 5.125, 5.5];
 
 const MODE_NOTICE: Record<CountertopMovementMode, string> = {
   none: "countertop.mode.none",
@@ -31,26 +28,48 @@ const MODE_NOTICE: Record<CountertopMovementMode, string> = {
   free: "countertop.mode.free",
 };
 
-/**
- * Movement mode of the top by its thickness: the selected `Thickness` option (inches) first,
- * the runtime `state.thickness` (metres) when the option is unset. `null` when unknown.
- */
-export const resolveMovementMode = (
-  thicknessOption: string | null | undefined,
-  runtimeThicknessM?: number | null,
-): CountertopMovementMode | null => {
+/** The selected `Thickness` option (inches) first, the runtime `state.thickness` (metres) when the option is unset. */
+const resolveThicknessIn = (thicknessOption: string | null | undefined, runtimeThicknessM?: number | null) => {
   const selectedIn = thicknessOption ? parseThicknessValue(thicknessOption) : null;
   const runtimeIn =
     typeof runtimeThicknessM === "number" && Number.isFinite(runtimeThicknessM) && runtimeThicknessM > 0
       ? runtimeThicknessM / METRES_PER_INCH
       : null;
-  const thicknessIn = selectedIn !== null && selectedIn > 0 ? selectedIn : runtimeIn;
-  if (thicknessIn === null) return null;
-  if (thicknessIn < THIN_BELOW_IN) return "none";
-  const near = (value: number) => Math.abs(thicknessIn - value) < THICKNESS_TOLERANCE_IN;
-  if (near(OFFSET_ONLY_IN)) return "offset";
-  return FREE_THICKNESSES_IN.some(near) ? "free" : null;
+  return selectedIn !== null && selectedIn > 0 ? selectedIn : runtimeIn;
 };
+
+/** The collection's Thickness option of the top (`resolveThicknessIn`), whose capabilities say how it moves. */
+const resolveThicknessOption = (
+  profile: ProductProfile | null | undefined,
+  thicknessOption: string | null | undefined,
+  runtimeThicknessM?: number | null,
+) => {
+  const thicknessIn = resolveThicknessIn(thicknessOption, runtimeThicknessM);
+  return thicknessIn === null ? null : findThicknessOption(profile, thicknessIn, THICKNESS_TOLERANCE_IN);
+};
+
+/**
+ * Movement mode of the top by its Thickness option's capabilities: `countertopLifts` → free, `countertopSlides`
+ * → offset, neither → none. `null` when the thickness is unknown or no option of the collection is near it.
+ */
+export const resolveMovementMode = (
+  profile: ProductProfile | null | undefined,
+  thicknessOption: string | null | undefined,
+  runtimeThicknessM?: number | null,
+): CountertopMovementMode | null => {
+  const option = resolveThicknessOption(profile, thicknessOption, runtimeThicknessM);
+  if (!option) return null;
+  if (option.capabilities?.countertopLifts) return "free";
+  return option.capabilities?.countertopSlides ? "offset" : "none";
+};
+
+/** A top whose Thickness option declares `countertopLengthResize`: its length changes from the menu. */
+export const isLengthResizableThickness = (
+  profile: ProductProfile | null | undefined,
+  thicknessOption: string | null | undefined,
+  runtimeThicknessM?: number | null,
+): boolean =>
+  resolveThicknessOption(profile, thicknessOption, runtimeThicknessM)?.capabilities?.countertopLengthResize === true;
 
 export type CountertopModeNoticeState = {
   /** UI_REASON_TEXTS codes, joined into one message. */
@@ -64,31 +83,46 @@ const isTransient = (error: unknown) => {
   return kind === "not-ready" || kind === "busy";
 };
 
-/** Lower an offset-only top (falls back to Standard), or reset a thin one. */
+/** Lower an offset-only top (falls back to Standard), or reset one that never moves. */
 const correctPose = async (api: CountertopApi, mode: "offset" | "none"): Promise<"lowered" | "reset"> => {
   if (mode === "offset") {
     try {
       await api.setOffset({ x: getCountertopRuntimeState()?.offset?.x ?? 0, y: 0 });
-      // Landed 'fits' over another sink cabinet: that is a sink move, not a lowering ('home' 3D settles itself).
-      const pending = (await api.getState())?.sink?.pending;
-      if (!pending || pending.status === "home") return "lowered";
-      // A hosted sink over an SC: the lowering is its landing (`landSink`), not a pose to undo.
-      if (await commitHostedSinkLanding(api)) return "lowered";
+      // The scene may take the lowered pose back after its checks (a sink base the top would not cover):
+      // a top still up is not lowered, and goes to Standard as a pose refused outright.
+      await api.whenSettled();
+      const state = await api.getState();
+      if (!isLiftedCountertop(state)) {
+        // Landed 'fits' over another sink cabinet: that is a sink move, not a lowering ('home' 3D settles itself).
+        const pending = state?.sink?.pending;
+        if (!pending || pending.status === "home") return "lowered";
+        // A hosted sink over an SC: the lowering is its landing (`landSink`), not a pose to undo.
+        if (await commitHostedSinkLanding(api)) return "lowered";
+      }
     } catch (error) {
       if (isTransient(error)) throw error;
       // COUNTERTOP_POSE_INVALID: the sink would sit on a seam / gap / the wrong cabinet.
     }
   }
   await api.resetOffset();
+  // As Position ▸ Standard: a hosted sink the reset brings over a cabinet lands there (`landSink`); the scene does
+  // not land it on its own, and the top would keep it at the standard pose.
+  await api.whenSettled();
+  await commitHostedSinkLanding(api);
   return "reset";
 };
 
 /**
  * Keeps the top's movement in step with its thickness, in one place: `setVerticalLocked`,
  * the auto-correction of a pose the mode forbids (one attempt per violation, never mid-drag)
- * and a short notice on every switch between two known modes of the same top.
+ * and a short notice on every switch between two known modes of the same top. What each
+ * thickness may do comes from the collection's profile (`profile`).
  */
-export const useCountertopMovementMode = (getApi: () => CountertopApi | null, ready: boolean) => {
+export const useCountertopMovementMode = (
+  getApi: () => CountertopApi | null,
+  ready: boolean,
+  profile: ProductProfile | null,
+) => {
   const thicknessOption = useAppSelector(getActiveCountertopThickness);
   // Primitives only: this hook runs in PlayCanvasIntegration, which must not re-render on drag frames.
   const thicknessM = useCountertopRuntimeValue((state) => state?.thickness ?? null);
@@ -98,7 +132,8 @@ export const useCountertopMovementMode = (getApi: () => CountertopApi | null, re
   const lifted = useCountertopRuntimeValue((state) => isLiftedCountertop(state));
   const standard = useCountertopRuntimeValue((state) => isStandardCountertop(state));
   const dragging = useCountertopRuntimeValue((state) => state?.dragging === true);
-  const mode = resolveMovementMode(thicknessOption, thicknessM);
+  const mode = resolveMovementMode(profile, thicknessOption, thicknessM);
+  const lengthResizable = isLengthResizableThickness(profile, thicknessOption, thicknessM);
 
   const [notice, setNotice] = useState<CountertopModeNoticeState | null>(null);
   const show = useCallback(
@@ -153,32 +188,43 @@ export const useCountertopMovementMode = (getApi: () => CountertopApi | null, re
   }, [getApi, locked, lockKey, topReady, wantedLock]);
 
   const correctionKey = `${target}|${correction}`;
+  // An attempt in flight: the poses it passes through (lowered, then taken back by the scene) are not new violations.
+  const correctingRef = useRef(false);
   useEffect(() => {
     if (correction === null) {
       // The pose is allowed: a later violation (a restored snapshot, a preset) earns a new attempt.
-      correctedRef.current = null;
+      if (!correctingRef.current) correctedRef.current = null;
       switchedToRef.current = null; // nothing left to correct after the switch
       return;
     }
-    if (!topReady || dragging || correctedRef.current === correctionKey) return;
+    if (!topReady || dragging || correctingRef.current || correctedRef.current === correctionKey) return;
     const api = getApi();
     if (!api) return;
     correctedRef.current = correctionKey;
+    correctingRef.current = true;
     const afterSwitch = switchedToRef.current === correction;
     switchedToRef.current = null; // shown once, with this correction
     const withSwitch = (codes: string[]) => (afterSwitch ? [MODE_NOTICE[correction], ...codes] : codes);
-    correctPose(api, correction).then(
-      (outcome) => show(withSwitch([outcome === "lowered" ? "countertop.mode.lowered" : "countertop.mode.reset"])),
-      (error: unknown) => {
-        if (isTransient(error)) {
-          if (correctedRef.current === correctionKey) correctedRef.current = null;
-          return;
-        }
-        const { code, reasons, message } = classifyCountertopError(error);
-        show(withSwitch([]), { code: reasons[0] ?? code ?? undefined, text: message });
-      },
-    );
+    correctPose(api, correction)
+      .then(
+        (outcome) => {
+          // The pose it ended in is allowed: a later violation earns a new attempt.
+          correctedRef.current = null;
+          show(withSwitch([outcome === "lowered" ? "countertop.mode.lowered" : "countertop.mode.reset"]));
+        },
+        (error: unknown) => {
+          if (isTransient(error)) {
+            if (correctedRef.current === correctionKey) correctedRef.current = null;
+            return;
+          }
+          const { code, reasons, message } = classifyCountertopError(error);
+          show(withSwitch([]), { code: reasons[0] ?? code ?? undefined, text: message });
+        },
+      )
+      .finally(() => {
+        correctingRef.current = false;
+      });
   }, [correction, correctionKey, dragging, getApi, show, topReady]);
 
-  return { mode, notice, dismissNotice };
+  return { mode, lengthResizable, notice, dismissNotice };
 };

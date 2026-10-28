@@ -6,6 +6,14 @@ The documents under `docs/`, in the order they are meant to be read, each with w
 provenance: they say what was true when they were written and are not kept in sync with the
 product.
 
+## Workspace context
+
+- [HASTINGS-SOLUTIONS project map](../../../PROJECT-MAP.md) — portfolio boundaries and shared product knowledge.
+- [MODULAR project map](../../PROJECT-MAP.md) — component ownership, integration boundaries and documentation routes.
+- [Repository instructions](../AGENTS.md) — starting points and scope for work in this checkout.
+
+These links use the current portfolio layout; the maps live outside this Git repository.
+
 ## Maintained
 
 - [`products/`](products/README.md) — The maintained description of the collections.
@@ -14,6 +22,7 @@ product.
   - [`products/urban-standard-height.md`](products/urban-standard-height.md) — Working context for changing Urban Standard Height.
   - [`products/class.md`](products/class.md) — Working context for changing Class.
   - [`products/mako.md`](products/mako.md) — Working context for changing Mako.
+  - [`products/urban-duplex.md`](products/urban-duplex.md) — Working context for changing Urban Duplex.
 - [`parent-configurator-integration.md`](parent-configurator-integration.md) — How a parent site embeds the configurator iframe and shares or restores a configuration by URL.
 - [`side-panel-logic.md`](side-panel-logic.md) — How side panels are offered, limited, removed and added to the quote.
 - [`cabinet-drag-and-drop-ui.md`](cabinet-drag-and-drop-ui.md) — How the cabinet Drag & Drop control on the canvas behaves.
@@ -21,6 +30,8 @@ product.
 - [`drawer-organizers-ui.md`](drawer-organizers-ui.md) — How Ph2 drawer organizers (Class, Mako, Lame) are offered, edited, priced and restored.
 
 ## Records
+
+- [`ecosystem-map.md`](ecosystem-map.md) — Карта чотирьох робочих папок Hastings: відповідальність, інтеграції, передача даних, runtime/export boundaries та підтверджені розбіжності версій. Знімок локального стану на 2026-10-22.
 
 ### Collection-data migration
 

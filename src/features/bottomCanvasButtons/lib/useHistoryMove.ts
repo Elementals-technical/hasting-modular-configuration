@@ -7,6 +7,7 @@ import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
 import { NO_DIFFERENCE, planHistoryMove } from "@/entities/history/lib/planHistoryMove";
 import { restoreOrganizersOnly, type OrganizerHistoryPort } from "@/entities/history/lib/restoreOrganizersOnly";
 import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
+import { runInHistoryOrder } from "@/entities/history/lib/runInHistoryOrder";
 import {
   getCanRedo,
   getCanUndo,
@@ -86,11 +87,9 @@ export const useHistoryMove = ({
 }: UseHistoryMoveDeps = {}): HistoryMove => {
   const dispatch = useAppDispatch();
 
+  // For the buttons only: a move reads the history when its turn comes (`runInHistoryOrder`).
   const canUndo = useAppSelector(getCanUndo);
   const canRedo = useAppSelector(getCanRedo);
-  const lastPastSnapshot = useAppSelector(getLastPastSnapshot);
-  const lastFutureSnapshot = useAppSelector(getLastFutureSnapshot);
-  const organizersEnabled = useAppSelector(selectOrganizersEnabled);
 
   const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
   const { replay } = useChangeAttribute();
@@ -169,33 +168,49 @@ export const useHistoryMove = ({
     camera.restore(cameraState);
   };
 
-  const moveHistory = async (direction: HistoryMoveDirection) => {
-    const isUndo = direction === "undo";
-    const target = isUndo ? lastPastSnapshot : lastFutureSnapshot;
-    const canMove = isUndo ? canUndo : canRedo;
-    // Nothing to move to, or a move is still running (a second click): the click does nothing.
-    if (!canMove || !target || isRestoring) return;
+  /**
+   * One move, in the history order: it runs once every action started before it is applied and written,
+   * and takes the entry that is last at that moment (not the one the buttons showed at the click).
+   */
+  const runMove = (direction: HistoryMoveDirection) =>
+    runInHistoryOrder(async () => {
+      const isUndo = direction === "undo";
+      const state = getState();
+      const target = isUndo ? getLastPastSnapshot(state) : getLastFutureSnapshot(state);
+      const canMove = isUndo ? getCanUndo(state) : getCanRedo(state);
+      if (!canMove || !target) return;
 
-    const label = isUndo ? "[History] Undo" : "[History] Redo";
-    // Takes the target off its list and keeps `current` on the other one, for the way back.
-    const shiftHistory = isUndo ? undo : redo;
+      const organizersEnabled = selectOrganizersEnabled(state);
+      const label = isUndo ? "[History] Undo" : "[History] Redo";
+      // Takes the target off its list and keeps `current` on the other one, for the way back.
+      const shiftHistory = isUndo ? undo : redo;
+
+      dispatch(setHistoryRestoring(true));
+      try {
+        // 1. Organizer commands still on their way finish first, so `current` holds what the scene holds.
+        if (organizersEnabled) await port.whenSettled();
+        const current = await capture(getState);
+
+        // 2. A move of the organizers alone keeps the products in the scene.
+        if (organizersEnabled && (await moveOrganizersOnly(current, target, shiftHistory))) return;
+
+        // 3. Anything else rebuilds the scene.
+        await rebuildScene(current, target, shiftHistory, label);
+      } catch (error) {
+        console.error(`${label} failed`, error);
+      } finally {
+        dispatch(setHistoryRestoring(false));
+      }
+    });
+
+  const moveHistory = async (direction: HistoryMoveDirection) => {
+    // A move is still running (a second click): the click does nothing.
+    if (isRestoring) return;
 
     setIsRestoring(true);
-    dispatch(setHistoryRestoring(true));
     try {
-      // 1. Organizer commands still on their way finish first, so `current` holds what the scene holds.
-      if (organizersEnabled) await port.whenSettled();
-      const current = await capture(getState);
-
-      // 2. A move of the organizers alone keeps the products in the scene.
-      if (organizersEnabled && (await moveOrganizersOnly(current, target, shiftHistory))) return;
-
-      // 3. Anything else rebuilds the scene.
-      await rebuildScene(current, target, shiftHistory, label);
-    } catch (error) {
-      console.error(`${label} failed`, error);
+      await runMove(direction);
     } finally {
-      dispatch(setHistoryRestoring(false));
       setIsRestoring(false);
     }
   };

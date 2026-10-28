@@ -69,7 +69,7 @@ export { useDefaultCountertopThickness } from "./hooks/useDefaultCountertopThick
 export { useRuleDrivenHandleSync } from "./hooks/useRuleDrivenHandleSync";
 export { usePerCabinetAttributeFields } from "./hooks/usePerCabinetAttributeFields";
 export { selectPerCabinetAttributeFields } from "./lib/perCabinetAttributes";
-export { selectOwnCabinetValues } from "./lib/compositionValues";
+export { NOT_CARRIED_ATTRIBUTE_IDS, selectOwnCabinetValues } from "./lib/compositionValues";
 export type { PerCabinetAttributeField } from "./lib/perCabinetAttributes";
 export { resolveChangeRequest } from "./lib/resolveChangeRequest";
 export { resolveColorTraits, selectConfiguratorSection } from "./lib/resolveColorTraits";

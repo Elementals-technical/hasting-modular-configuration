@@ -1,0 +1,18 @@
+---
+description: Pages that exist in both src/pages/prebuilt/ and src/pages/custom/ as near-copies and change together. Read when editing any of them.
+globs: src/pages/prebuilt/**, src/pages/custom/**
+alwaysApply: false
+---
+
+# Paired pages
+
+The prebuilt and custom Summary pages are near-copies; git history shows them changing in the same commit almost every time (10 of the last 12 commits that touch either, checked 2026-10-28).
+
+| prebuilt | custom |
+| --- | --- |
+| `src/pages/prebuilt/summary/SummaryPage.tsx` | `src/pages/custom/summary/index.tsx` |
+
+- When you change one page of the pair, make the same change in the other or say in the report why not.
+- The other steps have one page for both flows, chosen by the step's `kind` or the flow's `screen` in `ui.json` (`src/app/router/stepScreens.tsx`): `src/pages/countertop/CountertopPage.tsx`, `src/pages/accessories/AccessoriesPage.tsx`, `src/pages/fieldsStep/FieldsStepPage.tsx`.
+- `src/pages/prebuilt/model/ModelPage.tsx` and `src/pages/custom/cabinetBuilder/CabinetBuilderPage.tsx` are not a pair: they differ and change separately.
+- Merging the pair is planned product work, not a side task.

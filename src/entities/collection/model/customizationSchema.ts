@@ -34,6 +34,7 @@ export const PLAYER_MENU_ITEM_IDS = [
   "delete",
   "countertop-color",
   "countertop-thickness",
+  "countertop-length",
   "countertop-style",
   "basin-style",
   "countertop-position",
@@ -53,11 +54,16 @@ export type PlayerMenuResizeId = (typeof PLAYER_MENU_RESIZE_IDS)[number];
  * cabinet must hold to be offered it. `when` is read as an `OptionImageVariant`'s, against the
  * cabinet's own values: Urban Duplex offers the side of the lateral panel to its own cabinets,
  * not to the ones Urban Standard Height and Urban Low Height supply, which have no panel.
+ * `label` names the selector; without it, the label of a section that shows the value alone,
+ * else the id. Urban Duplex names it so, as no step shows the side of the panel.
  */
-export type PerCabinetAttribute = string | { attributeId: string; when: Record<string, string> };
+export type PerCabinetAttribute = string | { attributeId: string; label?: string; when: Record<string, string> };
 
 export const perCabinetAttributeId = (entry: PerCabinetAttribute): string =>
   typeof entry === "string" ? entry : entry.attributeId;
+
+export const perCabinetAttributeLabel = (entry: PerCabinetAttribute): string | undefined =>
+  typeof entry === "string" ? undefined : entry.label;
 
 /** The collection's choices for the menu of the 3D player; every field is optional. */
 export type CustomizationPlayerMenu = {
@@ -88,6 +94,29 @@ export type CustomizationStyleSidebar = {
    * scene, changed for it alone, else for the cabinet being added. Each must be bound `perProduct`.
    */
   attributes?: PerCabinetAttribute[];
+};
+
+/**
+ * One model of a drawer style that differs from the others by height alone (Urban Low Height: the
+ * 1 Drawer at 38 or 35 cm, the Slim at 28 or 25 cm). The card stands at the first of its `heights`
+ * the rules allow the cabinet being added, so a handle that changes the heights moves it with them.
+ * `label` follows the drawers label on the card ("1 Drawer Slim"); without it the card keeps that label.
+ */
+export type CabinetHeightStyle = {
+  id: string;
+  label?: string;
+  /** In cm; each belongs to one model. */
+  heights: number[];
+};
+
+/** The collection's choices for the cabinet style cards of the builder; every field is optional. */
+export type CustomizationCabinetStyle = {
+  /**
+   * The models of a drawer style whose heights the handle decides (`heightsByHandle`), a card each
+   * in this order. The card of the composition's height adds a cabinet; another one switches every
+   * cabinet to its height after asking. Without it a drawer style has one card.
+   */
+  heightStyles?: CabinetHeightStyle[];
 };
 
 export type CustomizationFlowStepRef = {
@@ -217,6 +246,8 @@ export type CustomizationSchema = {
   styleSidebar?: CustomizationStyleSidebar;
   /** Drawer organizers (Ph2): wording of the panel and the preset cards; absent = the defaults of the code. */
   drawerOrganizers?: CustomizationDrawerOrganizers;
+  /** Cabinet style cards of the cabinet builder: the models a drawer style comes in by height. */
+  cabinetStyle?: CustomizationCabinetStyle;
 };
 
 /**

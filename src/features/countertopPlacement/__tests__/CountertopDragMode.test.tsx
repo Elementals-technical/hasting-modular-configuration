@@ -488,6 +488,97 @@ describe("CountertopDragMode reports an edit from its start to its end", () => {
   });
 });
 
+describe("CountertopDragMode Length session (Resize ▸ Length)", () => {
+  const enterLength = async (f: ReturnType<typeof fixture>) => {
+    await waitFor(() =>
+      expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ available: true })),
+    );
+    act(() => f.ref.current!.enterLength());
+    await waitFor(() =>
+      expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: true, busy: true })),
+    );
+    await waitFor(() =>
+      expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ busy: true, available: false })),
+    );
+  };
+  /** A one-end resize as the fake top takes it: a custom length. */
+  const resizable = (f: ReturnType<typeof fixture>) => {
+    const resizeFrom = vi.fn((_side: "left" | "right", lengthM: number) => f.api.setSize({ length: lengthM }));
+    Object.assign(f.api, { resizeFrom });
+    return resizeFrom;
+  };
+
+  it("opens the overlay and its end handles, never letting the top's body be dragged, and skips the intro", async () => {
+    const f = fixture({ introSeen: false });
+    await enterLength(f);
+    expect(screen.queryByRole("dialog", { name: "Customize Your Countertop Layout" })).toBeNull();
+    expect(f.onSessionStart).toHaveBeenCalledOnce();
+    expect(f.bridge.setCountertopLengthLimits).toHaveBeenCalledWith({ minM: inches(48), maxM: inches(120) });
+    expect(f.bridge.setCountertopOverlayActive).toHaveBeenCalledWith(true);
+    expect(f.bridge.setCountertopOverlayPlaceholders).toHaveBeenCalledWith(false);
+    f.emit(frameOf({ attached: true }));
+    expect(screen.getAllByRole("button", { name: /^Resize countertop from the/ })).toHaveLength(2);
+    expect(f.api.setDragEnabled).not.toHaveBeenCalledWith(true);
+    expect(f.state().dragEnabled).toBe(false);
+  });
+
+  it("applies a new length as one edit, and an unchanged one as no change", async () => {
+    const f = fixture();
+    await enterLength(f);
+    f.emit(frameOf({ attached: true }));
+    const resizeFrom = resizable(f);
+    act(() => overlayCallbacks().onResizeFrom("right", inches(96)));
+    await waitFor(() => expect(resizeFrom).toHaveBeenCalledWith("right", inches(96)));
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+    expect(f.onSessionDiscarded).not.toHaveBeenCalled();
+    await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: false })));
+
+    await enterLength(f);
+    f.emit(frameOf());
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(f.onCommitted).toHaveBeenCalledTimes(2));
+    expect(f.onSessionDiscarded).toHaveBeenCalledOnce();
+    expect(f.api.setDragEnabled).not.toHaveBeenCalledWith(true);
+  });
+
+  it("Cancel puts the length back and writes nothing", async () => {
+    const f = fixture();
+    await enterLength(f);
+    f.emit(frameOf({ attached: true }));
+    const resizeFrom = resizable(f);
+    act(() => overlayCallbacks().onResizeFrom("left", inches(100)));
+    await waitFor(() => expect(resizeFrom).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Discard countertop changes" }));
+    await waitFor(() => expect(f.onSessionDiscarded).toHaveBeenCalledOnce());
+    expect(f.api.setSize).toHaveBeenLastCalledWith({ length: null });
+    expect(f.state()).toMatchObject({ customLength: null, dragEnabled: false });
+    expect(f.onCommitted).not.toHaveBeenCalled();
+  });
+
+  it("draws the move marker for Drag & Drop only: Length leaves the top's body where it is", async () => {
+    const f = fixture();
+    await enterLength(f);
+    f.emit(frameOf());
+    expect(screen.queryByTestId("countertop-move-marker")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Discard countertop changes" }));
+    await waitFor(() => expect(f.onSessionDiscarded).toHaveBeenCalledOnce());
+
+    await enter(f);
+    f.emit(frameOf());
+    expect(screen.getByTestId("countertop-move-marker")).toBeTruthy();
+  });
+
+  it("is one session at a time with Drag & Drop", async () => {
+    const f = fixture();
+    await enterLength(f);
+    act(() => f.ref.current!.enter());
+    act(() => f.ref.current!.enterLength());
+    expect(f.onSessionStart).toHaveBeenCalledOnce();
+    expect(f.api.setDragEnabled).not.toHaveBeenCalledWith(true);
+  });
+});
+
 describe("CountertopDragMode layout intro", () => {
   const INTRO = { name: "Customize Your Countertop Layout" };
   const requestDragDrop = async (f: ReturnType<typeof fixture>) => {

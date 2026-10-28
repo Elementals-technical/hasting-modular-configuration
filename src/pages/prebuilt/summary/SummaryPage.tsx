@@ -87,13 +87,15 @@ import {
   resolveCollectionColorCode,
 } from "@/shared/lib/sku";
 import { useSaveConfigurationMutation } from "@/entities";
-import { configurationValueOf, useActiveCollection } from "@/entities/collection";
+import { configurationValueOf, resolveCabinetTypeOfRuntimeId, useActiveCollection } from "@/entities/collection";
 import { useOptionLabel } from "@/features/collectionCustomization";
 import { usePriceResult } from "@/shared/hooks/usePriceResult";
 import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import {
   appendUncoveredLines,
+  cabinetCoverItems,
   resolveSummaryLinePrice,
+  tandemCountertopItems,
   type PricingLine,
   type SummaryPriceState,
 } from "@/shared/lib/pricing";
@@ -641,7 +643,11 @@ export const SummaryPage = () => {
           const cabinetMaterialSku = resolveCabinetMaterialSku(swatchValue);
 
           const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
-          const normalizedPresetType = preset.name ? preset.name.replace(/[\s_]+/g, "-") : null;
+          // What stands there now: a Sink Base whose basin the countertop took has become a Side Cabinet.
+          const placedType = selectedProducts[index]
+            ? resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, selectedProducts[index])
+            : null;
+          const normalizedPresetType = placedType ?? (preset.name ? preset.name.replace(/[\s_]+/g, "-") : null);
           const subtitle = formatCabinetSubtitleForSummary({
             cabinetType: normalizedPresetType ?? activeCabinetType,
             drawers: preset.Drawers,
@@ -653,7 +659,7 @@ export const SummaryPage = () => {
 
           return {
             id: `cabinet-${index}`,
-            title: formatCabinetTitleForSummary(preset.name ?? activeCabinetType),
+            title: formatCabinetTitleForSummary(placedType ?? preset.name ?? activeCabinetType),
             subtitle,
             ...priceOfLines([lineById(`cabinet:preset-${index}`)]),
             swatch: {
@@ -686,9 +692,11 @@ export const SummaryPage = () => {
       const width = typeof config.Width === "number" ? config.Width : undefined;
       const depth = typeof config.Depth === "number" ? config.Depth : undefined;
       const height = typeof config.Height === "number" ? config.Height : undefined;
+      // `productType` first: a cabinet a sink move changed (`cabinets.liftSink` / `landSink` / `moveSink`) keeps
+      // the `ProductType` of what it was in its scene config, while `productType` and its id name what it is now.
       const name =
-        config.ProductType ??
         config.productType ??
+        config.ProductType ??
         (config.entityName ? resolveNameFromRaw(config.entityName) : undefined) ??
         config.name ??
         undefined;
@@ -797,10 +805,10 @@ export const SummaryPage = () => {
       selectedProductDrawerStyle;
     const configToBookMatchingCabinet = (config: NormalizedProductConfigSnapshot): BookMatchingCabinetInput => ({
       name:
-        typeof config.ProductType === "string"
-          ? config.ProductType
-          : typeof config.productType === "string"
-            ? config.productType
+        typeof config.productType === "string"
+          ? config.productType
+          : typeof config.ProductType === "string"
+            ? config.ProductType
             : typeof config.entityName === "string"
               ? resolveNameFromRaw(config.entityName)
               : typeof config._productId === "string"
@@ -873,10 +881,10 @@ export const SummaryPage = () => {
             })),
           ...sceneProductConfigs.flatMap((config, index) => {
             const rawName =
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
+              typeof config.productType === "string"
+                ? config.productType
+                : typeof config.ProductType === "string"
+                  ? config.ProductType
                   : typeof config.entityName === "string"
                     ? resolveNameFromRaw(config.entityName)
                     : typeof config._productId === "string"
@@ -896,10 +904,10 @@ export const SummaryPage = () => {
       : sceneProductConfigs.length > 0
         ? sceneProductConfigs.flatMap((config, index) => {
             const rawName =
-              typeof config.ProductType === "string"
-                ? config.ProductType
-                : typeof config.productType === "string"
-                  ? config.productType
+              typeof config.productType === "string"
+                ? config.productType
+                : typeof config.ProductType === "string"
+                  ? config.ProductType
                   : typeof config.entityName === "string"
                     ? resolveNameFromRaw(config.entityName)
                     : typeof config._productId === "string"
@@ -1169,31 +1177,40 @@ export const SummaryPage = () => {
         })),
       );
 
-    const countertopItems: SummaryItem[] = [
-      {
-        id: "countertop-1",
-        title: "Countertop",
-        subtitle: displayCountertopThickness ?? undefined,
-        ...priceOfLines([countertopTopLine]),
-        swatch: {
-          label: displayCountertopLabel,
-          value: displayCountertopColor,
-          color: countertopSwatch.color,
-          image: countertopSwatch.image,
-          materialSku: effectiveCountertopMaterialSku,
-        },
-        copyable: true,
-        showInfo: true,
-        description: {
-          "Product Category": "Countertop",
-          Style: countertopStyle || "Plain",
-          Width: totalCountertopWidth,
-          Thickness: displayCountertopThickness,
-          Depth: selectedDimensions.depth,
-          Material: displayCountertopMaterial,
-          "Color Code": displayCountertopColor,
-        },
+    const mainCountertopItem: SummaryItem = {
+      id: "countertop-1",
+      title: "Countertop",
+      subtitle: displayCountertopThickness ?? undefined,
+      ...priceOfLines([countertopTopLine]),
+      swatch: {
+        label: displayCountertopLabel,
+        value: displayCountertopColor,
+        color: countertopSwatch.color,
+        image: countertopSwatch.image,
+        materialSku: effectiveCountertopMaterialSku,
       },
+      copyable: true,
+      showInfo: true,
+      description: {
+        "Product Category": "Countertop",
+        Style: countertopStyle || "Plain",
+        Width: totalCountertopWidth,
+        Thickness: displayCountertopThickness,
+        Depth: selectedDimensions.depth,
+        Material: displayCountertopMaterial,
+        "Color Code": displayCountertopColor,
+      },
+    };
+    const countertopItems: SummaryItem[] = [
+      mainCountertopItem,
+      // Tandem vanities: the clone of the top on each sink base set apart is a countertop of its own.
+      ...tandemCountertopItems(mainCountertopItem, pricingLines, (line) => priceOfLines([line])),
+      // The Lower slabs, each in the finish the scene paints it, which no attribute holds.
+      ...cabinetCoverItems(pricingLines, {
+        priceOfLine: (line) => priceOfLines([line]),
+        swatchOf: resolveSwatch,
+        thickness: formatCountertopThicknessLabel(skuBuilders.collectionProfile?.cabinetCover?.thicknessIn ?? null),
+      }),
       countertopStyle
         ? {
             id: "countertop-style",

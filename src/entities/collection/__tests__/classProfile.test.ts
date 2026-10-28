@@ -60,9 +60,8 @@ describe("class product profile", () => {
     expect(profile().ruleData.cabinetMatrixLegacyAdapter.columns.forcedHeightByHandle).toEqual({});
   });
 
-  // The colour catalogs come from the configurator the manifest names. Class has no configurator
-  // of its own yet, so it reads Mako's 9 and only the shared lacquers reach it; the five other
-  // front materials its SKU profile names return once configurator 8 carries Class data.
+  // The colour catalogs come from the configurator the manifest names, Class's own 8: the side
+  // and frame colours have sections of their own there (52 and 20, appendix A5 and A6).
   it("takes the colour catalogs from the configurator instead of listing them", () => {
     const colours = ["CabinetColor", "CabinetSideColor", "FrameColor", "CountertopColor"].map((attributeId) => [
       attributeId,
@@ -72,8 +71,8 @@ describe("class product profile", () => {
 
     expect(colours).toEqual([
       ["CabinetColor", "configurator:Select Cabinet Color", undefined],
-      ["CabinetSideColor", "configurator:Select Cabinet Color", undefined],
-      ["FrameColor", "configurator:Select Cabinet Color", undefined],
+      ["CabinetSideColor", "configurator:Select Cabinet Side Color", undefined],
+      ["FrameColor", "configurator:Select Frame Color", undefined],
       ["CountertopColor", "configurator:Select Countertop Color", undefined],
     ]);
   });
