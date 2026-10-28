@@ -211,6 +211,21 @@ export const semanticValueOf = (set: RuntimeBindingSet | null, attributeId: stri
 };
 
 /**
+ * The one scene value a configuration value is sent as, the inverse of `semanticValueOf`: Urban
+ * Duplex's "Matte White" reaches the scene as "Solid Surface Matte White". For a scene feature that
+ * takes the attribute's values under its own call (the Lower countertop's material). A value the
+ * binding does not send as a single value is returned as it is.
+ */
+export const sceneValueOf = (set: RuntimeBindingSet | null, attributeId: string, value: string): string => {
+  const binding = set ? selectRuntimeBinding(set, attributeId) : null;
+  if (binding?.status !== "bound") return value;
+
+  const patch = toPatch(binding, value);
+  const sent = patch && Object.keys(patch).length === 1 ? Object.values(patch)[0] : null;
+  return typeof sent === "string" ? sent : value;
+};
+
+/**
  * Every change of the set that has no scene translation. Empty means the whole set can
  * be sent; all problems are reported, not only the first.
  */

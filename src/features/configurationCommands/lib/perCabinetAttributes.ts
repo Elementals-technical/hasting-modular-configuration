@@ -1,6 +1,7 @@
 import type { RootState } from "@/app/store";
 import {
   perCabinetAttributeId,
+  perCabinetAttributeLabel,
   selectDefaultValue,
   selectOptions,
   type CustomizationSchema,
@@ -24,7 +25,7 @@ import type { ScopedValue, StableCabinetKey } from "@/entities/configuration";
  */
 export type PerCabinetAttributeField = {
   attributeId: string;
-  /** As the collection's ui.json names the value, else its id. */
+  /** As the collection's ui.json names the value (the entry's `label`, else a section's), else its id. */
   label: string;
   options: { value: string; label: string }[];
   /** What the cabinet holds; the composition's value, else the collection's starting one, where it holds none. */
@@ -83,7 +84,7 @@ export const buildPerCabinetAttributeFields = ({
     return [
       {
         attributeId,
-        label: resolveAttributeLabel(schema, attributeId, attributeId),
+        label: perCabinetAttributeLabel(entry) ?? resolveAttributeLabel(schema, attributeId, attributeId),
         options,
         value:
           own ??

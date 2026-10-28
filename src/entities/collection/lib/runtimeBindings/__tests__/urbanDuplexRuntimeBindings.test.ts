@@ -176,7 +176,7 @@ describe("urban-duplex runtime bindings", () => {
     const ui = readCustomizationSchema(urbanDuplexUiDocument);
 
     // Only for the collection's own cabinets: one of another series has no lateral panel.
-    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", when: { Series: "URDPX" } }];
+    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", label: "Lateral Panel", when: { Series: "URDPX" } }];
     expect(ui.styleSidebar?.attributes).toEqual(ownCabinetsOnly);
     expect(ui.playerMenu?.attributes).toEqual(ownCabinetsOnly);
     expect(collectPerCabinetAttributeIds(ui)).toEqual(["LateralPanelSide"]);

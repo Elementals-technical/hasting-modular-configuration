@@ -103,6 +103,7 @@ describe("Tricot delivered runtime bindings", () => {
     }
   });
 
+  // Pending until 27.10 (user decision 08.10); the export has had these exact materials since 15.10.
   it.each(["Noce Canaletto 933", "Rovere Oro 932", "Rovere Termocotto 931"])(
     "sends wood %s to the cabinets as the export's material of the same name, never another wood",
     (value) => {
@@ -276,7 +277,7 @@ describe("Tricot delivered runtime bindings", () => {
     expect(patch("HandleGrooveColor", "Acqua 419 Lacquered GL")).toMatchObject({ ok: false });
     expect(tricotProfile.defaults).toMatchObject({
       CabinetColor: "Rovere Oro 932",
-      DrawerPanelFluting: "Cannette",
+      DrawerPanelFluting: "Satin",
       HandleGrooveColor: "Agata 407 MT",
       sinkType: "VA024",
     });

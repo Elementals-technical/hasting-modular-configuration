@@ -81,8 +81,8 @@ import { BaseButton, ROUTES } from "@/shared";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import type { SceneRestoreMatch } from "@/entities/configuration";
-import { useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
-import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
+import { NOT_CARRIED_ATTRIBUTE_IDS, useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
+import { matchSavedStableKeys, useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
 import { readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -214,6 +214,40 @@ const readSavedHandle = (
     .concat(readFragmentValue(fragment, "Handle", { scope: "global" }));
 
   return agreed(saved) ?? agreed(products.map(({ Handle }) => Handle));
+};
+
+/**
+ * The presets with the values each cabinet was saved with that its scene config does not give them:
+ * the Mako handle and leg colours ("" for legs switched off), the series and lateral panel side of
+ * an Urban Duplex cabinet, the cabinet pattern. Customize records every cabinet's values again from
+ * the presets; a scene config holds these as scene values, some as several keys (ShowLegs and the
+ * leg colour). Sizes and drawers are the scene's. Product `i` of the restore became preset `i`.
+ */
+const withSavedCabinetValues = (
+  presets: PresetProduct[],
+  plan: RestorePlan,
+  matches: readonly SceneRestoreMatch[],
+  profile: ProductProfile | null,
+): PresetProduct[] => {
+  const keysBySource = matchSavedStableKeys(plan);
+  if (!keysBySource) return presets;
+
+  const cabinetAttributeIds = (profile?.attributes ?? []).flatMap(({ attributeId, scope }) =>
+    scope === "cabinet" && !NOT_CARRIED_ATTRIBUTE_IDS.has(attributeId) ? [attributeId] : [],
+  );
+
+  return presets.map((preset, index) => {
+    const sourceId = matches[index]?.sourceId;
+    const cabinetId = sourceId ? keysBySource.get(sourceId) : undefined;
+    if (!cabinetId) return preset;
+
+    const saved = cabinetAttributeIds.flatMap((attributeId) => {
+      if (attributeId in preset) return [];
+      const value = readFragmentValue(plan.fragment, attributeId, { scope: "cabinet", cabinetId });
+      return typeof value === "string" ? [[attributeId, value] as const] : [];
+    });
+    return { ...preset, ...Object.fromEntries(saved) };
+  });
 };
 
 const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
@@ -572,7 +606,10 @@ export const ModelPage = () => {
             const presetProduct = presetProducts.get(id);
             return presetProduct
               ? { ...presetProduct.config, name: presetProduct.productType }
-              : { ...buildPresetFromConfiguration({ [id]: selection })[0], name: products[index].productType };
+              : {
+                  ...buildPresetFromConfiguration({ [id]: selection }, activeProfileRef.current, runtimeBindings)[0],
+                  name: products[index].productType,
+                };
           }),
         ),
       );
@@ -968,7 +1005,12 @@ export const ModelPage = () => {
         const configuration = plan.configuration;
         const productConfigIds = matches.map(({ sourceId }) => sourceId);
         const sceneIds = matches.map(({ runtimeId }) => runtimeId);
-        const presetProducts = buildPresetFromConfiguration(configuration, productConfigIds);
+        const presetProducts = buildPresetFromConfiguration(
+          configuration,
+          activeProfileRef.current,
+          runtimeBindings,
+          productConfigIds,
+        );
         if (!presetProducts.length) return;
 
         const uiStateValues = plan.uiState;
@@ -1058,8 +1100,18 @@ export const ModelPage = () => {
           acc[id] = sceneConfigs[index];
           return acc;
         }, {});
-        const scenePresets = buildPresetFromConfiguration(sceneConfiguration, sceneIds);
-        const effectivePresets = scenePresets.length ? scenePresets : presetProducts;
+        const scenePresets = buildPresetFromConfiguration(
+          sceneConfiguration,
+          activeProfileRef.current,
+          runtimeBindings,
+          sceneIds,
+        );
+        const effectivePresets = withSavedCabinetValues(
+          scenePresets.length ? scenePresets : presetProducts,
+          plan,
+          matches,
+          activeProfileRef.current,
+        );
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
         dispatch(addProductPreset(effectivePresets));

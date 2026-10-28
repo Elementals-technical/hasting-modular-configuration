@@ -440,7 +440,9 @@ export const collectionSkuProfileSchema = z
     /**
      * The scene's lower covers (Urban Low Height, Urban Duplex, Urban Freestanding), independently coloured
      * and ordered as `CT-{prefix}{material}-{INTG|VES}-{W}W-{thickness}H-{D}D-{material}-{colour}` in the
-     * Upper's style. Its presence is what offers the Upper / Lower countertop colour picker.
+     * Upper's style. Its presence is what offers the Upper / Lower countertop colour picker. The Lower
+     * comes in the Upper's colours and materials, every collection alike (user, 2026-10-28): the
+     * Countertop Color palette, spelled as the countertop spells it.
      */
     cabinetCover: z
       .object({
@@ -451,16 +453,10 @@ export const collectionSkuProfileSchema = z
         prefix: z.string().trim().min(1).optional(),
         /** Inches, as the SKU spells it (0.5 → `.5H`). */
         thicknessIn: z.number().positive().optional(),
-        /** The materials the cover comes in, as the material SKUs of its palette name them. */
-        materialSkus: z.array(z.string().trim().min(1)).min(1),
         /**
-         * The colour attribute whose palette the cover takes: a cabinet colour, `CabinetColor` when omitted,
-         * or `CountertopColor` for a cover in the countertop's colours, spelled as the countertop spells them.
-         */
-        colorAttributeId: z.string().trim().min(1).optional(),
-        /**
-         * The attribute whose colour the cover takes until another is chosen, as the app asks the scene for it
-         * (Urban Duplex: `LateralPanelColor`); when omitted, the colour the scene gives it.
+         * The attribute whose colour the cover takes until another is chosen, while that colour is one
+         * of the Upper's (Urban Duplex: `LateralPanelColor`); when omitted, or off the Upper's palette,
+         * the Upper's colour.
          */
         defaultColorAttributeId: z.string().trim().min(1).optional(),
         /**

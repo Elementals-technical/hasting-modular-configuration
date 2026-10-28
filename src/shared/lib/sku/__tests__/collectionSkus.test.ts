@@ -95,20 +95,75 @@ describe("Mako cabinet SKU", () => {
     );
   });
 
-  it("builds a one-drawer side cabinet with G50 at 26 cm", () => {
+  it("builds a one-drawer side cabinet with G50 at 26 cm, its Gold handles spelled GLD", () => {
     expect(
       makoCabinet(
-        { CabinetType: "Sink-Cabinet", Drawers: "1", Handle: "G50", CabinetColor: "Grigio Argento 403 GL" },
+        {
+          CabinetType: "Sink-Cabinet",
+          Drawers: "1",
+          Handle: "G50",
+          CabinetColor: "Grigio Argento 403 GL",
+          HandleColor: "Gold",
+        },
         80,
         26,
       ).sku,
-    ).toBe("VAN-MAKOV-SC/1DW/G50-31.5W-10.2H-20.5D-CAB-LACG-403");
+    ).toBe("VAN-MAKOV-SC/1DW/G50-31.5W-10.2H-20.5D-CAB-LACG-403-HDL-MTL-GLD");
   });
 
   it("reads the legacy drawer spelling through the profile aliases", () => {
-    expect(makoCabinet({ Drawers: "2D", CabinetColor: "Nero 433 MT" }).sku).toBe(
-      "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-433",
+    expect(makoCabinet({ Drawers: "2D", CabinetColor: "Nero 433 MT", HandleColor: "Nero 433 MT" }).sku).toBe(
+      "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-433-HDL-LACM-433",
     );
+  });
+
+  // Like Lame, a Mako cabinet is priced from complete input only: the price server answers an `X` or a
+  // missing colour code with the nearest row it has, which is not this cabinet's price.
+  describe("spells nothing it cannot spell completely", () => {
+    const complete = { CabinetColor: "Nero 433 MT", HandleColor: "Silver" };
+
+    it("waits for the sizes the scene reports", () => {
+      expect(
+        buildCollectionCabinetSku(MAKO.skuProfile, MAKO.profile, {
+          read: reader({ CabinetType: "Sink-Base", Drawers: "2", Handle: "G57", ...complete }),
+          widthCm: null,
+          heightCm: null,
+          depthCm: null,
+          readConfiguratorColor: readMakoColor,
+        }),
+      ).toMatchObject({
+        sku: "",
+        missing: expect.arrayContaining([{ attributeId: "Width", cause: "invalid-dimension" }]),
+      });
+    });
+
+    it("waits for a handle colour", () => {
+      expect(makoCabinet({ CabinetColor: "Nero 433 MT" })).toEqual({
+        sku: "",
+        missing: [{ attributeId: "HandleColor", cause: "not-chosen" }],
+      });
+    });
+
+    it("refuses a colour whose name gives no code, as configurator 9 offers other collections' lacquers", () => {
+      // Configurator 9 (2026-10-28) offers Agata BD MT as LACM; its name has no number and the profile no code.
+      const readLiveColor: typeof readMakoColor = (attributeId, value) =>
+        value === "Agata BD MT" ? { sku: "LACM", material: "Lacquered MT" } : readMakoColor(attributeId, value);
+      const cabinet = buildCollectionCabinetSku(MAKO.skuProfile, MAKO.profile, {
+        read: reader({
+          CabinetType: "Sink-Base",
+          Drawers: "2",
+          Handle: "G57",
+          ...complete,
+          CabinetColor: "Agata BD MT",
+        }),
+        widthCm: 60,
+        heightCm: 52,
+        depthCm: 52,
+        readConfiguratorColor: readLiveColor,
+      });
+
+      expect(cabinet).toEqual({ sku: "", missing: [{ attributeId: "CabinetColor", cause: "invalid-option" }] });
+    });
   });
 });
 

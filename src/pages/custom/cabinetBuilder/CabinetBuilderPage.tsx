@@ -1293,11 +1293,15 @@ export const CabinetBuilderPage = () => {
         }
       } else {
         // The scene kept the products of the preset: they are recorded as they are, then shown
-        // with the colours Custom starts from.
+        // with the colours Custom starts from. The cabinet pattern (Tricot) is only recorded: the
+        // scene shows it already, and adopting records no value with a typed projection.
         await composition.adopt({
           runtimeIds: existingIds,
           products: productsPresets.map((preset) => ({ productType: preset.name, config: { ...preset } })),
-          record: startingColors,
+          record: {
+            ...startingColors,
+            ...(firstPreset?.DrawerPanelFluting ? { DrawerPanelFluting: firstPreset.DrawerPanelFluting } : {}),
+          },
         });
 
         const replayed = await replay({
@@ -1454,7 +1458,7 @@ export const CabinetBuilderPage = () => {
       const orderedIds = matches.map(({ runtimeId }) => runtimeId);
       const topConfigIds = plan.topConfigs.map(({ sourceId }) => sourceId);
 
-      const presetProducts = buildPresetFromConfiguration(configuration, configIds);
+      const presetProducts = buildPresetFromConfiguration(configuration, activeProfile, runtimeBindings, configIds);
 
       dispatch(addProductPreset(presetProducts));
       // The restorer placed these products; they are recorded as the scene holds them.
@@ -1678,7 +1682,7 @@ export const CabinetBuilderPage = () => {
         navigate({ pathname: restorePath, search });
       }
     },
-    [composition, dispatch, navigate, record, replay, resolveCabinetTypeId, search],
+    [activeProfile, composition, dispatch, navigate, record, replay, resolveCabinetTypeId, runtimeBindings, search],
   );
 
   // A configuration opened by id replaces the builder bootstrap: the preset and empty-builder

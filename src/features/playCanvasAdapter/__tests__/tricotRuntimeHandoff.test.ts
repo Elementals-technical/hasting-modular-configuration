@@ -163,7 +163,7 @@ describe("Tricot production composition handoff through the adapter", () => {
       for (const product of products) {
         expect(product).toMatchObject({
           CabinetColor: "Rovere Oro 932",
-          CabinetPattern: "Cannette",
+          CabinetPattern: "Satin",
           HandleGrooveColor: "Nero 433 Lacquered MT",
           CountertopColor: "Solid Surface Matte White",
         });
@@ -189,7 +189,7 @@ describe("Tricot production composition handoff through the adapter", () => {
       expect(sent).toMatchObject({
         Width: config.Width,
         CabinetColor: "Rovere Oro 932",
-        CabinetPattern: "Cannette",
+        CabinetPattern: "Satin",
         HandleGrooveColor: "Nero 433 Lacquered MT",
         CountertopColor: "Solid Surface Matte White",
         sinkType: "Top_HPLPrisma",

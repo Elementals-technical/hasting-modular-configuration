@@ -22,6 +22,7 @@ These links use the current portfolio layout; the maps live outside this Git rep
   - [`products/urban-standard-height.md`](products/urban-standard-height.md) — Working context for changing Urban Standard Height.
   - [`products/class.md`](products/class.md) — Working context for changing Class.
   - [`products/mako.md`](products/mako.md) — Working context for changing Mako.
+  - [`products/urban-duplex.md`](products/urban-duplex.md) — Working context for changing Urban Duplex.
 - [`parent-configurator-integration.md`](parent-configurator-integration.md) — How a parent site embeds the configurator iframe and shares or restores a configuration by URL.
 - [`side-panel-logic.md`](side-panel-logic.md) — How side panels are offered, limited, removed and added to the quote.
 - [`cabinet-drag-and-drop-ui.md`](cabinet-drag-and-drop-ui.md) — How the cabinet Drag & Drop control on the canvas behaves.

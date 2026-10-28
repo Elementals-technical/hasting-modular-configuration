@@ -2,6 +2,7 @@
   "id": "urban-low-height",
   "label": "Urban Low Height",
   "defaults": {},
+  "requireSourceAgreement": true,
   "local": {
     "presets": "presets.json",
     "ui": "ui.json",

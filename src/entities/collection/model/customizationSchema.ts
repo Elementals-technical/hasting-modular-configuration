@@ -54,11 +54,16 @@ export type PlayerMenuResizeId = (typeof PLAYER_MENU_RESIZE_IDS)[number];
  * cabinet must hold to be offered it. `when` is read as an `OptionImageVariant`'s, against the
  * cabinet's own values: Urban Duplex offers the side of the lateral panel to its own cabinets,
  * not to the ones Urban Standard Height and Urban Low Height supply, which have no panel.
+ * `label` names the selector; without it, the label of a section that shows the value alone,
+ * else the id. Urban Duplex names it so, as no step shows the side of the panel.
  */
-export type PerCabinetAttribute = string | { attributeId: string; when: Record<string, string> };
+export type PerCabinetAttribute = string | { attributeId: string; label?: string; when: Record<string, string> };
 
 export const perCabinetAttributeId = (entry: PerCabinetAttribute): string =>
   typeof entry === "string" ? entry : entry.attributeId;
+
+export const perCabinetAttributeLabel = (entry: PerCabinetAttribute): string | undefined =>
+  typeof entry === "string" ? undefined : entry.label;
 
 /** The collection's choices for the menu of the 3D player; every field is optional. */
 export type CustomizationPlayerMenu = {

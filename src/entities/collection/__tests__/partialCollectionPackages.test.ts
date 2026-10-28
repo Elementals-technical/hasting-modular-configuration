@@ -555,7 +555,8 @@ describe("partial production collection packages", () => {
     // Priced from its own SKU words (D04), not the USH cabinet mappings.
     expect(data.catalog.skuProfile?.collectionId).toBe("urban-duplex");
     expect(data.catalog.cabinetSkuMappings).toBeUndefined();
-    // The profile names the tables the manifest loads.
+    // The profile names the tables the manifest loads, and the manifest holds it to them.
+    expect(data.manifest.requireSourceAgreement).toBe(true);
     expect(data.catalog.productProfile?.sourceRefs).toEqual({
       configuratorId: data.manifest.remote?.configurator?.id,
       countertopMatrixTableId: data.manifest.remote?.countertopTable?.id,

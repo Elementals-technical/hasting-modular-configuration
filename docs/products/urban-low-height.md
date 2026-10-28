@@ -192,12 +192,16 @@ Push-to-Open, side panels втрачають upper groove. Handle і Height ід
 - Heights: 38, 35, 28, 25 cm.
 - Fluting: None + Vertical/Horizontal A/B; доступність залежить від Lacquer Matte.
 - Cabinet/Countertop colors читаються з configurator 4 через `optionsSource`.
-- Countertop styles: integrated/vessel; `CountertopStyle` є `state-only` для сцени ULH.
+- Countertop styles: integrated/vessel; `CountertopStyle` є `state-only` для сцени ULH. Поле стилю бере
+  `CountertopStyle.available`: матриця стиль не обмежує (Urban Duplex бере `CountertopStyle.allowed`), а поки
+  стільниця тримає basin, стиль заблокований разом із basin і vessel color
+  ([countertop-position-ui.md](../countertop-position-ui.md)).
 - Basin catalog тимчасово повторює Urban values і фільтрується table 589; це не підтверджена
   власна ULH product map семантика.
 
 Rule data навмисно обмежений `cabinetMatrixLegacyAdapter`, `cabinetColorTraits`, `fluting` і
-`countertopFallbacks`. Відсутність USH rule section означає “правила немає”, а не “успадкувати USH”.
+`countertopFallbacks` з product map та `sidePanels`, `vesselCompatibility` і `dragDrop`, доданими на запит
+(`urbanLowHeightProfile.test.ts`). Відсутність USH rule section означає “правила немає”, а не “успадкувати USH”.
 
 ## Runtime bindings
 
@@ -249,10 +253,23 @@ Countertop Color у Prebuilt і Custom має Upper/Lower, якщо сцена �
 (`sku-profile.cabinetCover.flows`; з 2026-10-22 обидва flow, як у Urban Duplex).
 Upper використовує наявний CountertopColor flow; Lower викликає native
 `ConfiguratorAPI.cabinetCover.configure({ materialId })`, без зміни кольору Upper або тумб.
-Lower бере палітру Cabinet Color, але лише підтверджені Ryan матеріали **3D, LACM, LACG, ST, BM, ESS** і
-**HPL** (команда, 2026-10-14: Lower за замовчуванням має колір тумби, а тумби ULH стартують у HPL; GEN-SKU-03
-до Ryan відкритий); allowlist міститься в `sku-profile.cabinetCover.materialSkus`. Matrix 589 для Upper не
-обмежує декоративний Lower.
+
+**З 2026-10-28 (користувач) Lower має ті самі кольори й матеріали, що Upper, у кожній колекції:** палітру
+Countertop Color (`CABINET_COVER_COLOR_ATTRIBUTE_ID`). Це замінює матеріали декоративної панелі
+3D/LACM/LACG/ST/BM/ESS/HPL з палітри Cabinet Color (Ryan, команда 2026-10-12/14), тож
+`cabinetCover.materialSkus` і `colorAttributeId` у контракті більше немає. Правила matrix 589 для Upper
+(товщина, глибина, раковина) Lower не обмежують.
+
+- Lower пишеться так само, як Upper: матеріал swatch (або той, що називає код кольору, як `TAN` → `SSSYN`) і код
+  кольору. Колір, якого немає в палітрі Upper (наприклад, колір тумби, у який сцена кладе плиту без запиту),
+  не отримує SKU, і gap блокує complete total.
+- До сцени й назад колір Lower іде через binding `CountertopColor`, як і в Upper: overrides
+  (`Sahara Noir Silky Matte TR8` → `Sahara Noir Silky Matte`, у UD також `Matte White` → `Solid Surface Matte White`).
+  Матеріал зі сцени, який сам є кольором палітри, читається як є.
+- Поки Lower не вибрано на вкладці, `useLowerCountertopDefaultColor` просить сцену про колір Upper і слідує
+  за його змінами. Колекція може назвати свій атрибут (`cabinetCover.defaultColorAttributeId`, UD: Lateral Panel),
+  якщо його колір є в палітрі Upper; інакше береться колір Upper. Колір, вибраний на вкладці Lower, лишається,
+  а відновлений колір поза палітрою замінюється.
 
 SKU Lower читає **фактично опублікований materialId кожного сегмента**, а не колір першої тумби:
 `CT-UR{material}-{style}-{W}W-.5H-{D}D-{material}-{colour}`. Стиль — той самий, що в Upper: Integrated →

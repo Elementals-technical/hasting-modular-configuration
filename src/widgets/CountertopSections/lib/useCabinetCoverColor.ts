@@ -41,15 +41,18 @@ export const useCabinetCoverColor = (enabled: boolean) => {
     };
   }, [bridge, enabled, ready]);
 
+  /** Resolves whether the pick repainted the cover: false when it already had that colour or kept its own. */
   const changeColor = useCallback(
-    async (materialId: string) => {
-      if (!enabled || !ready || processingRef.current || !bridge.setCabinetCoverColor) return;
+    async (materialId: string): Promise<boolean> => {
+      if (!enabled || !ready || processingRef.current || !bridge.setCabinetCoverColor) return false;
       const version = lifecycle.current;
       ++colorRevision.current;
       processingRef.current = true;
       setProcessing(true);
       setError(null);
       try {
+        // A cover the scene cannot describe now counts as repainted once it takes the colour.
+        const before = await Promise.resolve(bridge.getCabinetCoverColorState?.()).catch(() => null);
         const result = await bridge.setCabinetCoverColor(materialId);
         if (result.status !== "applied" && result.status !== "unchanged") throw new Error(result.status);
         const next = (await bridge.getCabinetCoverColorState?.()) ?? null;
@@ -57,8 +60,10 @@ export const useCabinetCoverColor = (enabled: boolean) => {
           throw new Error("Cover material was not applied");
         }
         if (lifecycle.current === version) setState(next);
+        return !before || before.segments.some((segment) => segment.materialId !== materialId);
       } catch {
         if (lifecycle.current === version) setError("Could not change the lower countertop color. Please try again.");
+        return false;
       } finally {
         processingRef.current = false;
         if (lifecycle.current === version) setProcessing(false);

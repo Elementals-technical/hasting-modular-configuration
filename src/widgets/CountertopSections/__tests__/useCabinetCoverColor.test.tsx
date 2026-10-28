@@ -40,10 +40,27 @@ describe("the Lower scene color", () => {
   it("reads the applied color and confirms a selection from the published scene", async () => {
     const { result } = renderHook(() => useCabinetCoverColor(true));
     await waitFor(() => expect(result.current.color).toBe("Rox Black TKQ"));
-    await act(() => result.current.changeColor("Pulpis Chiaro TKH"));
+    let repainted: boolean | undefined;
+    await act(async () => {
+      repainted = await result.current.changeColor("Pulpis Chiaro TKH");
+    });
     expect(api.change).toHaveBeenCalledWith("Pulpis Chiaro TKH");
     expect(result.current.color).toBe("Pulpis Chiaro TKH");
     expect(result.current.error).toBeNull();
+    expect(repainted).toBe(true);
+  });
+
+  // An undo step is written only for a pick that changed the slabs.
+  it("tells that a pick of the colour the cover already has repainted nothing", async () => {
+    const { result } = renderHook(() => useCabinetCoverColor(true));
+    await waitFor(() => expect(result.current.color).toBe("Rox Black TKQ"));
+    let repainted: boolean | undefined;
+    await act(async () => {
+      repainted = await result.current.changeColor("Rox Black TKQ");
+    });
+    expect(api.change).toHaveBeenCalledWith("Rox Black TKQ");
+    expect(result.current.error).toBeNull();
+    expect(repainted).toBe(false);
   });
 
   it.each(["error", "unsupported", "applied"])(
@@ -52,10 +69,14 @@ describe("the Lower scene color", () => {
       api.change.mockResolvedValue({ status });
       const { result } = renderHook(() => useCabinetCoverColor(true));
       await waitFor(() => expect(result.current.color).toBe("Rox Black TKQ"));
-      await act(() => result.current.changeColor("Pulpis Chiaro TKH"));
+      let repainted: boolean | undefined;
+      await act(async () => {
+        repainted = await result.current.changeColor("Pulpis Chiaro TKH");
+      });
       expect(result.current.color).toBe("Rox Black TKQ");
       expect(result.current.error).toBeTruthy();
       expect(result.current.processing).toBe(false);
+      expect(repainted).toBe(false);
     },
   );
 

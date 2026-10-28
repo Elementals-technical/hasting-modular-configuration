@@ -16,13 +16,24 @@ import ulhManifestDocument from "../../../../../public/collections/urban-low-hei
 import ulhPresetsDocument from "../../../../../public/collections/urban-low-height/presets.json";
 import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 import ulhUiDocument from "../../../../../public/collections/urban-low-height/ui.json";
+import udManifestDocument from "../../../../../public/collections/urban-duplex/manifest.json";
+import udPresetsDocument from "../../../../../public/collections/urban-duplex/presets.json";
+import udProfileDocument from "../../../../../public/collections/urban-duplex/product-profile.json";
+import udBindingsDocument from "../../../../../public/collections/urban-duplex/runtime-bindings.json";
+import udUiDocument from "../../../../../public/collections/urban-duplex/ui.json";
 import { store } from "@/app/store";
-import { parseProductProfile, ReadyCollectionContext, type ProductProfile } from "@/entities/collection";
+import {
+  parseProductProfile,
+  parseRuntimeBindings,
+  ReadyCollectionContext,
+  type ProductProfile,
+} from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
 import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
+import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
@@ -387,6 +398,149 @@ describe("urban-low-height: a Prebuilt order opened from its link keeps its hand
     await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
 
     expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_urban_topcut");
+  });
+});
+
+describe("mako: a Prebuilt order opened from its link keeps its handle and leg colours", () => {
+  const [mako] = CASES;
+  const sourceIds = ["Mako-sink-cabinet-aaa111", "Mako-sink-cabinet-bbb222"];
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(clearRestore());
+    store.dispatch(clearHistory());
+    store.dispatch(setActiveProfile(mako.profile));
+    store.dispatch(setActiveCollectionId(mako.collectionId));
+    store.dispatch(setActiveRuntimeBindings(mako.bindings));
+    mocks.changes.length = 0;
+    mocks.sceneReady = true;
+  });
+
+  /** Two Sink Bases saved with the same colours at each, as the Mako scene paints them all at once. */
+  const savedWith = (colors: Record<string, string>): ConfigurationRecord => ({
+    configuration: Object.fromEntries(
+      sourceIds.map((sourceId) => [
+        sourceId,
+        { ProductType: "Mako-sink-cabinet", Width: 60, Height: 26, Depth: 52, Drawers: "1D" },
+      ]),
+    ),
+    metadata: {
+      path: "/prebuilt/model",
+      orderedProductIds: sourceIds,
+      collectionId: mako.collectionId,
+      uiState: {},
+      configuration: {
+        version: 2,
+        collectionId: mako.collectionId,
+        cabinets: [
+          { stableKey: "cab-1", index: 0 },
+          { stableKey: "cab-2", index: 1 },
+        ],
+        values: { "cabinet:cab-1": colors, "cabinet:cab-2": colors },
+      },
+    },
+  });
+
+  const restore = async (configId: string) => {
+    renderAt(mako, `/prebuilt/model?collectionId=${mako.collectionId}&configId=${configId}`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+  };
+
+  const presetColors = () =>
+    getProductsPresets(store.getState()).map(({ HandleColor, LegColor }) => ({ HandleColor, LegColor }));
+
+  // Customize records each cabinet's values again from the presets (CabinetBuilderPage), and the
+  // scene configs name the handle and the legs only as scene materials.
+  it("hands them to Customize with the presets, cabinet by cabinet", async () => {
+    mocks.record = savedWith({ HandleColor: "Gold", LegColor: "Silver" });
+
+    await restore("7201");
+
+    expect(presetColors()).toEqual([
+      { HandleColor: "Gold", LegColor: "Silver" },
+      { HandleColor: "Gold", LegColor: "Silver" },
+    ]);
+  });
+
+  it("keeps legs switched off", async () => {
+    mocks.record = savedWith({ HandleColor: "Gold", LegColor: "" });
+
+    await restore("7202");
+
+    expect(presetColors()).toEqual([
+      { HandleColor: "Gold", LegColor: "" },
+      { HandleColor: "Gold", LegColor: "" },
+    ]);
+  });
+});
+
+describe("urban-duplex: a Prebuilt order opened from its link keeps each cabinet's series and panel side", () => {
+  const parsedUdProfile = parseProductProfile(udProfileDocument);
+  const parsedUdBindings = parseRuntimeBindings(udBindingsDocument);
+  if (!parsedUdProfile.ok || !parsedUdBindings.ok) throw new Error("the packaged Urban Duplex data must parse");
+  const ud: Case = {
+    collectionId: "urban-duplex",
+    profile: parsedUdProfile.profile,
+    bindings: parsedUdBindings.bindings,
+    sinkBaseSceneType: "UD-sink-cabinet",
+    manifest: udManifestDocument,
+    ui: udUiDocument,
+    presets: udPresetsDocument,
+    countertopTable: datatable595,
+  };
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(clearRestore());
+    store.dispatch(clearHistory());
+    store.dispatch(setActiveProfile(ud.profile));
+    store.dispatch(setActiveCollectionId(ud.collectionId));
+    store.dispatch(setActiveRuntimeBindings(ud.bindings));
+    mocks.changes.length = 0;
+    mocks.sceneReady = true;
+  });
+
+  // Model 18: a Duplex Sink Base with its lateral panel on the left, beside an Urban Standard cabinet.
+  // The scene configs name neither the series nor the side, and Customize records both from the presets.
+  it("hands them to Customize with the presets", async () => {
+    const sourceIds = ["UD-sink-cabinet-aaa111", "UD-side-cabinet-bbb222"];
+    mocks.record = {
+      configuration: {
+        [sourceIds[0]]: { ProductType: "UD-sink-cabinet", Width: 70, Height: 53, Depth: 46, Drawers: "1D" },
+        [sourceIds[1]]: { ProductType: "UD-side-cabinet", Width: 35, Height: 53, Depth: 46, Drawers: "1D" },
+      },
+      metadata: {
+        path: "/prebuilt/model",
+        orderedProductIds: sourceIds,
+        collectionId: ud.collectionId,
+        uiState: {},
+        configuration: {
+          version: 2,
+          collectionId: ud.collectionId,
+          cabinets: [
+            { stableKey: "cab-1", index: 0 },
+            { stableKey: "cab-2", index: 1 },
+          ],
+          values: {
+            "cabinet:cab-1": { Series: "URDPX", LateralPanelSide: "L", Handle: "UG" },
+            "cabinet:cab-2": { Series: "URSTD" },
+          },
+        },
+      },
+    };
+
+    renderAt(ud, `/prebuilt/model?collectionId=${ud.collectionId}&configId=7301`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+
+    const presets = getProductsPresets(store.getState()) as Array<Record<string, unknown>>;
+    expect(presets.map(({ Series, LateralPanelSide }) => ({ Series, LateralPanelSide }))).toEqual([
+      { Series: "URDPX", LateralPanelSide: "L" },
+      { Series: "URSTD", LateralPanelSide: undefined },
+    ]);
   });
 });
 

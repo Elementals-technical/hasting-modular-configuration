@@ -114,11 +114,21 @@ describe("Class and Mako UI descriptions", () => {
 });
 
 describe("Urban Duplex UI description", () => {
-  it("shows its two panel colours and the side of the lateral panel instead of a cabinet colour or a handle", () => {
+  it("shows its two panel colours instead of a cabinet colour or a handle", () => {
     const fields = fieldAttributeIds(parseCollection(urbanDuplexDocuments).schema);
 
-    expect(fields).toEqual(expect.arrayContaining(["BasePanelColor", "LateralPanelColor", "LateralPanelSide"]));
+    expect(fields).toEqual(expect.arrayContaining(["BasePanelColor", "LateralPanelColor"]));
     expect(fields).not.toContain("CabinetColor");
     expect(fields).not.toContain("Handle");
+  });
+
+  // Client decision 27.10: the side is a cabinet's own, so no step turns every panel at once.
+  it("offers the side of the lateral panel in the style sidebar and the cabinet menu only, named there", () => {
+    const { schema } = parseCollection(urbanDuplexDocuments);
+    const side = { attributeId: "LateralPanelSide", label: "Lateral Panel", when: { Series: "URDPX" } };
+
+    expect(fieldAttributeIds(schema)).not.toContain("LateralPanelSide");
+    expect(schema?.styleSidebar?.attributes).toEqual([side]);
+    expect(schema?.playerMenu?.attributes).toEqual([side]);
   });
 });

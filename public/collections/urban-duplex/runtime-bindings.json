@@ -229,7 +229,7 @@
         "emptyValue": "Vessel"
       },
       "order": 40,
-      "note": "The Urban Standard Height basins and vessels, sent to every Urban Duplex Sink Base. The ULH-sink-cabinet swaps its basin sub-product on sinkType (RuleChangeSinkType); scene v62 gives the UD-sink-cabinet no such rule, so the basin it was placed with stays and the sinkType sent is kept in its config until the scene adds the rule. \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
+      "note": "The Urban Standard Height basins and vessels, sent to every Urban Duplex Sink Base. Since scene v79 the UD-sink-cabinet swaps its basin sub-product on sinkType (RuleChangeSinkType), as the ULH-sink-cabinet does; scene v62 had no such rule for it. \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
     },
     {
       "attributeId": "VesselColor",

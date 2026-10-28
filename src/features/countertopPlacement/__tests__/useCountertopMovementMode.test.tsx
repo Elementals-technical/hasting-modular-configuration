@@ -8,6 +8,7 @@ import type { CountertopApi, CountertopState } from "@/features/configuratorApi"
 import { getCountertopRuntimeState, setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 
+import { registerHostedSinkLanding } from "../lib/hostedSinkLanding";
 import { buildCountertopPositionItems } from "../lib/positionMenuItems";
 import {
   isLengthResizableThickness,
@@ -43,6 +44,7 @@ const fakeApi = () => {
     setOffset: vi.fn((offset: { x: number; y: number }) => patchState({ offset })),
     resetOffset: vi.fn(() => patchState({ offset: { x: 0, y: 0 }, sink: undefined })),
     getState: vi.fn(() => getCountertopRuntimeState()),
+    whenSettled: vi.fn(() => getCountertopRuntimeState()),
   };
   return { api, getApi: () => api as unknown as CountertopApi };
 };
@@ -162,6 +164,37 @@ describe("useCountertopMovementMode", () => {
       ),
     );
     await waitFor(() => expect(landed.api.resetOffset).toHaveBeenCalledTimes(1));
+  });
+
+  it("goes to Standard, and says so, when the scene takes the lowered pose back", async () => {
+    // Urban Duplex, one cabinet: the lowered top would not cover the sink base under the vessel (SINK_BASE_NOT_COVERED).
+    const landing = vi.fn();
+    const unregister = registerHostedSinkLanding(landing);
+    const hosted = { owner: "countertop" as const, shiftM: 0, landing: null, pending: null, hosted: true };
+    try {
+      const { api, hook } = switchThickness("5-1/2", "4", { offset: { x: 0.3, y: 0.2 }, sink: hosted }, (fake) => {
+        fake.whenSettled.mockImplementationOnce(() => {
+          patchState({ offset: { x: 0.3, y: 0.2 } });
+          return getCountertopRuntimeState();
+        });
+        // Back at the standard pose the hosted vessel waits over its cabinet until the UI lands it.
+        fake.resetOffset.mockImplementation(() =>
+          patchState({
+            offset: { x: 0, y: 0 },
+            sink: { ...hosted, pending: { cabinetId: "sc", fromCabinetId: null, status: "fits" } },
+          }),
+        );
+      });
+      await waitFor(() => expect(api.resetOffset).toHaveBeenCalledTimes(1));
+      await waitFor(() =>
+        expect(hook.result.current.notice?.codes).toEqual(["countertop.mode.offset", "countertop.mode.reset"]),
+      );
+      expect(api.setOffset).toHaveBeenCalledTimes(1);
+      // As Position ▸ Standard does, the vessel lands in its Sink Base again.
+      expect(landing).toHaveBeenCalledWith("sc");
+    } finally {
+      unregister();
+    }
   });
 
   it("resets a moved top switched to a thin one, but waits for the drag to end", async () => {

@@ -196,11 +196,16 @@ describe("selectPlacedWithValues", () => {
     expect(selectBroadcastValues(store.getState())).toEqual({ LateralPanelSide: "R" });
   });
 
-  it("gives nothing in a collection whose bindings ask for none", () => {
-    // The frame colour of Class is as wide as the configuration, but its binding does not ask.
+  it("starts a Class product in the collection's side and frame colours, which its scene keeps per product", () => {
     open(profileOf(classProfileDocument), "class", classRuntimeBindings);
-    expect(selectPlacedWithValues(store.getState())).toEqual({});
 
+    expect(selectPlacedWithValues(store.getState())).toEqual({
+      CabinetSideColor: "Nero 433 MT",
+      FrameColor: "Nero 433 MT",
+    });
+  });
+
+  it("gives nothing in a collection whose bindings ask for none", () => {
     open(makoProfile, "mako", makoRuntimeBindings);
     expect(selectPlacedWithValues(store.getState())).toEqual({});
 

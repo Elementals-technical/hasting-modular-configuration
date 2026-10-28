@@ -88,17 +88,27 @@ const correctPose = async (api: CountertopApi, mode: "offset" | "none"): Promise
   if (mode === "offset") {
     try {
       await api.setOffset({ x: getCountertopRuntimeState()?.offset?.x ?? 0, y: 0 });
-      // Landed 'fits' over another sink cabinet: that is a sink move, not a lowering ('home' 3D settles itself).
-      const pending = (await api.getState())?.sink?.pending;
-      if (!pending || pending.status === "home") return "lowered";
-      // A hosted sink over an SC: the lowering is its landing (`landSink`), not a pose to undo.
-      if (await commitHostedSinkLanding(api)) return "lowered";
+      // The scene may take the lowered pose back after its checks (a sink base the top would not cover):
+      // a top still up is not lowered, and goes to Standard as a pose refused outright.
+      await api.whenSettled();
+      const state = await api.getState();
+      if (!isLiftedCountertop(state)) {
+        // Landed 'fits' over another sink cabinet: that is a sink move, not a lowering ('home' 3D settles itself).
+        const pending = state?.sink?.pending;
+        if (!pending || pending.status === "home") return "lowered";
+        // A hosted sink over an SC: the lowering is its landing (`landSink`), not a pose to undo.
+        if (await commitHostedSinkLanding(api)) return "lowered";
+      }
     } catch (error) {
       if (isTransient(error)) throw error;
       // COUNTERTOP_POSE_INVALID: the sink would sit on a seam / gap / the wrong cabinet.
     }
   }
   await api.resetOffset();
+  // As Position ▸ Standard: a hosted sink the reset brings over a cabinet lands there (`landSink`); the scene does
+  // not land it on its own, and the top would keep it at the standard pose.
+  await api.whenSettled();
+  await commitHostedSinkLanding(api);
   return "reset";
 };
 
@@ -178,31 +188,42 @@ export const useCountertopMovementMode = (
   }, [getApi, locked, lockKey, topReady, wantedLock]);
 
   const correctionKey = `${target}|${correction}`;
+  // An attempt in flight: the poses it passes through (lowered, then taken back by the scene) are not new violations.
+  const correctingRef = useRef(false);
   useEffect(() => {
     if (correction === null) {
       // The pose is allowed: a later violation (a restored snapshot, a preset) earns a new attempt.
-      correctedRef.current = null;
+      if (!correctingRef.current) correctedRef.current = null;
       switchedToRef.current = null; // nothing left to correct after the switch
       return;
     }
-    if (!topReady || dragging || correctedRef.current === correctionKey) return;
+    if (!topReady || dragging || correctingRef.current || correctedRef.current === correctionKey) return;
     const api = getApi();
     if (!api) return;
     correctedRef.current = correctionKey;
+    correctingRef.current = true;
     const afterSwitch = switchedToRef.current === correction;
     switchedToRef.current = null; // shown once, with this correction
     const withSwitch = (codes: string[]) => (afterSwitch ? [MODE_NOTICE[correction], ...codes] : codes);
-    correctPose(api, correction).then(
-      (outcome) => show(withSwitch([outcome === "lowered" ? "countertop.mode.lowered" : "countertop.mode.reset"])),
-      (error: unknown) => {
-        if (isTransient(error)) {
-          if (correctedRef.current === correctionKey) correctedRef.current = null;
-          return;
-        }
-        const { code, reasons, message } = classifyCountertopError(error);
-        show(withSwitch([]), { code: reasons[0] ?? code ?? undefined, text: message });
-      },
-    );
+    correctPose(api, correction)
+      .then(
+        (outcome) => {
+          // The pose it ended in is allowed: a later violation earns a new attempt.
+          correctedRef.current = null;
+          show(withSwitch([outcome === "lowered" ? "countertop.mode.lowered" : "countertop.mode.reset"]));
+        },
+        (error: unknown) => {
+          if (isTransient(error)) {
+            if (correctedRef.current === correctionKey) correctedRef.current = null;
+            return;
+          }
+          const { code, reasons, message } = classifyCountertopError(error);
+          show(withSwitch([]), { code: reasons[0] ?? code ?? undefined, text: message });
+        },
+      )
+      .finally(() => {
+        correctingRef.current = false;
+      });
   }, [correction, correctionKey, dragging, getApi, show, topReady]);
 
   return { mode, lengthResizable, notice, dismissNotice };

@@ -73,7 +73,7 @@ describe("Tricot custom cabinets and pricing", () => {
     });
     expect(tricotProfile.defaults).toMatchObject({
       CabinetColor: "Rovere Oro 932",
-      DrawerPanelFluting: "Cannette",
+      DrawerPanelFluting: "Satin",
       CountertopColor: "BIANCO KOS 250",
       sinkType: "VA024",
     });

@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
-import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
 import classManifestDocument from "../../../../public/collections/class/manifest.json";
@@ -49,7 +49,7 @@ import { FieldsStepPage } from "../FieldsStepPage";
 /**
  * A field that declares `autoSelect` keeps a value its rules allow, as the Urban Standard Height
  * countertop step keeps its thickness and basin: Urban Low Height starts its countertop step with
- * the first thickness and basin table 438 allows, through the command.
+ * the first thickness and basin table 589 allows, through the command.
  */
 
 const changeMock = vi.fn<(request: AttributeChange) => Promise<ChangeResult>>(async () => ({
@@ -112,7 +112,7 @@ const urbanLowHeight = readyCollectionOf(
   ulhManifestDocument,
   ulhUiDocument,
   configurator4WithLiveCountertops,
-  datatable438,
+  datatable589,
 );
 const mako = readyCollectionOf("mako", makoManifestDocument, makoUiDocument, configurator9, datatable577);
 const classCollection = readyCollectionOf("class", classManifestDocument, classUiDocument, configurator9, datatable578);
@@ -150,7 +150,7 @@ const startWith = (profile: typeof makoProfile, bindings: RuntimeBindingSet, sin
 
 const changedAttributes = () => changeMock.mock.calls.map(([request]) => request.attributeId);
 
-describe("the Urban Low Height countertop step keeps its thickness and basin on values table 438 allows", () => {
+describe("the Urban Low Height countertop step keeps its thickness and basin on values table 589 allows", () => {
   beforeEach(() => startWith(parsedUlhProfile.profile, ulhRuntimeBindings, "ULH-sink-cabinet-1", "Ardesia TKF"));
 
   it("chooses the first thickness and basin the table allows an HPL top while none is chosen", () => {
@@ -229,8 +229,8 @@ describe("the Urban Low Height countertop step keeps its thickness and basin on 
 });
 
 // Mako and Class stand 52 cm deep, the depth of their countertop tables.
-// Configurator 4 lists an MT lacquer twice under one value, as Tekorlux and as Glass MT, and table 438
-// makes glass 50.5 cm deep only: the swatch picked decides the material, by the SKU recorded with it.
+// Configurator 4 lists an MT lacquer twice under one value, as Tekorlux and as Glass MT, and table 589
+// makes glass 50 cm deep only: the swatch picked decides the material, by the SKU recorded with it.
 describe("an Urban Low Height lacquer listed as Tekorlux and as Glass MT", () => {
   // As a placed model leaves it: the colour picked, the SKU still that of the model's own colour.
   beforeEach(() => {
@@ -263,7 +263,7 @@ describe("an Urban Low Height lacquer listed as Tekorlux and as Glass MT", () =>
   });
 
   it("records the SKU of the swatch picked, not of the value: Glass MT where both are made", async () => {
-    store.dispatch(setSelectedDimensions({ depth: 50.5 }));
+    store.dispatch(setSelectedDimensions({ depth: 50 }));
     store.dispatch(setCountertopColorSku("SSTKR"));
     renderCountertopStep(urbanLowHeight);
 

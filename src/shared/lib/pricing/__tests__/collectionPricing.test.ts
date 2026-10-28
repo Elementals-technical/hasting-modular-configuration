@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { describe, expect, it } from "vitest";
 
 import makoPresetsDocument from "../../../../../public/collections/mako/presets.json";
+import duplexRuntimeBindingsDocument from "../../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { rootReducer } from "@/app/store/reducer";
 import { replaceCollectionData } from "@/entities/product/model/store/slice";
 
@@ -12,6 +13,7 @@ import {
   countertopDatatableSchema,
   hasOwnCountertop,
   normalizeOptionValue,
+  parseRuntimeBindings,
   presetsSchema,
   selectBasinOptions,
   selectOptions,
@@ -50,6 +52,10 @@ import classOrder from "./fixtures/prices/class-porcelain-integrated.json";
 import makoOrder from "./fixtures/prices/mako-vessel-with-legs.json";
 import { ulhCoverConfigurator } from "./fixtures/ulhCoverConfigurator";
 
+const duplexBindingsResult = parseRuntimeBindings(duplexRuntimeBindingsDocument);
+if (!duplexBindingsResult.ok) throw new Error("Urban Duplex bindings failed validation");
+const duplexRuntimeBindings = duplexBindingsResult.bindings;
+
 /**
  * Class and Mako orders (D04): the lines built from C's state, the parts the collections have not
  * confirmed, and the reference totals against the recorded answers of the price server.
@@ -83,8 +89,8 @@ const WORKBOOK_PRICES: Record<CollectionPricingScenarioId, Record<string, number
     // CabinetPricing: SB/2DW/G57 and SC/2DW/G50 23.6W, LACG.
     "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": 3028,
     "VAN-MAKOV-SC/2DW/G50-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": 2938,
-    // CabinetPricing A54: a leg costs 745 in metal and 1340 in matte lacquer; a pair is ordered.
-    "VAN-MAKOV-LEG-MTL": 745,
+    // CabinetPricing A54: a leg costs 745 in metal and 1340 in matte lacquer; a pair is ordered. Gold (GLD).
+    "VAN-MAKOV-LEG-MTL-GLD": 745,
     // CountertopPricing: SS Technolite .5 at 13.11 / cm × 120 cm = 1573.20, rounded up.
     "CT-GBSSTL-VES-47.2W-.5H-20.7D": 1574,
     // Class AccessoriesPricing, which Mako refers to: SSTL cutout 607.69 and three holes.
@@ -187,7 +193,8 @@ describe("Class and Mako order lines", () => {
     expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBSSTL-HCUT", quantity: 1 });
     expect(lines.find(({ group }) => group === "divider")).toMatchObject({ id: "divider:mko-sb:Top", quantity: 1 });
     expect(lines.some(({ group }) => group === "basin")).toBe(false);
-    expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
+    // Gold, spelled with the code configurator 9 gives the Gold handle, as Silver is with SLV.
+    expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL-GLD", quantity: 2 });
     // The Iris is priced in its colour, and this order has chosen none.
     expect(lines.some(({ group }) => group === "vessel")).toBe(false);
     expect(gaps.map(({ group, blocksTotal }) => [group, blocksTotal])).toEqual([
@@ -406,6 +413,8 @@ describe("Class and Mako order lines", () => {
       productIds: [...input.cabinetEntries.map(({ runtimeId }) => runtimeId), added.runtimeId],
       cabinetEntries: [...input.cabinetEntries, added],
       dimensionsByCabinet: { ...input.dimensionsByCabinet, [added.stableKey]: { width: 60, height: 52, depth: 52 } },
+      // The style the builder placed it in, which its SKU needs.
+      placedCabinetStyles: { ...input.placedCabinetStyles, [added.runtimeId]: "2D" },
     });
 
     expect(lines.filter(({ group }) => group === "cabinet").map(({ id, sourceId }) => [id, sourceId])).toEqual([
@@ -585,10 +594,11 @@ describe("Class and Mako order lines", () => {
       sinkType,
     });
 
-    // Nero 433 GL is Glass Gloss (GLSG, .5"), on an integrated top with a VA005 basin over the 60 cm Sink Base.
+    // Matte White is Solid Surface (SSTL, .5"), the top of the model pictures, on an integrated top with an LB440
+    // basin over the 60 cm Sink Base. Its name carries no colour code, so the top has no colour block.
     expect(lines.filter(({ group }) => group === "countertop" || group === "basin").map(({ sku }) => sku)).toEqual([
-      "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
-      "CT-GBGLSG-VA005-.5H",
+      "CT-GBSSTL-INTG-23.6W-.5H-20.7D",
+      "CT-GBSSTL-LB440-.5H",
     ]);
     expect(gaps).toEqual([]);
   });
@@ -645,7 +655,7 @@ describe("Class and Mako order lines", () => {
 
     // Switching the legs off records no colour: they are removed and not priced.
     expect(legsLine("")).toBeUndefined();
-    expect(legsLine("Gold")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
+    expect(legsLine("Gold")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL-GLD", quantity: 2 });
   });
 
   it("prices the cabinet and legs kept in its colour in the colour the builder starts from until one is chosen", () => {
@@ -679,8 +689,11 @@ describe("Class and Mako order lines", () => {
     // The scene's Mako material, which is not one of the colours the collection offers.
     const { lines, gaps } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0], "Antracite Matte OCF"));
 
-    expect(lines[0].sku).not.toContain("-CAB-");
-    expect(gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
+    // A Mako cabinet is priced from complete input only: no line rather than one without its colour.
+    expect(lines.some(({ group }) => group === "cabinet")).toBe(false);
+    expect(gaps).toContainEqual(
+      expect.objectContaining({ group: "input", blocksTotal: true, reason: expect.stringContaining("CabinetColor") }),
+    );
   });
 });
 
@@ -921,6 +934,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(gaps).toEqual([]);
   });
 
+  // The Lower comes in the Upper's colours (user, 2026-10-28): configurator 4's HPL countertop colours here.
   it("spells the Lower in the Upper's countertop style", () => {
     const lowerOf = (style: string) =>
       skusOf(
@@ -928,24 +942,26 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
           [sinkBase("ulh-sb")],
           { CountertopStyle: [at(countertop, style)] },
           {
-            cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Colortech Bianco 10B" }],
+            cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Brera Brown TKN" }],
           },
         ).lines,
         "cabinetCover",
       );
 
-    expect(lowerOf("integrated")).toEqual([{ sku: "CT-UR3D-INTG-23.6W-.5H-18.1D-3D-10B", quantity: 1 }]);
-    expect(lowerOf("vessel")).toEqual([{ sku: "CT-UR3D-VES-23.6W-.5H-18.1D-3D-10B", quantity: 1 }]);
+    expect(lowerOf("integrated")).toEqual([{ sku: "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKN", quantity: 1 }]);
+    expect(lowerOf("vessel")).toEqual([{ sku: "CT-URHPL-VES-23.6W-.5H-18.1D-HPL-TKN", quantity: 1 }]);
   });
 
   it("orders actual Lower slabs in their own colour and the Upper's style, at the supporting cabinet's depth", () => {
     const vessel = { CountertopStyle: [at(countertop, "vessel")] };
     const lifted = ulhOrder([sinkBase("ulh-sb")], vessel, {
-      cabinetCovers: [{ widthCm: 85.09, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Colortech Bianco 10B" }],
+      cabinetCovers: [{ widthCm: 85.09, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Brera Brown TKN" }],
     });
 
     // 46 cm deep, as the cabinet SKU spells it (18.1D).
-    expect(skusOf(lifted.lines, "cabinetCover")).toEqual([{ sku: "CT-UR3D-VES-33.5W-.5H-18.1D-3D-10B", quantity: 1 }]);
+    expect(skusOf(lifted.lines, "cabinetCover")).toEqual([
+      { sku: "CT-URHPL-VES-33.5W-.5H-18.1D-HPL-TKN", quantity: 1 },
+    ]);
     expect(lifted.lines.find(({ group }) => group === "cabinetCover")?.widthCm).toBe(85.09);
     expect(lifted.gaps).toEqual([]);
 
@@ -956,36 +972,22 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
       {},
       {
         cabinetCovers: [
-          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-1"], materialId: "Castagno chiaro 1C1" },
-          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"], materialId: "Castagno chiaro 1C1" },
-          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"], materialId: "Castagno chiaro 1C1" },
-          { widthCm: 120, cabinetIds: ["unknown"], materialId: "Castagno chiaro 1C1" },
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-1"], materialId: "Ardesia TKF" },
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"], materialId: "Ardesia TKF" },
+          { widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb-2"], materialId: "Ardesia TKF" },
+          { widthCm: 120, cabinetIds: ["unknown"], materialId: "Ardesia TKF" },
         ],
       },
     );
     expect(skusOf(twoRuns.lines, "cabinetCover")).toEqual([
-      { sku: "CT-UR3D-INTG-23.6W-.5H-18.1D-3D-1C1", quantity: 1 },
-      { sku: "CT-UR3D-INTG-23.6W-.5H-19.7D-3D-1C1", quantity: 2 },
+      { sku: "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKF", quantity: 1 },
+      { sku: "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKF", quantity: 2 },
     ]);
     expect(twoRuns.lines.filter(({ group }) => group === "cabinetCover").map(({ id }) => id)).toEqual([
       "cabinetCover",
       "cabinetCover:1",
     ]);
     expect(twoRuns.gaps).toContainEqual(expect.objectContaining({ blocksTotal: true, reason: expect.stringContaining("cover") }));
-  });
-
-  // Until another colour is chosen the Lower is the cabinet's, and Urban Low Height cabinets start in HPL.
-  it("orders a Lower in the cabinet's HPL colour as an HPL decorative top", () => {
-    const { lines, gaps } = ulhOrder(
-      [sinkBase("ulh-sb")],
-      {},
-      {
-        cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Rox Black TKQ" }],
-      },
-    );
-
-    expect(skusOf(lines, "cabinetCover")).toEqual([{ sku: "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKQ", quantity: 1 }]);
-    expect(gaps).toEqual([]);
   });
 
   // A lifted top takes the sink with it (`cabinets.liftSink`): the sink base becomes a side cabinet and
@@ -1032,30 +1034,37 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(skusOf(ulhOrder([sinkBase("ulh-sb")], {}, { cabinetCovers: [] }).lines, "cabinetCover")).toEqual([]);
   });
 
-  // Bianco Male TFA is an Upper finish, not a cabinet colour the Lower comes in.
-  it.each([null, "Not A Colour", "Bianco Male TFA"])("keeps an unsupported applied Lower colour %s unpriced", (materialId) => {
-    const { lines, gaps } = ulhOrder(
-      [sinkBase("ulh-sb")],
-      {},
-      {
-        cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId }],
-      },
-    );
+  // A cabinet colour is not one of the Upper's: a slab the scene lays in it (its supporting cabinet's
+  // colour, before the app asks for the Upper's) names no material and is not priced as another one.
+  it.each([null, "Not A Colour", "Castagno chiaro 1C1"])(
+    "keeps an applied Lower colour %s the Upper does not come in unpriced",
+    (materialId) => {
+      const { lines, gaps } = ulhOrder(
+        [sinkBase("ulh-sb")],
+        {},
+        {
+          cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId }],
+        },
+      );
 
-    expect(skusOf(lines, "cabinetCover")).toEqual([]);
-    expect(gaps).toContainEqual(
-      expect.objectContaining({ group: "input", blocksTotal: true, reason: expect.stringContaining("cover") }),
-    );
-  });
+      expect(skusOf(lines, "cabinetCover")).toEqual([]);
+      expect(gaps).toContainEqual(
+        expect.objectContaining({ group: "input", blocksTotal: true, reason: expect.stringContaining("cover") }),
+      );
+    },
+  );
 
   it("changes only Lower's SKU when its scene material changes, under an integrated Upper", () => {
     const order = (materialId: string) => ulhOrder([sinkBase("ulh-sb")], {}, {
       cabinetCovers: [{ widthCm: 60, cabinetIds: ["Sink-Base-ulh-sb"], materialId }],
     });
-    const before = order("Colortech Bianco 10B");
-    const after = order("Blu Pavone A6 GL");
+    const before = order("Ardesia TKF");
+    const after = order("Brera Brown TKN");
+    expect(skusOf(before.lines, "cabinetCover")).toEqual([
+      { sku: "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKF", quantity: 1 },
+    ]);
     expect(skusOf(after.lines, "cabinetCover")).toEqual([
-      { sku: "CT-URLACG-INTG-23.6W-.5H-18.1D-LACG-A6", quantity: 1 },
+      { sku: "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKN", quantity: 1 },
     ]);
     expect(skusOf(after.lines, "countertop")).toEqual(skusOf(before.lines, "countertop"));
     expect(skusOf(after.lines, "cabinet")).toEqual(skusOf(before.lines, "cabinet"));
@@ -1065,7 +1074,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
   it("does not price a slab across unknown or mixed-depth supports", () => {
     for (const cabinetIds of [[], ["unknown"], ["Sink-Base-ulh-sb", "unknown"], ["Sink-Base-ulh-sb", "Sink-Base-deep"]]) {
       const result = ulhOrder([sinkBase("ulh-sb"), sinkBase("deep", 50)], {}, {
-        cabinetCovers: [{ widthCm: 90, cabinetIds, materialId: "Colortech Bianco 10B" }],
+        cabinetCovers: [{ widthCm: 90, cabinetIds, materialId: "Ardesia TKF" }],
       });
       expect(skusOf(result.lines, "cabinetCover")).toEqual([]);
       expect(result.gaps).toContainEqual(expect.objectContaining({ blocksTotal: true, reason: expect.stringContaining("cover") }));
@@ -1074,7 +1083,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
 
   it("preserves exact total length when slightly different cover widths round to one SKU", () => {
     const { lines } = ulhOrder([sinkBase("ulh-sb")], {}, {
-      cabinetCovers: [60, 60.01].map((widthCm) => ({ widthCm, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Colortech Bianco 10B" })),
+      cabinetCovers: [60, 60.01].map((widthCm) => ({ widthCm, cabinetIds: ["Sink-Base-ulh-sb"], materialId: "Ardesia TKF" })),
     });
     const lower = lines.find(({ group }) => group === "cabinetCover");
     expect(lower?.quantity).toBe(2);
@@ -1398,6 +1407,42 @@ describe("Urban Duplex models, each cabinet spelled as its own product spells it
     expect(cabinetColor.gaps).toContainEqual(
       expect.objectContaining({ blocksTotal: true, reason: expect.stringContaining("cover") }),
     );
+  });
+
+  // The scene knows Sahara Noir Silky Matte TR8 as "Sahara Noir Silky Matte" (the countertop binding's
+  // `overrides`), and so names the Lower's slab: it is ordered, and shown, as the Upper's TR8.
+  it("reads a Lower slab's scene material back through the countertop binding", () => {
+    const lowerOf = (runtimeBindings: PricingInput["runtimeBindings"]) =>
+      buildCollectionPricingLines(
+        collectionPricingInput(
+          URBAN_DUPLEX,
+          [cabinet("sb", "Sink-Base", 70, 28), cabinet("sc", "Sink-Cabinet", 90, 28)],
+          {
+            Series: [ofCabinet("sb", "URDPX"), ofCabinet("sc", "URDPX")],
+            Drawers: [ofCabinet("sb", "1D"), ofCabinet("sc", "1D")],
+            Handle: [ofCabinet("sb", "UG"), ofCabinet("sc", "UG")],
+            LateralPanelSide: [ofCabinet("sb", "L"), ofCabinet("sc", "R")],
+            CountertopStyle: [at({ scope: "countertop" }, "integrated")],
+            CountertopColor: [at({ scope: "countertop" }, "Pulpis Chiaro TKH")],
+          },
+          {
+            countertopRules,
+            colorSkuMaps: buildColorSkuMaps(URBAN_DUPLEX.configurator.groups),
+            runtimeBindings,
+            cabinetCovers: [{ widthCm: 90, cabinetIds: ["Sink-Cabinet-sc"], materialId: "Sahara Noir Silky Matte" }],
+          },
+        ),
+      ).lines.filter(({ group }) => group === "cabinetCover").map(({ sku, finish }) => ({ sku, finish }));
+
+    // The line carries the finish Summary shows: the Upper's colour, not the scene's name for it.
+    expect(lowerOf(duplexRuntimeBindings)).toEqual([
+      {
+        sku: "CT-URPOR-INTG-35.4W-.5H-19.7D-POR-TR8",
+        finish: { color: "Sahara Noir Silky Matte TR8", materialSku: "POR" },
+      },
+    ]);
+    // Without the binding the scene's name is no countertop colour.
+    expect(lowerOf(null)).toEqual([]);
   });
 });
 

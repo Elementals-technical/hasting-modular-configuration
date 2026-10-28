@@ -459,6 +459,7 @@ const validateOrderedIds = (
 const perCabinetAttributeIdOf = (entry: unknown): string | null => {
   if (isNonEmptyString(entry)) return entry;
   if (!isRecord(entry) || !isNonEmptyString(entry.attributeId) || !isRecord(entry.when)) return null;
+  if (entry.label !== undefined && !isNonEmptyString(entry.label)) return null;
 
   const conditions = Object.entries(entry.when);
   return conditions.length > 0 && conditions.every(([, value]) => typeof value === "string") ? entry.attributeId : null;
@@ -472,7 +473,7 @@ const validateAttributeIds = (entries: unknown, dataPath: string, diagnostics: C
     diagnostics.push({
       code: "invalid-schema",
       dataPath,
-      message: `${dataPath} must be an array of attribute ids, each listed once, alone or as { attributeId, when }`,
+      message: `${dataPath} must be an array of attribute ids, each listed once, alone or as { attributeId, label?, when }`,
     });
   }
 };

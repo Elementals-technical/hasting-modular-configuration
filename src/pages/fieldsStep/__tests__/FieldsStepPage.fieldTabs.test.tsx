@@ -87,10 +87,8 @@ describe("the Urban Duplex Panel Color section", () => {
   it("is one section with a tab per panel, each with its picture, under the line that says what to do", () => {
     renderColorStep();
 
-    expect(screen.getAllByRole("region").map((region) => region.getAttribute("aria-label"))).toEqual([
-      "Panel Color",
-      "Lateral Panel",
-    ]);
+    // The side of the lateral panel is a cabinet's own: the style sidebar and its menu offer it (27.10).
+    expect(screen.getAllByRole("region").map((region) => region.getAttribute("aria-label"))).toEqual(["Panel Color"]);
 
     const section = within(panelColors());
     expect(section.getByText("Select Panel, Then Color")).toBeTruthy();

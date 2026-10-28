@@ -17,6 +17,7 @@ import configurator9 from "@/entities/collection/__tests__/fixtures/remote/confi
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import configurator14 from "@/entities/collection/__tests__/fixtures/remote/configurator-14.json";
+import cabinetTable581 from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import cabinetTable596 from "@/entities/collection/__tests__/fixtures/remote/datatable-596.json";
 import { collectionSkuProfileSchema, type CollectionSkuProfile, type ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -62,10 +63,14 @@ export const CLASS = {
   } satisfies ConfiguratorGroupCatalog,
 };
 
+const makoProfile = parseProfile(makoProfileDocument);
+
 export const MAKO = {
-  profile: parseProfile(makoProfileDocument),
+  profile: makoProfile,
   skuProfile: collectionSkuProfileSchema.parse(makoSkuProfileDocument),
   configurator: configurator9Catalog,
+  // Table 581: the cabinets the builder places, which a Mako cabinet's sizes are checked against.
+  cabinetCatalog: buildCabinetCatalogFromMatrix(cabinetTable581 as ProductDatatable, makoProfile),
 };
 
 /** Configurator 14, Lame's own. */

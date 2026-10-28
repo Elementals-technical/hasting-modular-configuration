@@ -280,7 +280,7 @@
         }
       },
       "order": 70,
-      "note": "Per-module Cabinet Pattern (handoff). Export v44 reads CabinetPattern on both Tricot products (RulePatternCabinetTricot, priority 70) and spells Gessato as Gessatto. Satin, the scene default, shows no pattern; approved defaults are still sent, not replaced by it. The scene does not check the material: Loden on matte lacquer and the other four on wood veneer is the profile's rule (ruleData.fluting). getConfig reads the key back; the profile alias maps Gessatto to Gessato."
+      "note": "Per-module Cabinet Pattern (handoff). Export v44 reads CabinetPattern on both Tricot products (RulePatternCabinetTricot, priority 70) and spells Gessato as Gessatto. Satin shows no pattern; it is the collection's default since 2026-10-28 (user) and is sent as the others are. The scene does not check the material: Loden on matte lacquer and the other four on wood veneer is the profile's rule (ruleData.fluting). getConfig reads the key back; the profile alias maps Gessatto to Gessato."
     },
     {
       "attributeId": "CabinetType",
