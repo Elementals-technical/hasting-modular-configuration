@@ -510,7 +510,11 @@ const RULE_SECTION_FIELDS = {
     ],
   },
   priceTiers: {
-    byAttribute: [recordOf(isPriceTierRecord), "a map of field id to { upper-case SKU material code: tier 1-4 }"],
+    bySku: [optional(isPriceTierRecord), "a map of upper-case SKU material code to tier 1-4"],
+    byAttribute: [
+      optional(recordOf(isPriceTierRecord)),
+      "a map of field id to { upper-case SKU material code: tier 1-4 }",
+    ],
   },
   drawerOrganizers: {
     profile: NON_EMPTY_STRING,

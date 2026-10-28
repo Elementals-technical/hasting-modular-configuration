@@ -146,11 +146,12 @@ describe("mako product profile", () => {
     expect(attribute("LegColor")?.defaultValue).toBe("Antracite 400 MT");
   });
 
-  it("declares the drawer style groups, the vessel colours and the changes the product has not decided yet", () => {
+  it("declares the drawer style groups, the vessel colours, the price tiers and the changes the product has not decided yet", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual([
       "cabinetMatrixLegacyAdapter",
       "drawerOrganizers",
       "drawerStyleGroups",
+      "priceTiers",
       "undeterminedRules",
       "vesselCompatibility",
     ]);

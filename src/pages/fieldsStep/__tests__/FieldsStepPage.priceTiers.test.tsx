@@ -19,9 +19,9 @@ import { reset, setActiveProfile } from "@/entities/product/model/store/slice";
 import { FieldsStepPage } from "../FieldsStepPage";
 
 /**
- * Client feedback for Tricot, Cabinet Color | Price Filter: "Standard $ – all Lacquered MT colors",
- * "Classic $$ – all Wood Veneer colors". The grid and its full mode filter the same colours. Handle
- * Groove Color, all Lacquered MT, is Standard $ alone.
+ * The client's 'list material' > Material Pricing Tiers, GB block, for Tricot's colours: Lacquered MT
+ * is Classic $$, Wood Veneer Specialty $$$. The grid and its full mode filter the same colours. Handle
+ * Groove Color, all Lacquered MT, is Classic $$ alone.
  */
 
 vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
@@ -44,16 +44,16 @@ const LACQUERED_MT = coloursOf("LACM");
 const WOOD_VENEER = coloursOf("WDV");
 const GROOVE_COLOURS = variantsOf("Select Handle Groove Color").map(({ name }) => name);
 
-const renderColorStep = () => {
+const renderStep = (stepId = "color") => {
   const collection = buildReadyCollection("tricot", tricotManifestDocument, tricotUiDocument);
 
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={["/prebuilt/color?collectionId=tricot"]}>
+      <MemoryRouter initialEntries={[`/prebuilt/${stepId}?collectionId=tricot`]}>
         <ReadyCollectionContext.Provider
           value={{ ...collection, catalog: { ...collection.catalog, configurator: tricotConfigurator } }}
         >
-          <FieldsStepPage stepId="color" />
+          <FieldsStepPage stepId={stepId} />
         </ReadyCollectionContext.Provider>
       </MemoryRouter>
     </Provider>,
@@ -89,44 +89,53 @@ describe("Tricot colour price filters", () => {
     expect([LACQUERED_MT.length, WOOD_VENEER.length]).toEqual([20, 3]);
   });
 
-  it("shows every Lacquered MT colour under Standard $ and every Wood Veneer one under Classic $$", () => {
-    renderColorStep();
+  it("shows every Lacquered MT colour under Classic $$ and every Wood Veneer one under Specialty $$$", () => {
+    renderStep();
     const section = screen.getByRole("region", { name: "Cabinet Color" });
 
-    pickPrice(section, "Price", "Standard $");
+    pickPrice(section, "Price", "Classic $$");
     expect(shownColours(section)).toEqual(expect.arrayContaining(LACQUERED_MT));
     expect(shownColours(section)).toHaveLength(LACQUERED_MT.length);
 
-    pickPrice(section, "Standard $", "Classic $$");
+    pickPrice(section, "Classic $$", "Specialty $$$");
     expect(shownColours(section).sort()).toEqual([...WOOD_VENEER].sort());
   });
 
-  it("offers no price tier other than Standard $ and Classic $$", () => {
-    renderColorStep();
+  it("offers no price tier other than Classic $$ and Specialty $$$", () => {
+    renderStep();
     const section = screen.getByRole("region", { name: "Cabinet Color" });
 
-    expect(priceTiersOf(section)).toEqual(["Show all", "Standard $", "Classic $$"]);
+    expect(priceTiersOf(section)).toEqual(["Show all", "Classic $$", "Specialty $$$"]);
   });
 
-  it("ranks all 20 Lacquered MT handle groove colours as Standard $ alone", () => {
-    renderColorStep();
+  it("ranks all 20 Lacquered MT handle groove colours as Classic $$ alone", () => {
+    renderStep();
     const section = screen.getByRole("region", { name: "Handle Groove Color" });
 
     expect(GROOVE_COLOURS).toHaveLength(20);
-    expect(priceTiersOf(section)).toEqual(["Show all", "Standard $"]);
-    fireEvent.click(within(screen.getByRole("listbox", { name: "Price" })).getByText("Standard $"));
+    expect(priceTiersOf(section)).toEqual(["Show all", "Classic $$"]);
+    fireEvent.click(within(screen.getByRole("listbox", { name: "Price" })).getByText("Classic $$"));
     expect(shownColours(section).sort()).toEqual([...GROOVE_COLOURS].sort());
   });
 
   it("filters the same colours in full mode as in the grid", () => {
-    renderColorStep();
+    renderStep();
     fireEvent.click(within(screen.getByRole("region", { name: "Cabinet Color" })).getByText("View in full mode"));
     const dialog = screen.getByRole("dialog", { name: "Cabinet Color" });
 
-    pickPrice(dialog, "Price", "Standard $");
+    pickPrice(dialog, "Price", "Classic $$");
     expect(shownColours(dialog).sort()).toEqual([...LACQUERED_MT].sort());
 
-    pickPrice(dialog, "Standard $", "Classic $$");
+    pickPrice(dialog, "Classic $$", "Specialty $$$");
     expect(shownColours(dialog).sort()).toEqual([...WOOD_VENEER].sort());
+  });
+
+  it("ranks the countertop colours by the client's GB tiers, Matte White under Classic $$", () => {
+    renderStep("countertop");
+    const section = screen.getByRole("region", { name: "Countertop Color" });
+
+    expect(priceTiersOf(section)).toEqual(["Show all", "Standard $", "Classic $$", "Exclusive $$$$"]);
+    fireEvent.click(within(screen.getByRole("listbox", { name: "Price" })).getByText("Classic $$"));
+    expect(within(section).getAllByText("Matte White")).not.toHaveLength(0);
   });
 });
