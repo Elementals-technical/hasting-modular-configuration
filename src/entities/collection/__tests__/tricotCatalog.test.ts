@@ -121,9 +121,17 @@ describe("Tricot source preparation", () => {
     expect(entries).toHaveLength(42);
     expect(entries.reduce((sum, e) => sum + e.presetProducts.length, 0)).toBe(88);
     const shownEntries = entries.filter(isShown);
+    // The models are placed in Satin, the collection's default (user, 2026-10-28); the archived source names Cannette.
+    const defaultPattern = tricotProfile.defaults.DrawerPanelFluting;
+    expect(defaultPattern).toBe("Satin");
+    expect(masters.flatMap((p) => p.presetProducts).map((p) => p.DrawerPanelFluting)).toEqual(
+      Array(86).fill(defaultPattern),
+    );
     for (const entry of shownEntries) {
       const preset = masters.find((p) => p.sourceModel === entry.sourceModel);
-      expect(preset?.presetProducts).toEqual(entry.presetProducts);
+      expect(preset?.presetProducts).toEqual(
+        entry.presetProducts.map((product) => ({ ...product, DrawerPanelFluting: defaultPattern })),
+      );
       expect(entry.basinPositions).toEqual(
         entry.presetProducts.flatMap((p, cabinetIndex) => (p.name === "Sink-Base" ? [{ cabinetIndex }] : [])),
       );

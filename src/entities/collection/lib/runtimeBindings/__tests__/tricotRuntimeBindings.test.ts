@@ -277,7 +277,7 @@ describe("Tricot delivered runtime bindings", () => {
     expect(patch("HandleGrooveColor", "Acqua 419 Lacquered GL")).toMatchObject({ ok: false });
     expect(tricotProfile.defaults).toMatchObject({
       CabinetColor: "Rovere Oro 932",
-      DrawerPanelFluting: "Cannette",
+      DrawerPanelFluting: "Satin",
       HandleGrooveColor: "Agata 407 MT",
       sinkType: "VA024",
     });
