@@ -39,12 +39,25 @@ const isClearing = (profile: ProductProfile, attributeId: string, value: string)
   return [attribute?.initialValue, attribute?.noneValue, attribute?.resetValue, ""].includes(value);
 };
 
-const appliesAt = (rule: UndeterminedRule, target: ValueTarget, state: RootState, profile: ProductProfile): boolean => {
+/** Cabinet values a planned change is about to give the cabinet, read over the ones it holds. */
+export type PlannedCabinetValues = Readonly<Record<string, string>>;
+
+const appliesAt = (
+  rule: UndeterminedRule,
+  target: ValueTarget,
+  state: RootState,
+  profile: ProductProfile,
+  planned: PlannedCabinetValues,
+): boolean => {
   if (!rule.whenCabinet) return true;
   if (target.scope !== "cabinet" && target.scope !== "drawer") return false;
 
   return Object.entries(rule.whenCabinet).every(([attributeId, values]) => {
-    const current = readCabinetValue(state, profile, attributeId, target.cabinetId);
+    const plannedValue = planned[attributeId];
+    const current =
+      plannedValue !== undefined
+        ? (normalizeOptionValue(profile, attributeId, plannedValue) ?? plannedValue)
+        : readCabinetValue(state, profile, attributeId, target.cabinetId);
     return current !== null && values.includes(current);
   });
 };
@@ -52,13 +65,17 @@ const appliesAt = (rule: UndeterminedRule, target: ValueTarget, state: RootState
 const rulesOf = (profile: ProductProfile, attributeId: string): UndeterminedRule[] =>
   (selectRuleData(profile, "undeterminedRules") ?? []).filter((rule) => rule.attributeId === attributeId);
 
-/** The rule that leaves this value of the attribute undetermined at `target`, or null. */
+/**
+ * The rule that leaves this value of the attribute undetermined at `target`, or null. `planned` reads
+ * the cabinet as a change is about to leave it: its new drawers, before they are recorded.
+ */
 export const findUndeterminedRule = (
   state: RootState,
   profile: ProductProfile,
   attributeId: string,
   value: string,
   target: ValueTarget,
+  planned: PlannedCabinetValues = {},
 ): UndeterminedRule | null => {
   const normalized = normalizeOptionValue(profile, attributeId, value) ?? value;
 
@@ -66,7 +83,7 @@ export const findUndeterminedRule = (
     rulesOf(profile, attributeId).find(
       (rule) =>
         (rule.values ? rule.values.includes(normalized) : !isClearing(profile, attributeId, value)) &&
-        appliesAt(rule, target, state, profile),
+        appliesAt(rule, target, state, profile, planned),
     ) ?? null
   );
 };
@@ -80,4 +97,4 @@ export const isUndeterminedAt = (
   profile: ProductProfile,
   attributeId: string,
   target: ValueTarget,
-): boolean => rulesOf(profile, attributeId).some((rule) => !rule.values && appliesAt(rule, target, state, profile));
+): boolean => rulesOf(profile, attributeId).some((rule) => !rule.values && appliesAt(rule, target, state, profile, {}));

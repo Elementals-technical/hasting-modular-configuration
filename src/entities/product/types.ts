@@ -13,8 +13,10 @@ export type PresetProduct = {
   HandleGrooveColor?: string;
   /** Mako: the colour of the handles. */
   HandleColor?: string;
-  /** Mako: the model stands on legs of this colour ("None": the cabinet colour). */
+  /** Mako: the model stands on legs of this colour ("None": the cabinet colour; "": legs switched off). */
   LegColor?: string;
+  /** The cabinet pattern (Tricot Cabinet Pattern, the Urban fluting). */
+  DrawerPanelFluting?: string;
 };
 
 export type ProductSize = "24_29" | "30_39" | "40_49" | "50_59" | "60_69" | "70_79" | "80_89" | "90_plus";

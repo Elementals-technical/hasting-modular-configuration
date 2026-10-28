@@ -128,6 +128,7 @@ export {
   findMissingBindings,
   isStateOnlyResolution,
   resolveRuntimeBinding,
+  sceneValueOf,
   selectRuntimeBinding,
   semanticValueOf,
 } from "./lib/runtimeBindings/resolveRuntimeBinding";

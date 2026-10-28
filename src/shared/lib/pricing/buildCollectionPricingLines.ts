@@ -6,6 +6,7 @@ import {
   selectAttribute,
   selectDefaultValue,
   selectOption,
+  semanticValueOf,
 } from "@/entities/collection";
 import type { CollectionSkuProfile, ProductProfile } from "@/entities/collection";
 import {
@@ -19,6 +20,7 @@ import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/
 import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
   buildCabinetCoverSku,
+  CABINET_COVER_COLOR_ATTRIBUTE_ID,
   buildCollectionCabinetSku,
   buildCollectionCountertopSkus,
   buildCollectionLegCapSku,
@@ -28,12 +30,12 @@ import {
   extractColorCode,
   isChosenColor,
   OPEN_SIDE_SHELF_SIDE,
-  resolveCabinetCoverColorAttributeId,
   resolveCollectionColorCode,
   resolveCollectionColorMaterial,
   resolveCollectionDividerSku,
   resolveCollectionVessel,
   resolveCountertopColorSkuFromCandidates,
+  resolveCountertopMaterialSkuFromColorCode,
   resolveOpenSideShelfSide,
   SKU_SERIES_BY_COLLECTION,
   type CollectionCabinetSkuGap,
@@ -533,33 +535,48 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     gaps.push({ group: "input", blocksTotal: true, ...UNCONFIRMED_CABINET_COVER_SKU });
   }
   if (cover && coverSku && input.cabinetCovers?.length) {
-    const covers = new Map<string, { quantity: number; totalWidthCm: number }>();
-    const colorAttributeId = resolveCabinetCoverColorAttributeId(cover);
-    // A cover in the colours of a countertop priced as Urban Standard Height's (Urban Duplex) is spelled
-    // as that top spells them: the material of the colour's swatch, the code its name ends in.
-    const spelledAsCountertop = colorAttributeId === "CountertopColor" && "pricedAs" in skuProfile.countertop;
-    const spell = (color: string) =>
-      spelledAsCountertop
-        ? {
-            materialSku: resolveCountertopColorSkuFromCandidates({
-              value: color,
-              candidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
-            }),
-            colorCode: extractColorCode(color),
-          }
-        : {
-            materialSku: resolveCollectionColorMaterial(
-              skuProfile,
-              profile,
-              colorAttributeId,
-              color,
-              readConfiguratorColor,
-            ),
-            colorCode: resolveCollectionColorCode(skuProfile, color),
-          };
+    const covers = new Map<
+      string,
+      { quantity: number; totalWidthCm: number; finish: NonNullable<PricingLine["finish"]> }
+    >();
+    const colorAttributeId = CABINET_COVER_COLOR_ATTRIBUTE_ID;
+    // The Lower comes in the Upper's colours and is spelled as the Upper spells them. A countertop priced
+    // as Urban Standard Height's: the material of the colour's swatch, unless its code names another
+    // (as the USH top reads it), and the code its name ends in. A colour that is not one of the Upper's
+    // (a cabinet colour the scene laid the slab in) names no material, so the slab stays unpriced.
+    const spell = (color: string) => {
+      if (!("pricedAs" in skuProfile.countertop)) {
+        return {
+          materialSku: resolveCollectionColorMaterial(
+            skuProfile,
+            profile,
+            colorAttributeId,
+            color,
+            readConfiguratorColor,
+          ),
+          colorCode: resolveCollectionColorCode(skuProfile, color),
+        };
+      }
+      const colorCode = extractColorCode(color);
+      const swatchMaterial = resolveCountertopColorSkuFromCandidates({
+        value: color,
+        candidatesByValue: input.colorSkuMaps.countertopColorSkuCandidatesByValue,
+      });
+      return {
+        materialSku: swatchMaterial ? (resolveCountertopMaterialSkuFromColorCode(colorCode) ?? swatchMaterial) : null,
+        colorCode,
+      };
+    };
+    // The scene names the slab's material as the countertop binding sends the colour ("Solid Surface
+    // Matte White" for "Matte White"); a material that is one of the Upper's colours reads as itself.
+    const colorOfMaterial = (materialId: string) =>
+      readConfiguratorColor(colorAttributeId, materialId) || selectOption(profile, colorAttributeId, materialId)
+        ? materialId
+        : semanticValueOf(input.runtimeBindings ?? null, colorAttributeId, materialId);
     let unpriced = false;
     input.cabinetCovers.forEach(({ widthCm: coverWidthCm, cabinetIds, materialId }) => {
-      const color = materialId ? (normalizeOptionValue(profile, colorAttributeId, materialId) ?? materialId) : null;
+      const sceneColor = materialId ? colorOfMaterial(materialId) : null;
+      const color = sceneColor ? (normalizeOptionValue(profile, colorAttributeId, sceneColor) ?? sceneColor) : null;
       const { materialSku, colorCode } = color ? spell(color) : { materialSku: null, colorCode: null };
       const depths = cabinetIds.map((id) => {
         const under = cabinets.find(({ runtimeId }) => runtimeId === id);
@@ -572,18 +589,20 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         widthCm: coverWidthCm,
         depthCm: coverDepthCm,
         thicknessIn: coverSku.thicknessIn,
-        materialSku: materialSku && cover.materialSkus.includes(materialSku) ? materialSku : null,
+        materialSku,
         colorCode,
       });
-      if (sku) {
+      // A SKU names its material and colour code, so the slabs of one SKU share the finish.
+      if (sku && color && materialSku) {
         const previous = covers.get(sku);
         covers.set(sku, {
           quantity: (previous?.quantity ?? 0) + 1,
           totalWidthCm: (previous?.totalWidthCm ?? 0) + coverWidthCm,
+          finish: previous?.finish ?? { color, materialSku },
         });
       } else unpriced = true;
     });
-    [...covers].forEach(([sku, { quantity, totalWidthCm }], index) =>
+    [...covers].forEach(([sku, { quantity, totalWidthCm, finish }], index) =>
       add({
         id: index === 0 ? "cabinetCover" : `cabinetCover:${index}`,
         group: "cabinetCover",
@@ -591,6 +610,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         quantity,
         // CT pricing is length-based. Preserve the total exact width even if rounded SKU tokens coincide.
         widthCm: totalWidthCm / quantity,
+        finish,
       }),
     );
     if (unpriced) gaps.push({ group: "input", blocksTotal: true, ...UNPRICED_CABINET_COVER });

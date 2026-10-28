@@ -166,3 +166,4 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 - [Urban Standard Height](urban-standard-height.md).
 - [Class](class.md).
 - [Mako](mako.md).
+- [Urban Duplex](urban-duplex.md).

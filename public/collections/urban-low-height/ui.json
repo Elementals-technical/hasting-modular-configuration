@@ -286,7 +286,8 @@
       "fields": [
         {
           "attributeId": "CountertopStyle",
-          "control": "options-grid"
+          "control": "options-grid",
+          "availabilityRef": "CountertopStyle.available"
         }
       ]
     },

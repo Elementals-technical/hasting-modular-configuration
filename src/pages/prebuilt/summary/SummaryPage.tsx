@@ -92,6 +92,7 @@ import { usePriceResult } from "@/shared/hooks/usePriceResult";
 import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import {
   appendUncoveredLines,
+  cabinetCoverItems,
   resolveSummaryLinePrice,
   tandemCountertopItems,
   type PricingLine,
@@ -1201,6 +1202,12 @@ export const SummaryPage = () => {
       mainCountertopItem,
       // Tandem vanities: the clone of the top on each sink base set apart is a countertop of its own.
       ...tandemCountertopItems(mainCountertopItem, pricingLines, (line) => priceOfLines([line])),
+      // The Lower slabs, each in the finish the scene paints it, which no attribute holds.
+      ...cabinetCoverItems(pricingLines, {
+        priceOfLine: (line) => priceOfLines([line]),
+        swatchOf: resolveSwatch,
+        thickness: formatCountertopThicknessLabel(skuBuilders.collectionProfile?.cabinetCover?.thicknessIn ?? null),
+      }),
       countertopStyle
         ? {
             id: "countertop-style",

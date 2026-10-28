@@ -7,7 +7,7 @@ export {
 } from "./buildCountertopSku";
 export {
   buildCabinetCoverSku,
-  resolveCabinetCoverColorAttributeId,
+  CABINET_COVER_COLOR_ATTRIBUTE_ID,
   type CabinetCoverSkuInput,
 } from "./buildCabinetCoverSku";
 export { buildTowelBarSku, TOWEL_BAR_DEFAULTS, type TowelBarSkuInput } from "./buildTowelBarSku";

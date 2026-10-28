@@ -11,10 +11,20 @@ import type { SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
 
 export type SceneSelectorResolution = { ok: true; selector: SceneSelector | null } | { ok: false; message: string };
 
-/** The scene names a product `${type}-${random tail}`, and the tail has no dash. */
-const isOfSceneType = (runtimeId: string, productType: string): boolean =>
-  runtimeId === productType ||
-  (runtimeId.startsWith(`${productType}-`) && !runtimeId.slice(productType.length + 1).includes("-"));
+const UUID_TAIL = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * The scene names a product `${type}-${random tail}`. The tail has no dash, or is a UUID for a product
+ * the scene re-created (a sink lift or landing, a layout import). Any other dash belongs to a longer
+ * type: "UD-open-shelves-side-…" is not a "UD-open-shelves".
+ */
+const isOfSceneType = (runtimeId: string, productType: string): boolean => {
+  if (runtimeId === productType) return true;
+  if (!runtimeId.startsWith(`${productType}-`)) return false;
+
+  const tail = runtimeId.slice(productType.length + 1);
+  return !tail.includes("-") || UUID_TAIL.test(tail);
+};
 
 export const resolveSceneSelector = (
   target: RuntimeTarget,

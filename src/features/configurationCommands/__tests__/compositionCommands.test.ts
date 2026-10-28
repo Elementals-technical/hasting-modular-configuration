@@ -1,11 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import classProfileDocument from "../../../../public/collections/class/product-profile.json";
+import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
+import tricotBindingsDocument from "../../../../public/collections/tricot/runtime-bindings.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { store } from "@/app/store";
 import { parseProductProfile, parseRuntimeBindings } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
@@ -24,7 +28,15 @@ import {
   getHandleGrooveColor,
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
-import { recordComposition, reset, setActiveProfile } from "@/entities/product/model/store/slice";
+import {
+  addProductPreset,
+  recordComposition,
+  reset,
+  resetProducts,
+  setActiveProfile,
+  setCabinetColorMaterial,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 import {
   createTestCompositionPort,
   createTestRuntimePort,
@@ -330,6 +342,8 @@ describe("composition commands", () => {
             runtimeBindings: makoRuntimeBindings,
             selectedProductConfig: product().selectedProductConfig,
             placedCabinetStyles: product().placedCabinetStyles,
+            // The colour the cabinets start in, which the app's options hold (the profile's default).
+            cabinetColor: makoProfile.defaults.CabinetColor,
           },
         );
 
@@ -338,9 +352,9 @@ describe("composition commands", () => {
           .map(({ sku }) => sku);
 
         expect(cabinetSkus).toEqual([
-          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-HDL-MTL-SLV",
-          "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-HDL-MTL-SLV",
-          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-HDL-MTL-SLV",
+          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
+          "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
+          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
         ]);
       });
 
@@ -425,6 +439,7 @@ describe("composition commands", () => {
             runtimeBindings: makoRuntimeBindings,
             selectedProductConfig: product().selectedProductConfig,
             placedCabinetStyles: product().placedCabinetStyles,
+            cabinetColor: makoProfile.defaults.CabinetColor,
           },
         );
 
@@ -433,15 +448,22 @@ describe("composition commands", () => {
           .map(({ sku }) => sku.replace(/^.*?-(HDL-.*)$/, "$1"));
       };
 
-      const chooseHandleColor = async (
+      const chooseCabinetValue = async (
         { runtime, deps }: ReturnType<typeof setup>,
+        attributeId: string,
         value: string,
         cabinet = getCabinetEntries(store.getState())[0],
       ) =>
         changeAttribute(
-          { attributeId: "HandleColor", value, scope: "cabinet", cabinetId: cabinet.stableKey },
+          { attributeId, value, scope: "cabinet", cabinetId: cabinet.stableKey },
           { getState: deps.getState, dispatch: deps.dispatch, runtime: runtime.port, flow: "custom" },
         );
+
+      const chooseHandleColor = (
+        fixture: ReturnType<typeof setup>,
+        value: string,
+        cabinet = getCabinetEntries(store.getState())[0],
+      ) => chooseCabinetValue(fixture, "HandleColor", value, cabinet);
 
       it("is recorded at every cabinet when a field changes it, and sent to the scene once", async () => {
         const fixture = setup();
@@ -456,7 +478,7 @@ describe("composition commands", () => {
         ]);
         // Before, only the first cabinet took the new colour and the others kept the model's.
         expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold"]);
-        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD"]);
       });
 
       it("is recorded at every cabinet whichever cabinet the change names", async () => {
@@ -476,7 +498,7 @@ describe("composition commands", () => {
         await removeCabinets([product().productIds[0]], fixture.deps);
 
         expect(heldBy("HandleColor")).toEqual(["Gold", "Gold"]);
-        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL-GLD", "HDL-MTL-GLD"]);
       });
 
       it("goes to a cabinet added later, in the scene and in the state", async () => {
@@ -504,11 +526,73 @@ describe("composition commands", () => {
           "Antracite 400 MT",
           "Antracite 400 MT",
         ]);
-        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD"]);
+      });
+
+      describe("chosen in Prebuilt", () => {
+        /** A model in Prebuilt, which keeps its products as the presets Customize starts from. */
+        const placeModel = async (fixture: ReturnType<typeof setup>) => {
+          await applyPreset({ products: makoModel }, fixture.deps);
+          store.dispatch(
+            addProductPreset(makoModel.map(({ productType, config }) => ({ name: productType, ...config }))),
+          );
+        };
+
+        /**
+         * Customize as CabinetBuilderPage starts it: the products the scene kept are recorded as the
+         * presets name them, and the builder adds the next cabinet with the first preset's config.
+         * Returns the config the added cabinet reaches the scene with.
+         */
+        const customizeAndAdd = async ({ composition, deps }: ReturnType<typeof setup>) => {
+          const runtimeIds = product().productIds;
+          const presets = product().productsPresets;
+          store.dispatch(resetProducts());
+          await adoptComposition(
+            { runtimeIds, products: presets.map((preset) => ({ productType: preset.name, config: { ...preset } })) },
+            deps,
+          );
+          await addCabinet(
+            { product: { productType: "Sink-Cabinet", config: { ...presets[0] } }, placement: { kind: "end" } },
+            deps,
+          );
+
+          const call = lastCall(composition);
+          return call.op === "add" ? call.product.config : null;
+        };
+
+        it("goes with the model into Customize, and so to the cabinet the builder adds", async () => {
+          const fixture = setup();
+          await placeModel(fixture);
+          await chooseHandleColor(fixture, "Gold");
+
+          expect((await customizeAndAdd(fixture))?.HandleColor).toBe("Gold");
+          expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+        });
+
+        it("takes the legs' colour along the same way", async () => {
+          const fixture = setup();
+          await placeModel(fixture);
+          await chooseCabinetValue(fixture, "LegColor", "Gold");
+
+          expect((await customizeAndAdd(fixture))?.LegColor).toBe("Gold");
+          expect(heldBy("LegColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
+        });
+
+        it("keeps legs switched off in Customize, and puts none on the cabinet the builder adds", async () => {
+          const fixture = setup();
+          await placeModel(fixture);
+          await chooseCabinetValue(fixture, "LegColor", "");
+
+          expect((await customizeAndAdd(fixture))?.LegColor).toBe("");
+          // No cabinet holds a leg colour, so none is priced on legs.
+          expect(heldBy("LegColor")).toEqual([undefined, undefined, undefined, undefined]);
+        });
       });
 
       it("starts the first cabinet of an empty composition at the collection's handle colour", async () => {
         const { composition, deps } = setup();
+        // The handle the builder holds for the cabinet it places, which a complete Mako SKU spells.
+        store.dispatch(setSelectedProductConfig({ Handle: "G57" }));
 
         await addCabinet(
           { product: { productType: "Sink-Base", config: { Width: 60, Drawers: "2D" } }, placement: { kind: "end" } },
@@ -925,6 +1009,87 @@ describe("composition commands", () => {
           "UD-sink-cabinet-a1b2c3d4e",
           "Sink-Cabinet-new-1",
           "UD-side-cabinet-f5g6h7i8j",
+        ]);
+      });
+    });
+
+    /** The Class scene paints the walls and the frame of each product from its own config (RuleMaterialsCabinetClass). */
+    describe("a colour the scene keeps per product (Class)", () => {
+      beforeEach(() => {
+        const profile = parseProductProfile(classProfileDocument);
+        if (!profile.ok) throw new Error("the packaged Class profile must parse");
+
+        store.dispatch(setActiveProfile(profile.profile));
+        store.dispatch(setActiveCollectionId("class"));
+        store.dispatch(setActiveRuntimeBindings(classRuntimeBindings));
+      });
+
+      it("gives a cabinet added later the side and frame colours of the composition", async () => {
+        const { composition, deps } = setup(["Class-sink-cabinet-a1b2c3d4e"]);
+        store.dispatch(
+          setAttributeValue({ attributeId: "CabinetSideColor", target: { scope: "global" }, value: "Acqua 419 MT" }),
+        );
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 40, Drawers: "1D" } },
+            placement: { kind: "end" },
+          },
+          deps,
+        );
+
+        // The chosen side colour, and the collection's frame colour while none was chosen.
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toMatchObject({
+          CabinetSideColor: "Acqua 419 MT",
+          FrameColor: "Nero 433 MT",
+        });
+      });
+    });
+
+    describe("a cabinet pattern chosen in Prebuilt (Tricot)", () => {
+      beforeEach(() => {
+        const profile = parseProductProfile(tricotProfileDocument);
+        const bindings = parseRuntimeBindings(tricotBindingsDocument);
+        if (!profile.ok || !bindings.ok) throw new Error("the packaged Tricot data must parse");
+
+        store.dispatch(setActiveProfile(profile.profile));
+        store.dispatch(setActiveCollectionId("tricot"));
+        store.dispatch(setActiveRuntimeBindings(bindings.bindings));
+      });
+
+      it("goes into the presets Customize starts from", async () => {
+        const fixture = setup();
+        const tricotModel = [
+          { productType: "Sink-Base", config: { Width: 60, Drawers: "1D", DrawerPanelFluting: "Satin" } },
+          { productType: "Side-Cabinet", config: { Width: 40, Drawers: "1D", DrawerPanelFluting: "Satin" } },
+        ];
+        await applyPreset({ products: tricotModel }, fixture.deps);
+        store.dispatch(
+          addProductPreset(tricotModel.map(({ productType, config }) => ({ name: productType, ...config }))),
+        );
+        // The model's Rovere Oro 932 is a wood veneer, which takes Twill.
+        store.dispatch(setCabinetColorMaterial("WDV"));
+
+        const result = await changeAttribute(
+          {
+            attributeId: "DrawerPanelFluting",
+            value: "Twill",
+            scope: "cabinet",
+            cabinetId: getCabinetEntries(store.getState())[0].stableKey,
+          },
+          {
+            getState: fixture.deps.getState,
+            dispatch: fixture.deps.dispatch,
+            runtime: fixture.runtime.port,
+            flow: "prebuilt",
+          },
+        );
+
+        expect(result.status).toBe("applied");
+        expect(product().productsPresets.map(({ DrawerPanelFluting }) => DrawerPanelFluting)).toEqual([
+          "Twill",
+          "Twill",
         ]);
       });
     });
