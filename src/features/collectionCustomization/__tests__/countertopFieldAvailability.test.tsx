@@ -19,6 +19,7 @@ import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture"
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import { resetConfiguration } from "@/entities/configuration";
+import type { ConfiguratorVariant } from "@/entities/configurator/api";
 import {
   reset,
   setActiveBasinStyle,
@@ -165,6 +166,70 @@ describe("Mako countertop fields follow the countertop matrix", () => {
 
     expect(style?.options.filter(({ enabled }) => enabled)).toEqual([]);
     expect(style?.options[0]?.reasonCode).toMatch(/^countertop\./);
+  });
+});
+
+// Configurator 9 as it answered on 2026-10-28, which the recorded sample of 2026-09-23 predates: it also offers a
+// Fenix colour and the 3-1/8" Matte White, neither of which table 577 makes.
+const makoCountertopVariant = (
+  value: string,
+  Material: string,
+  sku: string,
+  codeColor: string,
+): ConfiguratorVariant => ({
+  id: 0,
+  name: value,
+  image: null,
+  enabled: true,
+  description: "",
+  metadata: { productType: "Vanities", label: value, value, Material, sku, codeColor },
+});
+const makoLiveConfiguratorGroups = configuratorGroups.map((group) =>
+  group.proxyName === "Select Countertop Color"
+    ? {
+        ...group,
+        options: group.options.map((option, index) =>
+          index === 0
+            ? {
+                ...option,
+                variants: [
+                  ...option.variants,
+                  makoCountertopVariant("Bianco Male TFA", "Fenix", "FX", "TFA"),
+                  makoCountertopVariant("Matte White 8cm", "Solid Surface 3 ⅛", "SSTMT", "MW"),
+                ],
+              }
+            : option,
+        ),
+      }
+    : group,
+);
+
+describe("Mako countertop colours follow table 577", () => {
+  const mako = {
+    profile: makoProfile,
+    ready: readyCollectionOf("mako", makoManifest, makoUi, datatable577, makoLiveConfiguratorGroups),
+  };
+  const { fieldOf } = fieldsOf(mako);
+  const colorOf = (value: string) => fieldOf("countertop-color")?.options.find((option) => option.value === value);
+
+  beforeEach(() => {
+    startWith(mako);
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it("offers the materials the table makes, the Matte White the collection starts from among them", () => {
+    expect(colorOf(makoProfile.defaults.CountertopColor)?.enabled).toBe(true);
+    expect(colorOf("Nero 433 GL")?.enabled).toBe(true);
+    expect(colorOf("CALACATTA 259")?.enabled).toBe(true);
+    expect(colorOf("CALACATTA BLACK 338")?.enabled).toBe(true);
+  });
+
+  it('refuses the Fenix colours and the 3-1/8" Matte White, which the table does not make, in its own words', () => {
+    for (const value of ["Bianco Male TFA", "Matte White 8cm"]) {
+      const reasonCode = colorOf(value)?.reasonCode ?? "";
+      expect(colorOf(value)).toMatchObject({ enabled: false, reasonCode: expect.stringMatching(/^countertop\./) });
+      expect(selectMessage(makoProfile, reasonCode)).not.toBe(reasonCode);
+    }
   });
 });
 

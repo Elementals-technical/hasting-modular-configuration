@@ -24,7 +24,12 @@ import {
   getHandleGrooveColor,
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
-import { recordComposition, reset, setActiveProfile } from "@/entities/product/model/store/slice";
+import {
+  recordComposition,
+  reset,
+  setActiveProfile,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 import {
   createTestCompositionPort,
   createTestRuntimePort,
@@ -330,6 +335,8 @@ describe("composition commands", () => {
             runtimeBindings: makoRuntimeBindings,
             selectedProductConfig: product().selectedProductConfig,
             placedCabinetStyles: product().placedCabinetStyles,
+            // The colour the cabinets start in, which the app's options hold (the profile's default).
+            cabinetColor: makoProfile.defaults.CabinetColor,
           },
         );
 
@@ -338,9 +345,9 @@ describe("composition commands", () => {
           .map(({ sku }) => sku);
 
         expect(cabinetSkus).toEqual([
-          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-HDL-MTL-SLV",
-          "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-HDL-MTL-SLV",
-          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-HDL-MTL-SLV",
+          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
+          "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
+          "VAN-MAKOV-SC/2DW/G57-15.7W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV",
         ]);
       });
 
@@ -425,6 +432,7 @@ describe("composition commands", () => {
             runtimeBindings: makoRuntimeBindings,
             selectedProductConfig: product().selectedProductConfig,
             placedCabinetStyles: product().placedCabinetStyles,
+            cabinetColor: makoProfile.defaults.CabinetColor,
           },
         );
 
@@ -456,7 +464,7 @@ describe("composition commands", () => {
         ]);
         // Before, only the first cabinet took the new colour and the others kept the model's.
         expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold"]);
-        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD"]);
       });
 
       it("is recorded at every cabinet whichever cabinet the change names", async () => {
@@ -476,7 +484,7 @@ describe("composition commands", () => {
         await removeCabinets([product().productIds[0]], fixture.deps);
 
         expect(heldBy("HandleColor")).toEqual(["Gold", "Gold"]);
-        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL-GLD", "HDL-MTL-GLD"]);
       });
 
       it("goes to a cabinet added later, in the scene and in the state", async () => {
@@ -504,11 +512,13 @@ describe("composition commands", () => {
           "Antracite 400 MT",
           "Antracite 400 MT",
         ]);
-        expect(handleBlocks()).toEqual(["HDL-MTL", "HDL-MTL", "HDL-MTL", "HDL-MTL"]);
+        expect(handleBlocks()).toEqual(["HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD", "HDL-MTL-GLD"]);
       });
 
       it("starts the first cabinet of an empty composition at the collection's handle colour", async () => {
         const { composition, deps } = setup();
+        // The handle the builder holds for the cabinet it places, which a complete Mako SKU spells.
+        store.dispatch(setSelectedProductConfig({ Handle: "G57" }));
 
         await addCabinet(
           { product: { productType: "Sink-Base", config: { Width: 60, Drawers: "2D" } }, placement: { kind: "end" } },

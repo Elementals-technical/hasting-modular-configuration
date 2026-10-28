@@ -83,8 +83,8 @@ const WORKBOOK_PRICES: Record<CollectionPricingScenarioId, Record<string, number
     // CabinetPricing: SB/2DW/G57 and SC/2DW/G50 23.6W, LACG.
     "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": 3028,
     "VAN-MAKOV-SC/2DW/G50-23.6W-20.5H-20.5D-CAB-LACG-403-HDL-MTL-SLV": 2938,
-    // CabinetPricing A54: a leg costs 745 in metal and 1340 in matte lacquer; a pair is ordered.
-    "VAN-MAKOV-LEG-MTL": 745,
+    // CabinetPricing A54: a leg costs 745 in metal and 1340 in matte lacquer; a pair is ordered. Gold (GLD).
+    "VAN-MAKOV-LEG-MTL-GLD": 745,
     // CountertopPricing: SS Technolite .5 at 13.11 / cm × 120 cm = 1573.20, rounded up.
     "CT-GBSSTL-VES-47.2W-.5H-20.7D": 1574,
     // Class AccessoriesPricing, which Mako refers to: SSTL cutout 607.69 and three holes.
@@ -187,7 +187,8 @@ describe("Class and Mako order lines", () => {
     expect(lines.find(({ group }) => group === "holeCut")).toMatchObject({ sku: "CT-GBSSTL-HCUT", quantity: 1 });
     expect(lines.find(({ group }) => group === "divider")).toMatchObject({ id: "divider:mko-sb:Top", quantity: 1 });
     expect(lines.some(({ group }) => group === "basin")).toBe(false);
-    expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
+    // Gold, spelled with the code configurator 9 gives the Gold handle, as Silver is with SLV.
+    expect(lines.find(({ group }) => group === "legs")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL-GLD", quantity: 2 });
     // The Iris is priced in its colour, and this order has chosen none.
     expect(lines.some(({ group }) => group === "vessel")).toBe(false);
     expect(gaps.map(({ group, blocksTotal }) => [group, blocksTotal])).toEqual([
@@ -406,6 +407,8 @@ describe("Class and Mako order lines", () => {
       productIds: [...input.cabinetEntries.map(({ runtimeId }) => runtimeId), added.runtimeId],
       cabinetEntries: [...input.cabinetEntries, added],
       dimensionsByCabinet: { ...input.dimensionsByCabinet, [added.stableKey]: { width: 60, height: 52, depth: 52 } },
+      // The style the builder placed it in, which its SKU needs.
+      placedCabinetStyles: { ...input.placedCabinetStyles, [added.runtimeId]: "2D" },
     });
 
     expect(lines.filter(({ group }) => group === "cabinet").map(({ id, sourceId }) => [id, sourceId])).toEqual([
@@ -585,10 +588,11 @@ describe("Class and Mako order lines", () => {
       sinkType,
     });
 
-    // Nero 433 GL is Glass Gloss (GLSG, .5"), on an integrated top with a VA005 basin over the 60 cm Sink Base.
+    // Matte White is Solid Surface (SSTL, .5"), the top of the model pictures, on an integrated top with an LB440
+    // basin over the 60 cm Sink Base. Its name carries no colour code, so the top has no colour block.
     expect(lines.filter(({ group }) => group === "countertop" || group === "basin").map(({ sku }) => sku)).toEqual([
-      "CT-GBGLSG-INTG-23.6W-.5H-20.7D-GLSG-433",
-      "CT-GBGLSG-VA005-.5H",
+      "CT-GBSSTL-INTG-23.6W-.5H-20.7D",
+      "CT-GBSSTL-LB440-.5H",
     ]);
     expect(gaps).toEqual([]);
   });
@@ -645,7 +649,7 @@ describe("Class and Mako order lines", () => {
 
     // Switching the legs off records no colour: they are removed and not priced.
     expect(legsLine("")).toBeUndefined();
-    expect(legsLine("Gold")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL", quantity: 2 });
+    expect(legsLine("Gold")).toMatchObject({ sku: "VAN-MAKOV-LEG-MTL-GLD", quantity: 2 });
   });
 
   it("prices the cabinet and legs kept in its colour in the colour the builder starts from until one is chosen", () => {
@@ -679,8 +683,11 @@ describe("Class and Mako order lines", () => {
     // The scene's Mako material, which is not one of the colours the collection offers.
     const { lines, gaps } = buildCollectionPricingLines(makoModelInput(MAKO_MODELS[0], "Antracite Matte OCF"));
 
-    expect(lines[0].sku).not.toContain("-CAB-");
-    expect(gaps).toContainEqual(expect.objectContaining({ group: "input", blocksTotal: true }));
+    // A Mako cabinet is priced from complete input only: no line rather than one without its colour.
+    expect(lines.some(({ group }) => group === "cabinet")).toBe(false);
+    expect(gaps).toContainEqual(
+      expect.objectContaining({ group: "input", blocksTotal: true, reason: expect.stringContaining("CabinetColor") }),
+    );
   });
 });
 

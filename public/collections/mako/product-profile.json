@@ -13,16 +13,16 @@
     "warning": "Only facts the Mako documents confirm: the WebGL Logic, the Mako price workbook, the GB rules and the Master File. Where the Master File conflicts with the product map, the map wins. Urban and Class values are not inherited."
   },
   "sourceRefs": {
-    "configuratorId": 4,
+    "configuratorId": 9,
     "countertopMatrixTableId": 577,
     "cabinetMatrixTableId": 581
   },
   "defaults": {
     "CabinetColor": "Antracite 400 MT",
     "HandleColor": "Antracite 400 MT",
-    "CountertopColor": "Nero 433 GL",
+    "CountertopColor": "Matte White",
     "CountertopStyle": "integrated",
-    "sinkType": "VA005"
+    "sinkType": "LB440"
   },
   "attributes": [
     {
@@ -349,14 +349,19 @@
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
     "drawers.requiredHeight": "Required for selected drawers",
-    "vessel.colorUnavailable": "Not available for selected vessel sink style."
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
+    "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
+    "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
+    "countertop.materialNotAvailableOffSinkBase": "Not available when the basin is not over a sink base",
+    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene"
   },
   "excludedFromThisProfile": {
     "sourceRefs": "Configurator 9 and cabinet table 581 come from the manifest and hold Mako data, so the colour catalogs are read from configurator 9 instead of being listed here; a colour it offers without a SKU is not offered. Countertop table 577 comes from the manifest and holds Mako data.",
     "matteWhite8cm": "Listed in the Master File (L121) but Mako has thin countertops only (map section 7, D-P0184), so it is not offered.",
     "va023": "Listed in the Master File (L195) but bound to the thick 3.1\" Technomat top in GB row 14, which thin-only excludes (section 9).",
     "va030": "Confirmed for SS Texturizzato by GB row 13 and the price workbook, but absent from the Master File, so it is not offered until the product list is fixed (section 9).",
-    "legsOnlyForTwoDrawers": "Confirmed: legs exist only for 2DW (section 6, D-P0173). The profile has no availability rule for it, and the Master File does not say when Leg Color is shown (Q-MAKO-002). The scene shows the legs only with a leg colour and hides them on 1DW (runtime-bindings.json); a leg colour kept from a 2DW cabinet is not reset on 1DW yet.",
+    "legsOnlyForTwoDrawers": "Confirmed: legs exist only for 2DW (section 6, D-P0173). The profile has no availability rule for it, and the Master File does not say when Leg Color is shown (Q-MAKO-002). The scene shows the legs only with a leg colour and hides them on 1DW (runtime-bindings.json); a cabinet switched to 1DW loses its leg colour in the same change (MAKO-LEG-002), so it is priced without legs.",
     "legsQuantityAndPrice": "Leg height 33.3 cm and prices $745 / $1,340 are known, and so is the unit: $745 / $1,340 is the price of one leg and a configuration takes a pair (team, 24.09.2026), which is what the SKU profile orders. Positions are still not given (section 6, Q-MAKO-003).",
     "handleColorByStyle": "Gold and Silver are shown for both handles, lacquered colours only for G57; lacquered G50 is neither confirmed nor forbidden (section 4).",
     "handleG50Length": "G50 comes in 20 and 36 cm; which cabinet width takes which length is not described (sections 4, 16).",

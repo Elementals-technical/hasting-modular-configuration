@@ -10,6 +10,7 @@
   ],
   "cabinet": {
     "series": "MAKOV",
+    "requireCompleteInput": true,
     "configBlock": [
       { "attributeId": "CabinetType", "codes": { "Sink-Base": "SB", "Sink-Cabinet": "SC" } },
       { "attributeId": "Drawers", "codes": { "1": "1DW", "2": "2DW" } },
@@ -26,7 +27,7 @@
       "Lacquered GL": "LACG",
       "Metal": "MTL"
     },
-    "codeByValue": { "Silver": "SLV" }
+    "codeByValue": { "Gold": "GLD", "Silver": "SLV" }
   },
   "countertop": {
     "series": "GB",

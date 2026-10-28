@@ -1,18 +1,30 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import makoCabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import { store } from "@/app/store";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
+import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import {
   getAttributeValue,
   getCabinetEntries,
   resetConfiguration,
   setActiveCollectionId,
+  setActiveRuntimeBindings,
   setAttributeValue,
   syncCabinets,
 } from "@/entities/configuration";
-import { reset, setActiveProfile, setPlacedCabinetStyle } from "@/entities/product/model/store/slice";
+import type { ProductDatatable } from "@/entities/product/api";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import {
+  reset,
+  setActiveCabinetType,
+  setActiveProfile,
+  setCabinetCatalog,
+  setPlacedCabinetStyle,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 
 import { changeAttribute } from "../lib/changeAttribute";
@@ -114,5 +126,62 @@ describe("changes the product has not decided", () => {
 
     const result = await run({ attributeId: "LegColor", value: "Gold", scope: "cabinet", cabinetId: cabinet }).result;
     expect(result).toMatchObject({ reason: makoProfile.messages[REASON_MISSING_PRODUCT_DATA] });
+  });
+});
+
+describe("a Mako model on legs switched to one drawer", () => {
+  const PLACED = ["Mako-sink-cabinet-a", "Mako-side-cabinet-b"];
+  let cabinets: string[] = [];
+  const legColorAt = (cabinetId: string) =>
+    getAttributeValue(store.getState(), "LegColor", { scope: "cabinet", cabinetId });
+  const sentLegColors = (runtime: ReturnType<typeof createTestRuntimePort>) =>
+    runtime.calls.flat().filter(({ attributeId }) => attributeId === "LegColor");
+
+  beforeEach(() => {
+    store.dispatch(setActiveProfile(makoProfile));
+    store.dispatch(setActiveCollectionId("mako"));
+    store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
+    store.dispatch(
+      setCabinetCatalog(
+        buildCabinetCatalogFromMatrix(makoCabinetTable as ProductDatatable, makoProfile, makoRuntimeBindings),
+      ),
+    );
+    store.dispatch(setActiveCabinetType("Sink-Base"));
+    store.dispatch(setSelectedProductConfig({ Drawers: "2", Handle: "G57" }));
+    store.dispatch(syncCabinets(PLACED));
+    PLACED.forEach((id) => store.dispatch(setPlacedCabinetStyle({ id, value: "2D" })));
+    cabinets = getCabinetEntries(store.getState()).map(({ stableKey }) => stableKey);
+    // The model's legs, recorded at every cabinet as placing a Legs model records them.
+    cabinets.forEach((cabinetId) =>
+      store.dispatch(
+        setAttributeValue({
+          attributeId: "LegColor",
+          target: { scope: "cabinet", cabinetId },
+          value: "Antracite 400 MT",
+        }),
+      ),
+    );
+  });
+
+  it("loses its legs with the drawers, at every cabinet, and the scene hears it once", async () => {
+    const { runtime, result } = run({ attributeId: "Drawers", value: "1", scope: "cabinet", cabinetId: cabinets[0] });
+
+    expect((await result).status).toBe("applied");
+    expect(sentLegColors(runtime)).toEqual([
+      expect.objectContaining({ value: "", origin: "dependency", reasonCode: REASON_MISSING_PRODUCT_DATA }),
+    ]);
+    // Pricing reads the composition's leg colour: none, so the order has no legs line.
+    expect(cabinets.map(legColorAt)).toEqual(["", ""]);
+  });
+
+  it("does not get its legs back with two drawers again", async () => {
+    await run({ attributeId: "Drawers", value: "1", scope: "cabinet", cabinetId: cabinets[0] }).result;
+    PLACED.forEach((id) => store.dispatch(setPlacedCabinetStyle({ id, value: "1D" })));
+
+    const { runtime, result } = run({ attributeId: "Drawers", value: "2", scope: "cabinet", cabinetId: cabinets[0] });
+
+    expect((await result).status).toBe("applied");
+    expect(sentLegColors(runtime)).toEqual([]);
+    expect(cabinets.map(legColorAt)).toEqual(["", ""]);
   });
 });
