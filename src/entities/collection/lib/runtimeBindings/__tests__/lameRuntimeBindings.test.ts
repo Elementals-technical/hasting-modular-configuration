@@ -53,6 +53,15 @@ const MAPPED_VALUE: Record<string, string> = { CountertopStyle: "integrated" };
 const resolve = (attributeId: string, value: string | number) =>
   resolveRuntimeBinding(lameRuntimeBindings(), attributeId, value);
 
+/**
+ * A field whose binding is declared `unbound` (with its reason) never goes to the scene: such a value reaches
+ * it another way, as the Dividers of the other collections do (Lame: the drawer organizers, `DividersOption`).
+ */
+const isDeclaredUnbound = (attributeId: string) => {
+  const resolution = resolve(attributeId, "x");
+  return !resolution.ok && resolution.reason === "unbound" && Boolean(resolution.detail);
+};
+
 const patchOf = (attributeId: string, value: string | number) => {
   const resolution = resolve(attributeId, value);
   return resolution.ok && !isStateOnlyResolution(resolution) ? resolution.patch : null;
@@ -69,7 +78,9 @@ describe("lame runtime bindings", () => {
   });
 
   it("let every shared value of a model and every field but the cabinet type through", () => {
-    for (const attributeId of [...SHARED_PRESET_VALUES, ...UI_FIELD_IDS.filter((id) => id !== "CabinetType")]) {
+    const fields = UI_FIELD_IDS.filter((id) => id !== "CabinetType" && !isDeclaredUnbound(id));
+
+    for (const attributeId of [...SHARED_PRESET_VALUES, ...fields]) {
       expect(resolve(attributeId, MAPPED_VALUE[attributeId] ?? "x").ok, attributeId).toBe(true);
     }
   });

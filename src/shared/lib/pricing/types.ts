@@ -2,6 +2,7 @@ import type { RootState } from "@/app/store";
 import type { PricingGapGroup, ProductProfile, RuntimeBindingSet } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { CabinetDimensions, CabinetEntry, ScopedValue, StableCabinetKey } from "@/entities/configuration";
+import type { DrawerOrganizersRead } from "@/entities/configuration/model/drawerOrganizers";
 import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
 import type { CabinetCoverSize } from "@/shared/lib/cabinetCoverRuntime";
 import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
@@ -85,6 +86,8 @@ export type PricingInput = {
   cabinetCovers?: readonly CabinetCoverSize[] | null;
   cabinetEntries: readonly CabinetEntry[];
   dimensionsByCabinet: Readonly<Record<StableCabinetKey, CabinetDimensions>>;
+  /** What the scene holds for each product's Ph2 organizers (read-model); a collection with organizers prices them. */
+  organizersByCabinet?: Readonly<Record<StableCabinetKey, DrawerOrganizersRead>>;
   /** Applied runtime countertop length. Overrides only the priced top, never cabinet or basin geometry. */
   committedCountertopLengthCm?: number;
   /** C's values by attribute and address; a collection priced from its SKU profile reads them. */

@@ -32,7 +32,8 @@
 ## Pricing
 
 `sku-profile.json` має `status: partial`, cabinet series `MAKOV`, countertop series `GB` і окремий legs
-SKU contract. Gaps: vessel (блокує total), Solid Surface group ambiguity і divider pricing assumption.
+SKU contract. Gaps: vessel (блокує total) і Solid Surface group ambiguity. Ціну органайзерів шухляд описує
+[`drawer-organizers-ui.md`](../drawer-organizers-ui.md).
 
 ## Відомі межі
 

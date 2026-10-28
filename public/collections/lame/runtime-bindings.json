@@ -307,13 +307,13 @@
     },
     {
       "attributeId": "DividersOption",
-      "status": "unbound",
-      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; there are no Lame drawers in the scene yet."
+      "status": "state-only",
+      "reason": "Ph2 organizers reach the scene through ConfiguratorAPI.organizers (scene key DrawerOrganizers), not as this value."
     },
     {
       "attributeId": "DividersStyle",
-      "status": "unbound",
-      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; there are no Lame drawers in the scene yet."
+      "status": "state-only",
+      "reason": "Ph2 organizers reach the scene through ConfiguratorAPI.organizers (scene key DrawerOrganizers), not as this value."
     },
     {
       "attributeId": "TowelBarOption",

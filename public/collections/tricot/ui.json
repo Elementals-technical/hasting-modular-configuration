@@ -34,36 +34,95 @@
   },
   "optionImageVariants": {
     "CabinetType": [
-      { "value": "Sink-Base", "when": { "Drawers": "1" }, "image": "images/cabinet/sink-base-1-drawer.png" },
-      { "value": "Side-Cabinet", "when": { "Drawers": "1" }, "image": "images/cabinet/side-cabinet-1-drawer.png" },
-      { "value": "Sink-Base", "when": { "Drawers": "1+inner" }, "image": "images/cabinet/sink-base-1-drawer.png" },
-      { "value": "Side-Cabinet", "when": { "Drawers": "1+inner" }, "image": "images/cabinet/side-cabinet-1-drawer.png" }
+      {
+        "value": "Sink-Base",
+        "when": {
+          "Drawers": "1"
+        },
+        "image": "images/cabinet/sink-base-1-drawer.png"
+      },
+      {
+        "value": "Side-Cabinet",
+        "when": {
+          "Drawers": "1"
+        },
+        "image": "images/cabinet/side-cabinet-1-drawer.png"
+      },
+      {
+        "value": "Sink-Base",
+        "when": {
+          "Drawers": "1+inner"
+        },
+        "image": "images/cabinet/sink-base-1-drawer.png"
+      },
+      {
+        "value": "Side-Cabinet",
+        "when": {
+          "Drawers": "1+inner"
+        },
+        "image": "images/cabinet/side-cabinet-1-drawer.png"
+      }
     ]
   },
   "flows": {
     "prebuilt": {
       "entryStepId": "model",
       "steps": [
-        { "stepId": "model", "path": "/prebuilt/model" },
-        { "stepId": "color", "path": "/prebuilt/color" },
-        { "stepId": "side-panels", "path": "/prebuilt/side-panels", "screen": "accessories" },
-        { "stepId": "countertop", "path": "/prebuilt/countertop" },
-        { "stepId": "summary", "path": "/prebuilt/summary" }
+        {
+          "stepId": "model",
+          "path": "/prebuilt/model"
+        },
+        {
+          "stepId": "color",
+          "path": "/prebuilt/color"
+        },
+        {
+          "stepId": "side-panels",
+          "path": "/prebuilt/side-panels",
+          "screen": "accessories"
+        },
+        {
+          "stepId": "countertop",
+          "path": "/prebuilt/countertop"
+        },
+        {
+          "stepId": "summary",
+          "path": "/prebuilt/summary"
+        }
       ]
     },
     "custom": {
       "entryStepId": "cabinet-builder",
       "steps": [
-        { "stepId": "cabinet-builder", "path": "/custom/cabinet-builder" },
-        { "stepId": "color", "path": "/custom/color" },
-        { "stepId": "side-panels", "path": "/custom/side-panels", "screen": "accessories" },
-        { "stepId": "countertop", "path": "/custom/countertop" },
-        { "stepId": "summary", "path": "/custom/summary" }
+        {
+          "stepId": "cabinet-builder",
+          "path": "/custom/cabinet-builder"
+        },
+        {
+          "stepId": "color",
+          "path": "/custom/color"
+        },
+        {
+          "stepId": "side-panels",
+          "path": "/custom/side-panels",
+          "screen": "accessories"
+        },
+        {
+          "stepId": "countertop",
+          "path": "/custom/countertop"
+        },
+        {
+          "stepId": "summary",
+          "path": "/custom/summary"
+        }
       ]
     }
   },
   "steps": {
-    "model": { "label": "Tricot Models", "kind": "preset-picker" },
+    "model": {
+      "label": "Tricot Models",
+      "kind": "preset-picker"
+    },
     "cabinet-builder": {
       "label": "Tricot Cabinet Builder",
       "kind": "cabinet-builder",
@@ -74,25 +133,51 @@
       "kind": "fields",
       "sectionIds": ["cabinet-color", "cabinet-pattern", "groove-color"]
     },
-    "side-panels": { "label": "Accessories", "kind": "fields", "sectionIds": ["side-panels"] },
+    "side-panels": {
+      "label": "Accessories",
+      "kind": "fields",
+      "sectionIds": ["side-panels", "dividers"]
+    },
     "countertop": {
       "label": "Countertop & Basin",
       "kind": "fields",
       "sectionIds": ["countertop-color", "thickness", "countertop-style", "basin-style", "vessel-color"]
     },
-    "summary": { "label": "Summary", "kind": "summary" }
+    "summary": {
+      "label": "Summary",
+      "kind": "summary"
+    }
   },
   "sections": {
     "cabinet-type": {
       "label": "Cabinet Type",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "CabinetType", "control": "options-grid" }]
+      "fields": [
+        {
+          "attributeId": "CabinetType",
+          "control": "options-grid"
+        }
+      ]
     },
-    "cabinet-style": { "label": "Cabinet Style", "fields": [{ "attributeId": "Drawers", "control": "options-grid" }] },
+    "cabinet-style": {
+      "label": "Cabinet Style",
+      "fields": [
+        {
+          "attributeId": "Drawers",
+          "control": "options-grid"
+        }
+      ]
+    },
     "cabinet-color": {
       "label": "Cabinet Color",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "CabinetColor", "control": "colors", "optionsRef": "CabinetColor" }]
+      "fields": [
+        {
+          "attributeId": "CabinetColor",
+          "control": "colors",
+          "optionsRef": "CabinetColor"
+        }
+      ]
     },
     "cabinet-pattern": {
       "label": "Cabinet Pattern",
@@ -107,12 +192,37 @@
     },
     "groove-color": {
       "label": "Handle Groove Color",
-      "fields": [{ "attributeId": "HandleGrooveColor", "control": "colors", "optionsRef": "HandleGrooveColor" }]
+      "fields": [
+        {
+          "attributeId": "HandleGrooveColor",
+          "control": "colors",
+          "optionsRef": "HandleGrooveColor"
+        }
+      ]
     },
     "side-panels": {
       "label": "Side Panels",
       "defaultOpen": true,
-      "fields": [{ "attributeId": "SidePanels", "control": "options-grid", "availabilityRef": "SidePanels.available" }]
+      "fields": [
+        {
+          "attributeId": "SidePanels",
+          "control": "options-grid",
+          "availabilityRef": "SidePanels.available"
+        }
+      ]
+    },
+    "dividers": {
+      "label": "Drawer Dividers",
+      "defaultOpen": false,
+      "fields": [
+        {
+          "attributeId": "DividersOption",
+          "control": "swatches",
+          "hints": {
+            "Customize": "Click the ⊕ button to place a divider column. Select added columns to customize it."
+          }
+        }
+      ]
     },
     "countertop-color": {
       "label": "Countertop Color",
@@ -171,5 +281,9 @@
         }
       ]
     }
+  },
+  "drawerOrganizers": {
+    "panelTitle": "Divider Options",
+    "mobileLayout": "M2"
   }
 }

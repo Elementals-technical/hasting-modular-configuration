@@ -40,6 +40,9 @@ export type {
 export { clearDividers } from "./lib/clearDividers";
 export type { ClearDividersChange, ClearDividersResult } from "./lib/clearDividers";
 
+export { changeDrawerOrganizers } from "./lib/changeDrawerOrganizers";
+export type { ChangeDrawerOrganizersDeps, OrganizerChange, OrganizerChangeResult } from "./lib/changeDrawerOrganizers";
+
 export { changeSidePanels } from "./lib/changeSidePanels";
 export type {
   SidePanelChange,

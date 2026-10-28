@@ -1,3 +1,5 @@
+import type { OrganizersApi, OrganizersOverlayApi } from "./organizers";
+
 export type ConfiguratorReadiness = "initializing" | "ready" | "error" | "unsupported";
 
 export type ConfiguratorScope = {
@@ -556,6 +558,10 @@ export interface ConfiguratorApi {
   placementOverlay?: PlacementOverlayApi;
   /** Present only in PlayCanvas builds with the countertop Drag & Drop overlay (feature-detect). */
   countertopOverlay?: CountertopOverlayApi;
+  /** Ph2 drawer organizers (Class / Mako / Tricot / Lame). Newer builds only (feature-detect). */
+  organizers?: OrganizersApi;
+  /** Screen frames and background taps of the organizer view. Newer builds only (feature-detect). */
+  organizersOverlay?: OrganizersOverlayApi;
   /** Room height per open collection (ULH lowers the room). Newer builds only (feature-detect). */
   room?: RoomApi;
   /** Cabinet covers (ULH). Newer builds only (feature-detect). */

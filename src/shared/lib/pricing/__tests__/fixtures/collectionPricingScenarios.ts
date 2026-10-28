@@ -226,20 +226,41 @@ export const COLLECTION_PRICING_SCENARIOS: Record<
   },
   "mako-vessel-with-legs": {
     title:
-      "Mako: SB 60 G57 + SC 60 G50, two drawers, gloss lacquer, silver handles, legs, Solid Surface vessel top with three holes, an oak organizer",
+      "Mako: SB 60 G57 + SC 60 G50, two drawers, gloss lacquer, silver handles, legs, Solid Surface vessel top with three holes, a two-column metal organizer",
     collection: MAKO,
-    input: collectionPricingInput(MAKO, MAKO_CABINETS, {
-      Drawers: [at(cabinetOf("mko-sb"), "2"), at(cabinetOf("mko-sc"), "2")],
-      Handle: [at(cabinetOf("mko-sb"), "G57"), at(cabinetOf("mko-sc"), "G50")],
-      HandleColor: [at(cabinetOf("mko-sb"), "Silver"), at(cabinetOf("mko-sc"), "Silver")],
-      CabinetColor: [at(GLOBAL, "Grigio Argento 403 GL")],
-      LegColor: [at(cabinetOf("mko-sb"), "Gold")],
-      CountertopStyle: [at(COUNTERTOP, "vessel")],
-      CountertopColor: [at(COUNTERTOP, "Matte White")],
-      sinkType: [at({ scope: "basin", sinkBaseId: "mko-sb" }, "Iris")],
-      FaucetHolesAmount: [at(COUNTERTOP, "3")],
-      DividersStyle: [at({ scope: "drawer", cabinetId: "mko-sb", drawerType: "Top" }, "Oak")],
-    }),
+    input: collectionPricingInput(
+      MAKO,
+      MAKO_CABINETS,
+      {
+        Drawers: [at(cabinetOf("mko-sb"), "2"), at(cabinetOf("mko-sc"), "2")],
+        Handle: [at(cabinetOf("mko-sb"), "G57"), at(cabinetOf("mko-sc"), "G50")],
+        HandleColor: [at(cabinetOf("mko-sb"), "Silver"), at(cabinetOf("mko-sc"), "Silver")],
+        CabinetColor: [at(GLOBAL, "Grigio Argento 403 GL")],
+        LegColor: [at(cabinetOf("mko-sb"), "Gold")],
+        CountertopStyle: [at(COUNTERTOP, "vessel")],
+        CountertopColor: [at(COUNTERTOP, "Matte White")],
+        sinkType: [at({ scope: "basin", sinkBaseId: "mko-sb" }, "Iris")],
+        FaucetHolesAmount: [at(COUNTERTOP, "3")],
+      },
+      {
+        // SB 60 with two drawers, the Top one with a zone of -1…1: only ±2 are free, as 3D lays them out.
+        organizersByCabinet: {
+          "mko-sb": {
+            status: "ok",
+            value: {
+              version: 1,
+              Top: {
+                style: "Metal",
+                columns: [
+                  { slot: -2, positions: [2] },
+                  { slot: 2, positions: [] },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ),
   },
 };
 

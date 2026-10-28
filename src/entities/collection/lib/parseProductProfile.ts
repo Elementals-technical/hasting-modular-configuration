@@ -6,6 +6,7 @@ import {
   type CabinetColorTraitsRuleData,
   type CabinetMatrixLegacyAdapter,
   type CountertopFallbacksRuleData,
+  type DrawerOrganizersRuleData,
   type DrawerStyleGroups,
   type UndeterminedRule,
   type FlutingRuleData,
@@ -469,6 +470,9 @@ const RULE_SECTION_FIELDS = {
       "a map of vessel style to { materialTokens, colorCodes }",
     ],
   },
+  drawerOrganizers: {
+    profile: NON_EMPTY_STRING,
+  },
 } satisfies Record<string, Record<string, FieldCheck>>;
 
 type RuleSectionName = keyof typeof RULE_SECTION_FIELDS;
@@ -661,6 +665,7 @@ const parseRuleSections = (
     materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
     cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
+    drawerOrganizers: parseRuleSection<DrawerOrganizersRuleData>(ruleData, "drawerOrganizers", collect),
   };
 
   return Object.fromEntries(Object.entries(sections).filter(([, value]) => value !== undefined));

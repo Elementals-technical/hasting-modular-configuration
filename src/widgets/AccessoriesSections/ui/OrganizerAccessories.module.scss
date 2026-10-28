@@ -1,0 +1,72 @@
+$accent: #ac5331;
+$ink: #282828;
+
+.message {
+  margin: 0;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.dividersOption {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hint,
+.counter {
+  margin: 0;
+  font-family: Poppins;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.hint {
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.counter {
+  color: $ink;
+  font-weight: 600;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.styles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.styleChip {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid #d9d4cd;
+  border-radius: 999px;
+  background: #fff;
+  color: $ink;
+  font-family: Poppins;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &[aria-pressed="true"] {
+    border-color: $accent;
+    background: $accent;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $ink;
+    outline-offset: 2px;
+  }
+}

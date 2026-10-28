@@ -1,0 +1,326 @@
+$accent: #ac5331;
+$ink: #282828;
+$touch-target: 44px;
+
+// The layer itself (position, inset, pointer-events: none, z-index) is set inline by the component: a click
+// goes through to the 3D scene everywhere except on these controls.
+.interactive {
+  pointer-events: auto;
+}
+
+button.interactive,
+span.interactive {
+  font-family: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 2px solid $ink;
+    outline-offset: 2px;
+  }
+}
+
+// Tooltip on hover and focus: the text is in the element's data-tooltip. A mixin and not a bare
+// [data-tooltip] rule, which would reach every element of the app that has one.
+@mixin tooltip {
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    width: max-content;
+    max-width: 220px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 11px;
+    line-height: 14px;
+    text-align: center;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  &:focus-visible::after {
+    opacity: 1;
+  }
+
+  @media (hover: hover) {
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      transition: none;
+    }
+  }
+}
+
+// ⊕: a 24 px disc (16 px on touch screens) inside a 44 px hit area.
+.plus {
+  @include tooltip;
+
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  &[aria-disabled="true"] {
+    opacity: 0.4;
+  }
+
+  &[aria-busy="true"] {
+    cursor: progress;
+  }
+}
+
+.plusDisc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: $accent;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  transition: transform 0.12s ease;
+
+  @media (max-width: 1024px) {
+    width: 16px;
+    height: 16px;
+    font-size: 13px;
+  }
+}
+
+@media (hover: hover) {
+  .plus:not([aria-disabled="true"]):hover .plusDisc {
+    transform: scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plusDisc {
+    transition: none;
+  }
+}
+
+// A column: an invisible hit area; the hull is drawn for the selected and the hovered one.
+.column {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hullSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hull {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 2;
+
+  &[data-selected="true"] {
+    fill: rgba(172, 83, 49, 0.25);
+    stroke: $accent;
+  }
+}
+
+.column:hover .hull {
+  fill: rgba(172, 83, 49, 0.25);
+  stroke: $accent;
+}
+
+// In the editor the selected column keeps its outline, but not the tint: the tint then belongs to the cells
+// with an insert (.draftCell), and the rest of the tray stays empty. Placed after the hover rule on purpose.
+.hull[data-selected="true"][data-editing="true"] {
+  fill: transparent;
+}
+
+// A cell of the draft with an insert, tinted over the 3D tray.
+.draftCell {
+  fill: rgba(172, 83, 49, 0.35);
+  stroke: $accent;
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.columnButton {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.lockHull {
+  fill: rgba(255, 255, 255, 0.3);
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+
+.lockMarker {
+  @include tooltip;
+
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+// Pills: the button is the 44 px target; the face is the visible pill.
+.pill {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: $touch-target;
+  min-height: $touch-target;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  transform: translate(-50%, -50%);
+}
+
+.pillFace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: $accent;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.badge {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #fff;
+  color: $accent;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.closeBar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+// Inside the bar the pill is laid out by the bar (the bar is centred on the anchor), not by its own absolute
+// position: with an absolute pill the bar had no width and the switch landed on top of the pill.
+.closePill {
+  position: static;
+  transform: none;
+}
+
+// The pill keeps the anchor; the switch stands to its left, outside the bar's width.
+.switch {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  display: flex;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+
+.switchButton {
+  min-width: $touch-target;
+  min-height: $touch-target;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: $ink;
+  font-size: 13px;
+  font-weight: 600;
+
+  &[aria-pressed="true"] {
+    background: $accent;
+    color: #fff;
+  }
+}
+
+// The notice over the canvas (see DrawerOrganizerLayer). The region is always there, so a screen reader hears
+// the text when it appears; it stands under the scene's refusal notice (top: 24px).
+.notice {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  z-index: 26;
+  max-width: min(420px, calc(100% - 32px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.noticeCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  color: $ink;
+  font-size: 13px;
+  line-height: 18px;
+  pointer-events: auto;
+}
+
+.noticeText {
+  margin: 0;
+}
+
+.noticeHint {
+  margin: 2px 0 0;
+  color: #5b5b5b;
+  font-size: 12px;
+}
+
+.noticeClose {
+  flex: 0 0 auto;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: $ink;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $ink;
+    outline-offset: 1px;
+  }
+}

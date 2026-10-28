@@ -261,6 +261,7 @@ describe("partial production collection packages", () => {
         { id: "model", label: `${label} Models`, path: "/prebuilt/model" },
         { id: "color", label: "Color", path: "/prebuilt/color" },
         { id: "countertop", label: "Countertop & Basin", path: "/prebuilt/countertop" },
+        { id: "accessories", label: "Accessories", path: "/prebuilt/accessories" },
         { id: "faucet-holes", label: "Faucet Details", path: "/prebuilt/faucet-holes" },
         { id: "summary", label: "Summary", path: "/prebuilt/summary" },
       ]);

@@ -1,6 +1,7 @@
 import { runInBatchQueue } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { parseCabinetCoverColorState, parseCabinetCoverSegments } from "./cabinetCover";
+import type { OrganizersMethod } from "./organizers";
 import { ConfiguratorError } from "./types";
 import type {
   CabinetCoverSegment,
@@ -71,7 +72,35 @@ export type ConfiguratorBridge = {
   getCabinetCoverColorState?(): Promise<CabinetCoverColorState | null>;
   /** Changes composition-owned covers through their feature API, never product setConfig. */
   setCabinetCoverColor?(materialId: string): Promise<CabinetCoverConfigureResult>;
+  /**
+   * Calls `organizers[method](input)` and resolves its raw answer (the caller parses it), or null when
+   * the build has no such method. The commands that write the stored key join the batch queue.
+   */
+  callOrganizers?(method: OrganizersMethod, input?: unknown): Promise<unknown | null>;
+  /** `organizers.on(event)` with the current state first; resolves null when the build has no `organizers`. */
+  subscribeOrganizers?(
+    event: "change" | "view",
+    callback: (payload: unknown) => void,
+  ): Promise<ConfiguratorUnsubscribe | null>;
+  /** `organizersOverlay.on(event)`; resolves null when the build has no `organizersOverlay`. */
+  subscribeOrganizersOverlay?(
+    event: "change" | "pointer",
+    callback: (payload: unknown) => void,
+  ): Promise<ConfiguratorUnsubscribe | null>;
 };
+
+/**
+ * `organizers` methods that write the stored key. They wait in the batch queue behind the size and
+ * drawer changes sent before them, so 3D checks a column against the cabinet the user sees.
+ */
+const ORGANIZERS_WRITERS: readonly OrganizersMethod[] = [
+  "addColumn",
+  "removeColumn",
+  "setColumnLayout",
+  "setStyle",
+  "clear",
+  "setState",
+];
 
 export type ConfiguratorBridgeOptions = {
   /** Primarily for contract tests. The default resolves the current iframe on every call. */
@@ -350,6 +379,47 @@ export const createConfiguratorBridge = (
         throw new ConfiguratorError("API_INVALID_RESPONSE", "The scene did not confirm the cover change.");
       }
       return { status: result.status as CabinetCoverConfigureResult["status"] };
+    },
+
+    // Drawer organizers, feature-detected like the overlays. Only the commands are queued: the view,
+    // the preview and the reads must answer at once, also while a command waits for its render.
+    async callOrganizers(method, input) {
+      const run = async () => {
+        const target = getTarget();
+        const organizers = target?.api.organizers as unknown;
+        if (!target || !isRecord(organizers) || typeof organizers[method] !== "function") return null;
+        try {
+          const args = input === undefined ? [] : [target.parse(JSON.stringify(encodeData(input)))];
+          return await (organizers[method] as ApiMethod).apply(organizers, args as never[]);
+        } catch (error) {
+          throw toBridgeError(error, `organizers.${method}`);
+        }
+      };
+      return ORGANIZERS_WRITERS.includes(method) ? runInBatchQueue(run) : run();
+    },
+
+    async subscribeOrganizers(event, callback) {
+      const organizers = getTarget()?.api.organizers;
+      if (!isRecord(organizers) || typeof organizers.on !== "function") return null;
+      try {
+        const unsubscribe = organizers.on(event, callback, { emitCurrent: true });
+        return typeof unsubscribe === "function" ? unsubscribe : null;
+      } catch (error) {
+        throw toBridgeError(error, "organizers.on");
+      }
+    },
+
+    async subscribeOrganizersOverlay(event, callback) {
+      const overlay = getTarget()?.api.organizersOverlay;
+      if (!isRecord(overlay) || typeof overlay.on !== "function") return null;
+      try {
+        // A tap is not a state: 3D refuses `emitCurrent` (any options) for 'pointer'.
+        const unsubscribe =
+          event === "pointer" ? overlay.on(event, callback) : overlay.on(event, callback, { emitCurrent: true });
+        return typeof unsubscribe === "function" ? unsubscribe : null;
+      } catch (error) {
+        throw toBridgeError(error, "organizersOverlay.on");
+      }
     },
 
     // Read only, feature-detected like the overlays: covers follow the countertop and the cabinets.

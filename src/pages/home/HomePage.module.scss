@@ -48,6 +48,21 @@
   }
 }
 
+/* Ph2 drawer organizers, mobile M1: the 3D window grows while a column is selected. */
+@media (max-width: 1024px) {
+  .content.organizerFocus {
+    --mobile-player-height: min(72%, 560px);
+
+    transition: grid-template-rows 200ms;
+  }
+}
+
+@media (max-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .content.organizerFocus {
+    transition: none;
+  }
+}
+
 /* Summary page — swap sidebar and player */
 .summaryLayout {
   grid-template-columns: 1fr 1fr;

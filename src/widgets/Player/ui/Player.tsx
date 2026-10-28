@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 
 import { PlayCanvasIntegration } from "@/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx";
@@ -8,6 +8,7 @@ import { InteractiveConfiguratorTutorial } from "@/features/interactiveConfigura
 import { IN_SCENE_QUICK_EDITOR_NOTIFICATION_DEFAULT_CONTENT } from "@/features/inSceneQuickEditorNotification";
 import { StepNavigationBar } from "@/features/StepNavigationBar/StepNavigationBar";
 import { useCollectionNavigate, useCollectionNavigation } from "@/features/collectionCustomization";
+import { DividerOptionsPanel, selectOrganizersEnabled, usePlayerLeftInset } from "@/features/drawerOrganizers";
 import { openSwatchOrder } from "@/features/swatchOrder";
 import { printQuoteWithCurrentPreview } from "@/features/quotePrint/lib/printQuote";
 
@@ -67,6 +68,9 @@ export function Player({
   const [isInteractiveTutorialOpen, setIsInteractiveTutorialOpen] = useState(initialInteractiveTutorialOpen);
 
   const activeStep = useAppSelector(getActiveStep);
+  // Ph2 drawer organizers: while their panel stands beside the canvas, the canvas toolbar moves right of it.
+  const organizersEnabled = useAppSelector(selectOrganizersEnabled);
+  const playerLeftInset = usePlayerLeftInset();
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
 
   const handleSaveConfiguration = async () => {
@@ -405,7 +409,10 @@ export function Player({
   ];
 
   return (
-    <div className={`${s.player} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>
+    <div
+      className={`${s.player} ${isCanvasFullMode ? s.canvasFullMode : ""}`}
+      style={{ "--player-left-inset": playerLeftInset } as CSSProperties}
+    >
       <div className={s.mobileStepNavigation}>
         <StepNavigationBar title={activeStep} />
       </div>
@@ -431,6 +438,8 @@ export function Player({
       )}
 
       <BottomCanvasButtons />
+
+      {organizersEnabled && <DividerOptionsPanel />}
 
       {isSummaryPage && (
         <div

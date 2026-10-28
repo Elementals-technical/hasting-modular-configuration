@@ -1,5 +1,12 @@
 import type { RuntimeBindingFailureReason, RuntimeFlow } from "@/entities/collection";
 
+import type {
+  Correction,
+  DrawerDerived,
+  DrawerName,
+  DrawerOrganizersRead,
+  DrawerOrganizersV1,
+} from "./drawerOrganizers";
 import type { AttributeValue, CabinetDimensions, StableCabinetKey, ValueTarget } from "./types";
 
 /**
@@ -88,6 +95,11 @@ export type ConfigurationRuntimePort = {
 export type SceneCabinetState = {
   runtimeId: string;
   dimensions: CabinetDimensions;
+  /**
+   * The product's `DrawerOrganizers` key as the scene holds it. Present only when the config has the
+   * key (Ph2 organizer products); undefined means the reader did not see it, never "no organizers".
+   */
+  organizers?: DrawerOrganizersRead;
 };
 
 /**
@@ -298,4 +310,48 @@ export type DividerClearResult =
 export type ConfigurationDividerPort = {
   /** Removes every placed divider of these products. */
   clear(runtimeIds: readonly string[]): Promise<DividerClearResult>;
+};
+
+/** One Ph2 drawer organizer command, addressed by the id the scene knows. */
+export type OrganizerPortCommand =
+  | { kind: "addColumn"; runtimeId: string; drawer: DrawerName; slot: number; style?: string }
+  | { kind: "removeColumn"; runtimeId: string; drawer: DrawerName; slot: number }
+  | { kind: "setColumnLayout"; runtimeId: string; drawer: DrawerName; slot: number; positions: readonly number[] }
+  | { kind: "setStyle"; runtimeId: string; drawer: DrawerName; style: string }
+  /** Every set of these products, one product after another. */
+  | { kind: "clear"; runtimeIds: readonly string[] }
+  /**
+   * The whole stored key of one product, as a history move puts it back (step B): the scene normalizes
+   * it and answers like for any other command; null stores "no organizers".
+   */
+  | { kind: "setState"; runtimeId: string; state: DrawerOrganizersV1 | null };
+
+/** What the scene now holds for one product the command reached. */
+export type OrganizerProductState = {
+  runtimeId: string;
+  entry: DrawerOrganizersRead;
+  drawers?: Record<DrawerName, DrawerDerived>;
+};
+
+/**
+ * Outcome of one organizer command:
+ * - applied / partial / noop: the scene answered; `products` is what it holds now. `partial`: it took
+ *   the command with a correction, or a multi-product clear stopped after a product had changed;
+ * - rejected: 3D refused the command (`code` from the contract); nothing changed;
+ * - not-ready: nothing was sent (no scene, or a build without `organizers`);
+ * - failed: the call threw before an answer; nothing is known to have changed.
+ */
+export type OrganizerApplyResult =
+  | { status: "applied" | "partial" | "noop"; products: OrganizerProductState[]; corrections: Correction[] }
+  | { status: "rejected"; code: string; message: string }
+  | { status: "not-ready" }
+  | { status: "failed"; message: string };
+
+/**
+ * The Ph2 drawer organizers of the placed products. The scene owns the stored key and every rule; C
+ * sends a command and records what the scene answers (`configuration.organizersByCabinet`).
+ */
+export type ConfigurationOrganizerPort = {
+  isReady(): boolean;
+  apply(command: OrganizerPortCommand): Promise<OrganizerApplyResult>;
 };
