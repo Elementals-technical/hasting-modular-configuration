@@ -175,6 +175,18 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
         "Width": 80,
         "Height": 40,
@@ -186,18 +198,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 40,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "1",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "40_49",
@@ -333,7 +333,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 100,
+        "Width": 80,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -346,7 +346,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 40,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -416,8 +416,20 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
-        "Width": 80,
+        "Width": 100,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -427,18 +439,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 60,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "1",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "50_59",
@@ -453,7 +453,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 100,
+        "Width": 80,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1+inner",
@@ -466,7 +466,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 40,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1+inner",
@@ -524,6 +524,18 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "2",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
         "Width": 80,
         "Height": 40,
@@ -535,18 +547,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 60,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "2",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "50_59",
@@ -597,8 +597,20 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
-        "Width": 120,
+        "Width": 100,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -608,18 +620,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 40,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "1",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "60_69",
@@ -717,6 +717,18 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
         "Width": 80,
         "Height": 40,
@@ -728,18 +740,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 80,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "1",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "60_69",
@@ -790,8 +790,20 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 80,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "2",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
-        "Width": 120,
+        "Width": 80,
         "Height": 40,
         "Depth": 52,
         "Drawers": "2",
@@ -801,18 +813,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 40,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "2",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "60_69",
@@ -826,8 +826,20 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "2",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
-        "Width": 100,
+        "Width": 120,
         "Height": 40,
         "Depth": 52,
         "Drawers": "2",
@@ -837,18 +849,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 60,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "2",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "60_69",
@@ -863,7 +863,7 @@
     "presetProducts": [
       {
         "name": "Side-Cabinet",
-        "Width": 40,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -875,7 +875,7 @@
       },
       {
         "name": "Sink-Base",
-        "Width": 100,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -888,7 +888,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 40,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -972,7 +972,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 40,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -984,7 +984,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 80,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1044,7 +1044,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 120,
+        "Width": 100,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1057,7 +1057,19 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 80,
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
+        "name": "Side-Cabinet",
+        "Width": 40,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1079,6 +1091,18 @@
     "isProductModel": true,
     "presetProducts": [
       {
+        "name": "Side-Cabinet",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
         "name": "Sink-Base",
         "Width": 100,
         "Height": 40,
@@ -1090,18 +1114,6 @@
         "SidePanels": "None",
         "CountertopColor": "Matte White",
         "sinkType": "LB440"
-      },
-      {
-        "name": "Side-Cabinet",
-        "Width": 100,
-        "Height": 40,
-        "Depth": 52,
-        "Drawers": "1",
-        "CabinetColor": "Rovere Oro 932",
-        "DrawerPanelFluting": "Cannette",
-        "HandleGrooveColor": "Nero 433 MT",
-        "SidePanels": "None",
-        "CountertopColor": "Matte White"
       }
     ],
     "size": "70_79",
@@ -1145,6 +1157,54 @@
     "style": ["2_drawer", "double_basin"]
   },
   {
+    "id": 3979591210,
+    "sourceModel": "Tricot 79 2DW 1_70",
+    "title": "Tricot Vanity · 79'' 2-Drawer 1",
+    "img": "images/model-3979591210.png",
+    "isProductModel": true,
+    "presetProducts": [
+      {
+        "name": "Sink-Base",
+        "Width": 100,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "2",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White",
+        "sinkType": "LB440"
+      },
+      {
+        "name": "Side-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "2",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
+        "name": "Side-Cabinet",
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "2",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      }
+    ],
+    "size": "70_79",
+    "style": ["2_drawer", "single_basin", "asymmetrical"]
+  },
+  {
     "id": 3108480620,
     "sourceModel": "Tricot 87 1DW_80",
     "title": "Tricot Vanity · 87'' 1-Drawer",
@@ -1153,7 +1213,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 80,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1166,7 +1226,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 60,
+        "Width": 100,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1178,7 +1238,7 @@
       },
       {
         "name": "Sink-Base",
-        "Width": 80,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1202,7 +1262,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 60,
+        "Width": 80,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1215,7 +1275,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 100,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1227,7 +1287,7 @@
       },
       {
         "name": "Sink-Base",
-        "Width": 60,
+        "Width": 80,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1251,7 +1311,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 120,
+        "Width": 100,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1264,7 +1324,31 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 100,
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
+        "name": "Side-Cabinet",
+        "Width": 40,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "1",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
+        "name": "Side-Cabinet",
+        "Width": 40,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1287,7 +1371,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 100,
+        "Width": 120,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1300,7 +1384,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 120,
+        "Width": 100,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1323,7 +1407,7 @@
     "presetProducts": [
       {
         "name": "Side-Cabinet",
-        "Width": 60,
+        "Width": 80,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1335,7 +1419,7 @@
       },
       {
         "name": "Sink-Base",
-        "Width": 100,
+        "Width": 60,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1348,7 +1432,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 60,
+        "Width": 80,
         "Height": 40,
         "Depth": 52,
         "Drawers": "1",
@@ -1420,7 +1504,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 120,
+        "Width": 100,
         "Height": 40,
         "Depth": 52,
         "Drawers": "2",
@@ -1433,7 +1517,7 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 100,
+        "Width": 120,
         "Height": 40,
         "Depth": 52,
         "Drawers": "2",
@@ -1456,7 +1540,7 @@
     "presetProducts": [
       {
         "name": "Sink-Base",
-        "Width": 100,
+        "Width": 120,
         "Height": 40,
         "Depth": 52,
         "Drawers": "2",
@@ -1469,7 +1553,19 @@
       },
       {
         "name": "Side-Cabinet",
-        "Width": 120,
+        "Width": 60,
+        "Height": 40,
+        "Depth": 52,
+        "Drawers": "2",
+        "CabinetColor": "Rovere Oro 932",
+        "DrawerPanelFluting": "Cannette",
+        "HandleGrooveColor": "Nero 433 MT",
+        "SidePanels": "None",
+        "CountertopColor": "Matte White"
+      },
+      {
+        "name": "Side-Cabinet",
+        "Width": 40,
         "Height": 40,
         "Depth": 52,
         "Drawers": "2",
