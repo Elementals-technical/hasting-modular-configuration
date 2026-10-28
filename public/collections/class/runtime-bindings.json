@@ -315,8 +315,9 @@
           "TERRE DI SATURNIA 336": "Terre Di Saturnia 336"
         }
       },
+      "placedWithNewProducts": true,
       "order": 50,
-      "note": "Cabinet wall and bottom material (RuleMaterialsCabinetClass). Same colours and scene names as CabinetColor (overrides)."
+      "note": "Cabinet wall and bottom material (RuleMaterialsCabinetClass). Same colours and scene names as CabinetColor (overrides). The scene keeps the colour per product, so a product placed later takes it with its config."
     },
     {
       "attributeId": "FrameColor",
@@ -426,8 +427,9 @@
           "TERRE DI SATURNIA 336": "Terre Di Saturnia 336"
         }
       },
+      "placedWithNewProducts": true,
       "order": 50,
-      "note": "Front frame material (RuleMaterialsCabinetClass). Same colours and scene names as CabinetColor (overrides)."
+      "note": "Front frame material (RuleMaterialsCabinetClass). Same colours and scene names as CabinetColor (overrides). The scene keeps the colour per product, so a product placed later takes it with its config."
     },
     {
       "attributeId": "CountertopColor",

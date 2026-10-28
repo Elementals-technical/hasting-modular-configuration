@@ -5,7 +5,12 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import { collectionSkuProfileSchema, parseProductProfile, ReadyCollectionContext } from "@/entities/collection";
+import {
+  collectionSkuProfileSchema,
+  parseProductProfile,
+  parseRuntimeBindings,
+  ReadyCollectionContext,
+} from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
@@ -14,7 +19,7 @@ import datatable591 from "@/entities/collection/__tests__/fixtures/remote/datata
 import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
-import { resetConfiguration } from "@/entities/configuration";
+import { resetConfiguration, setActiveRuntimeBindings } from "@/entities/configuration";
 import { reset, setActiveProfile } from "@/entities/product/model/store/slice";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 
@@ -24,6 +29,7 @@ import ui from "../../../../public/collections/urban-low-height/ui.json";
 import skuDocument from "../../../../public/collections/urban-low-height/sku-profile.json";
 import duplexManifest from "../../../../public/collections/urban-duplex/manifest.json";
 import duplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import duplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import duplexSkuDocument from "../../../../public/collections/urban-duplex/sku-profile.json";
 import duplexUi from "../../../../public/collections/urban-duplex/ui.json";
 import freestandingManifest from "../../../../public/collections/urban-freestanding/manifest.json";
@@ -110,6 +116,7 @@ const collection = {
 beforeEach(() => {
   store.dispatch(reset());
   store.dispatch(resetConfiguration());
+  store.dispatch(setActiveRuntimeBindings(null));
   store.dispatch(setActiveProfile(parsed.profile));
   let materialId = "Rox Black TKQ";
   mocks.read.mockReset().mockImplementation(async () => ({
@@ -133,7 +140,15 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-it("connects Upper and Lower on the actual ULH schema-driven countertop page", async () => {
+/** The colours a Countertop Color tab offers: its swatches, which say whether they are chosen. */
+const swatchNames = (colors: ReturnType<typeof within>) =>
+  colors
+    .getAllByRole("button")
+    .filter((button: HTMLElement) => button.hasAttribute("aria-pressed"))
+    .map((button: HTMLElement) => button.textContent?.trim());
+
+// The Lower comes in the Upper's colours, every collection alike (user, 2026-10-28).
+it("connects Upper and Lower on the actual ULH schema-driven countertop page, in the same colours", async () => {
   render(
     <Provider store={store}>
       <MemoryRouter initialEntries={["/prebuilt/countertop?collectionId=urban-low-height"]}>
@@ -145,14 +160,20 @@ it("connects Upper and Lower on the actual ULH schema-driven countertop page", a
   );
   await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  const upperColors = swatchNames(colors);
   fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  // The scene's slab in an HPL countertop colour reads as chosen; a cabinet colour is not offered.
+  await waitFor(() =>
+    expect(colors.getByRole("button", { name: "Rox Black TKQ" }).getAttribute("aria-pressed")).toBe("true"),
+  );
+  expect(swatchNames(colors)).toEqual(upperColors);
+  expect(colors.queryByRole("button", { name: "Castagno Chiaro 1C1" })).toBeNull();
   await act(async () => {
-    expect(colors.queryByRole("button", { name: "Pulpis Chiaro TKH" })).toBeNull();
-    fireEvent.click(colors.getByRole("button", { name: "Castagno Chiaro 1C1" }));
+    fireEvent.click(colors.getByRole("button", { name: "Pulpis Chiaro TKH" }));
   });
-  expect(mocks.lower).toHaveBeenCalledWith("Castagno chiaro 1C1");
+  expect(mocks.lower).toHaveBeenCalledWith("Pulpis Chiaro TKH");
   expect(mocks.upper).not.toHaveBeenCalled();
-  expect(colors.getByRole("button", { name: "Castagno Chiaro 1C1" }).getAttribute("aria-pressed")).toBe("true");
+  expect(colors.getByRole("button", { name: "Pulpis Chiaro TKH" }).getAttribute("aria-pressed")).toBe("true");
   fireEvent.click(screen.getByRole("tab", { name: "Upper" }));
   await act(async () => {
     fireEvent.click(colors.getByRole("button", { name: "Rox Black TKQ" }));
@@ -201,12 +222,14 @@ it("offers Upper and Lower on Urban Duplex once the scene publishes a cover, in 
 
   await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  const upperColors = swatchNames(colors);
   fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
   // The scene's HPL slab reads as chosen: its colour is a countertop colour too.
   await waitFor(() =>
     expect(colors.getByRole("button", { name: "Rox Black TKQ" }).getAttribute("aria-pressed")).toBe("true"),
   );
-  // A cabinet colour is not offered for the Lower.
+  // The Upper's colours, and no cabinet colour.
+  expect(swatchNames(colors)).toEqual(upperColors);
   expect(colors.queryByRole("button", { name: "Bianco Calce DA ST" })).toBeNull();
   await act(async () => {
     fireEvent.click(colors.getByRole("button", { name: "Bianco Male TFA" }));
@@ -215,6 +238,40 @@ it("offers Upper and Lower on Urban Duplex once the scene publishes a cover, in 
   expect(mocks.lower).toHaveBeenCalledWith("Bianco Male TFA");
   expect(mocks.upper).not.toHaveBeenCalled();
   expect(colors.getByRole("button", { name: "Bianco Male TFA" }).getAttribute("aria-pressed")).toBe("true");
+});
+
+// The scene knows some countertop colours under other names (the countertop binding's `overrides`):
+// the Lower reaches it, and reads back, as the Upper's colour does.
+const duplexBindings = parseRuntimeBindings(duplexBindingsDocument);
+if (!duplexBindings.ok) throw new Error("Invalid Urban Duplex bindings");
+
+it("sends and reads the Lower's colour as the Upper's binding names it", async () => {
+  store.dispatch(setActiveRuntimeBindings(duplexBindings.bindings));
+  let materialId = "Solid Surface Matte White";
+  mocks.read.mockImplementation(async () => ({
+    compositionId: "cabinets",
+    segments: [
+      { productId: "cover", cabinetIds: ["cabinet"], widthM: 0.9, depthM: 0.44, thicknessM: 0.0127, materialId },
+    ],
+  }));
+  mocks.lower.mockImplementation(async (value: string) => {
+    materialId = value;
+    return { status: "applied" };
+  });
+  renderDuplexCountertopStep(duplexCollection);
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
+  await waitFor(() =>
+    expect(colors.getByRole("button", { name: "Matte White" }).getAttribute("aria-pressed")).toBe("true"),
+  );
+  await act(async () => {
+    fireEvent.click(colors.getByRole("button", { name: "Sahara Noir Silky Matte TR8" }));
+  });
+
+  expect(mocks.lower).toHaveBeenCalledWith("Sahara Noir Silky Matte");
+  expect(colors.getByRole("button", { name: "Sahara Noir Silky Matte TR8" }).getAttribute("aria-pressed")).toBe("true");
 });
 
 it("shows no Lower for a collection without the cover contract, whatever the scene publishes", async () => {
@@ -230,7 +287,7 @@ it("shows no Lower for a collection without the cover contract, whatever the sce
 });
 
 // Urban Freestanding: Lower is the cover the scene lays on a Floor-Mount Short Cabinet, which the
-// custom flow adds. It takes the palette of the collection's own cabinets.
+// custom flow adds. It comes in the Upper's colours, as in every collection.
 const freestandingParsed = parseProductProfile(freestandingProfileDocument);
 if (!freestandingParsed.ok) throw new Error("Invalid Urban Freestanding profile");
 const freestandingGroups = configurator11.availableOptions as unknown as ConfiguratorAvailableOption[];
@@ -259,20 +316,22 @@ const renderCountertopStep = (path: string, value: typeof collection | typeof fr
     </Provider>,
   );
 
-it("offers Upper and Lower in the Urban Freestanding custom flow, Lower in the cabinets' palette", async () => {
+it("offers Upper and Lower in the Urban Freestanding custom flow, Lower in the Upper's colours", async () => {
   store.dispatch(setActiveProfile(freestandingParsed.profile));
   renderCountertopStep("/custom/countertop?collectionId=urban-freestanding", freestandingCollection);
 
   await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  const upperColors = swatchNames(colors);
   fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
   await act(async () => {
-    // A Porcelain countertop colour is Upper's only; Lower lists the cabinet colours.
-    expect(colors.queryByRole("button", { name: "Aosta Green Marble Lucidato TR4" })).toBeNull();
-    fireEvent.click(colors.getByRole("button", { name: "Agata BD ST" }));
+    // The countertop's colours, Porcelain among them; a cabinet colour is not one of them.
+    expect(colors.queryByRole("button", { name: "Agata BD ST" })).toBeNull();
+    fireEvent.click(colors.getByRole("button", { name: "Aosta Green Marble Lucidato TR4" }));
   });
 
-  expect(mocks.lower).toHaveBeenCalledWith("Agata BD ST");
+  expect(swatchNames(colors)).toEqual(upperColors);
+  expect(mocks.lower).toHaveBeenCalledWith("Aosta Green Marble Lucidato TR4");
   expect(mocks.upper).not.toHaveBeenCalled();
 });
 
@@ -293,10 +352,10 @@ it("offers Upper and Lower in the Urban Low Height custom flow, as in prebuilt",
   const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
   fireEvent.click(screen.getByRole("tab", { name: "Lower" }));
   await act(async () => {
-    fireEvent.click(colors.getByRole("button", { name: "Castagno Chiaro 1C1" }));
+    fireEvent.click(colors.getByRole("button", { name: "Pulpis Chiaro TKH" }));
   });
 
-  expect(mocks.lower).toHaveBeenCalledWith("Castagno chiaro 1C1");
+  expect(mocks.lower).toHaveBeenCalledWith("Pulpis Chiaro TKH");
   expect(mocks.upper).not.toHaveBeenCalled();
 });
 

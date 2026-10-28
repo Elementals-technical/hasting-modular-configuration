@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import classProfileDocument from "../../../../public/collections/class/product-profile.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { store } from "@/app/store";
 import { parseProductProfile, parseRuntimeBindings } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
@@ -1005,6 +1007,40 @@ describe("composition commands", () => {
           "Sink-Cabinet-new-1",
           "UD-side-cabinet-f5g6h7i8j",
         ]);
+      });
+    });
+
+    /** The Class scene paints the walls and the frame of each product from its own config (RuleMaterialsCabinetClass). */
+    describe("a colour the scene keeps per product (Class)", () => {
+      beforeEach(() => {
+        const profile = parseProductProfile(classProfileDocument);
+        if (!profile.ok) throw new Error("the packaged Class profile must parse");
+
+        store.dispatch(setActiveProfile(profile.profile));
+        store.dispatch(setActiveCollectionId("class"));
+        store.dispatch(setActiveRuntimeBindings(classRuntimeBindings));
+      });
+
+      it("gives a cabinet added later the side and frame colours of the composition", async () => {
+        const { composition, deps } = setup(["Class-sink-cabinet-a1b2c3d4e"]);
+        store.dispatch(
+          setAttributeValue({ attributeId: "CabinetSideColor", target: { scope: "global" }, value: "Acqua 419 MT" }),
+        );
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 40, Drawers: "1D" } },
+            placement: { kind: "end" },
+          },
+          deps,
+        );
+
+        // The chosen side colour, and the collection's frame colour while none was chosen.
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config).toMatchObject({
+          CabinetSideColor: "Acqua 419 MT",
+          FrameColor: "Nero 433 MT",
+        });
       });
     });
 

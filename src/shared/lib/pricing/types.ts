@@ -46,6 +46,11 @@ export type PricingLine = {
   sourceId?: string;
   /** Actual countertop width the top line is priced for. */
   widthCm?: number;
+  /**
+   * The finish the line is ordered in where no attribute holds it: a Lower slab's (`cabinetCover`), which
+   * the scene paints, as the Upper's palette names its colour and the SKU names its material.
+   */
+  finish?: { color: string; materialSku: string };
 };
 
 /**
