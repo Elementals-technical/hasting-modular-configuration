@@ -1,0 +1,98 @@
+---
+description: Reference for tagging-modules-tool architecture — layers and imports between slices, Redux store and listeners, RTK Query endpoints, collection files and validators, reason codes, the scene change path and its debugging hooks, tests and helpers, ownership. Read before adding files, importing across slices, or touching the store, the API, collection data or anything that reaches the scene.
+globs:
+alwaysApply: false
+---
+
+# Project conventions
+
+Invariants, files not edited by hand and the status markers are in `ai/AGENTS.md`; this file adds the detail.
+
+## Stack
+
+Vite 7, React 18, TypeScript strict, react-router 7, Redux Toolkit + RTK Query, zod, SCSS Modules, Vitest 4 + Testing Library + msw.
+
+Not in the project — don't add: MUI, styled-components, emotion, react-query, axios, yup, react-hook-form, i18next.
+
+## Layout
+
+- FSD layers under `src/`, high to low: `app` → `pages` → `widgets` → `features` → `entities` → `shared`.
+- `src/utils/` sits outside the layers and holds mostly the PlayCanvas wrappers (`src/utils/functions/playcanvas/`); treat it like `shared`.
+- `@/` is the alias for `src/`. Use relative imports inside a slice.
+- Entry: `src/main.tsx` → `src/app/App.tsx` → `src/app/router/AppRouter.tsx` → `src/app/router/routerConfig.tsx`.
+
+## Imports between slices
+
+- **[needs decision]** A slice's `index.ts` as its only public API. Many production files import internals of slices that have one (e.g. `@/entities/configuration/model/store/selectors`). When the index already exports what you need, import from it; don't add exports to it or rewrite existing deep imports as a side task.
+- Slices without an `index.ts` (e.g. `entities/product`, `entities/history`, `features/configurator-rule-core`, `features/sidebar`, `features/quotePrint`) are imported by file path. Don't add an index as a side task.
+- **[needs decision]** Layer-root barrels exist — `src/{entities,features,pages,shared,widgets}/index.ts`, all `export *`. `@/shared` is used widely, the others by the router and a few files. Don't add exports to them as a side task.
+- `src/entities/collection/index.ts`: the sections owned by C, I and B list re-exports by name, so a name collision fails to compile (rationale in the comment above the C section); the A section at the top uses `export *`. Add new C, I and B exports by name.
+- Tests may import internals and fixtures of any slice.
+
+## Layer direction
+
+- **[needs decision]** Lower layers don't import higher ones. Current code breaks this in many places: `shared` → `entities` / `features` (pricing, SKU, hooks, popups), `entities` → `features` (including `src/entities/collection/lib/loadCollection.ts` and `src/entities/product/model/store/slice.ts`), `utils` → `entities`. These are legacy, not a template.
+- Allowed from any layer: `import type { RootState, AppDispatch } from "@/app/store"`.
+- The `store` value belongs to `src/app/` and tests. A few production files import it (e.g. `src/features/bottomCanvasButtons/BottomCanvasButtons.tsx`); don't copy that — components get the store through `useStore` / `useAppDispatch`, as `src/features/configurationCommands/hooks/useChangeAttribute.ts` does.
+
+## State
+
+- One RTK store: `src/app/store/index.ts`. UI slices live under `rootStateUI` (`src/app/store/reducer.ts`), including `features/sidebar` and `features/swatchOrder`; RTK Query lives under `api`.
+- **[observed]** Components use `useAppSelector` / `useAppDispatch` from `src/shared/hooks/store/redux.ts`; production code has no raw `useSelector` / `useDispatch`.
+- Cross-slice reactions live in the listener middleware `src/app/store/optionsListener.ts`, which also registers listeners from features (`setupSceneStateListener`, `setupSidePanelListener`). Listener typing: `ai/typescript_typing_contracts.mdc` rule 6.
+- Examples: `src/entities/configuration/model/store/slice.ts`, `src/entities/history/model/store/slice.ts`.
+
+## Backend API
+
+- Each entity injects its endpoints into `baseApi` (`src/shared/api/baseApi.ts`) from `src/entities/<slice>/api/`: `<slice>Api.ts`, `routes.ts`, `types.ts`, `index.ts`.
+- Response types are hand-written. Check them against real responses or the frozen fixtures; never guess.
+- Example: `src/entities/countertop/api/countertopApi.ts` with its msw test `src/entities/countertop/api/__tests__/countertopApi.test.ts`.
+
+## Collection data
+
+A collection is a folder `public/collections/<id>/` (manifest, product-profile, ui, presets and, depending on the collection, sku-profile, runtime-bindings…) listed in `public/collections/registry.json`. Every collection has a `runtime-bindings.json`. A `state-only` value counts as applied without a scene call; an `unbound` attribute returns `unsupported` (`createPlayCanvasRuntimePort.ts`).
+
+- `src/entities/collection/lib/loadCollection.ts` loads and validates a collection once; `CollectionReadinessGate` (`src/entities/collection/ui/CollectionReadinessGate.tsx`) opens the app only for a ready collection.
+- Components read the data with `useActiveCollection(selector)` (`src/entities/collection/ui/activeCollectionContext.ts`) or a derived hook such as `useCountertopRules()` (`src/features/configurator-rule-core/countertop/hooks/useCountertopRules.ts`).
+- One validator per file; don't add a second one (rationale: the comment on `productProfile` in `src/entities/collection/model/schemas.ts`):
+  - registry, manifest → zod schemas in `src/entities/collection/model/schemas.ts`;
+  - product profile → `parseProductProfile`;
+  - runtime bindings → `parseRuntimeBindings`;
+  - ui → `validateCustomizationSchema`.
+- Reason codes: rules, commands and pages return `"namespace.camelCase"` codes (pages keep them as `REASON_*` constants). The text comes from the profile's `messages`, never from code. **[enforced]** for the USH profile only; `class` and `mako` declare no `messages` — **[needs decision]** whether every collection must.
+- Background: `docs/collection-data-migration-status-v4.md`, `docs/product-profile-migration.md`.
+
+## Scene
+
+- Change path: UI → `useChangeAttribute` / `useChangeDimension` (`@/features/configurationCommands`) → change plan → `ConfigurationRuntimePort` (`src/entities/configuration/model/runtimePort.ts`, types only) → `src/features/playCanvasAdapter/lib/createPlayCanvasRuntimePort.ts` → `src/utils/functions/playcanvas/sceneBridge.ts`. The store is written by `src/features/configurationCommands/lib/commitChange.ts`.
+- Dividers have their own scene adapter: `src/features/dividers/adapter/`.
+- In `src/entities/collection/__tests__/collectionConsumerBoundary.test.ts`: allowed places for direct scene calls — `SCENE_INFRASTRUCTURE`; the calls — `directSceneCalls`; files still waiting, with owner and reason — `PENDING_DIRECT_SCENE_CALLERS`, `PENDING_DIRECT_STATE_WRITERS`, `PENDING_LEGACY_ALIAS_CALLERS`, `PENDING_PAGE_CATALOGS`.
+- Scene keys and values come from the collection's `runtime-bindings.json`.
+- Debugging in the browser:
+  - `window.__configuratorApiLogs` — scene API call log (`src/utils/functions/playcanvas/apiLogger.ts`);
+  - `window.__HASTING_DIVIDER_UI_DEBUG__.dump()` — divider UI state (`src/utils/functions/playcanvas/dividers/dividerUiDebug.ts`).
+- Background: `docs/runtime-bindings-migration.md`.
+
+## Tests
+
+- Vitest runs only `src/**/__tests__/**/*.test.{ts,tsx}` (`vitest.config.ts`). The default environment is `node`; DOM tests start with `// @vitest-environment jsdom`.
+- Integration tests use the real `store` and reset its slices in `beforeEach` (e.g. `src/entities/collection/__tests__/fixtureUiStateIntegration.test.tsx`).
+- Helpers:
+  - synthetic collection — `renderWithFixtureCollection` (`src/entities/collection/__tests__/fixtures/renderWithFixtureCollection.tsx`); the fixtures are described in `fixtures/README.md` there;
+  - shipped USH data — `ushProfile` (`src/entities/collection/__tests__/ushProfileFixture.ts`) and `ushRuntimeBindings` (`src/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture.ts`);
+  - backend API — msw;
+  - scene — `createTestRuntimePort`, `createTestSceneReader`, `createTestSceneRestorer` from `@/features/playCanvasAdapter`.
+- Source-scanning checks read `src` through `import.meta.glob(..., { query: "?raw" })`; see `collectionConsumerBoundary.test.ts` and `reasonCodesHaveMessages.test.ts`. A waiting list carries an owner, a reason and an exact count.
+- `src/shared/lib/pricing/__tests__/recordPriceFixtures.test.ts` is skipped unless `RECORD_PRICES=1` and is excluded from `tsc`.
+
+## Ownership
+
+Code comments and tests name owners (e.g. the section comments in `src/entities/collection/index.ts`, the `Residue` type in `collectionConsumerBoundary.test.ts`):
+
+- A — collection loading;
+- B — pages and the UI schema;
+- C — product profile, state and commands;
+- D — pricing;
+- I — scene and runtime bindings.
+
+Keep the owner comments when editing those sections. Some comments cite "CONTRACTS §N"; that document is not in the repository.
