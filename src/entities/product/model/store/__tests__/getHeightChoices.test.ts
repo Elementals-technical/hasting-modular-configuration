@@ -144,7 +144,7 @@ describe("getHeightChoices", () => {
     ).toEqual([28, 38, 53]);
   });
 
-  it("offers nothing for the Urban Duplex styles with one height, nor for its shelves", () => {
+  it("offers nothing for the Urban Duplex styles with one height, nor for its shelves on their own", () => {
     expect(choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Sink-Base", handle: "UG", drawers: "2D" })).toEqual(
       [],
     );
@@ -153,6 +153,36 @@ describe("getHeightChoices", () => {
     ).toEqual([]);
     expect(choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Open-Shelf" })).toEqual([]);
     expect(choicesFor(duplexProfile, duplexCatalog, { cabinetType: "Side-Shelf" })).toEqual([]);
+  });
+
+  /** An Urban Duplex composition of `placed` cabinets with their drawers; a shelf of `cabinetType` is chosen. */
+  const duplexShelfChoices = (cabinetType: string, placed: Record<string, string>) => {
+    let state = rootReducer(undefined, { type: "@@INIT" });
+    state = rootReducer(state, replaceCollectionData({ profile: duplexProfile, cabinetCatalog: duplexCatalog }));
+    state = rootReducer(state, recordComposition({ productIds: Object.keys(placed), placedCabinetStyles: placed }));
+    state = rootReducer(state, setActiveCabinetType(cabinetType));
+    return getHeightChoices(state);
+  };
+
+  it.each(["Open-Shelf", "Side-Shelf"])(
+    "offers an Urban Duplex %s the heights the drawers of the placed cabinets come in",
+    (cabinetType) => {
+      // The shelf has no drawers; it shares the composition's height, which one drawer leaves at 53, 38 or 28 cm.
+      expect(duplexShelfChoices(cabinetType, { "UD-sink-cabinet-test1": "1", "UD-side-cabinet-test2": "1" })).toEqual([
+        28, 38, 53,
+      ]);
+    },
+  );
+
+  it("offers an Urban Duplex shelf nothing beside two drawers or an inner drawer, which have one height", () => {
+    expect(duplexShelfChoices("Open-Shelf", { "UD-sink-cabinet-test1": "2" })).toEqual([]);
+    expect(
+      duplexShelfChoices("Side-Shelf", { "UD-sink-cabinet-test1": "1", "UD-side-cabinet-test2": "1+inner" }),
+    ).toEqual([]);
+  });
+
+  it("offers an Urban Duplex shelf nothing beside other shelves only", () => {
+    expect(duplexShelfChoices("Open-Shelf", { "UD-open-shelves-side-test1": "" })).toEqual([]);
   });
 
   it("offers nothing until a cabinet type is active", () => {
@@ -231,5 +261,13 @@ describe("the heights beside a cabinet of another series", () => {
 
   it("leaves all three heights of one drawer while every cabinet is the collection's own", () => {
     expect(getHeightChoices(withSideCabinetOf("URDPX"))).toEqual([28, 38, 53]);
+  });
+
+  it("leaves a shelf the heights the cabinets of both series share", () => {
+    const shelfBeside = (series: string) =>
+      getHeightChoices(rootReducer(withSideCabinetOf(series), setActiveCabinetType("Side-Shelf")));
+
+    expect(shelfBeside("URLH")).toEqual([28, 38]);
+    expect(shelfBeside("URSTD")).toEqual([]);
   });
 });

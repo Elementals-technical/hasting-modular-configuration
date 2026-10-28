@@ -24,7 +24,7 @@ const sideAt = (cabinetId: string, value: string): ScopedValue => ({ target: { s
 const fieldsFor = (
   cabinetId: string | null,
   recorded: ScopedValue[] = [],
-  attributes: PerCabinetAttribute[] = ["LateralPanelSide"],
+  attributes: readonly PerCabinetAttribute[] = schema.styleSidebar?.attributes ?? [],
 ) =>
   buildPerCabinetAttributeFields({
     profile,
@@ -68,6 +68,11 @@ describe("the values a collection offers for one cabinet alone", () => {
     expect(fieldsFor("cab-1")[0].value).toBe("R");
   });
 
+  it("names a value listed without a label by the section that shows it alone, else by its id", () => {
+    // No step of Urban Duplex shows the side (27.10), so only the entry's label names it.
+    expect(fieldsFor(null, [], ["LateralPanelSide"])[0].label).toBe("LateralPanelSide");
+  });
+
   it("leaves out a value the profile has no options for", () => {
     expect(fieldsFor(null, [], ["Missing"])).toEqual([]);
   });
@@ -95,7 +100,9 @@ describe("a value offered to the cabinets that hold given values", () => {
     }).map(({ attributeId }) => attributeId);
 
   it("is how the collection lists the side of the lateral panel", () => {
-    expect(ownCabinetsOnly).toEqual([{ attributeId: "LateralPanelSide", when: { Series: "URDPX" } }]);
+    expect(ownCabinetsOnly).toEqual([
+      { attributeId: "LateralPanelSide", label: "Lateral Panel", when: { Series: "URDPX" } },
+    ]);
     expect(schema.playerMenu?.attributes).toEqual(ownCabinetsOnly);
   });
 

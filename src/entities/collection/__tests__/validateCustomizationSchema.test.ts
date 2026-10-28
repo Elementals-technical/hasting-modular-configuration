@@ -424,8 +424,8 @@ describe("validateCustomizationSchema", () => {
     ).toBe(true);
   });
 
-  it("accepts such a value with what the cabinet must hold to be offered it", () => {
-    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", when: { Series: "URDPX" } }];
+  it("accepts such a value with what the cabinet must hold to be offered it, and the name of its selector", () => {
+    const ownCabinetsOnly = [{ attributeId: "LateralPanelSide", label: "Lateral Panel", when: { Series: "URDPX" } }];
 
     expect(
       validateCustomizationSchema({
@@ -445,6 +445,10 @@ describe("validateCustomizationSchema", () => {
       // A condition names values; one without any is no condition, and an id still stands once.
       [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide" }] } }, "playerMenu.attributes"],
       [{ playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: {} }] } }, "playerMenu.attributes"],
+      [
+        { playerMenu: { attributes: [{ attributeId: "LateralPanelSide", label: " ", when: { Series: "URDPX" } }] } },
+        "playerMenu.attributes",
+      ],
       [
         { playerMenu: { attributes: [{ attributeId: "LateralPanelSide", when: { Series: 1 } }] } },
         "playerMenu.attributes",

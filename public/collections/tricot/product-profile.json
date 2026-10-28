@@ -15,7 +15,7 @@
   },
   "defaults": {
     "CabinetColor": "Rovere Oro 932",
-    "DrawerPanelFluting": "Cannette",
+    "DrawerPanelFluting": "Satin",
     "HandleGrooveColor": "Agata 407 MT",
     "CountertopColor": "BIANCO KOS 250",
     "sinkType": "VA024",
@@ -147,7 +147,7 @@
     {
       "attributeId": "DrawerPanelFluting",
       "scope": "cabinet",
-      "initialValue": "Cannette",
+      "initialValue": "Satin",
       "options": [
         {
           "value": "Loden",
@@ -177,7 +177,7 @@
           "order": 4
         }
       ],
-      "defaultValue": "Cannette"
+      "defaultValue": "Satin"
     },
     {
       "attributeId": "HandleGrooveColor",

@@ -122,6 +122,8 @@ length chip at `lengthLabel` (fallback `topCenter`), depth chip 28 px right of `
   marker (`lib/lengthHintPlacement.ts`). The top's box is the frame's `bounds`, else the box around its
   `hull`, else the box around its `points`. The hint goes below the Apply / × / reason row when it would
   overlap that row, left of the row when the viewport has no room below it, and always inside the viewport.
+  It fades after 7 s (`COUNTERTOP_LENGTH_HINT_MS`), or at once at the first drag of the top or of an end, and
+  stays hidden for the rest of the session; each Drag & Drop or Resize ▸ Length session shows it again.
 - While the top is lifted (`canResize` in the runtime state), the scene draws its own "Edit size" button
   over the top. The overlay reads that button's rect from the scene document
   (`lib/readEditSizeButtonRect.ts`) and keeps clear of it (`lib/editSizeButtonClearance.ts`): the length

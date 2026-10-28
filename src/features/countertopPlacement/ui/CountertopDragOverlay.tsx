@@ -31,7 +31,7 @@ import { CountertopResizeHandles } from "./CountertopResizeHandles";
 import s from "./CountertopDragMode.module.scss";
 
 /** How long the length hint stays before it fades, unless a drag ends it sooner. */
-export const COUNTERTOP_LENGTH_HINT_MS = 4000;
+export const COUNTERTOP_LENGTH_HINT_MS = 7000;
 
 type Props = {
   store: CountertopOverlayStore;

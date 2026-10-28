@@ -3,7 +3,7 @@ import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import { resolveCabinetTypeOfRuntimeId } from "@/entities/collection";
 import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/configuration";
-import { resolveHeightsByHandle } from "@/features/configurator-rule-core/cabinetBuilder";
+import { resolveHeightsByHandle, resolvePlacedDrawerHeights } from "@/features/configurator-rule-core/cabinetBuilder";
 import { findCabinetRule, seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
 import { cabinetTypesAtLimit } from "../../lib/cabinetTypeLimits";
@@ -48,19 +48,33 @@ const NO_HEIGHT_CHOICES: number[] = [];
  * The cabinets of a composition share a height, so one that another series supplies leaves only
  * the heights it comes in itself: an Urban Standard Height cabinet keeps Urban Duplex at 53 cm.
  * For the same reason an Urban Low Height open shelf, which has no handle, offers the heights the
- * handle gives the placed cabinets.
+ * handle gives the placed cabinets, and an Urban Duplex shelf, which has no drawers, those the
+ * drawers of the placed cabinets come in (one drawer: 53, 38 or 28 cm; two drawers: none to choose).
  */
 export const getHeightChoices = createSelector(
-  [getDimensionOptions, getActiveCabinetRule, getCabinetCatalog, getSelectedProducts, selectPlacedSeriesHeights],
-  (options, rule, catalog, placedProductIds, seriesHeights): number[] => {
+  [
+    getDimensionOptions,
+    getActiveCabinetRule,
+    getCabinetCatalog,
+    getSelectedProducts,
+    (state: RootState) => state.rootStateUI.product.placedCabinetStyles,
+    selectPlacedSeriesHeights,
+  ],
+  (options, rule, catalog, placedProductIds, placedCabinetStyles, seriesHeights): number[] => {
     const decidesHeights = (heights: Record<string, number[]> | undefined) => Object.keys(heights ?? {}).length > 0;
     const heightsByHandle = resolveHeightsByHandle(catalog, rule, placedProductIds);
-    if (!decidesHeights(heightsByHandle) && !decidesHeights(rule?.heightsByDrawers)) return NO_HEIGHT_CHOICES;
+    const placedDrawerHeights =
+      rule && rule.drawers.length === 0 && !decidesHeights(heightsByHandle)
+        ? resolvePlacedDrawerHeights(catalog, placedProductIds, placedCabinetStyles)
+        : null;
+    if (!decidesHeights(heightsByHandle) && !decidesHeights(rule?.heightsByDrawers) && placedDrawerHeights === null)
+      return NO_HEIGHT_CHOICES;
 
     // The rules leave enabled only the heights of the handle and drawers in use.
     const choices = options.height
       .filter((option) => !option.disabled)
       .map((option) => Number(option.value))
+      .filter((height) => placedDrawerHeights === null || placedDrawerHeights.includes(height))
       .filter((height) => seriesHeights === null || seriesHeights.includes(height));
 
     return choices.length > 1 ? choices : NO_HEIGHT_CHOICES;

@@ -182,6 +182,7 @@ export const evaluateChange = (
     cabinets,
     configurator,
     placedCabinetStyles: state.rootStateUI.product.placedCabinetStyles,
+    runtimeBindings: getActiveRuntimeBindings(state),
   });
 
   if (!planResult.ok) {
