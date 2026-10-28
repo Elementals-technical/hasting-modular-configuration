@@ -371,14 +371,39 @@
       "optionsSource": "configurator:Select Vessel Color"
     },
     {
-      "attributeId": "FaucetHolesAmount",
-      "scope": "countertop",
-      "defaultValue": "0",
+      "attributeId": "DividersOption",
+      "scope": "global",
+      "initialValue": "None",
+      "noneValue": "None",
       "options": [
-        { "value": "0", "label": "0", "order": 10 },
-        { "value": "1", "label": "1", "order": 20 },
-        { "value": "2", "label": "2", "order": 30 },
-        { "value": "3", "label": "3", "order": 40 }
+        {
+          "value": "None",
+          "label": "None",
+          "order": 10
+        },
+        {
+          "value": "Customize",
+          "label": "Customize",
+          "order": 20
+        }
+      ]
+    },
+    {
+      "attributeId": "DividersStyle",
+      "scope": "drawer",
+      "options": [
+        {
+          "value": "Metal",
+          "label": "Metal",
+          "order": 10,
+          "legacyDescription": "Metal tray with two movable dividers (ROW-MTL-43, VAN-GBDIV-MTL)"
+        },
+        {
+          "value": "Oak",
+          "label": "Oak",
+          "order": 20,
+          "legacyDescription": "Oak organizer with three black dividers (ROW-OAK-43, VAN-GBDIV-OAK)"
+        }
       ]
     }
   ],
@@ -395,9 +420,18 @@
       "allowedColorCodesByStyle": {},
       "unavailableColorCodesByStyle": {},
       "defaultFinishByStyle": {
-        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
-        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
-        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+        "Iris": {
+          "materialTokens": ["lacqueredmt"],
+          "colorCodes": ["415"]
+        },
+        "Frame": {
+          "materialTokens": ["lacqueredmt"],
+          "colorCodes": ["401"]
+        },
+        "Plaza": {
+          "materialTokens": ["lacqueredmt"],
+          "colorCodes": ["400"]
+        }
       }
     },
     "fluting": {
@@ -480,6 +514,9 @@
           "allowed": ["NoG"]
         }
       ]
+    },
+    "drawerOrganizers": {
+      "profile": "ROW-MTL-43"
     }
   },
   "messages": {
@@ -492,6 +529,20 @@
     "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
     "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
-    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene"
+    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
+    "organizer.hintOpenDrawer": "Click ‘Open Drawer’ on a drawer to add divider columns.",
+    "organizer.lockedZone": "Drain area — dividers can't be placed here.",
+    "organizer.trimmed": "{n} column(s) no longer fit and were removed.",
+    "organizer.drawerRemoved": "{n} column(s) were removed with the drawer.",
+    "organizer.drawerFull": "This drawer is full.",
+    "organizer.unavailable": "Dividers aren't available for this cabinet size.",
+    "organizer.placeFailed": "Couldn't place the column. Try again.",
+    "organizer.maxPositions": "A column holds up to 5 inserts.",
+    "organizer.typeChanged": "Dividers were removed because the cabinet type changed.",
+    "organizer.columnRemoved": "Column removed.",
+    "organizer.cleared": "Dividers removed.",
+    "organizer.undoHint": "Use Undo to bring them back.",
+    "organizer.oakPending": "Oak organizers are not available yet.",
+    "organizer.updateRequired": "These dividers were saved by a newer version. Reload the page to edit them."
   }
 }

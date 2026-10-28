@@ -127,6 +127,7 @@ describe("class product profile", () => {
   it("declares the drawer style groups, the vessel colours and the price tiers as rule sections", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual([
       "cabinetMatrixLegacyAdapter",
+      "drawerOrganizers",
       "drawerStyleGroups",
       "priceTiers",
       "vesselCompatibility",

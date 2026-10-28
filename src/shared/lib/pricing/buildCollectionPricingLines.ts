@@ -16,7 +16,9 @@ import {
   type ScopedValue,
   type ValueTarget,
 } from "@/entities/configuration";
+import type { DrawerOrganizersRead } from "@/entities/configuration/model/drawerOrganizers";
 import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
+import { readOrganizerRules } from "@/features/drawerOrganizers/model/rules";
 import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
   buildCabinetCoverSku,
@@ -43,6 +45,7 @@ import {
   type ConfiguratorColorReader,
 } from "@/shared/lib/sku";
 
+import { buildOrganizerLines, ORGANIZER_BILL_EMPTY_COLUMNS } from "./organizerLines";
 import type { PricingGap, PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
 import { buildUshSidePanelLines } from "./ushSidePanelLines";
@@ -147,6 +150,16 @@ const gapApplies = (
     return true;
   });
 };
+
+/** The styles of the organizer sets the order holds: what stands in for `DividersStyle`, which these organizers do not read. */
+const organizerStylesOf = (
+  readModel: Readonly<Record<string, DrawerOrganizersRead>>,
+  cabinets: readonly CabinetEntry[],
+): string[] =>
+  cabinets.flatMap(({ stableKey }) => {
+    const read = readModel[stableKey];
+    return read?.status === "ok" ? [read.value.Top, read.value.Bot].flatMap((set) => (set ? [set.style] : [])) : [];
+  });
 
 export const buildCollectionPricingLines = (input: PricingInput): CollectionPricingResult => {
   const skuProfile = input.skuBuilders.collectionProfile;
@@ -456,14 +469,26 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     if (capSku) add({ id: "legCap", group: "legCap", sku: capSku, quantity: legs.quantity });
   }
 
-  // 4) Organizers: one per drawer that has a divider style.
-  (values.DividersStyle ?? []).forEach(({ target, value }) => {
-    const style = asText(value);
-    const sku = style ? resolveCollectionDividerSku(skuProfile, style) : null;
-    if (sku && target.scope === "drawer") {
-      add({ id: `divider:${target.cabinetId}:${target.drawerType}`, group: "divider", sku, quantity: 1 });
-    }
-  });
+  // 4) Organizers. A collection with Ph2 organizers orders what the scene holds, a column per unit; any
+  // other collection, one per drawer that has a divider style.
+  const organizerRules = readOrganizerRules(profile);
+  const organizerReadModel = input.organizersByCabinet ?? {};
+  if (organizerRules) {
+    const organizers = buildOrganizerLines(organizerReadModel, cabinets, {
+      skuByStyle: skuProfile.dividers,
+      billEmptyColumns: ORGANIZER_BILL_EMPTY_COLUMNS,
+    });
+    organizers.lines.forEach(add);
+    gaps.push(...organizers.gaps);
+  } else {
+    (values.DividersStyle ?? []).forEach(({ target, value }) => {
+      const style = asText(value);
+      const sku = style ? resolveCollectionDividerSku(skuProfile, style) : null;
+      if (sku && target.scope === "drawer") {
+        add({ id: `divider:${target.cabinetId}:${target.drawerType}`, group: "divider", sku, quantity: 1 });
+      }
+    });
+  }
 
   // 5) Towel bar: a collection that reuses Urban Standard Height's orders it as USH does.
   if (skuProfile.towelBar) {
@@ -656,10 +681,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
 
   // 7) What the order uses and the collection has not confirmed. The basins it uses are those of its
   // sink bases, read as the lines read them: a basin left by a sink base that is gone does not count.
-  const usedValuesOf = (attributeId: string) =>
-    selectAttribute(profile, attributeId)?.scope === "basin"
+  // The organizers of the order are not among the values: their sets stand in for DividersStyle, so the
+  // unconfirmed divider price is named while the order has them and not otherwise.
+  const usedValuesOf = (attributeId: string): (string | null)[] => {
+    if (organizerRules && attributeId === "DividersStyle") return organizerStylesOf(organizerReadModel, cabinets);
+    return selectAttribute(profile, attributeId)?.scope === "basin"
       ? sinkBases.map((entry) => basinValueOf(entry, attributeId))
       : (values[attributeId] ?? []).map(({ value }) => asText(value));
+  };
   skuProfile.gaps.forEach((gap) => {
     if (gapApplies(gap, usedValuesOf, profile, readConfiguratorColor)) {
       gaps.push({ group: gap.group, blocksTotal: gap.blocksTotal, owner: gap.owner, reason: gap.reason });

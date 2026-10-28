@@ -1,0 +1,244 @@
+{
+  "fixture": "commands.v1",
+  "fixtureRevision": 2,
+  "contractVersion": 1,
+  "note": "Cases with `simulate` are for the bridge plugin (WP-4b) and the UI fake port (WP-6); the pure reducer skips them. expected.state is the stored key after the command (unchanged when rejected).",
+  "cases": [
+    {
+      "name": "add-first",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "expected": {
+        "status": "applied",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": []
+      }
+    },
+    {
+      "name": "add-not-candidate",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 2 },
+      "expected": {
+        "status": "rejected",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": [],
+        "error": { "code": "ORGANIZERS_SLOT_UNAVAILABLE" }
+      }
+    },
+    {
+      "name": "add-duplicate",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "expected": {
+        "status": "noop",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": []
+      }
+    },
+    {
+      "name": "add-in-zone",
+      "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "expected": { "status": "rejected", "state": null, "corrections": [], "error": { "code": "ORGANIZERS_SLOT_UNAVAILABLE" } }
+    },
+    {
+      "name": "add-absent-drawer",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "1D" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "expected": { "status": "rejected", "state": null, "corrections": [], "error": { "code": "ORGANIZERS_DRAWER_UNAVAILABLE" } }
+    },
+    {
+      "name": "add-inner",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "1+inner" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "expected": { "status": "rejected", "state": null, "corrections": [], "error": { "code": "ORGANIZERS_DRAWER_UNAVAILABLE" } }
+    },
+    {
+      "name": "add-invalid-input",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0.5 },
+      "expected": { "status": "rejected", "state": null, "corrections": [], "error": { "code": "ORGANIZERS_INVALID_INPUT" } }
+    },
+    {
+      "name": "preset",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "setColumnLayout", "drawer": "Top", "slot": 0, "positions": [2, 4] },
+      "expected": {
+        "status": "applied",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2, 4] }] } },
+        "corrections": []
+      }
+    },
+    {
+      "name": "preset-same",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2, 4] }] } },
+      "command": { "type": "setColumnLayout", "drawer": "Top", "slot": 0, "positions": [4, 2] },
+      "expected": {
+        "status": "noop",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2, 4] }] } },
+        "corrections": []
+      }
+    },
+    {
+      "name": "layout-no-column",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "setColumnLayout", "drawer": "Top", "slot": 1, "positions": [2] },
+      "expected": {
+        "status": "rejected",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": [],
+        "error": { "code": "ORGANIZERS_NO_SUCH_COLUMN" }
+      }
+    },
+    {
+      "name": "layout-fixed",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "setColumnLayout", "drawer": "Top", "slot": 0, "positions": [5, 1, 1, 3] },
+      "expected": {
+        "status": "partial",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [1, 3, 5] }] } },
+        "corrections": [{ "code": "POSITIONS_FIXED", "severity": "fixed", "drawer": "Top", "slot": 0 }]
+      }
+    },
+    {
+      "name": "remove-last",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "removeColumn", "drawer": "Top", "slot": 0 },
+      "expected": { "status": "applied", "state": null, "corrections": [] }
+    },
+    {
+      "name": "remove-absent",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "removeColumn", "drawer": "Top", "slot": 1 },
+      "expected": {
+        "status": "noop",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": []
+      }
+    },
+    {
+      "name": "remove-middle-hole",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": {
+        "version": 1,
+        "Top": {
+          "style": "Metal",
+          "columns": [{ "slot": -1, "positions": [] }, { "slot": 0, "positions": [] }, { "slot": 1, "positions": [] }]
+        }
+      },
+      "command": { "type": "removeColumn", "drawer": "Top", "slot": 0 },
+      "expected": {
+        "status": "applied",
+        "state": {
+          "version": 1,
+          "Top": { "style": "Metal", "columns": [{ "slot": -1, "positions": [] }, { "slot": 1, "positions": [] }] }
+        },
+        "corrections": [{ "code": "HOLE", "severity": "info", "drawer": "Top" }]
+      }
+    },
+    {
+      "name": "set-style-empty",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "setStyle", "drawer": "Top", "style": "Metal" },
+      "expected": { "status": "noop", "state": null, "corrections": [] }
+    },
+    {
+      "name": "clear-drawer",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": {
+        "version": 1,
+        "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2] }] },
+        "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] }
+      },
+      "command": { "type": "clear", "drawer": "Top" },
+      "expected": {
+        "status": "applied",
+        "state": { "version": 1, "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": []
+      }
+    },
+    {
+      "name": "clear-all-empty",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "clear" },
+      "expected": { "status": "noop", "state": null, "corrections": [] }
+    },
+    {
+      "name": "set-state-normalizes",
+      "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 1, "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": {
+        "type": "setState",
+        "state": {
+          "version": 1,
+          "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }, { "slot": 2, "positions": [3] }] }
+        }
+      },
+      "expected": {
+        "status": "partial",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 2, "positions": [3] }] } },
+        "corrections": [{ "code": "IN_LOCKED_ZONE", "severity": "dropped", "drawer": "Top", "slot": 0 }]
+      }
+    },
+    {
+      "name": "unsupported-version",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": { "version": 2, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "expected": {
+        "status": "rejected",
+        "state": { "version": 2, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": [],
+        "error": { "code": "ORGANIZERS_UNSUPPORTED_VERSION" }
+      }
+    },
+    {
+      "name": "render-timeout",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "simulate": { "render": "timeout" },
+      "expected": {
+        "status": "applied",
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+        "corrections": [{ "code": "RENDER_TIMEOUT", "severity": "info" }]
+      }
+    },
+    {
+      "name": "api-not-organizer",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "simulate": { "productType": "Sink-Base" },
+      "expected": {
+        "status": "rejected",
+        "state": null,
+        "corrections": [],
+        "error": { "code": "ORGANIZERS_NOT_ORGANIZER_PRODUCT" }
+      }
+    },
+    {
+      "name": "api-unknown-product",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "state": null,
+      "command": { "type": "addColumn", "drawer": "Top", "slot": 0 },
+      "simulate": { "productId": "missing" },
+      "expected": { "status": "rejected", "state": null, "corrections": [], "error": { "code": "ORGANIZERS_UNKNOWN_PRODUCT" } }
+    }
+  ]
+}

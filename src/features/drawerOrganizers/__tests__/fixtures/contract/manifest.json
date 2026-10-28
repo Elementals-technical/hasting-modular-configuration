@@ -1,0 +1,16 @@
+{
+  "fixtureRevision": 2,
+  "contractVersion": 1,
+  "stateVersion": 1,
+  "profile": "ROW-MTL-43",
+  "codec": "cells-v1",
+  "files": {
+    "drawer-organizers.v1.schema.json": "fa0c23b1f378ce0cf47f06039b412abb1f35c9bc1ca4d3773c7bc86a924c7077",
+    "contract.v1.json": "c318d54ac76529f40332793b962a0fbd9d4d457cf0c749e2fbd61940a0030944",
+    "commands.v1.json": "3603f681f6e907144989cfc9278ad0bd49240c2a21183f06466b47af19d512a9",
+    "render.v1.json": "bfb34e8cb568571b0e01011ee2d0f4e683e43c75f023b7b81452d6a4665e1733",
+    "matrix.v1.json": "3a81ca25d34875e58bf7756e6026b0c11a0cea09d8b4baf30c7b7489d6d1fb09",
+    "pricing.v1.json": "f478a33b01821ddece831d1be5b76737cb66a4ae463fa82695be517107c69964",
+    "frames.v1.json": "356800addea5ea6af319311bcabdef8f1990bc480078ad23cb9ea23dad1f6745"
+  }
+}

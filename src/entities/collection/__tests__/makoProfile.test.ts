@@ -149,6 +149,7 @@ describe("mako product profile", () => {
   it("declares the drawer style groups, the vessel colours and the changes the product has not decided yet", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual([
       "cabinetMatrixLegacyAdapter",
+      "drawerOrganizers",
       "drawerStyleGroups",
       "undeterminedRules",
       "vesselCompatibility",

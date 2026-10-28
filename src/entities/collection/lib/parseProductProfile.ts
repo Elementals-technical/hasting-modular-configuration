@@ -6,6 +6,7 @@ import {
   type CabinetColorTraitsRuleData,
   type CabinetMatrixLegacyAdapter,
   type CountertopFallbacksRuleData,
+  type DrawerOrganizersRuleData,
   type DragDropRuleData,
   type DrawerStyleGroups,
   type UndeterminedRule,
@@ -511,6 +512,9 @@ const RULE_SECTION_FIELDS = {
   priceTiers: {
     byAttribute: [recordOf(isPriceTierRecord), "a map of field id to { upper-case SKU material code: tier 1-4 }"],
   },
+  drawerOrganizers: {
+    profile: NON_EMPTY_STRING,
+  },
   dragDrop: {
     enabled: [isBoolean, "a boolean"],
   },
@@ -707,6 +711,7 @@ const parseRuleSections = (
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
     priceTiers: parseRuleSection<PriceTiersRuleData>(ruleData, "priceTiers", collect),
     cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
+    drawerOrganizers: parseRuleSection<DrawerOrganizersRuleData>(ruleData, "drawerOrganizers", collect),
     dragDrop: parseRuleSection<DragDropRuleData>(ruleData, "dragDrop", collect),
   };
 

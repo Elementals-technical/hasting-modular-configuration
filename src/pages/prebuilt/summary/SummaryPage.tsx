@@ -52,6 +52,7 @@ import {
   getActiveProductProfile,
   getCabinetEntries,
   getDimensionsByCabinet,
+  getOrganizersByCabinet,
 } from "@/entities/configuration/model/store/selectors";
 import dataMaterial from "@/shared/constants/DataMaterial.json";
 import {
@@ -98,6 +99,7 @@ import {
   type PricingLine,
   type SummaryPriceState,
 } from "@/shared/lib/pricing";
+import { buildOrganizerSummaryItems } from "@/shared/lib/pricing/summaryOrganizerItems";
 import { calcTotalCountertopWidthCm, formatCountertopThicknessLabel } from "@/entities/countertop";
 import { buildConfigurationShareUrl } from "@/features/saveConfiguration";
 import { hashConfigurationRequest, useBuildConfigurationRequest } from "@/features/saveConfiguration";
@@ -260,6 +262,7 @@ export const SummaryPage = () => {
   const selectedProducts = useAppSelector(getSelectedProducts);
   const selectedDimensions = useAppSelector(getSelectedDimensions);
   const cabinetEntries = useAppSelector(getCabinetEntries);
+  const organizersByCabinet = useAppSelector(getOrganizersByCabinet);
   const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
 
   const selectedProductConfig = useAppSelector(getSelectedProductConfig);
@@ -1334,9 +1337,18 @@ export const SummaryPage = () => {
       return [];
     })();
 
+    // Ph2 organizers: one item per priced drawer; its SKU and price come from the order line, once per column.
+    const organizerItems: SummaryItem[] = buildOrganizerSummaryItems({
+      lines: pricingLines,
+      readModel: organizersByCabinet,
+      cabinets: cabinetEntries,
+      labelOf,
+    }).map(({ line, ...item }) => ({ ...item, ...priceOfLines([line], line.quantity) }));
+
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
       ...dividerItems,
+      ...organizerItems,
       towelBarRightLine
         ? {
             id: "accessories-towel-bar-right",
@@ -1494,6 +1506,7 @@ export const SummaryPage = () => {
     selectedDimensions.height,
     selectedDimensions.width,
     cabinetEntries,
+    organizersByCabinet,
     dimensionsByCabinet,
     selectedProductConfig,
     sidePanelsOption,
