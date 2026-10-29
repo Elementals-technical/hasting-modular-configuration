@@ -443,6 +443,7 @@ const RULE_SECTION_FIELDS = {
     groovePriorityByHandle: [optional(isStringArrayRecord), "a map of handle to preferred grooves"],
     exactBlockedCabinetLengthCm: NUMBER,
     countertopLengthIncrementCm: NUMBER,
+    panelWidthCm: [optional(isFiniteNumber), "a nominal panel width in centimetres"],
     defaultQuantityUnlessHeightTypeLow: NUMBER,
     availability: [
       arrayOf(

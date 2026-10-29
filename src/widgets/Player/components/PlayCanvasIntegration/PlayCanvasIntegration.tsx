@@ -1,3 +1,4 @@
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -187,7 +188,7 @@ import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupC
 import { useVesselCountertop, type VesselCountertopRequest } from "@/features/sidebar/lib/useVesselCountertop";
 import { VesselCountertopPrompt } from "@/features/sidebar/ui/VesselCountertopPrompt/VesselCountertopPrompt";
 import { formatCmWithInches } from "@/utils/units";
-import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
+import { cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
 import { usePlayCanvasReady } from "@/shared/hooks/usePlayCanvasReady";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
@@ -1121,7 +1122,8 @@ export const PlayCanvasIntegration = ({
     if (!hasCabinets || !countertopId) return null;
 
     const sidePanelOffset =
-      (sidePanelLeft === "active" ? SIDE_PANEL_WIDTH_CM : 0) + (sidePanelRight === "active" ? SIDE_PANEL_WIDTH_CM : 0);
+      (sidePanelLeft === "active" ? getSidePanelWidthCm(activeProfile) : 0) +
+      (sidePanelRight === "active" ? getSidePanelWidthCm(activeProfile) : 0);
 
     return {
       countertopId,
@@ -1132,7 +1134,7 @@ export const PlayCanvasIntegration = ({
       targetHeight: primaryCabinetHeight ?? fallbackCabinetHeight,
       targetDepth: maxCabinetDepth,
     };
-  }, [getCompositionProducts, sidePanelLeft, sidePanelRight]);
+  }, [getCompositionProducts, sidePanelLeft, sidePanelRight, activeProfile]);
 
   const setCountertopDimensionData = useCallback(
     (productId: string, config: Record<string, unknown>) => {

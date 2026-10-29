@@ -31,6 +31,8 @@ These links use the current portfolio layout; the maps live outside this Git rep
 
 ## Records
 
+- [Lamè: Side Panels UI, SKU, pricing та history](qa/lame-ui-side-panels-2026-10-29/index.html) — нові знімки prebuilt/custom; [звіт](qa/lame-ui-side-panels-2026-10-29/test-record.uk.md).
+
 - [`ecosystem-map.md`](ecosystem-map.md) — Карта чотирьох робочих папок Hastings: відповідальність, інтеграції, передача даних, runtime/export boundaries та підтверджені розбіжності версій. Знімок локального стану на 2026-10-22.
 
 ### Collection-data migration

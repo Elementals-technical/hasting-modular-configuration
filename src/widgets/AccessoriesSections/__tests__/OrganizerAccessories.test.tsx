@@ -19,6 +19,9 @@ import { recordDerived, setView } from "@/features/drawerOrganizers/model/store/
 import tricotManifest from "../../../../public/collections/tricot/manifest.json";
 import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
 import tricotUi from "../../../../public/collections/tricot/ui.json";
+import lameManifest from "../../../../public/collections/lame/manifest.json";
+import lameUi from "../../../../public/collections/lame/ui.json";
+import { LAME } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 import { useOrganizerAccessoriesSections } from "../ui/OrganizerAccessories";
 
 // The step reads its sections from ui.json and the picks go to the command runner, as on the legacy page.
@@ -302,5 +305,23 @@ describe("the Side Panels section of a collection that has it (Tricot, Q-O6)", (
     const sidePanels = within(screen.getByRole("region", { name: "Side Panels" }));
     expect(sidePanels.getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toContain("None");
     expect(ui(store).sectionActive).toBe(false);
+  });
+});
+
+describe("Lamè Accessories", () => {
+  it("declares Side Panels before dividers in the shared prebuilt/custom step", () => {
+    const collection = buildReadyCollection("lame", lameManifest, lameUi);
+    store.dispatch(setActiveProfile(LAME.profile));
+    render(<Harness />, { wrapper: withPage(store, collection) });
+    expect(screen.getAllByRole("region").map((region) => region.getAttribute("aria-label"))).toEqual([
+      "Side Panels",
+      "Drawer Dividers",
+    ]);
+    const sidePanels = within(screen.getByRole("region", { name: "Side Panels" }));
+    expect(sidePanels.getByRole("button", { name: "None" })).toBeTruthy();
+    expect(LAME.profile.attributes.find((attribute) => attribute.attributeId === "SidePanels")?.options).toEqual([
+      { value: "None", label: "None", order: 10, aliases: ["No"] },
+      { value: "NoG", label: "Yes", order: 20, aliases: ["Yes"] },
+    ]);
   });
 });

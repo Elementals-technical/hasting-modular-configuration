@@ -41,3 +41,10 @@ ShowLegs: Enable/Disable, default Disable. RuleLameLegs and LameLegsService own 
 For a multi-cabinet row use each outer cabinet centre and width. Right X offsets for 40/60/80/100/120 cm: -0.2/0/0.2/0.25/0.3 m; left offsets are mirrored. Without a side panel: right X -0.052 m, left X +0.052 m, Z -0.003 m. With a panel on that side: no correction.
 
 Height 26 selects Lame_Leg_Long and Lame_Leg_Long_Cap; height 52 selects Lame_Leg_Short and Lame_Leg_Short_Cap (asset names are swapped in the updated artist table). Base heights remain 0.3022/0.561 m. Authored Y is preserved. X uses only the table width delta plus the side-panel correction, without extra geometry alignment. Z uses the table correction. Each leg uses its outer cabinet CabinetColor, with LegCapColor falling back to HandleColor.
+
+## Side panel addon (local source, 2026-10-29)
+
+The `lame` group profile now registers `Lame-SidePanel_Left/Right` on `Lame_SidePanel`.
+Panels align to measured outer walls, following the user decision that replaces the guide's MoveX table.
+Layout, material/pattern propagation and5cm countertop accounting are covered by `tests/node/lame-side-panel.test.mjs`.
+Delivery/browser status and the remaining single-side undertop limitation: `docs/features/lame-side-panels/README.md`.

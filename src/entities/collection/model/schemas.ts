@@ -357,14 +357,18 @@ const pricedAsSchema = z.object({ pricedAs: z.literal("urban-standard-height") }
 const ownSidePanelSchema = z
   .object({
     baseSku: z.string().trim().min(1),
+    variants: z
+      .array(z.object({ when: stringMapSchema, baseSku: z.string().trim().min(1) }).strict())
+      .min(1)
+      .optional(),
     status: z.enum(["confirmed", "unconfirmed"]),
     reason: z.string().trim().min(1).optional(),
     selection: z.object({ attributeId: z.string().min(1), enabledValues: z.array(z.string().min(1)).min(1) }).strict(),
     /** Exactly one approved quantity source: an explicit attribute or actual side activation readback. */
     quantityAttributeId: z.string().min(1).optional(),
     quantitySource: z.literal("activeSides").optional(),
-    /** Opt-in Tricot policy; absent preserves existing own-countertop width semantics. */
-    countertopWidthOffsetCm: z.literal(1).optional(),
+    /** Nominal offset per active panel; absent preserves existing own-countertop width semantics. */
+    countertopWidthOffsetCm: z.number().positive().optional(),
     colorAttributeId: z.string().min(1).optional(),
     elementCode: z.string().min(1).optional(),
   })

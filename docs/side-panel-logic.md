@@ -21,6 +21,27 @@
 - [Custom side panel options](../src/pages/custom/accessories/constants.ts)
 - [Prebuilt side panel options](../src/pages/prebuilt/accessories/constants.ts)
 
+## Lamè
+
+У Lamè спільний крок Accessories у prebuilt і custom показує `None` / `Yes` (`None` / `NoG` у state).
+Панелі доступні для корпусів 26 см з 1 шухлядою та 52 см з 2 шухлядами, глибина — 52 см.
+Патерн і матеріал беруться з прилеглої крайньої шафи.
+
+Номінальна ширина однієї панелі — 5 см: дві панелі додають 10 см до ширини композиції,
+стільниці, розрахунку її ціни та Full Dimensions. Спільні споживачі читають
+`ruleData.sidePanels.panelWidthCm`; для колекцій без цього поля збережено 1 см.
+
+SKU задаються варіантами у Lamè `sku-profile.json`: `VAN-LAMEV-SP/{1DW|2DW}/{pattern}`
+з розмірами прайса та суфіксом `CAB-LACM|LACG-{color}`. На кожну активну сторону
+формується окремий pricing line з quantity 1, отже обидві сторони — 2 одиниці.
+Це рішення користувача від 2026-10-29; джерело SKU — Lame price workbook,
+`CabinetPricing` rows 121–131 та `SKU Curation` U10/Y10. Ручка G58 у SKU панелі не входить.
+
+Перемикання використовує наявний `useSidePanelState` → `useHistoryStep` → `applyGroove`;
+undo/redo відновлює groove і обидва статуси через `restoreSidePanelState`.
+Summary обох потоків включає ці самі SKU, кількість та ціну.
+[Знімки й результати перевірки](qa/lame-ui-side-panels-2026-10-29/test-record.uk.md).
+
 ## State model
 
 Стан Side Panel зберігається в Redux у `productOptions`.
@@ -179,7 +200,8 @@ Edge state читається не під час рендеру, а в effect-і
 
 ### 3. Countertop length
 
-Кожна активна side panel додає `1 cm` до effective countertop width:
+Кожна активна side panel додає ширину з профілю до effective countertop width.
+Для Lamè це 5 см на сторону, для попередніх колекцій без `panelWidthCm` — 1 см:
 
 - left side panel додає `1 cm`
 - right side panel додає `1 cm`

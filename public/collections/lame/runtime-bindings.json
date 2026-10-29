@@ -630,9 +630,6 @@
           "Plaza": {
             "sinkType": "Vessel_Plaza"
           }
-        },
-        "unboundValues": {
-          "VA030": "The scene export has no sink product for VA030 (SS Texturizzato, export v66). Until it has one, a change to VA030 is refused as unsupported; a VA030 the state already holds (a saved configuration) is kept and priced, and the sink cabinet is placed without it."
         }
       },
       "order": 40,
@@ -762,17 +759,17 @@
     {
       "attributeId": "SidePanels",
       "status": "unbound",
-      "reason": "Confirmed for Lame but not in its profile yet (excludedFromThisProfile.sidePanels: LAME-SP-01, GEN-SP-01)."
+      "reason": "Composition addon: SidePanels is applied by the side-panel command port as one setConfigBatch patch with SidePanel and SidePanelSide; left/right are scene activation readback and are restored by the side-panel history path, not a generic attribute binding."
     },
     {
       "attributeId": "SidePanelLeft",
       "status": "unbound",
-      "reason": "Per-side status (active/none/auto-removed), not a scene value; Lame side panels are not in its profile yet (LAME-SP-01, GEN-SP-01)."
+      "reason": "Composition addon: SidePanels is applied by the side-panel command port as one setConfigBatch patch with SidePanel and SidePanelSide; left/right are scene activation readback and are restored by the side-panel history path, not a generic attribute binding."
     },
     {
       "attributeId": "SidePanelRight",
       "status": "unbound",
-      "reason": "Per-side status (active/none/auto-removed), not a scene value; Lame side panels are not in its profile yet (LAME-SP-01, GEN-SP-01)."
+      "reason": "Composition addon: SidePanels is applied by the side-panel command port as one setConfigBatch patch with SidePanel and SidePanelSide; left/right are scene activation readback and are restored by the side-panel history path, not a generic attribute binding."
     },
     {
       "attributeId": "DividersOption",

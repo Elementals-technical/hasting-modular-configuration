@@ -17,7 +17,7 @@ import {
   type ValueTarget,
 } from "@/entities/configuration";
 import type { DrawerOrganizersRead } from "@/entities/configuration/model/drawerOrganizers";
-import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm, getActiveSidePanelCount, getSidePanelWidthCm } from "@/entities/countertop";
 import { readOrganizerRules } from "@/features/drawerOrganizers/model/rules";
 import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
@@ -274,9 +274,9 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     ["active", "none", "auto-removed"].includes(side),
   );
   const ownCompositionWidthCm =
-    panelContract?.status === "confirmed" && panelContract.countertopWidthOffsetCm === 1 && widthCm !== null
+    panelContract?.status === "confirmed" && panelContract.countertopWidthOffsetCm !== undefined && widthCm !== null
       ? sideReadbackKnown
-        ? calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight)
+        ? calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight, getSidePanelWidthCm(profile))
         : null
       : widthCm;
   const ownCountertopWidthCm = hasCommittedCountertopLength ? committedCountertopLengthCm : ownCompositionWidthCm;
@@ -401,7 +401,9 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     // The countertop table sizes the top by the sink base of that basin (its minimum sink base width).
     const sinkBaseWidth = basinCabinet ? (dimensionsByCabinet[basinCabinet.stableKey]?.width ?? null) : null;
     const compositionWidthCm =
-      widthCm === null ? null : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight);
+      widthCm === null
+        ? null
+        : calcTotalCountertopWidthCm(widthCm, input.sidePanelLeft, input.sidePanelRight, getSidePanelWidthCm(profile));
     const countertop = resolveUshCountertop(input, {
       color: countertopColor,
       sinkType,
@@ -654,10 +656,54 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         reason: "Side panel selection and actual side activation disagree; scene synchronization is required.",
       });
     } else if (enabled) {
-      const rawQuantity = ownPanel.quantityAttributeId ? globalValue(ownPanel.quantityAttributeId) : null;
-      const read = readerOf(cabinets[0]);
-      const panel = buildCollectionSidePanelSku(ownPanel, skuProfile, profile, {
-        quantity:
+      const pricePanel = (entry: CabinetEntry, id: string, quantity: number | null) => {
+        const read = readerOf(entry);
+        const panel = buildCollectionSidePanelSku(ownPanel, skuProfile, profile, {
+          quantity,
+          color: ownPanel.colorAttributeId ? read(ownPanel.colorAttributeId) : null,
+          readConfiguratorColor,
+          read,
+        });
+        if (panel.sku && panel.quantity !== null)
+          add({
+            id,
+            group: "sidePanel",
+            sku: panel.sku,
+            quantity: panel.quantity,
+            finish: panel.finish,
+            ...(ownPanel.variants ? { sourceId: entry.runtimeId } : {}),
+          });
+        else
+          gaps.push({
+            group: "sidePanel",
+            blocksTotal: true,
+            owner: "product",
+            reason: panel.reason ?? "Panel pricing inputs are missing.",
+          });
+      };
+      if (ownPanel.variants && ownPanel.quantitySource === "activeSides") {
+        if (!sideReadbackKnown || activeSideCount === 0) {
+          gaps.push({
+            group: "sidePanel",
+            blocksTotal: true,
+            owner: "runtime",
+            reason: "Actual side-panel activation is required before pricing.",
+          });
+        } else {
+          // Each active end takes its own cabinet's variant and finish; insertion order cannot substitute the opposite end.
+          const ordered = [...cabinets].sort((a, b) => {
+            const ai = input.orderedProductIds.indexOf(a.runtimeId),
+              bi = input.orderedProductIds.indexOf(b.runtimeId);
+            return ai >= 0 && bi >= 0 ? ai - bi : a.index - b.index;
+          });
+          if (input.sidePanelLeft === "active") pricePanel(ordered[0], "sidePanel:left", 1);
+          if (input.sidePanelRight === "active") pricePanel(ordered[ordered.length - 1], "sidePanel:right", 1);
+        }
+      } else {
+        const rawQuantity = ownPanel.quantityAttributeId ? globalValue(ownPanel.quantityAttributeId) : null;
+        pricePanel(
+          cabinets[0],
+          OWN_SIDE_PANEL_LINE_ID,
           ownPanel.quantitySource === "activeSides"
             ? sideReadbackKnown
               ? activeSideCount
@@ -665,24 +711,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
             : rawQuantity === null
               ? null
               : Number(rawQuantity),
-        color: ownPanel.colorAttributeId ? read(ownPanel.colorAttributeId) : null,
-        readConfiguratorColor,
-      });
-      if (panel.sku && panel.quantity !== null)
-        add({
-          id: OWN_SIDE_PANEL_LINE_ID,
-          group: "sidePanel",
-          sku: panel.sku,
-          quantity: panel.quantity,
-          finish: panel.finish,
-        });
-      else
-        gaps.push({
-          group: "sidePanel",
-          blocksTotal: true,
-          owner: "product",
-          reason: panel.reason ?? "Panel pricing inputs are missing.",
-        });
+        );
+      }
     }
   }
 
