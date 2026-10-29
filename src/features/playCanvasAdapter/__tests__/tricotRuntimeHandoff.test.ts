@@ -42,7 +42,7 @@ const NOT_SENT = ["SidePanels", "DrawerPanelFluting"];
 // The basin, as Class sends it: the authored sub-product of its LB/VA/LV name, on the sink base only.
 const expectBasinOnSinkBaseOnly = (product: Record<string, unknown>) =>
   product.name === "Tricot-sink-cabinet" || product.productType === "Tricot-sink-cabinet"
-    ? expect(product).toMatchObject({ sinkType: "Top_HPLPrisma" })
+    ? expect(product).toMatchObject({ sinkType: "Top_LB440" })
     : expect(product).not.toHaveProperty("sinkType");
 const fakeScene = () =>
   ({
@@ -192,7 +192,7 @@ describe("Tricot production composition handoff through the adapter", () => {
         CabinetPattern: "Satin",
         HandleGrooveColor: "Nero 433 Lacquered MT",
         CountertopColor: "Solid Surface Matte White",
-        sinkType: "Top_HPLPrisma",
+        sinkType: "Top_LB440",
       });
       expect(Object.keys(sent).filter((key) => NOT_SENT.includes(key))).toEqual([]);
     }
@@ -224,7 +224,7 @@ describe("Tricot production composition handoff through the adapter", () => {
       CabinetColor: "Rovere Oro 932",
       CountertopColor: "Solid Surface Matte White",
       HandleGrooveColor: "Nero 433 Lacquered MT",
-      sinkType: "Top_HPLPrisma",
+      sinkType: "Top_LB440",
     });
 
     const rejectingScene = fakeScene();
@@ -283,7 +283,7 @@ describe("Tricot production composition handoff through the adapter", () => {
       CabinetColor: "Antracite Matte OCF",
       CabinetPattern: "Satin",
       HandleGrooveColor: "Nero 433 Lacquered MT",
-      sinkType: "Top_HPLPrisma",
+      sinkType: "Top_LB440",
       ProductType: "Tricot-sink-cabinet",
       productType: "Tricot-sink-cabinet",
       entityName: "Tricot-sink-cabinet-a1b2c3d4e",
@@ -320,7 +320,7 @@ describe("Tricot production composition handoff through the adapter", () => {
         CabinetPattern: "Satin",
         HandleGrooveColor: "Nero 433 Lacquered MT",
         // The scene's basin reads back as LB440 and goes back as the same sub-product.
-        sinkType: "Top_HPLPrisma",
+        sinkType: "Top_LB440",
       });
       expect(sent).not.toHaveProperty("CabinetColor");
     }

@@ -327,11 +327,13 @@ const shippedImages = new Set(
 );
 
 describe("Tricot basin pictures", () => {
-  it("shows the Class basin and vessel pictures, which have none for VA023 or the bare cutout, and ships each", () => {
+  it("shows a picture of each basin, rendered from its own scene model, and of each vessel, and ships each", () => {
     const pictures: Record<string, string> = ui.optionImages.sinkType;
     const basins = tricotProfile.attributes.find(({ attributeId }) => attributeId === "sinkType")?.options ?? [];
 
-    expect(basins.filter(({ value }) => !pictures[value]).map(({ value }) => value)).toEqual(["VA023", "None"]);
+    // The bare cutout alone has no picture; VA023 has one since its basin model came (export 29.10.2026).
+    expect(basins.filter(({ value }) => !pictures[value]).map(({ value }) => value)).toEqual(["None"]);
+    expect(pictures.VA023).toBe("images/basin/VA023.png");
     for (const picture of Object.values(pictures)) expect(shippedImages.has(picture), picture).toBe(true);
   });
 

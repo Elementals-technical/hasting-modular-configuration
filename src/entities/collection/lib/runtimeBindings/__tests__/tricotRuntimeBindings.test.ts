@@ -178,13 +178,13 @@ describe("Tricot delivered runtime bindings", () => {
     }
     expect(patch("sinkType", "Iris")).toMatchObject({ patch: { sinkType: "Vessel_Iris" } });
     expect(patch("sinkType", "Frame")).toMatchObject({ patch: { sinkType: "Vessel_Frame" } });
-    expect(patch("sinkType", "Plaza")).toMatchObject({ patch: { sinkType: "Vessel_Blade11" } });
+    expect(patch("sinkType", "Plaza")).toMatchObject({ patch: { sinkType: "Vessel_Plaza" } });
     // None and a cleared basin, as a switch to the vessel style leaves it, are the empty vessel cutout.
     expect(patch("sinkType", "None")).toMatchObject({ patch: { sinkType: "Vessel" } });
     expect(patch("sinkType", "")).toMatchObject({ patch: { sinkType: "Vessel" } });
     // The scene's default basin is LB440's, so a sink base placed without a choice reads back as LB440.
-    expect(patch("sinkType", "LB440")).toMatchObject({ patch: { sinkType: "Top_HPLPrisma" } });
-    expect(findProductConfigBindingErrors(bindings, { sinkType: "Top_HPLPrisma" })).toEqual([]);
+    expect(patch("sinkType", "LB440")).toMatchObject({ patch: { sinkType: "Top_LB440" } });
+    expect(findProductConfigBindingErrors(bindings, { sinkType: "Top_LB440" })).toEqual([]);
   });
 
   it("sends the vessel colour to the sink base as its lacquer material, and reads it back", () => {

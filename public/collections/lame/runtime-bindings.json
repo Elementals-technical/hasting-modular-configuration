@@ -592,31 +592,31 @@
             "sinkType": "Vessel"
           },
           "LB440": {
-            "sinkType": "Top_HPLPrisma"
+            "sinkType": "Top_LB440"
           },
           "LB175": {
-            "sinkType": "Top_Tekorlux_Ron"
+            "sinkType": "Top_LB175"
           },
           "LB575": {
-            "sinkType": "Top_Tekorlux_Quadra"
+            "sinkType": "Top_LB575"
           },
           "LB856": {
-            "sinkType": "Top_HPLStrip"
+            "sinkType": "Top_LB856"
           },
           "VA024": {
-            "sinkType": "Top_HPLCover"
+            "sinkType": "Top_VA024"
           },
           "LV890": {
-            "sinkType": "Top_Tekorlux_Trip"
+            "sinkType": "Top_LV890"
           },
           "LV892": {
-            "sinkType": "Top_Ocritech_Orion"
+            "sinkType": "Top_LV892"
           },
           "VA002": {
-            "sinkType": "Top_Ocritech_Oly55"
+            "sinkType": "Top_VA002"
           },
           "VA005": {
-            "sinkType": "Top_Tekorlux_Rectangular"
+            "sinkType": "Top_VA005"
           },
           "None": {
             "sinkType": "Vessel"
@@ -628,7 +628,7 @@
             "sinkType": "Vessel_Frame"
           },
           "Plaza": {
-            "sinkType": "Vessel_Blade11"
+            "sinkType": "Vessel_Plaza"
           }
         },
         "unboundValues": {

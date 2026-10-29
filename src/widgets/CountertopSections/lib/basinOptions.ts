@@ -6,10 +6,12 @@ import {
   normalizeBasinKey,
   parseThicknessValue,
 } from "@/features/configurator-rule-core/countertop";
+import { selectRuntimeBinding } from "@/entities/collection";
 import { cmToInches } from "@/shared/lib/sku";
 
 import { VESSEL_SINK_NONE_OPTION } from "./countertopColorOptions";
 
+import type { RuntimeBindingSet } from "@/entities/collection";
 import type { CountertopContext } from "./useCountertopContext";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
@@ -130,3 +132,21 @@ export const resolveIntegratedBasinOptions = ({
     ];
   });
 };
+
+export const PENDING_BASIN_BADGE = "Coming soon";
+export const PENDING_BASIN_REASON = "This basin style is in development and can't be selected yet.";
+
+/** Basins the collection offers but the scene has no model for yet: the `unboundValues` of its sinkType binding. */
+export const pendingBasinValues = (bindings: RuntimeBindingSet | null): ReadonlySet<string> => {
+  const binding = bindings ? selectRuntimeBinding(bindings, "sinkType") : null;
+  const pending = binding?.status === "bound" && binding.values.kind === "map" ? binding.values.unboundValues : undefined;
+  return new Set(Object.keys(pending ?? {}));
+};
+
+/** A pending basin stays listed, so the client sees it is coming, but it cannot be chosen. */
+export const markPendingBasins = (options: ProductOptionData[], pending: ReadonlySet<string>): ProductOptionData[] =>
+  options.map((option) =>
+    pending.has(option.name ?? "")
+      ? { ...option, isAvailable: false, disabledReason: PENDING_BASIN_REASON, disabledBadgeLabel: PENDING_BASIN_BADGE }
+      : option,
+  );
