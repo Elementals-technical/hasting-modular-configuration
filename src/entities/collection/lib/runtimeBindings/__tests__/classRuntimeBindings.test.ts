@@ -90,8 +90,8 @@ describe("class runtime bindings", () => {
   it("send the basin as its scene sub-product, a cleared one as the empty cutout", () => {
     expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
     expect(patchOf("sinkType", "None")).toEqual({ sinkType: "Vessel" });
-    expect(patchOf("sinkType", "VA024")).toEqual({ sinkType: "Top_HPLCover" });
-    expect(patchOf("sinkType", "VA005")).toEqual({ sinkType: "Top_Tekorlux_Rectangular" });
+    expect(patchOf("sinkType", "VA024")).toEqual({ sinkType: "Top_VA024" });
+    expect(patchOf("sinkType", "VA005")).toEqual({ sinkType: "Top_VA005" });
     // As a switch of countertop style leaves it: without a translation the whole switch is refused.
     expect(patchOf("sinkType", "")).toEqual({ sinkType: "Vessel" });
   });
