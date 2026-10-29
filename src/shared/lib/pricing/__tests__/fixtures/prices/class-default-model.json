@@ -1,0 +1,193 @@
+{
+  "scenario": "class-default-model",
+  "recordedAt": "2026-10-29",
+  "answers": {
+    "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-332-CABS-LACM-417-FRM-LACM-433": {
+      "price": 3498,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "CLSV",
+        "modelTokens": [
+          "SB",
+          "2DW"
+        ],
+        "sizes": {
+          "width": 23.6,
+          "height": 20.5,
+          "depth": 20.5
+        },
+        "materials": [
+          {
+            "material": "CABF",
+            "color": null
+          },
+          {
+            "material": "POR/B",
+            "color": "332"
+          },
+          {
+            "material": "CABS",
+            "color": null
+          },
+          {
+            "material": "LACM",
+            "color": "417"
+          },
+          {
+            "material": "FRM",
+            "color": null
+          },
+          {
+            "material": "LACM",
+            "color": "433"
+          }
+        ],
+        "baseSku": "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D",
+        "originalSku": "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-332-CABS-LACM-417-FRM-LACM-433",
+        "productElements": [
+          {
+            "element": "CABF",
+            "materials": [
+              {
+                "material": "POR/B",
+                "color": "332"
+              }
+            ]
+          },
+          {
+            "element": "CABS",
+            "materials": [
+              {
+                "material": "LACM",
+                "color": "417"
+              }
+            ]
+          },
+          {
+            "element": "FRM",
+            "materials": [
+              {
+                "material": "LACM",
+                "color": "433"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D"
+      },
+      "error": null
+    },
+    "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-332": {
+      "price": 1770,
+      "resolver": "CT/price_per_unit",
+      "parsed": {
+        "category": "CT",
+        "product": "GBPOR",
+        "modelTokens": [
+          "INTG"
+        ],
+        "sizes": {
+          "width": 23.6,
+          "height": 0.8,
+          "depth": 20.7
+        },
+        "materials": [
+          {
+            "material": "POR",
+            "color": "332"
+          }
+        ],
+        "baseSku": "CT-GBPOR-INTG-23.6W-.8H-20.7D",
+        "originalSku": "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-332",
+        "widthCm": 60
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "price_per_unit",
+        "datatableId": 529,
+        "pricePerCm": 29.49,
+        "widthInches": 23.6,
+        "widthCm": 60,
+        "widthCmSource": "explicit",
+        "material": "POR",
+        "colorCode": "332"
+      },
+      "error": null
+    },
+    "CT-GBPOR-LV890-.8H": {
+      "price": 3149,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "GBPOR",
+        "modelTokens": [
+          "LV890"
+        ],
+        "sizes": {
+          "height": 0.8
+        },
+        "materials": [],
+        "baseSku": "CT-GBPOR-LV890-.8H",
+        "originalSku": "CT-GBPOR-LV890-.8H"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-GBPOR-LV890-.8H"
+      },
+      "error": null
+    },
+    "CT-GBPOR-FAHO/0": {
+      "price": 0,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "GBPOR",
+        "modelTokens": [
+          "FAHO",
+          "0"
+        ],
+        "sizes": {},
+        "materials": [],
+        "baseSku": "CT-GBPOR-FAHO/0",
+        "originalSku": "CT-GBPOR-FAHO/0"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-GBPOR-FAHO/0"
+      },
+      "error": null
+    }
+  }
+}

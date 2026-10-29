@@ -12,4 +12,5 @@ export * from "./prebuiltModelCompatibility";
 export * from "./basinSelection";
 export * from "./syntesiOptions";
 export * from "./vesselCompatibility";
+export * from "./integratedCountertop";
 export * from "./hooks";

@@ -13,6 +13,7 @@ import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
+  getActiveRuntimeBindings,
   getAttributeValue,
   getCabinetEntries,
   getRuntimeSyncState,
@@ -43,6 +44,10 @@ import {
   createTestSidePanelPort,
   type TestCompositionPort,
 } from "@/features/playCanvasAdapter";
+import {
+  createPlayCanvasRuntimePort,
+  type SceneBridge,
+} from "@/features/playCanvasAdapter/lib/createPlayCanvasRuntimePort";
 import { buildCollectionPricingLines } from "@/shared/lib/pricing";
 import { collectionPricingInput, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 
@@ -236,6 +241,68 @@ describe("composition commands", () => {
       await addCabinet({ product: { productType: "Side-Shelf", config: {} }, placement: { kind: "end" } }, deps);
 
       expect(product().productIds).toEqual(["cab-a", "Side-Shelf-new-1"]);
+    });
+
+    describe("beside a Tricot vessel painted in Prebuilt", () => {
+      beforeEach(() => {
+        const profile = parseProductProfile(tricotProfileDocument);
+        const bindings = parseRuntimeBindings(tricotBindingsDocument);
+        if (!profile.ok || !bindings.ok) throw new Error("the packaged Tricot data must parse");
+
+        store.dispatch(setActiveProfile(profile.profile));
+        store.dispatch(setActiveCollectionId("tricot"));
+        store.dispatch(setActiveRuntimeBindings(bindings.bindings));
+      });
+
+      it("paints the vessel of the Sink Base the builder adds in the configuration's colour", async () => {
+        const fixture = setup();
+        // The PlayCanvas adapter, which addresses a basin value at the sink base it names.
+        const sent: Parameters<SceneBridge["apply"]>[] = [];
+        const scene: SceneBridge = {
+          isReady: () => true,
+          apply: async (...call) => {
+            sent.push(call);
+            return { status: "applied", updatedIds: [] };
+          },
+        };
+        const deps: CompositionDeps = {
+          ...fixture.deps,
+          runtime: createPlayCanvasRuntimePort({
+            getBindings: () => getActiveRuntimeBindings(store.getState()),
+            scene,
+          }),
+        };
+        const sinkBase = { productType: "Sink-Base", config: { Width: 60, Drawers: "1D", sinkType: "Iris" } };
+
+        // Prebuilt: the model, its vessel painted through the field.
+        await applyPreset({ products: [sinkBase] }, deps);
+        await changeAttribute(
+          { attributeId: "VesselColor", value: "Zafferano 412 MT", scope: "basin" },
+          { ...deps, flow: "prebuilt" },
+        );
+
+        // Customize records the products the scene kept again, as CabinetBuilderPage does; the
+        // builder's "+" then adds a Sink Base beside the model's with the vessel colour to show.
+        const runtimeIds = product().productIds;
+        store.dispatch(resetProducts());
+        await adoptComposition({ runtimeIds, products: [sinkBase] }, deps);
+        sent.length = 0;
+
+        const added = await addCabinet(
+          {
+            product: sinkBase,
+            placement: { kind: "beside", anchorRuntimeId: runtimeIds[0], side: "right" },
+            afterPlacement: { VesselColor: "Zafferano 412 MT" },
+          },
+          deps,
+        );
+
+        expect(added).toMatchObject({ status: "applied" });
+        expect(sent).toContainEqual([
+          { productType: "Tricot-sink-cabinet" },
+          { VesselColor: "Zafferano 412 Lacquered MT" },
+        ]);
+      });
     });
   });
 

@@ -184,6 +184,8 @@ import {
 import { BaseButton, ROUTES } from "@/shared";
 import { CustomizeModePrompt } from "@/shared/ui/Popups/ui/CustomizeModePrompt/CustomizeModePrompt";
 import { PopupCenterContent } from "@/shared/ui/Popups/PopupCenterContent/PopupCenterContent";
+import { useVesselCountertop, type VesselCountertopRequest } from "@/features/sidebar/lib/useVesselCountertop";
+import { VesselCountertopPrompt } from "@/features/sidebar/ui/VesselCountertopPrompt/VesselCountertopPrompt";
 import { formatCmWithInches } from "@/utils/units";
 import { SIDE_PANEL_WIDTH_CM, cmToInches, getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
 import { hideEmptyButton, showEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
@@ -450,6 +452,11 @@ export const PlayCanvasIntegration = ({
   const [customizeModePromptAction, setCustomizeModePromptAction] = useState<CustomizeModePromptAction>("default");
   const [customizeModePromptDeleteTarget, setCustomizeModePromptDeleteTarget] = useState<string | null>(null);
   const [pendingDividerResizeAction, setPendingDividerResizeAction] = useState<PendingDividerResizeAction>(null);
+  /** A resize that waits for the vessel countertop the cabinet needs at its new width. */
+  const [pendingVesselResize, setPendingVesselResize] = useState<{
+    request: VesselCountertopRequest;
+    resizeAction: DividerWidthResizeAction;
+  } | null>(null);
   const [isMobileMenu, setIsMobileMenu] = useState(false);
   const [isDetectedFullscreenMode, setIsDetectedFullscreenMode] = useState(false);
   const isFullscreenMode = isCanvasFullMode || isDetectedFullscreenMode;
@@ -483,6 +490,7 @@ export const PlayCanvasIntegration = ({
     record,
     composition,
   } = useChangeAttribute();
+  const { resizeRequest, switchToVessel } = useVesselCountertop();
   const store = useStore<RootState>();
   // A dragged cabinet or countertop is written to the history when it is applied, not when it starts.
   const deferredSnapshot = useDeferredHistorySnapshot();
@@ -1977,10 +1985,33 @@ export const PlayCanvasIntegration = ({
         return;
       }
 
-      requestDividerResize({ dimension: "width", value: width, targetIds: [selectedSceneProduct] });
+      const resizeAction: DividerWidthResizeAction = {
+        dimension: "width",
+        value: width,
+        targetIds: [selectedSceneProduct],
+      };
+      // A width the integrated countertop leaves out with the cabinet's drawers (Tricot: 60 cm with an inner
+      // drawer) is taken once the user approves the vessel countertop it needs.
+      const vesselRequest = resizeRequest(selectedSceneProduct, width);
+      if (vesselRequest) {
+        setDropdownState((prev) => ({ ...prev, visible: false }));
+        setPendingVesselResize({ request: vesselRequest, resizeAction });
+        return;
+      }
+
+      requestDividerResize(resizeAction);
     },
-    [requestDividerResize, selectedDimensions.width, selectedSceneProduct],
+    [requestDividerResize, resizeRequest, selectedDimensions.width, selectedSceneProduct],
   );
+
+  const handleApproveVesselResize = useCallback(async () => {
+    const pending = pendingVesselResize;
+    setPendingVesselResize(null);
+    if (!pending) return;
+
+    // The countertop first, then the resize, which may still ask about the dividers it clears.
+    if (await switchToVessel()) requestDividerResize(pending.resizeAction);
+  }, [pendingVesselResize, requestDividerResize, switchToVessel]);
 
   const handleSetDepth = useCallback(
     (depth: number) => {
@@ -4161,6 +4192,12 @@ export const PlayCanvasIntegration = ({
           </div>
         </div>
       </PopupCenterContent>
+
+      <VesselCountertopPrompt
+        request={pendingVesselResize?.request ?? null}
+        onApprove={() => void handleApproveVesselResize()}
+        onCancel={() => setPendingVesselResize(null)}
+      />
 
       <PopupCenterContent isOpening={pendingDividerResizeAction !== null} onClose={handleCancelDividerResize}>
         <div

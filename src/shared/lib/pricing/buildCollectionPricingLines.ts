@@ -46,6 +46,7 @@ import {
 } from "@/shared/lib/sku";
 
 import { buildOrganizerLines, ORGANIZER_BILL_EMPTY_COLUMNS } from "./organizerLines";
+import { OWN_SIDE_PANEL_LINE_ID } from "./ownSidePanelItems";
 import type { PricingGap, PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
 import { buildUshSidePanelLines } from "./ushSidePanelLines";
@@ -668,7 +669,13 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
         readConfiguratorColor,
       });
       if (panel.sku && panel.quantity !== null)
-        add({ id: "sidePanel:composition", group: "sidePanel", sku: panel.sku, quantity: panel.quantity });
+        add({
+          id: OWN_SIDE_PANEL_LINE_ID,
+          group: "sidePanel",
+          sku: panel.sku,
+          quantity: panel.quantity,
+          finish: panel.finish,
+        });
       else
         gaps.push({
           group: "sidePanel",

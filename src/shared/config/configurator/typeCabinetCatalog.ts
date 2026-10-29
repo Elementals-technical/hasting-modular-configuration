@@ -88,6 +88,17 @@ export const isSteppedDrawers = (
   drawers: string | null | undefined,
 ): boolean => Boolean(drawers && rule?.steppedDrawers?.includes(drawers));
 
+/**
+ * Whether an integrated countertop leaves out the rule's cabinet at this width with these drawers
+ * (Tricot table 592 `60:1DWID`: the 60 cm Sink Base with an inner drawer takes a vessel countertop).
+ */
+export const isUnavailableWithIntegrated = (
+  rule: Pick<TypeCabinetRuleConfig, "unavailableWithIntegrated"> | null | undefined,
+  widthCm: number | null | undefined,
+  drawers: string | null | undefined,
+): boolean =>
+  Boolean(rule?.unavailableWithIntegrated?.some((pair) => pair.widthCm === widthCm && pair.drawers === drawers));
+
 /** The type's first drawer style that is not stepped: the one the composition's height follows. */
 export const firstOwnDrawers = (rule: TypeCabinetRuleConfig | null | undefined): string | null =>
   rule?.drawers.find((drawers) => !isSteppedDrawers(rule, drawers)) ?? null;

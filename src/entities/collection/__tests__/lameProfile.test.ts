@@ -199,6 +199,7 @@ describe("lame product profile", () => {
     expect(selectOptionValues(profile(), "CountertopStyle")).toEqual(["integrated", "vessel"]);
     expect(selectOptionValues(profile(), "Thickness")).toEqual(["0.5", "0.75"]);
     expect(selectOptionValues(profile(), "FaucetHolesAmount")).toEqual(["0", "1", "2", "3"]);
+    expect(selectDefaultValue(profile(), "FaucetHolesAmount")).toBe("0");
     expect(selectOptionValues(profile(), "DividersStyle")).toEqual(["Metal", "Oak"]);
   });
 
