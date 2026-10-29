@@ -179,7 +179,20 @@ const MAKO_CABINETS: CollectionCabinet[] = [
   { stableKey: "mko-sc", runtimeId: "Sink-Cabinet-ddd444", size: size(60, 52) },
 ];
 
-export type CollectionPricingScenarioId = "class-porcelain-integrated" | "mako-vessel-with-legs";
+/** A model nobody has changed yet holds the collection's defaults, as the state starts from them. */
+const startingValues = ({ profile: { defaults } }: Collection): Partial<PricingInput> => ({
+  cabinetColor: defaults.CabinetColor,
+  countertopColor: defaults.CountertopColor,
+  countertopStyle: defaults.CountertopStyle,
+  sinkType: defaults.sinkType,
+  faucetHolesAmount: defaults.FaucetHolesAmount,
+});
+
+export type CollectionPricingScenarioId =
+  | "class-porcelain-integrated"
+  | "mako-vessel-with-legs"
+  | "class-default-model"
+  | "mako-default-model";
 
 export const COLLECTION_PRICING_SCENARIOS: Record<
   CollectionPricingScenarioId,
@@ -236,6 +249,28 @@ export const COLLECTION_PRICING_SCENARIOS: Record<
           },
         },
       },
+    ),
+  },
+  "class-default-model": {
+    title:
+      "Class: SB 60, two drawers, as it starts: Invisible White porcelain front, Latte sides, black frame, porcelain top with LV890 and no faucet holes",
+    collection: CLASS,
+    input: collectionPricingInput(
+      CLASS,
+      [{ stableKey: "cls-sb", runtimeId: "Sink-Base-eee555", size: size(60, 52) }],
+      { Drawers: [at(cabinetOf("cls-sb"), "2")] },
+      startingValues(CLASS),
+    ),
+  },
+  "mako-default-model": {
+    title:
+      "Mako: SB 60 G57, two drawers, as it starts: Antracite lacquer and handles, Solid Surface top with LB440 and no faucet holes",
+    collection: MAKO,
+    input: collectionPricingInput(
+      MAKO,
+      [{ stableKey: "mko-sb", runtimeId: "Sink-Base-fff666", size: size(60, 52) }],
+      { Drawers: [at(cabinetOf("mko-sb"), "2")], Handle: [at(cabinetOf("mko-sb"), "G57")] },
+      startingValues(MAKO),
     ),
   },
 };
