@@ -4,7 +4,13 @@ import { normalizeOptionValue, selectOption } from "@/entities/collection/lib/pr
 import type { ConfiguratorColorReader } from "./configuratorColors";
 import { resolveCollectionColorCode, resolveCollectionColorMaterial } from "./buildCollectionSkus";
 
-export type CollectionPanelSkuResult = { sku: string | null; quantity: number | null; reason?: string };
+export type CollectionPanelSkuResult = {
+  sku: string | null;
+  quantity: number | null;
+  /** The colour and material the SKU is spelled in, when it is spelled. */
+  finish?: { color: string; materialSku: string };
+  reason?: string;
+};
 
 /** Spells an own panel only from an approved suffix/inheritance policy and explicitly supplied quantity. */
 export const buildCollectionSidePanelSku = (
@@ -34,5 +40,9 @@ export const buildCollectionSidePanelSku = (
   );
   const code = resolveCollectionColorCode(skuProfile, color);
   if (!material || !code) return unavailable("Panel material and color code are unresolved.");
-  return { sku: `${panel.baseSku}-${panel.elementCode}-${material}-${code}`, quantity: input.quantity };
+  return {
+    sku: `${panel.baseSku}-${panel.elementCode}-${material}-${code}`,
+    quantity: input.quantity,
+    finish: { color, materialSku: material },
+  };
 };

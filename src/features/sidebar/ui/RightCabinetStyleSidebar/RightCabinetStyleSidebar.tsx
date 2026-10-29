@@ -95,12 +95,17 @@ import {
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { cmToInchLabel } from "@/shared/lib/cmToInchLabel";
 
+import { resolveAddedCabinetWidth } from "../../lib/addedCabinetWidth";
 import { buildAddedCabinetRequest } from "../../lib/buildAddedCabinetRequest";
+import { useVesselCountertop } from "../../lib/useVesselCountertop";
+import { VesselCountertopPrompt } from "../VesselCountertopPrompt/VesselCountertopPrompt";
 import { plusFilterFor, rowEndSideOf } from "../../lib/plusPlacement";
 import { resolveStyleSidebarFields } from "../../lib/resolveStyleSidebarFields";
 
 interface RightCabinetStyleSidebarProps {
   onProductAdded?: () => void;
+  /** The width taken for the cabinet being added: a style the page held for another width goes on. */
+  onWidthChange?: (width: number) => void;
 }
 
 const JOYRIDE_FLOATER_SELECTOR = ".react-joyride__floater";
@@ -119,7 +124,7 @@ interface PendingDepthChange {
   previous: number | null;
 }
 
-export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSidebarProps) => {
+export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: RightCabinetStyleSidebarProps) => {
   const dispatch = useAppDispatch();
   const activeProfile = useAppSelector(getActiveProductProfile);
   const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
@@ -191,6 +196,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
+  /** A width that waits for the vessel countertop it needs. */
+  const [pendingVesselWidth, setPendingVesselWidth] = useState<number | null>(null);
   const [handleLockNotice, setHandleLockNotice] = useState<string | null>(null);
   const [isStyleSidebarTutorialStepActive, setIsStyleSidebarTutorialStepActive] = useState(false);
   const {
@@ -205,10 +212,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
   const commandHeightRef = useRef<number | null>(null);
   /** A height change is on its way to the scene; a second one waits for the next click. */
   const heightChangeInFlightRef = useRef(false);
+  const { needsVessel, switchToVessel } = useVesselCountertop();
   const hasModalOpen =
     pendingHandlePreview !== null ||
     pendingOssHandleChange !== null ||
     pendingDepthChange !== null ||
+    pendingVesselWidth !== null ||
     handleLockNotice !== null;
 
   const handleOptions = useMemo(
@@ -455,7 +464,27 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
 
   const handleChangeWidth = (value?: string | number) => {
     if (value === undefined) return;
-    dispatch(setSelectedDimensions({ width: Number(value) }));
+    const width = Number(value);
+    // A width the integrated countertop leaves out with the chosen drawers (Tricot: 60 cm with an inner
+    // drawer) is taken once the user approves the vessel countertop it needs.
+    if (needsVessel(selectedDrawers, width)) {
+      setPendingVesselWidth(width);
+      return;
+    }
+    takeWidth(width);
+  };
+
+  const takeWidth = (width: number) => {
+    dispatch(setSelectedDimensions({ width }));
+    onWidthChange?.(width);
+  };
+
+  const approvePendingVesselWidth = async () => {
+    if (pendingVesselWidth === null) return;
+    const width = pendingVesselWidth;
+    setPendingVesselWidth(null);
+
+    if (await switchToVessel()) takeWidth(width);
   };
 
   const closePendingDepthChange = (isConfirmed = false) => {
@@ -909,18 +938,11 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
         reportAddRefusal(check.reason);
         return;
       }
-      const addableWidthLimit = check?.limitCm ?? null;
-      const fittingAddWidths = check?.widths ?? availableAddWidths;
-
-      const selectedWidthIsFitting =
-        typeof selectedDimensions.width === "number" &&
-        Number.isFinite(selectedDimensions.width) &&
-        (addableWidthLimit === null || selectedDimensions.width <= addableWidthLimit + 0.01);
-      const fallbackWidth =
-        fittingAddWidths.length > 0
-          ? fittingAddWidths.reduce((max, width) => (width > max ? width : max), fittingAddWidths[0])
-          : null;
-      const widthForAddedCabinet = selectedWidthIsFitting ? selectedDimensions.width : fallbackWidth;
+      const widthForAddedCabinet = resolveAddedCabinetWidth(
+        selectedDimensions.width,
+        check?.widths ?? availableAddWidths,
+        check?.limitCm ?? null,
+      );
 
       // The cabinet and the side panel a side shelf takes the place of are one undo step.
       const productId = await runStep(async () => {
@@ -1139,6 +1161,16 @@ export const RightCabinetStyleSidebar = ({ onProductAdded }: RightCabinetStyleSi
           </div>
         </div>
       </PopupCenterContent>
+
+      <VesselCountertopPrompt
+        request={
+          pendingVesselWidth !== null && activeCabinetRule && selectedDrawers
+            ? { cabinetType: activeCabinetRule.code, drawers: selectedDrawers, widthCm: pendingVesselWidth }
+            : null
+        }
+        onApprove={() => void approvePendingVesselWidth()}
+        onCancel={() => setPendingVesselWidth(null)}
+      />
 
       <PopupCenterContent isOpening={pendingDepthChange !== null} onClose={() => closePendingDepthChange()}>
         <div className={s.confirmPopup}>

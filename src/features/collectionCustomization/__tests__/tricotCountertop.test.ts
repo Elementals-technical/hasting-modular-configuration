@@ -22,6 +22,7 @@ import cabinetTable from "@/entities/collection/__tests__/fixtures/remote/datata
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { evaluateCountertopChange } from "@/features/configurationCommands/lib/countertopCompatibility";
 import { changeAttribute } from "@/features/configurationCommands/lib/changeAttribute";
+import { confirmAttributeChange } from "@/features/configurationCommands/lib/confirmAttributeChange";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import { createConfiguratorColorReader } from "@/shared/lib/sku/configuratorColors";
 import { resolveConfiguratorOptions, resolveSectionFields } from "../lib/resolveSectionState";
@@ -156,6 +157,73 @@ describe("Tricot countertop preparation", () => {
         tricotMatrixProfile,
       ).blocked?.reasonCode,
     ).toBe("change.notAvailable");
+  });
+
+  // An integrated countertop does not take a 60 cm Sink Base with an inner drawer (table 592: `60:1DWID`).
+  describe("switching the countertop back to integrated", () => {
+    const backToIntegrated = async (drawers: string) => {
+      withMatrix(60);
+      store.dispatch(
+        setAttributeValue({ attributeId: "Drawers", target: { scope: "cabinet", cabinetId: "cab-1" }, value: drawers }),
+      );
+      const runtime = createTestRuntimePort();
+      const deps = {
+        getState: store.getState,
+        dispatch: store.dispatch,
+        runtime: runtime.port,
+        flow: "custom" as const,
+        configurator: tricotConfigurator,
+      };
+      expect(
+        (await changeAttribute({ attributeId: "CountertopStyle", scope: "countertop", value: "vessel" }, deps)).status,
+      ).toBe("applied");
+      const sentBefore = runtime.calls.length;
+      const result = await changeAttribute(
+        { attributeId: "CountertopStyle", scope: "countertop", value: "integrated" },
+        deps,
+      );
+      return { result, deps, sentAfter: () => runtime.calls.slice(sentBefore).flat() };
+    };
+
+    it("asks first to take a 60 cm Sink Base with an inner drawer to one drawer, then does both", async () => {
+      const { result, deps, sentAfter } = await backToIntegrated("1+inner");
+
+      // Nothing is sent or recorded before the user approves.
+      expect(result.status).toBe("confirmation-required");
+      if (result.status !== "confirmation-required") return;
+      expect(result.preview.plan).toContainEqual({
+        attributeId: "Drawers",
+        target: { scope: "cabinet", cabinetId: "cab-1" },
+        value: "1",
+        origin: "dependency",
+        reasonCode: "countertop.integratedDrawers",
+      });
+      expect(result.preview.reasons).toEqual([
+        {
+          attributeId: "CountertopStyle",
+          reasonCode: "countertop.integratedDrawers",
+          reason:
+            "Your design will be updated: a Sink Base with 1 Drawer + Inner Drawer is not compatible with an Integrated countertop and will switch to 1 Drawer.",
+        },
+      ]);
+      expect(sentAfter()).toEqual([]);
+      expect(store.getState().rootStateUI.product.productOptions.CountertopStyle).toBe("vessel");
+
+      expect((await confirmAttributeChange(result.preview, deps)).status).toBe("applied");
+      expect(store.getState().rootStateUI.product.productOptions.CountertopStyle).toBe("integrated");
+      expect(getAttributeValue(store.getState(), "Drawers", { scope: "cabinet", cabinetId: "cab-1" })).toBe("1");
+      expect(store.getState().rootStateUI.product.placedCabinetStyles).toEqual({
+        [tricotTestBindings.productTypes["Sink-Base"] + "-1"]: "1",
+      });
+      expect(sentAfter()).toContainEqual(expect.objectContaining({ attributeId: "Drawers", value: "1" }));
+    });
+
+    it("goes through over a 60 cm Sink Base with one drawer", async () => {
+      const { result } = await backToIntegrated("1");
+
+      expect(result.status).toBe("applied");
+      expect(store.getState().rootStateUI.product.productOptions.CountertopStyle).toBe("integrated");
+    });
   });
 
   it("offers precisely the source materials, ten basins and the Class vessels, with no assumed thickness defaults", () => {

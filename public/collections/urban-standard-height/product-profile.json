@@ -574,6 +574,7 @@
     "divider.optionDoesNotFit": "This divider option does not fit in the selected drawer space.",
     "change.valueNotInCatalog": "This option is not available in this collection.",
     "change.notAvailable": "This option is not available for the current selection.",
+    "countertop.integratedDrawers": "Your design will be updated: the Sink Bases an integrated countertop does not fit switch to a drawer style it fits.",
     "handle.grooveColorCleared": "The groove color is cleared because the selected handle has no groove.",
     "cabinetColor.grooveFollows": "The groove color changes with the cabinet color."
   },

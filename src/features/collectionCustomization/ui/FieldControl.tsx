@@ -40,6 +40,7 @@ export const FieldControl = ({ control, field, onChange, label, className }: Fie
       id: index,
       title: option.label ?? option.value,
       isAvailable: option.enabled,
+      isRestricted: option.restricted,
       disabledReason: option.reason,
       disabledReasonCode: option.reasonCode,
       isShortDesc: false,

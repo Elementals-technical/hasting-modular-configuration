@@ -4,7 +4,12 @@ import makoProfileDocument from "../../../../public/collections/mako/product-pro
 import makoManifest from "../../../../public/collections/mako/manifest.json";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
-import { isDrawerStyleMixingRestricted, selectBasinOptions, selectOptionValues } from "../lib/productProfileSelectors";
+import {
+  isDrawerStyleMixingRestricted,
+  selectBasinOptions,
+  selectDefaultValue,
+  selectOptionValues,
+} from "../lib/productProfileSelectors";
 
 /**
  * The Mako product profile carries only what the Mako documents confirm: the WebGL Logic, the Mako price
@@ -125,6 +130,7 @@ describe("mako product profile", () => {
   it("has the confirmed countertop, faucet and divider options", () => {
     expect(selectOptionValues(profile(), "CountertopStyle")).toEqual(["integrated", "vessel"]);
     expect(selectOptionValues(profile(), "FaucetHolesAmount")).toEqual(["0", "1", "2", "3"]);
+    expect(selectDefaultValue(profile(), "FaucetHolesAmount")).toBe("0");
     expect(selectOptionValues(profile(), "DividersStyle")).toEqual(["Metal", "Oak"]);
   });
 

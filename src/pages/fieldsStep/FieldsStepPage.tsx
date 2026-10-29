@@ -27,6 +27,7 @@ import { ConfiguratorAccordionGroup, ConfiguratorAccordionItem } from "@/shared/
 import { useCompactAccordionViewport } from "@/shared/ui/Accordion/useCompactAccordionViewport";
 import { useSyncedAccordionValue } from "@/shared/ui/Accordion/useSyncedAccordionValue";
 import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
+import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { SegmentedTabPanel, SegmentedTabs, type SegmentedTab } from "@/shared/ui/SegmentedTabs/SegmentedTabs";
 import { CountertopColorLevelPicker } from "@/widgets/CountertopSections/ui/CountertopColorLevelPicker";
 import { useCoverCountertopColorField } from "@/widgets/CountertopSections/lib/useCoverCountertopColorField";
@@ -90,7 +91,7 @@ const ColorSectionField = ({
 
 const SectionField = (props: SectionFieldProps) => {
   const { definition, field } = props;
-  const { onChange, notice } = useAttributeChangeHandler(definition.attributeId);
+  const { onChange, notice, preview, onConfirm, onCancel } = useAttributeChangeHandler(definition.attributeId);
 
   return (
     <div>
@@ -102,6 +103,21 @@ const SectionField = (props: SectionFieldProps) => {
       )}
       {field.hint && <p className={s.hint}>{field.hint}</p>}
       {notice && <div className={s.notice}>{notice}</div>}
+      {/* A change that changes more than the field asks first, saying what else changes and why. */}
+      <AttentionPopup
+        isOpening={preview !== null}
+        setIsOpening={onCancel}
+        title="Update Design?"
+        content={
+          <>
+            {preview?.reasons.map(({ reasonCode, reason }) => (
+              <p key={reasonCode}>{reason}</p>
+            ))}
+          </>
+        }
+        confirmLabel="Approve"
+        onConfirm={() => void onConfirm()}
+      />
     </div>
   );
 };

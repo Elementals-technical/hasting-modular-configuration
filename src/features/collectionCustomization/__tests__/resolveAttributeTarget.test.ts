@@ -126,6 +126,24 @@ describe("resolveScreenTarget", () => {
     });
   });
 
+  it("finds the accessories step of Tricot, which it names after its side panels", () => {
+    expect(resolveScreenTarget(tricot, "prebuilt", "accessories")).toEqual({
+      stepId: "side-panels",
+      path: "/prebuilt/side-panels",
+    });
+    expect(resolveScreenTarget(tricot, "custom", "accessories")).toEqual({
+      stepId: "side-panels",
+      path: "/custom/side-panels",
+    });
+  });
+
+  it.each(shipped)("gives %s an accessories page in each flow, a step of that flow", (_, schema) => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      const paths = schema.flows[flowId].steps.map(({ path }) => path);
+      expect(paths).toContain(resolveScreenTarget(schema, flowId, "accessories")?.path);
+    }
+  });
+
   it("finds nothing for a collection without the page", () => {
     // Class without its accessories step: no step names the screen.
     const withoutPage: CustomizationSchema = {

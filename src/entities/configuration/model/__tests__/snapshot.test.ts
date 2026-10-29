@@ -100,6 +100,24 @@ describe("configuration state", () => {
     expect(getAttributeValue(state, "Handle", { scope: "cabinet", cabinetId: "cab-2" })).toBe("b");
   });
 
+  it("drops the basin of a Sink Base that is gone, and keeps the composition's", () => {
+    store.dispatch(syncCabinets(["rt-a", "rt-b"]));
+    for (const target of [
+      { scope: "basin" as const },
+      { scope: "basin" as const, sinkBaseId: "cab-1" },
+      { scope: "basin" as const, sinkBaseId: "cab-2" },
+    ]) {
+      store.dispatch(setAttributeValue({ attributeId: "VesselColor", target, value: "Zafferano 412 MT" }));
+    }
+
+    store.dispatch(dropValuesForCabinet("cab-1"));
+
+    expect(store.getState().rootStateUI.configuration.valuesByAttributeId.VesselColor).toEqual([
+      { target: { scope: "basin" }, value: "Zafferano 412 MT" },
+      { target: { scope: "basin", sinkBaseId: "cab-2" }, value: "Zafferano 412 MT" },
+    ]);
+  });
+
   it("maps runtime ids to stable keys and follows the scene order", () => {
     store.dispatch(syncCabinets(["rt-a", "rt-b"]));
     expect(getStableKeyForRuntimeId(store.getState(), "rt-b")).toBe("cab-2");

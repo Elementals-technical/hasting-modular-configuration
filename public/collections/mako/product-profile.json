@@ -23,7 +23,8 @@
     "HandleColor": "Antracite 400 MT",
     "CountertopColor": "Matte White",
     "CountertopStyle": "integrated",
-    "sinkType": "LB440"
+    "sinkType": "LB440",
+    "FaucetHolesAmount": "0"
   },
   "attributes": [
     {

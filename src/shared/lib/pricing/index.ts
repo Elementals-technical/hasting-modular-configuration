@@ -23,3 +23,4 @@ export {
 } from "./summaryLinePrice";
 export { tandemCountertopItems, tandemCountertopLineId } from "./tandemCountertopLines";
 export { cabinetCoverItems, type CabinetCoverItem } from "./cabinetCoverItems";
+export { ownSidePanelItems, type OwnSidePanelItem } from "./ownSidePanelItems";
