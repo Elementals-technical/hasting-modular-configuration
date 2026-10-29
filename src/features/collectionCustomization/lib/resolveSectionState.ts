@@ -43,6 +43,11 @@ export type FieldAvailability = {
   optionReason?: (
     option: FieldOptionState,
   ) => Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> | undefined;
+  /**
+   * Values still offered but drawn restricted: choosing one asks first, as it changes more than the field
+   * (Tricot: Integrated over a Sink Base it leaves out). The reason is what they show.
+   */
+  restriction?: Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> & { values: readonly string[] };
   /** When set, only these option values are shown; a hidden one keeps its stored value. */
   visibleValues?: readonly string[];
   /** The option shown as chosen while nothing is stored, e.g. None for a vessel without a basin. */
@@ -169,13 +174,17 @@ export const resolveSectionFields = (
         (!availability.isOptionAllowed || availability.isOptionAllowed(option));
       // A refused option says its own reason where the availability gives it one, else the field's.
       const refusal = enabled ? undefined : (availability.optionReason?.(option) ?? availability);
+      const restriction =
+        enabled && availability.restriction?.values.includes(option.value) ? availability.restriction : undefined;
+      const why = refusal ?? restriction;
       return {
         ...option,
         enabled,
+        ...(restriction ? { restricted: true } : {}),
         image: option.image ?? declaredImage(option.value),
-        reason: refusal?.reason,
-        reasonCode: refusal?.reasonCode,
-        reasonParams: refusal?.reasonParams,
+        reason: why?.reason,
+        reasonCode: why?.reasonCode,
+        reasonParams: why?.reasonParams,
       };
     });
 

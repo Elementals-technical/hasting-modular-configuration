@@ -291,6 +291,8 @@ export type FieldOptionState = OptionState<string> & {
   /** Group the option is shown under, e.g. the material of a colour. */
   desc?: string;
   traits?: FieldOptionTraits;
+  /** Offered, but it changes more than the field: drawn restricted, it asks first and `reason` says why. */
+  restricted?: boolean;
 };
 
 /** The On / Off switch of a field that declares `toggle`, and the values each side sets. */

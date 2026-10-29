@@ -14,6 +14,9 @@ import { CloseBtnIcon } from "@/shared/assets/images/svg/CloseBtnIcon";
 import type { MessageParams } from "@/shared/lib/reasonText";
 
 import { RightCabinetStyleSidebar } from "@/features/sidebar/ui/RightCabinetStyleSidebar/RightCabinetStyleSidebar";
+import { VesselCountertopPrompt } from "@/features/sidebar/ui/VesselCountertopPrompt/VesselCountertopPrompt";
+import { useVesselCountertop, type VesselCountertopRequest } from "@/features/sidebar/lib/useVesselCountertop";
+import { resolveAddedCabinetWidth } from "@/features/sidebar/lib/addedCabinetWidth";
 import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
 import {
   INTERACTIVE_CONFIGURATOR_TUTORIAL_EVENTS,
@@ -264,6 +267,16 @@ type PendingMixingStyle = {
   height: number | null;
 };
 
+/** A style that waits for the vessel countertop it needs, with the drawer switch already approved for it. */
+type PendingVesselStyle = {
+  /** The card. */
+  value: string;
+  drawers: string;
+  mixing: PendingMixingStyle | null;
+  /** The cabinet the integrated countertop leaves out: the one being added, or a placed one the switch takes. */
+  request: VesselCountertopRequest;
+};
+
 /** Why a card is greyed. A card lists them by priority: the first one that holds is shown. */
 type CardBlocker = {
   when: boolean;
@@ -294,6 +307,8 @@ export const CabinetBuilderPage = () => {
   const [activeStyleValue, setActiveStyleValue] = useState<string | null>(null);
   const [pendingMixingStyle, setPendingMixingStyle] = useState<PendingMixingStyle | null>(null);
   const [isPtoSwitchPromptOpen, setIsPtoSwitchPromptOpen] = useState(false);
+  /** The style card that waits for the user to approve the vessel countertop it needs. */
+  const [pendingVesselStyle, setPendingVesselStyle] = useState<PendingVesselStyle | null>(null);
   const [pendingTutorialDefaultCabinetType, setPendingTutorialDefaultCabinetType] = useState(false);
   const [pendingTutorialDefaultCabinetStyle, setPendingTutorialDefaultCabinetStyle] = useState(false);
   const [pendingTutorialSceneCabinetRequestId, setPendingTutorialSceneCabinetRequestId] = useState<string | null>(null);
@@ -420,17 +435,29 @@ export const CabinetBuilderPage = () => {
     return addableCatalogWidths.some((width) => rowCapacity.fits(null, width));
   }, [addableCatalogWidths, hasProducts, rowCapacity]);
 
+  const activeTypeWidths = useMemo(
+    () =>
+      dimensionOptions.width
+        .filter((option) => !option.disabled)
+        .map((option) => Number(option.value))
+        .filter((value) => Number.isFinite(value) && value > 0),
+    [dimensionOptions.width],
+  );
+
   const hasAddableWidthForActiveType = useMemo(() => {
     if (!hasProducts) return true;
 
-    const activeTypeWidths = dimensionOptions.width
-      .filter((option) => !option.disabled)
-      .map((option) => Number(option.value))
-      .filter((value) => Number.isFinite(value) && value > 0);
-
     if (!activeTypeWidths.length) return false;
     return activeTypeWidths.some((width) => rowCapacity.fits(activeCabinetType, width));
-  }, [activeCabinetType, dimensionOptions.width, hasProducts, rowCapacity]);
+  }, [activeCabinetType, activeTypeWidths, hasProducts, rowCapacity]);
+
+  // The width the cabinet being added takes, as its "+" settles it: the chosen one where the composition has
+  // room for it, else the widest it has room for (a model opened in the builder keeps the width it was at).
+  const addedWidth = resolveAddedCabinetWidth(
+    selectedDimensions.width,
+    hasProducts ? activeTypeWidths.filter((width) => rowCapacity.fits(activeCabinetType, width)) : activeTypeWidths,
+    hasProducts ? rowCapacity.maxWidth(activeCabinetType) : null,
+  );
 
   const cabinetStyleOptions = useMemo(() => {
     const drawerOptionMap = new Map(dimensionOptions.drawers.map((option) => [String(option.value), option]));
@@ -792,9 +819,8 @@ export const CabinetBuilderPage = () => {
     dispatch(setOpenStyleSidebar(true));
   }, [dispatch]);
 
-  const handleSelectDrawerStyle = useCallback(
+  const selectDrawerStyle = useCallback(
     (value: string) => {
-      if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
       autoAddSignatureRef.current = null;
       if (!hasProducts) allowNextAutoAddRef.current = true;
       setActiveStyleValue(value);
@@ -819,13 +845,43 @@ export const CabinetBuilderPage = () => {
         dispatch(setSelectedDimensions({ height: style.height }));
       }
     },
+    [cabinetStyleOptions, dispatch, hasProducts, selectedDimensions.height, selectedProductConfig],
+  );
+
+  // An integrated countertop leaves out the cabinet in this style at its width (Tricot: 60 cm with an
+  // inner drawer), the one being added or a placed one a drawer switch takes to the style: the style waits
+  // for the user to approve the vessel countertop it needs, or to choose another width.
+  const { needsVessel, switchRequest, switchToVessel } = useVesselCountertop();
+  const vesselRequest = useCallback(
+    (drawers: string, width: number | null, switchesPlaced: boolean): VesselCountertopRequest | null => {
+      if (activeCabinetType && width !== null && needsVessel(drawers, width)) {
+        return { cabinetType: activeCabinetType, drawers, widthCm: width };
+      }
+      return switchesPlaced ? switchRequest(drawers) : null;
+    },
+    [activeCabinetType, needsVessel, switchRequest],
+  );
+
+  const handleSelectDrawerStyle = useCallback(
+    (value: string) => {
+      if (hasProducts && !countertopCompositionConstraint.canAddCabinet) return;
+
+      const drawers = cabinetStyleOptions.find((item) => item.value === value)?.drawers ?? value;
+      const request = vesselRequest(drawers, addedWidth, false);
+      if (request) {
+        setPendingVesselStyle({ value, drawers, mixing: null, request });
+        return;
+      }
+
+      selectDrawerStyle(value);
+    },
     [
+      addedWidth,
       cabinetStyleOptions,
       countertopCompositionConstraint.canAddCabinet,
-      dispatch,
       hasProducts,
-      selectedDimensions.height,
-      selectedProductConfig,
+      selectDrawerStyle,
+      vesselRequest,
     ],
   );
 
@@ -843,144 +899,208 @@ export const CabinetBuilderPage = () => {
     [cabinetStyleOptions],
   );
 
+  /** Switches every drawer cabinet to the style the user approved. */
+  const applyMixingStyle = useCallback(
+    async (style: PendingMixingStyle) => {
+      const { drawers: drawerRawValue, series, placedHeight, switchHeight, height } = style;
+      const mappedValue = mapDrawerValueToConfig(drawerRawValue);
+
+      if (!mappedValue) return;
+
+      // A placed cabinet is known by its scene product ("UD-side-cabinet-…"), which need not
+      // contain the cabinet type.
+      const isDrawerCabinetId = (productId: string) => {
+        const rule = findPlacedCabinetRule(cabinetCatalog, productId);
+        return rule !== null && !rule.isOpen;
+      };
+
+      const cabinetIdsToUpdate = Array.from(
+        new Set([...selectedProducts.filter(isDrawerCabinetId), ...Object.keys(placedCabinetStyles)]),
+      );
+      // The command addresses a drawer cabinet: the rules are judged for its type, and the set
+      // reaches every drawer cabinet. Without one there is no drawer style to switch, but a model by
+      // height still takes every cabinet to its height.
+      const cabinetId = getCabinetEntries(getCommandState()).find(({ runtimeId }) =>
+        isDrawerCabinetId(runtimeId),
+      )?.stableKey;
+      if (!cabinetId && height === null) return;
+
+      // The drawer switch, the dividers it clears and the height it brings are one undo step.
+      await runStep(async () => {
+        // Cabinets already in the style keep their drawers; only their height is left to change.
+        const switchesDrawers = cabinetIdsToUpdate.some(
+          (productId) => placedCabinetStyles[productId] !== drawerRawValue,
+        );
+
+        // The cabinet being added is of the series of the card, and the rules judge the switch for it.
+        // Its drawers come with the set, or are set here where no cabinet switches.
+        if (series || !switchesDrawers) {
+          dispatch(
+            setSelectedProductConfig({
+              ...(selectedProductConfig ?? {}),
+              ...(series ? { [SERIES_ATTRIBUTE_ID]: series } : {}),
+              ...(switchesDrawers ? {} : { Drawers: mappedValue }),
+            }),
+          );
+        }
+
+        // Cabinets that leave two drawers lose their top dividers, cleared before the drawers change.
+        if (drawerRawValue === "1" && cabinetIdsToUpdate.length > 0) {
+          const configsBeforeDrawerChange = await Promise.all(
+            cabinetIdsToUpdate.map((productId) => getConfig(productId)),
+          );
+          const topDividerClearCabinetIds = cabinetIdsToUpdate.filter((productId, index) => {
+            const previousDrawerValue =
+              placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
+            return previousDrawerValue === "2";
+          });
+
+          if (topDividerClearCabinetIds.length > 0) {
+            await clearDividerZones(topDividerClearCabinetIds, ["TopDrawerDividers"]);
+            dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
+          }
+        }
+
+        let heightAfterSwitch = placedHeight;
+
+        if (switchesDrawers && cabinetId) {
+          // Drawers, the handle the new drawers require and the forced height go to the scene as one
+          // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
+          const asked = await changeAttributeValue({
+            attributeId: "Drawers",
+            value: drawerRawValue,
+            scope: "cabinet",
+            cabinetId,
+          });
+          const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
+
+          if (result.status !== "applied" && result.status !== "partial") {
+            console.error("[CabinetBuilderPage] Failed to switch the drawer style", result);
+            return;
+          }
+
+          const settled = result.status === "applied" ? result.plan : result.applied;
+          const plannedHeight = settled.find((change) => change.attributeId === "Height")?.value;
+          if (typeof plannedHeight === "number") heightAfterSwitch = plannedHeight;
+        }
+
+        setActiveStyleValue(style.value);
+
+        // The set brings the height the rules require of the cabinet it was judged for. A model by
+        // height takes every cabinet to its own height, and where several series supply the type, a
+        // style may come in fewer heights: the composition goes on to one of those. Otherwise the set
+        // alone decides.
+        const targetHeight = height ?? (series ? switchHeight : null);
+        if (targetHeight !== null && heightAfterSwitch !== targetHeight) {
+          const resized = await changeDimension({ attributeId: "Height", value: targetHeight, scope: "global" });
+          if (resized.status !== "applied") {
+            console.error("[CabinetBuilderPage] Failed to set the height of the drawer style", resized);
+            return;
+          }
+        }
+
+        // In some compositions a batch update keeps a stale height until the sidebar is touched. The
+        // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
+        const product = getCommandState().rootStateUI.product;
+        const appliedHeight = targetHeight ?? product.selectedDimensions.height;
+        if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
+
+        const appliedHandle = product.selectedProductConfig?.Handle;
+        const handleConfig =
+          typeof appliedHandle === "string" && appliedHandle
+            ? buildHandleStyleConfigPatch(
+                appliedHandle,
+                product.productOptions.HandleGrooveColor,
+                product.activeProfile,
+              )
+            : null;
+        const depth = product.selectedDimensions.depth;
+        await ensureCabinetHeights({
+          runtimeIds: cabinetIdsToUpdate,
+          height: appliedHeight,
+          bindings: getActiveRuntimeBindings(getCommandState()),
+          patch: {
+            Drawers: mappedValue,
+            ...(handleConfig ?? {}),
+            ...(typeof depth === "number" ? { Depth: depth } : {}),
+          },
+        });
+      });
+    },
+    [
+      cabinetCatalog,
+      changeAttributeValue,
+      changeDimension,
+      confirmAttributeValue,
+      dispatch,
+      getCommandState,
+      placedCabinetStyles,
+      runStep,
+      selectedProductConfig,
+      selectedProducts,
+    ],
+  );
+
   const handleMixingConfirm = useCallback(async () => {
     if (!pendingMixingStyle) return;
+    setPendingMixingStyle(null);
 
-    const { drawers: drawerRawValue, series, placedHeight, switchHeight, height } = pendingMixingStyle;
-    const mappedValue = mapDrawerValueToConfig(drawerRawValue);
-
-    if (!mappedValue) {
-      setPendingMixingStyle(null);
+    // A style the countertop leaves out asks for the vessel countertop next; nothing changes before both
+    // are approved.
+    const request = vesselRequest(pendingMixingStyle.drawers, addedWidth, true);
+    if (request) {
+      setPendingVesselStyle({
+        value: pendingMixingStyle.value,
+        drawers: pendingMixingStyle.drawers,
+        mixing: pendingMixingStyle,
+        request,
+      });
       return;
     }
 
-    setPendingMixingStyle(null);
+    await applyMixingStyle(pendingMixingStyle);
+  }, [addedWidth, applyMixingStyle, pendingMixingStyle, vesselRequest]);
 
-    // A placed cabinet is known by its scene product ("UD-side-cabinet-…"), which need not
-    // contain the cabinet type.
-    const isDrawerCabinetId = (productId: string) => {
-      const rule = findPlacedCabinetRule(cabinetCatalog, productId);
-      return rule !== null && !rule.isOpen;
-    };
-
-    const cabinetIdsToUpdate = Array.from(
-      new Set([...selectedProducts.filter(isDrawerCabinetId), ...Object.keys(placedCabinetStyles)]),
-    );
-    // The command addresses a drawer cabinet: the rules are judged for its type, and the set
-    // reaches every drawer cabinet. Without one there is no drawer style to switch, but a model by
-    // height still takes every cabinet to its height.
-    const cabinetId = getCabinetEntries(getCommandState()).find(({ runtimeId }) => isDrawerCabinetId(runtimeId))
-      ?.stableKey;
-    if (!cabinetId && height === null) return;
-
-    // The drawer switch, the dividers it clears and the height it brings are one undo step.
-    await runStep(async () => {
-      // Cabinets already in the style keep their drawers; only their height is left to change.
-      const switchesDrawers = cabinetIdsToUpdate.some((productId) => placedCabinetStyles[productId] !== drawerRawValue);
-
-      // The cabinet being added is of the series of the card, and the rules judge the switch for it.
-      // Its drawers come with the set, or are set here where no cabinet switches.
-      if (series || !switchesDrawers) {
-        dispatch(
-          setSelectedProductConfig({
-            ...(selectedProductConfig ?? {}),
-            ...(series ? { [SERIES_ATTRIBUTE_ID]: series } : {}),
-            ...(switchesDrawers ? {} : { Drawers: mappedValue }),
-          }),
-        );
+  /** The style the vessel countertop question held: the drawer switch approved before it, or the card's. */
+  const settleVesselStyle = useCallback(
+    async (pending: PendingVesselStyle) => {
+      if (pending.mixing) {
+        await applyMixingStyle(pending.mixing);
+        return;
       }
 
-      // Cabinets that leave two drawers lose their top dividers, cleared before the drawers change.
-      if (drawerRawValue === "1" && cabinetIdsToUpdate.length > 0) {
-        const configsBeforeDrawerChange = await Promise.all(
-          cabinetIdsToUpdate.map((productId) => getConfig(productId)),
-        );
-        const topDividerClearCabinetIds = cabinetIdsToUpdate.filter((productId, index) => {
-          const previousDrawerValue =
-            placedCabinetStyles[productId] ?? readConfigDrawerValue(configsBeforeDrawerChange[index]);
-          return previousDrawerValue === "2";
-        });
+      selectDrawerStyle(pending.value);
+      dispatch(setOpenStyleSidebar(true));
+    },
+    [applyMixingStyle, dispatch, selectDrawerStyle],
+  );
 
-        if (topDividerClearCabinetIds.length > 0) {
-          await clearDividerZones(topDividerClearCabinetIds, ["TopDrawerDividers"]);
-          dispatch(clearTopPlacedDividersForCabinets(topDividerClearCabinetIds));
-        }
+  const handleApproveVesselCountertop = useCallback(async () => {
+    const pending = pendingVesselStyle;
+    setPendingVesselStyle(null);
+    if (!pending) return;
+
+    // The countertop first, then the style as a step of its own: steps do not nest.
+    if (await switchToVessel()) await settleVesselStyle(pending);
+  }, [pendingVesselStyle, settleVesselStyle, switchToVessel]);
+
+  // Another width the integrated countertop takes (80 cm), chosen in the style sidebar, settles the style
+  // without the vessel countertop, unless the switch still takes a placed Sink Base it leaves out.
+  const handleWidthChange = useCallback(
+    (width: number) => {
+      if (!pendingVesselStyle) return;
+
+      const request = vesselRequest(pendingVesselStyle.drawers, width, pendingVesselStyle.mixing !== null);
+      if (request) {
+        setPendingVesselStyle({ ...pendingVesselStyle, request });
+        return;
       }
 
-      let heightAfterSwitch = placedHeight;
-
-      if (switchesDrawers && cabinetId) {
-        // Drawers, the handle the new drawers require and the forced height go to the scene as one
-        // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
-        const asked = await changeAttributeValue({
-          attributeId: "Drawers",
-          value: drawerRawValue,
-          scope: "cabinet",
-          cabinetId,
-        });
-        const result = asked.status === "confirmation-required" ? await confirmAttributeValue(asked.preview) : asked;
-
-        if (result.status !== "applied" && result.status !== "partial") {
-          console.error("[CabinetBuilderPage] Failed to switch the drawer style", result);
-          return;
-        }
-
-        const settled = result.status === "applied" ? result.plan : result.applied;
-        const plannedHeight = settled.find((change) => change.attributeId === "Height")?.value;
-        if (typeof plannedHeight === "number") heightAfterSwitch = plannedHeight;
-      }
-
-      setActiveStyleValue(pendingMixingStyle.value);
-
-      // The set brings the height the rules require of the cabinet it was judged for. A model by
-      // height takes every cabinet to its own height, and where several series supply the type, a
-      // style may come in fewer heights: the composition goes on to one of those. Otherwise the set
-      // alone decides.
-      const targetHeight = height ?? (series ? switchHeight : null);
-      if (targetHeight !== null && heightAfterSwitch !== targetHeight) {
-        const resized = await changeDimension({ attributeId: "Height", value: targetHeight, scope: "global" });
-        if (resized.status !== "applied") {
-          console.error("[CabinetBuilderPage] Failed to set the height of the drawer style", resized);
-          return;
-        }
-      }
-
-      // In some compositions a batch update keeps a stale height until the sidebar is touched. The
-      // scene reader reports each cabinet's actual height; a cabinet still off is sent again.
-      const product = getCommandState().rootStateUI.product;
-      const appliedHeight = targetHeight ?? product.selectedDimensions.height;
-      if (typeof appliedHeight !== "number" || cabinetIdsToUpdate.length === 0) return;
-
-      const appliedHandle = product.selectedProductConfig?.Handle;
-      const handleConfig =
-        typeof appliedHandle === "string" && appliedHandle
-          ? buildHandleStyleConfigPatch(appliedHandle, product.productOptions.HandleGrooveColor, product.activeProfile)
-          : null;
-      const depth = product.selectedDimensions.depth;
-      await ensureCabinetHeights({
-        runtimeIds: cabinetIdsToUpdate,
-        height: appliedHeight,
-        bindings: getActiveRuntimeBindings(getCommandState()),
-        patch: {
-          Drawers: mappedValue,
-          ...(handleConfig ?? {}),
-          ...(typeof depth === "number" ? { Depth: depth } : {}),
-        },
-      });
-    });
-  }, [
-    cabinetCatalog,
-    changeAttributeValue,
-    changeDimension,
-    confirmAttributeValue,
-    dispatch,
-    getCommandState,
-    pendingMixingStyle,
-    placedCabinetStyles,
-    runStep,
-    selectedProductConfig,
-    selectedProducts,
-  ]);
+      setPendingVesselStyle(null);
+      void settleVesselStyle(pendingVesselStyle);
+    },
+    [pendingVesselStyle, settleVesselStyle, vesselRequest],
+  );
 
   const handleMixingCancel = useCallback(() => {
     setPendingMixingStyle(null);
@@ -2006,7 +2126,7 @@ export const CabinetBuilderPage = () => {
           </ConfiguratorAccordionGroup>
         }
 
-        <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} />
+        <RightCabinetStyleSidebar onProductAdded={handleResetToDefaultState} onWidthChange={handleWidthChange} />
       </div>
 
       <DrawerStyleConflictPopup
@@ -2039,6 +2159,11 @@ export const CabinetBuilderPage = () => {
           </div>
         </div>
       </PopupCenterContent>
+      <VesselCountertopPrompt
+        request={pendingVesselStyle?.request ?? null}
+        onApprove={() => void handleApproveVesselCountertop()}
+        onCancel={() => setPendingVesselStyle(null)}
+      />
     </>
   );
 };

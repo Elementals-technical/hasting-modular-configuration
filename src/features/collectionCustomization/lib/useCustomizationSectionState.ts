@@ -30,6 +30,7 @@ import {
   filterThicknessValuesByCountertopRules,
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
+  INTEGRATED_DRAWERS_REASON,
   isMaterialCompatibleWithVesselStyle,
   isPreferredVesselFinish,
   normalizeBasinKey,
@@ -37,6 +38,7 @@ import {
   REASON_COUNTERTOP_MATERIAL_SELECTION,
   REASON_VESSEL_COLOR_UNAVAILABLE,
   selectMaterialAliasTable,
+  selectSinkBasesUnavailableWithIntegrated,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
@@ -268,6 +270,10 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
   const selectedHandle = useAppSelector((state) => getSelectedProductConfig(state)?.Handle);
   const presetHandle = useAppSelector((state) => getProductsPresets(state)[0]?.Handle);
   const countertopRuleState = useCountertopRuleState();
+  // Integrated takes the Sink Bases it leaves out to other drawers: still offered, it asks first.
+  const integratedChangesSinkBases = useAppSelector(
+    (state) => selectSinkBasesUnavailableWithIntegrated(state).length > 0,
+  );
   const allowedFaucetHoles = useAllowedFaucetHoles(countertopRuleState.allowedFaucetHoles);
   // The leg colour a field sets at the first cabinet, unless the product decided none there (a
   // one-drawer Mako cabinet, MAKO-LEG-002): the command would refuse every value but Off.
@@ -320,11 +326,12 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
       // The hosted-basin lock alone, for a style the matrix does not gate (Urban Low Height).
       "CountertopStyle.available": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, { available: true }),
-      "CountertopStyle.allowed": unlessSinkHosted(
-        sinkHosted,
-        HOSTED_SINK_REASON.style,
-        resolveCountertopStyleAvailability(countertopRuleState),
-      ),
+      "CountertopStyle.allowed": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, {
+        ...resolveCountertopStyleAvailability(countertopRuleState),
+        ...(integratedChangesSinkBases
+          ? { restriction: { values: ["integrated"], reasonCode: INTEGRATED_DRAWERS_REASON } }
+          : {}),
+      }),
       "CountertopColor.allowed": resolveCountertopColorAvailability(profile, configurator, countertopRuleState),
       "Thickness.allowed": resolveThicknessAvailability(profile, countertopRuleState),
       "sinkType.allowed": unlessSinkHosted(
@@ -350,6 +357,7 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       fluting,
       grainDirection,
       hasTowelBar,
+      integratedChangesSinkBases,
       isCustomizingDividers,
       isVesselStyle,
       legColorDetermined,
