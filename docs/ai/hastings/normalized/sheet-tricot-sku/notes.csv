@@ -1,0 +1,29 @@
+sheet,cell,author,text
+CabinetPricing,B5,tc={b9c52396-15b0-4a85-8d89-d4a27af622d2},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	Wood Veneer
+"
+CabinetPricing,E33,tc={c54139de-f233-4d57-832e-dc0c5e2b1a5b},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	link to
+"
+CabinetPricing,E8,tc={e315b2cb-5bb9-4d04-ae65-03874275f898},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	link to
+"
+CabinetPricing,B5,{90105c44-a606-47c2-84de-e0007033532e},Wood Veneer
+CabinetPricing,E8,{90105c44-a606-47c2-84de-e0007033532e},link to
+CabinetPricing,E33,{90105c44-a606-47c2-84de-e0007033532e},link to
+Basin StylePricing,A43,tc={c5b0e999-1177-4c9c-8771-cd5827c732d3},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	Product name TBD.... 
+
+CT naming convention
+"
+Basin StylePricing,A43,{90105c44-a606-47c2-84de-e0007033532e},"Product name TBD.... 
+
+CT naming convention"

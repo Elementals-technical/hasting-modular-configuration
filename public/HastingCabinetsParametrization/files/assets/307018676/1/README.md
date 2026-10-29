@@ -2,6 +2,8 @@
 
 Цей документ збирає поточну архітектуру, правила розрахунку, API, UI-інтеграцію, логування та QA-сценарії для divider-досвіду.
 
+> **Ph2 Drawer Organizers (Class / Mako / Tricot / Lame) — окрема система**, не ця. Код: `Scripts/app-configuration/domain/drawer-organizers/`, правило `RuleDrawerOrganizers`, API `ConfiguratorAPI.organizers` / `organizersOverlay`, ключ стану `DrawerOrganizers`. Документація: `docs/features/drawer-organizers/`. Ця система (`TopDrawerDividers`/`BotDrawerDividers`, `dividers.*`) — лише USH (Sink-Base / Sink-Cabinet).
+
 ## Де лежить код
 
 PlayCanvas:

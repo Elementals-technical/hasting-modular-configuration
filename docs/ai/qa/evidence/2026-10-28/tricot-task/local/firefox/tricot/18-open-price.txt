@@ -1,0 +1,1 @@
+Error: ${price2} stale/invalid. Call take_snapshot first.

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"dialog":true,"count":3,"swatches":["Noce Canaletto 933","Rovere Oro 932","Rovere Termocotto 931"],"groups":["Wood Veneer"]}
+```

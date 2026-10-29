@@ -64,6 +64,13 @@ export const getCompositionValues = createSelector(
 export const getDimensionsByCabinet = (state: RootState): ConfigurationState["dimensionsByCabinet"] =>
   state.rootStateUI.configuration.dimensionsByCabinet;
 
+/**
+ * What the scene holds for each product's Ph2 organizers, by stable key (read-only copy of the
+ * `DrawerOrganizers` scene key). The reference changes only when an entry does.
+ */
+export const getOrganizersByCabinet = (state: RootState): ConfigurationState["organizersByCabinet"] =>
+  state.rootStateUI.configuration.organizersByCabinet;
+
 /** The actual size of one product as last read from the scene, or null before the first read. */
 export const getCabinetDimensions = (state: RootState, stableKey: string): CabinetDimensions | null =>
   getDimensionsByCabinet(state)[stableKey] ?? null;

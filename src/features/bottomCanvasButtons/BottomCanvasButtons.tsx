@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useStore } from "react-redux";
 import { useCollectionNavigation } from "@/features/collectionCustomization";
 
 import { BaseButton } from "@/shared";
@@ -9,7 +8,7 @@ import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { UndoIcon } from "@/shared/assets/images/svg/UndoIcon";
 import { RedoIcon } from "@/shared/assets/images/svg/RedoIcon";
-import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppSelector } from "@/shared/hooks/store/redux";
 
 import { useCreateArConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -23,25 +22,18 @@ import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
 
 import { getSaveFailureMessage, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
-import { useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
 import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import { hideDimensions } from "@/utils/functions/playcanvas/showDimensions";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
-import { getCanUndo, getCanRedo } from "@/entities/history/model/store/selectors";
-import { moveInHistory, type HistoryDirection } from "@/entities/history/lib/moveInHistory";
-import { useActiveCollection } from "@/entities/collection";
-import type { RootState } from "@/app/store";
-import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
-import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
-import { captureOrbitCameraState, restoreOrbitCameraState } from "@/utils/functions/playcanvas/orbitCamera";
 import {
   getActiveCountertopThickness,
 } from "@/entities/product/model/store/selectors";
 
 import s from "./BottomCanvasButtons.module.scss";
+import { useHistoryMove } from "./lib/useHistoryMove";
 import { DownloadImageIcon } from "@/shared/assets/images/svg/DownloadImageIcon";
 import { FullDimentionsIcon } from "@/shared/assets/images/svg/FullDimentionsIcon";
 
@@ -62,18 +54,10 @@ export const BottomCanvasButtons = () => {
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
 
-  const dispatch = useAppDispatch();
-  const store = useStore<RootState>();
-
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
-  const runtimeBindings = useActiveCollection((collection) => collection.catalog.runtimeBindings ?? null);
-  const { replay } = useChangeAttribute();
 
-  const canUndo = useAppSelector(getCanUndo);
-  const canRedo = useAppSelector(getCanRedo);
-
-  const [isRestoring, setIsRestoring] = useState(false);
+  const { moveHistory, isRestoring, canUndo, canRedo } = useHistoryMove();
 
   const deactivateFullDimensions = () => {
     hideDimensions();
@@ -84,16 +68,6 @@ export const BottomCanvasButtons = () => {
   };
 
   useFullDimensionsRefresh(isFullDimensionsEnabled, fullDimensionsUnit, deactivateFullDimensions);
-
-  // Undo and redo restore the state as a whole, so the values are only shown on the scene again.
-  // The outcome goes back to the restore, which reports an incomplete replay as a partial rebuild.
-  const replaySnapshotValues = async (values: ReplayValues) => {
-    const result = await replay({ send: values, record: false });
-    if (result.status !== "applied" || result.skipped.length > 0) {
-      console.warn("[History] The scene did not take every value of the snapshot", result);
-    }
-    return result;
-  };
 
   const handleSelectFullDimensionsUnit = async (unit: FullDimensionsUnit) => {
     if (isFullDimensionsEnabled && activeFullDimensionsUnit === unit) {
@@ -121,29 +95,6 @@ export const BottomCanvasButtons = () => {
     }
 
     setIsFullDimensionsMenuOpen((prev) => !prev);
-  };
-
-  const moveHistory = async (direction: HistoryDirection) => {
-    if (isRestoring) return;
-    setIsRestoring(true);
-    const cameraState = captureOrbitCameraState();
-    try {
-      const moved = await moveInHistory(direction, {
-        dispatch,
-        getState: () => store.getState(),
-        getBindings: () => runtimeBindings,
-        replay: replaySnapshotValues,
-        // The rebuilt products get new ids: nothing may stay selected or open on the replaced ones.
-        beforeRebuild: () => {
-          dispatch(setOpenStyleSidebar(false));
-          dispatch(setIsDrawerOpen(false));
-          dispatch(setSelectedSceneProduct(""));
-        },
-      });
-      if (moved) restoreOrbitCameraState(cameraState);
-    } finally {
-      setIsRestoring(false);
-    }
   };
 
   const isSummaryPage = useCollectionNavigation()?.isSummary ?? false;
@@ -313,9 +264,7 @@ export const BottomCanvasButtons = () => {
               variant="ghost"
               className={!canUndo || isRestoring ? s.disabledButton : undefined}
               disabled={!canUndo || isRestoring}
-              onClick={() => {
-                void moveHistory("undo");
-              }}
+              onClick={() => void moveHistory("undo")}
             >
               <UndoIcon />
             </BaseButton>
@@ -324,9 +273,7 @@ export const BottomCanvasButtons = () => {
               variant="ghost"
               className={!canRedo || isRestoring ? s.disabledButton : undefined}
               disabled={!canRedo || isRestoring}
-              onClick={() => {
-                void moveHistory("redo");
-              }}
+              onClick={() => void moveHistory("redo")}
             >
               <RedoIcon />
             </BaseButton>

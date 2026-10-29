@@ -1,0 +1,54 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 25,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase2/ui-fixes) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 2,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 956,
+      "summary": "Took a screenshot of the current page's viewport. Saved screenshot to /var/folders/7m/jj3nmlg12bd5_xnttk8fw4wm0000gn/T/chrome-devtools-mcp-MtLAQq/screenshot.png."
+    }
+  ]
+}

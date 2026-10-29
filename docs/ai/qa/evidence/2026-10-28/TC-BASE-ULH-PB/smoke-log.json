@@ -1,0 +1,278 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 8,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 660,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/"
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 216,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 6,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-low-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data is invalid and the configurator "
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 220,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 8,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 31,
+      "summary": "image 12-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 9,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 209,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 11,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 12,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-low-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data is invalid and the configurator "
+    },
+    {
+      "step": 13,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 52,
+      "summary": "image 23-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 14,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 16,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 17,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-low-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data is invalid and the configurator "
+    },
+    {
+      "step": 18,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 49,
+      "summary": "image 33-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 19,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 21,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 210,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 22,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 209,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-low-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data is invalid and the configurator "
+    },
+    {
+      "step": 23,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 37,
+      "summary": "image 43-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 24,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 26,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 27,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-low-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data is invalid and the configurator "
+    },
+    {
+      "step": 28,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 43,
+      "summary": "image 53-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 29,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 31,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 32,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 210,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-low-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data is invalid and the configurator "
+    },
+    {
+      "step": 33,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 53,
+      "summary": "image 63-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 34,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 36,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 37,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-low-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data is invalid and the configurator "
+    },
+    {
+      "step": 38,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 38,
+      "summary": "image 73-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 39,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 207,
+      "summary": "Script ran on page and returned: ```json {\"total\":null,\"block\":\"Collection unavailable\\n\\nThe collection data is invalid and the configurator cannot start.\\n\\nCollection: urban-low-height\\n\\nRetry\\nOpen default collectio"
+    },
+    {
+      "step": 40,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 1,
+      "summary": "## Console messages <no console messages found>"
+    },
+    {
+      "step": 41,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 1,
+      "summary": "## Network requests Showing 1-25 of 25 (Page 1 of 1). reqid=724 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height [200] reqid=725 GET https://hasting-modula"
+    },
+    {
+      "step": 42,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 23,
+      "summary": "image 93-summary-1.png; Took a screenshot of the current page's viewport."
+    }
+  ]
+}

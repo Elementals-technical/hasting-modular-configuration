@@ -1,0 +1,115 @@
+{
+ "description": "Read-only: Figma node 3142-3 (agent tab), PlayCanvas Editor scene 2596616 (view only), Notion hub; agent tabs closed.",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "figma-00-pages.txt",
+   "capture": {
+    "p_figma": "(\\d+): [^\\n]*node-id=3142-3"
+   }
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${p_figma}"
+   },
+   "save": "figma-03-shot.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${p_figma}",
+    "function": "() => ({ url: location.href, title: document.title, text: document.body.innerText.slice(0, 2000) })"
+   },
+   "save": "figma-04-text.txt"
+  },
+  {
+   "tool": "close_page",
+   "args": {
+    "pageId": "${p_figma}"
+   },
+   "save": "figma-05-close.txt"
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://playcanvas.com/editor/scene/2596616/",
+    "timeout": 60000
+   },
+   "save": "playcanvas-01-open.txt",
+   "capture": {
+    "p_playcanvas": "(\\d+): [^\\n]*\\[selected\\]"
+   },
+   "optional": true
+  },
+  {
+   "sleep": 20000
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${p_playcanvas}"
+   },
+   "save": "playcanvas-03-shot.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${p_playcanvas}",
+    "function": "() => ({ url: location.href, title: document.title, text: document.body.innerText.slice(0, 2000) })"
+   },
+   "save": "playcanvas-04-text.txt",
+   "optional": true
+  },
+  {
+   "tool": "close_page",
+   "args": {
+    "pageId": "${p_playcanvas}"
+   },
+   "save": "playcanvas-05-close.txt",
+   "optional": true
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://fuzzy-gasoline-9eb.notion.site/Hasting-Modular-Project-Hub-3f0d5051a2df80509715ec9c951da532",
+    "timeout": 60000
+   },
+   "save": "notion-01-open.txt",
+   "capture": {
+    "p_notion": "(\\d+): [^\\n]*\\[selected\\]"
+   },
+   "optional": true
+  },
+  {
+   "sleep": 20000
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${p_notion}"
+   },
+   "save": "notion-03-shot.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${p_notion}",
+    "function": "() => ({ url: location.href, title: document.title, text: document.body.innerText.slice(0, 2000) })"
+   },
+   "save": "notion-04-text.txt",
+   "optional": true
+  },
+  {
+   "tool": "close_page",
+   "args": {
+    "pageId": "${p_notion}"
+   },
+   "save": "notion-05-close.txt",
+   "optional": true
+  }
+ ]
+}

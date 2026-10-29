@@ -1,0 +1,2 @@
+Took a screenshot of the current page's viewport.
+Saved screenshot to /var/folders/7m/jj3nmlg12bd5_xnttk8fw4wm0000gn/T/chrome-devtools-mcp-iLMTm4/screenshot.png.

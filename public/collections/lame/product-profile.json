@@ -13,7 +13,9 @@
       "Pre-render model grid (Threekit): the thumbnails of the 44 Lame models"
     ],
     "auditedAt": "2026-10-07",
-    "warning": "Only facts the Lame documents confirm: the WebGL Logic, the Lame price workbook (countertops, basins and accessories through the Class workbook), the GB rules and the Master File. Where the Master File conflicts with the price workbook, the workbook wins. Mako values are not inherited: where Lame equals Mako, the value is written again here."
+    "warning": "Only facts the Lame documents confirm: the WebGL Logic, the Lame price workbook (countertops, basins and accessories through the Class workbook), the GB rules and the Master File. Where the Master File conflicts with the price workbook, the workbook wins. Mako values are not inherited: where Lame equals Mako, the value is written again here.",
+    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list (Metal) keeps the shared (Azzurra) table's tier, which has none for it.",
+    "countertopDefaults": "User approved Matte White + integrated LB175 for all local Lame presets on 2026-10-29, based on the supplied UI_Countertop Color / UI_Basin Style screenshot. This defines the requested app default; the screenshot alone does not establish a manufacturer-wide default."
   },
   "sourceRefs": {
     "configuratorId": 14,
@@ -21,12 +23,12 @@
     "cabinetMatrixTableId": 596
   },
   "defaults": {
-    "CabinetColor": "Antracite 400 MT",
+    "CabinetColor": "Fumo 401 MT",
     "CabinetPattern": "Oxford",
-    "HandleColor": "Antracite 400 MT",
+    "HandleColor": "Fumo 401 MT",
     "CountertopColor": "Matte White",
     "CountertopStyle": "integrated",
-    "sinkType": "LB440"
+    "sinkType": "LB175"
   },
   "attributes": [
     {
@@ -312,6 +314,16 @@
       ]
     },
     {
+      "attributeId": "DividersOption",
+      "scope": "global",
+      "initialValue": "None",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Customize", "label": "Customize", "order": 20 }
+      ]
+    },
+    {
       "attributeId": "DividersStyle",
       "scope": "drawer",
       "options": [
@@ -331,6 +343,25 @@
     }
   ],
   "ruleData": {
+    "priceTiers": {
+      "bySku": {
+        "LACM": 2,
+        "LACG": 3,
+        "LAM": 1,
+        "POR": 4,
+        "HPL": 4,
+        "SSMT": 2,
+        "SSGL": 2,
+        "SSTL": 2,
+        "SSTM": 2,
+        "SSTEX": 2,
+        "SSTMT": 1,
+        "GLSM": 2,
+        "GLSG": 2,
+        "SGLS": 2,
+        "WDV": 3
+      }
+    },
     "cabinetMatrixLegacyAdapter": {
       "tableId": 596,
       "columns": {
@@ -343,6 +374,7 @@
         "forcedHeight": "forced_height_cm"
       }
     },
+    "drawerOrganizers": { "profile": "ROW-MTL-43" },
     "drawerStyleGroups": [["1"], ["2"]],
     "vesselCompatibility": {
       "hiddenStyles": [],
@@ -365,7 +397,21 @@
     "change.valueNotInCatalog": "This option is not available in this collection.",
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "drawers.requiredHeight": "Required for selected drawers",
-    "vessel.colorUnavailable": "Not available for selected vessel sink style."
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "organizer.hintOpenDrawer": "Click ‘Open Drawer’ on a drawer to add divider columns.",
+    "organizer.lockedZone": "Drain area — dividers can't be placed here.",
+    "organizer.trimmed": "{n} column(s) no longer fit and were removed.",
+    "organizer.drawerRemoved": "{n} column(s) were removed with the drawer.",
+    "organizer.drawerFull": "This drawer is full.",
+    "organizer.unavailable": "Dividers aren't available for this cabinet size.",
+    "organizer.placeFailed": "Couldn't place the column. Try again.",
+    "organizer.maxPositions": "A column holds up to 5 inserts.",
+    "organizer.typeChanged": "Dividers were removed because the cabinet type changed.",
+    "organizer.columnRemoved": "Column removed.",
+    "organizer.cleared": "Dividers removed.",
+    "organizer.undoHint": "Use Undo to bring them back.",
+    "organizer.oakPending": "Oak organizers are not available yet.",
+    "organizer.updateRequired": "These dividers were saved by a newer version. Reload the page to edit them."
   },
   "excludedFromThisProfile": {
     "sourceRefs": "Configurator 14 (modular-config-phase-2-materials-(Lame)), cabinet table 596 (matrix-cabinet-lame) and countertop table 597 (matrix-coutnertop-lame) come from the manifest. Configurator 14 holds the Lame palettes only (40 cabinet, 22 handle, 70 thin countertop, 40 vessel and 22 leg cap colours); the two tables hold Lame data only.",
@@ -383,7 +429,7 @@
     "countertopDepth": "The countertop SKU spells 20.7\" (52.6 cm), the cabinets 20.5\" (52 cm); the table keeps 52 cm (LAME-TOP-02).",
     "compositionLimits": "Confirmed: at most 220 cm, at most two Sink Bases, cabinets abut only, one drawer style per composition (P0223-P0227). Only the drawer style is expressed (drawerStyleGroups).",
     "floating": "Mentioned like Urban Low Height, but it needs a thick countertop and Lame has thin ones only, so no floating option is valid today (GEN-TOP-23).",
-    "defaults": "Not described. The models start in Antracite 400 MT, with handles in Antracite 400 MT too, with a white Solid Surface top and an integrated basin, as the pre-render thumbnails show them (inference); LB440 is the first basin the price list gives that top. A cabinet of the builder starts in the same handle colour, rather than the scene's Antracite Matte OCF.",
+    "defaults": "The original documents do not describe collection-wide defaults. LB440 was previously inferred from the first basin in the price list. The user-approved local countertop and basin default is now Matte White + integrated LB175; see provenance.countertopDefaults.",
     "presets": "43 of the 44 Master File models. Their compositions are read from the pre-render thumbnails, since no document describes them (GEN-MOD-01). The thumbnail of Lame 79 2DW w/leg_70 (L37) does not exist in the pre-render, so that model is left out. Lame 63 2DW_60 (L28) and Lame 63 2DW w/leg_60 (L30) are tagged by what the thumbnail shows: one basin and two basins, not the filters the Master File gives them. Every model carries the starting pattern, Oxford, which the scene would otherwise lay as Galles; the models whose titles name legs stand on them.",
     "faucetHolesOnGlass": "0 to 3 holes for every material as GB and the Class price list give them; USH allows 0 or 1 on glass (GEN-TOP-02)."
   }

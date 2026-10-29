@@ -1,0 +1,64 @@
+sheet,cell,formula
+CountertopPricing,G3,0.4*1.45*1.1*1*1.04*1.03*1.085*1.04*4
+CountertopPricing,F4,E4*$G$3
+CountertopPricing,F5,(shared 1)
+CountertopPricing,F6,(shared 1)
+CountertopPricing,F7,(shared 1)
+CountertopPricing,F8,(shared 1)
+CountertopPricing,F9,(shared 1)
+CountertopPricing,F10,(shared 1)
+CountertopPricing,F11,(shared 1)
+CountertopPricing,F12,(shared 1)
+CountertopPricing,F13,(shared 1)
+CountertopPricing,F14,(shared 1)
+CountertopPricing,F15,(shared 1)
+CountertopPricing,F16,(shared 1)
+CountertopPricing,I19,H19*$H$16
+CountertopPricing,I20,(shared 2)
+CountertopPricing,I21,(shared 2)
+CountertopPricing,I22,(shared 2)
+CountertopPricing,I23,(shared 2)
+CountertopPricing,I24,(shared 2)
+CountertopPricing,I25,(shared 2)
+CountertopPricing,I26,(shared 2)
+CountertopPricing,I27,(shared 2)
+Basin StylePricing,G1,0.4*1.45*1.1*1*1.04*1.03*1.085*1.04*4
+Basin StylePricing,F2,E2*$G$1
+Basin StylePricing,F3,(shared 1)
+Basin StylePricing,F4,(shared 1)
+Basin StylePricing,F5,(shared 1)
+Basin StylePricing,F6,(shared 1)
+Basin StylePricing,F7,(shared 1)
+Basin StylePricing,F8,(shared 1)
+Basin StylePricing,F9,(shared 1)
+Basin StylePricing,F11,E11*$G$1
+Basin StylePricing,F12,(shared 2)
+Basin StylePricing,F13,(shared 2)
+Basin StylePricing,F14,(shared 2)
+Basin StylePricing,F15,(shared 2)
+Basin StylePricing,F16,(shared 2)
+Basin StylePricing,F17,(shared 2)
+Basin StylePricing,F18,(shared 2)
+Basin StylePricing,F20,E20*$G$1
+Basin StylePricing,F21,(shared 3)
+Basin StylePricing,F23,E23*$G$1
+Basin StylePricing,F25,E25*$G$1
+Basin StylePricing,F26,(shared 4)
+Basin StylePricing,F27,(shared 4)
+Basin StylePricing,F28,(shared 4)
+Basin StylePricing,F30,E30*$G$1
+Basin StylePricing,F31,(shared 5)
+Basin StylePricing,F33,E33*$G$1
+Basin StylePricing,F34,(shared 6)
+Basin StylePricing,F36,E36*$G$1
+Basin StylePricing,F37,(shared 7)
+Basin StylePricing,F43,E43*$G$1
+AccessoriesPricing,D2,0.4*1.45*1.1*1*1.04*1.03*1.085*1.04*4
+AccessoriesPricing,C3,B3*$D$2
+AccessoriesPricing,C4,(shared 1)
+AccessoriesPricing,C5,(shared 1)
+AccessoriesPricing,C6,(shared 1)
+AccessoriesPricing,C7,(shared 1)
+AccessoriesPricing,C8,(shared 1)
+AccessoriesPricing,C9,(shared 1)
+AccessoriesPricing,C10,(shared 1)

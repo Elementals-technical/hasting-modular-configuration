@@ -1,0 +1,3 @@
+{"id": "local-devfeedback-2#C1", "comment_id": "1", "author": "Andriy Lobatskiy", "date": "2026-10-27T16:46:21Z", "text": ".", "resolved": false, "parent": null, "anchor": "P0010", "anchor_text": "Accessories"}
+{"id": "local-devfeedback-2#C2", "comment_id": "2", "author": "Ryan Homola", "date": "2026-10-27T17:05:56Z", "text": "If we can move the block we have for Legs under the \"Select Color' step to 'Accessories' that would work", "resolved": false, "parent": "local-devfeedback-2#C1", "anchor": "P0010", "anchor_text": "Accessories"}
+{"id": "local-devfeedback-2#C0", "comment_id": "0", "author": "Andriy Lobatskiy", "date": "2026-10-27T16:46:17Z", "text": ".", "resolved": false, "parent": null, "anchor": "P0004", "anchor_text": "Legs"}

@@ -125,7 +125,7 @@ const givenChoices = async (flow: "prebuilt" | "custom") => {
 
 describe("Tricot persistence and collection vocabulary", () => {
   it.each(["prebuilt", "custom"] as const)(
-    "round-trips %s identity, order, separate patterns and the groove colour",
+    "round-trips %s identity, order, separate patterns, the groove colour and the faucet holes",
     async (flow) => {
       await givenChoices(flow);
       // Preserve unapproved top/basin selections as metadata, not as a claim of scene support.
@@ -134,6 +134,9 @@ describe("Tricot persistence and collection vocabulary", () => {
       );
       store.dispatch(
         setAttributeValue({ attributeId: "sinkType", target: { scope: "basin", sinkBaseId: "cab-1" }, value: "VA005" }),
+      );
+      store.dispatch(
+        setAttributeValue({ attributeId: "FaucetHolesAmount", target: { scope: "countertop" }, value: "2" }),
       );
       const before = getConfigurationSnapshot(store.getState());
       const { uiState, fragment } = selectConfigurationSavePayload(store.getState());
@@ -179,6 +182,7 @@ describe("Tricot persistence and collection vocabulary", () => {
       const after = getConfigurationSnapshot(store.getState());
       expect(after.collectionId).toBe("tricot");
       expect(after.values).toEqual(before.values);
+      expect(getAttributeValue(store.getState(), "FaucetHolesAmount", { scope: "countertop" })).toBe("2");
       expect(after.cabinets.map(({ stableKey, index }) => [stableKey, index])).toEqual(
         before.cabinets.map(({ stableKey, index }) => [stableKey, index]),
       );

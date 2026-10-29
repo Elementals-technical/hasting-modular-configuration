@@ -273,6 +273,16 @@ export type VesselCompatibilityRuleData = {
 };
 
 /**
+ * The collection's own price tiers for colour fields (1 Standard $ … 4 Exclusive $$$$), read
+ * before the shared table. SKU material code (upper-case) -> tier: `bySku` for every colour field
+ * of the collection, `byAttribute` (field id -> code -> tier) over it for one field.
+ */
+export type PriceTiersRuleData = {
+  bySku?: Record<string, number>;
+  byAttribute?: Record<string, Record<string, number>>;
+};
+
+/**
  * How a cabinet colour of the configurator is read into the material and finish the fluting
  * and grain rules check. The configurator carries neither as a field of its own.
  */
@@ -320,6 +330,14 @@ export type SteppedCabinetModule = {
 };
 
 /**
+ * The Ph2 drawer organizers of a collection: the id of the organizer profile (for example `ROW-MTL-43`).
+ * The table behind the id (presets, codec, limits) lives in code, features/drawerOrganizers/model/presets.ts.
+ */
+export type DrawerOrganizersRuleData = {
+  profile: string;
+};
+
+/**
  * Rule parameters: the algorithms stay in code, their lists, limits and exclusions live here.
  *
  * Every section except the cabinet matrix adapter is optional. An absent section means the
@@ -355,7 +373,10 @@ export type ProfileRuleData = {
   countertopFallbacks?: CountertopFallbacksRuleData;
   materialNormalization?: MaterialNormalizationRuleData;
   vesselCompatibility?: VesselCompatibilityRuleData;
+  priceTiers?: PriceTiersRuleData;
   cabinetColorTraits?: CabinetColorTraitsRuleData;
+  /** Absent = the collection does not offer the Ph2 drawer organizers. */
+  drawerOrganizers?: DrawerOrganizersRuleData;
   dragDrop?: DragDropRuleData;
 };
 

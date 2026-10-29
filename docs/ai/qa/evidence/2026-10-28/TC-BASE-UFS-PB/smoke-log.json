@@ -1,0 +1,278 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 6,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 591,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-freestanding. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.co"
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 218,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 6,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-freestanding\",\"price\":\"$8,915.00\",\"step\":\"Model\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\"countertop\":{\"pr"
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Model\",\"labels\":[\"Summary View\",\"Customize your design from pre-made solutions\",\"Build your own custom, tailored concept\",\"Size\",\"Style\",\"Product Details\",\"Total"
+    },
+    {
+      "step": 8,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 260,
+      "summary": "image 12-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 9,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 234,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Color <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/color?collectionId=urban-freestanding."
+    },
+    {
+      "step": 11,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 220,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Color\",\"labels\":[\"Summary View\",\"Cabinet Color\",\"View in full mode\",\"Order free Swatches\",\"Material\",\"Color\",\"Look\",\"Price\",\"Castagno chiaro 1C1\",\"Castagno Malto"
+    },
+    {
+      "step": 12,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 218,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/color?collectionId=urban-freestanding\",\"price\":\"$8,915.00\",\"step\":\"Color\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\"countertop\":{\"pr"
+    },
+    {
+      "step": 13,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 238,
+      "summary": "image 23-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 14,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 277,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Countertop & Basin <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/countertop?collectionId=urban-freestan"
+    },
+    {
+      "step": 16,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Countertop & Basin\",\"labels\":[\"Summary View\",\"Countertop Color\",\"View in full mode\",\"Order free Swatches\",\"Material\",\"Color\",\"Look\",\"Price\",\"Bianco Male TFA\",\"Ca"
+    },
+    {
+      "step": 17,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/countertop?collectionId=urban-freestanding\",\"price\":\"$8,915.00\",\"step\":\"Countertop & Basin\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[]"
+    },
+    {
+      "step": 18,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 203,
+      "summary": "image 33-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 19,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 224,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Accessories <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/accessories?collectionId=urban-freestanding."
+    },
+    {
+      "step": 21,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Accessories\",\"labels\":[\"Summary View\",\"Side Panels\",\"None\",\"No groove\",\"Dividers\",\"Towel Bar\",\"Total List Price\",\"Quote\",\"Next: Faucet Details\"],\"controls\":[\"[ ]"
+    },
+    {
+      "step": 22,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/accessories?collectionId=urban-freestanding\",\"price\":\"$8,915.00\",\"step\":\"Accessories\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\"coun"
+    },
+    {
+      "step": 23,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 204,
+      "summary": "image 43-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 24,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 233,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Faucet Details <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/faucet-holes?collectionId=urban-freestandi"
+    },
+    {
+      "step": 26,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Faucet Details\",\"labels\":[\"Summary View\",\"Faucet Holes\",\"Total List Price\",\"Quote\",\"Next: Summary\"],\"controls\":[\"[ ] Faucet Holes\",\"[x] 0\",\"[ ] 1\",\"[ ] 2\",\"[ ] 3"
+    },
+    {
+      "step": 27,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/faucet-holes?collectionId=urban-freestanding\",\"price\":\"$8,915.00\",\"step\":\"Faucet Details\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\""
+    },
+    {
+      "step": 28,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 212,
+      "summary": "image 53-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 29,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 286,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Summary <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/summary?collectionId=urban-freestanding."
+    },
+    {
+      "step": 31,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 215,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[\"Generate Quote\",\"Share\"],\"controls\":[]} ```"
+    },
+    {
+      "step": 32,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 221,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/summary?collectionId=urban-freestanding\",\"price\":\"$8,915.00\",\"step\":\"Summary\",\"dialogs\":[],\"alerts\":[\"Urban Freestanding Height cabinet: Sink Base unit, 2 Drawer"
+    },
+    {
+      "step": 33,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 147,
+      "summary": "image 63-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 34,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 209,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 36,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[\"Generate Quote\",\"Share\"],\"controls\":[]} ```"
+    },
+    {
+      "step": 37,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/summary?collectionId=urban-freestanding\",\"price\":\"$8,915.00\",\"step\":\"Summary\",\"dialogs\":[],\"alerts\":[\"Urban Freestanding Height cabinet: Sink Base unit, 2 Drawer"
+    },
+    {
+      "step": 38,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 149,
+      "summary": "image 73-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 39,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 209,
+      "summary": "Script ran on page and returned: ```json {\"total\":\"$8,915.00\",\"block\":\"Your Configuration\\nCabinet\\nSink Base\\nUrban Freestanding Height cabinet: Sink Base unit, 2 Drawer, Upper Groove handle, 23.6\\\" W, 35.8\\\" H, 19.7\\\" "
+    },
+    {
+      "step": 40,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 2,
+      "summary": "## Console messages Showing 1-8 of 8 (Page 1 of 1). msgid=412 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) msgid=413 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args) msgid=4"
+    },
+    {
+      "step": 41,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 5,
+      "summary": "## Network requests Showing 1-400 of 411 (Page 1 of 2). Next page: 1 reqid=1180 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-freestanding [200] reqid=1181 GET htt"
+    },
+    {
+      "step": 42,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 145,
+      "summary": "image 93-summary-1.png; Took a screenshot of the current page's viewport."
+    }
+  ]
+}

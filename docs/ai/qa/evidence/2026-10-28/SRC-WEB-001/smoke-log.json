@@ -1,0 +1,124 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 13,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 2,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 398,
+      "summary": "image figma-03-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 3,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT/Hastings-Module-Configurator?node-id=3142-3&t=hbdkGQ64TvNwmoPy-0\",\"title\":\"Hastings Module Configurator – Figma\",\"text\""
+    },
+    {
+      "step": 4,
+      "tool": "close_page",
+      "status": "ok",
+      "ms": 234,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 5,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 4151,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 7,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 569,
+      "summary": "image playcanvas-03-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 8,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 210,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"https://playcanvas.com/editor/scene/2596616\",\"title\":\"Hasting-phase-2-stage | Editor\",\"text\":\"HIERARCHY\\nRoot\\nCamera\\nScreenshotCamera\\nScreenshotEntity\\nUniOpenShelves\\n"
+    },
+    {
+      "step": 9,
+      "tool": "close_page",
+      "status": "ok",
+      "ms": 102,
+      "summary": "Note: the previously selected page was closed. Page 1 is now selected. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/st"
+    },
+    {
+      "step": 10,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 5893,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 12,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 146,
+      "summary": "image notion-03-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 13,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"https://fuzzy-gasoline-9eb.notion.site/Hasting-Modular-Project-Hub-3f0d5051a2df80509715ec9c951da532\",\"title\":\"Hasting Modular — Project Hub\",\"text\":\"Skip to content\\nHasti"
+    },
+    {
+      "step": 14,
+      "tool": "close_page",
+      "status": "ok",
+      "ms": 119,
+      "summary": "Note: the previously selected page was closed. Page 1 is now selected. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/st"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Took a screenshot of the current page's viewport.

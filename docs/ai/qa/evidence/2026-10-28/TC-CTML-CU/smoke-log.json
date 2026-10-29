@@ -1,0 +1,327 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 8,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 555,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=mako. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-t"
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 5,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 246,
+      "summary": "Script ran on page and returned: ```json \"clicked: Create Your Own <DIV>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/cabinet-builder?collectionId=mako."
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 215,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Type\",\"items\":[\"*Sink Base\",\"Side Cabinet\"]},{\"section\":\"Cabinet Style\",\"items\":[]},{\"section\":\"Cabinet Style\",\"items\":[\"Next: Color\"]}] ```"
+    },
+    {
+      "step": 8,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json \"Total List Price\\n$4,348.00\" ```"
+    },
+    {
+      "step": 9,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 219,
+      "summary": "image MAKO-06-builder-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 10,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 320,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Color <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/color?collectionId=mako."
+    },
+    {
+      "step": 12,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json [[\"Handle\",1],[\"Leg\",0],[\"G50\",0],[\"G57\",0],[\"Metal\",20],[\"Undertop\",0],[\"Pattern\",0],[\"Frame\",0],[\"Side Color\",0],[\"Groove\",0]] ```"
+    },
+    {
+      "step": 13,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 215,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Color\",\"items\":[\"Order free Swatches\"]},{\"section\":\"Price\",\"items\":[\"Castagno chiaro 1C1\",\"Castagno Malto 1C2\",\"Castagno Scuro 1C3\",\"Cemento Cenere 1A1\",\"Ceme"
+    },
+    {
+      "step": 14,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 249,
+      "summary": "image MAKO-10-color-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 15,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 498,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=class. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-"
+    },
+    {
+      "step": 17,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 215,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 18,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 222,
+      "summary": "Script ran on page and returned: ```json \"clicked: Create Your Own <DIV>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/cabinet-builder?collectionId=class."
+    },
+    {
+      "step": 20,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Type\",\"items\":[\"*Sink Base\",\"Side Cabinet\"]},{\"section\":\"Cabinet Style\",\"items\":[]},{\"section\":\"Cabinet Style\",\"items\":[\"Next: Color\"]}] ```"
+    },
+    {
+      "step": 21,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json \"Total List Price\\n$7,270.00\" ```"
+    },
+    {
+      "step": 22,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 398,
+      "summary": "image CLASS-06-builder-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 23,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 325,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Color <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/color?collectionId=class."
+    },
+    {
+      "step": 25,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 271,
+      "summary": "Script ran on page and returned: ```json [[\"Handle\",0],[\"Leg\",0],[\"G50\",0],[\"G57\",0],[\"Metal\",0],[\"Undertop\",0],[\"Pattern\",0],[\"Frame\",1],[\"Side Color\",1],[\"Groove\",0]] ```"
+    },
+    {
+      "step": 26,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 273,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Color\",\"items\":[\"Order free Swatches\"]},{\"section\":\"Price\",\"items\":[\"Acqua 419 GL\",\"Agata 407 GL\",\"Ambra 413 GL\",\"Antracite 400 GL\",\"Asparago 414 GL\",\"Creta 4"
+    },
+    {
+      "step": 27,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 663,
+      "summary": "image CLASS-10-color-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 28,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 638,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals"
+    },
+    {
+      "step": 30,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 216,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 31,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 272,
+      "summary": "Script ran on page and returned: ```json \"clicked: Create Your Own <DIV>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/cabinet-builder?collectionId=tricot."
+    },
+    {
+      "step": 33,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 240,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Type\",\"items\":[\"*Sink Base\",\"Side Cabinet\"]},{\"section\":\"Cabinet Style\",\"items\":[]},{\"section\":\"Cabinet Style\",\"items\":[\"Next: Cabinet Finishes\"]}] ```"
+    },
+    {
+      "step": 34,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 217,
+      "summary": "Script ran on page and returned: ```json \"Total List Price\\n$8,361.00\" ```"
+    },
+    {
+      "step": 35,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 1011,
+      "summary": "image TRICOT-06-builder-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 36,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 356,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Cabinet Finishes <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/color?collectionId=tricot."
+    },
+    {
+      "step": 38,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 209,
+      "summary": "Script ran on page and returned: ```json [[\"Handle\",1],[\"Leg\",0],[\"G50\",0],[\"G57\",0],[\"Metal\",0],[\"Undertop\",0],[\"Pattern\",1],[\"Frame\",0],[\"Side Color\",0],[\"Groove\",1]] ```"
+    },
+    {
+      "step": 39,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 209,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Color\",\"items\":[\"Order free Swatches\"]},{\"section\":\"Price\",\"items\":[\"Acqua 419 MT\",\"Agata 407 MT\",\"Ambra 413 MT\",\"Antracite 400 MT\",\"Asparago 414 MT\",\"Creta 4"
+    },
+    {
+      "step": 40,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 280,
+      "summary": "image TRICOT-10-color-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 41,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 706,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=lame. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-t"
+    },
+    {
+      "step": 43,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 220,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 44,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 238,
+      "summary": "Script ran on page and returned: ```json \"clicked: Create Your Own <DIV>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/cabinet-builder?collectionId=lame."
+    },
+    {
+      "step": 46,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Type\",\"items\":[\"*Sink Base\",\"Side Cabinet\"]},{\"section\":\"Cabinet Style\",\"items\":[]},{\"section\":\"Cabinet Style\",\"items\":[\"Next: Color\"]}] ```"
+    },
+    {
+      "step": 47,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 208,
+      "summary": "Script ran on page and returned: ```json \"Total List Price\\n$4,477.00\" ```"
+    },
+    {
+      "step": 48,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 231,
+      "summary": "image LAME-06-builder-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 49,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 231,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Color <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/custom/color?collectionId=lame."
+    },
+    {
+      "step": 51,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 217,
+      "summary": "Script ran on page and returned: ```json [[\"Handle\",1],[\"Leg\",1],[\"G50\",0],[\"G57\",0],[\"Metal\",0],[\"Undertop\",1],[\"Pattern\",1],[\"Frame\",0],[\"Side Color\",0],[\"Groove\",0]] ```"
+    },
+    {
+      "step": 52,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Color\",\"items\":[\"Order free Swatches\"]},{\"section\":\"Price\",\"items\":[\"Acqua 419 GL\",\"Agata 407 GL\",\"Ambra 413 GL\",\"Antracite 400 GL\",\"Asparago 414 GL\",\"Creta 4"
+    },
+    {
+      "step": 53,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 553,
+      "summary": "image LAME-10-color-1.png; Took a screenshot of the current page's viewport."
+    }
+  ]
+}

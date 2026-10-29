@@ -1,0 +1,200 @@
+{
+ "description": "Firefox cross-check (fresh dedicated profile, no Summary page because Summary auto-saves and Firefox MCP has no init-script write guard): load + price + 3D screenshot for ULH/USH/Tricot/Mako/UD.",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt"
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height"
+   },
+   "save": "ULH-01-nav.txt"
+  },
+  {
+   "sleep": 18000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 2500
+   },
+   "save": "ULH-02-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "ULH-03-shot.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 40
+   },
+   "save": "ULH-04-console.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "limit": 60,
+    "statusMin": 400
+   },
+   "save": "ULH-05-net-errors.txt"
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-standard-height"
+   },
+   "save": "USH-01-nav.txt"
+  },
+  {
+   "sleep": 18000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 2500
+   },
+   "save": "USH-02-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "USH-03-shot.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 40
+   },
+   "save": "USH-04-console.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "limit": 60,
+    "statusMin": 400
+   },
+   "save": "USH-05-net-errors.txt"
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot"
+   },
+   "save": "TRICOT-01-nav.txt"
+  },
+  {
+   "sleep": 18000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 2500
+   },
+   "save": "TRICOT-02-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "TRICOT-03-shot.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 40
+   },
+   "save": "TRICOT-04-console.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "limit": 60,
+    "statusMin": 400
+   },
+   "save": "TRICOT-05-net-errors.txt"
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=mako"
+   },
+   "save": "MAKO-01-nav.txt"
+  },
+  {
+   "sleep": 18000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 2500
+   },
+   "save": "MAKO-02-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "MAKO-03-shot.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 40
+   },
+   "save": "MAKO-04-console.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "limit": 60,
+    "statusMin": 400
+   },
+   "save": "MAKO-05-net-errors.txt"
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-duplex"
+   },
+   "save": "UD-01-nav.txt"
+  },
+  {
+   "sleep": 18000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 2500
+   },
+   "save": "UD-02-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "UD-03-shot.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 40
+   },
+   "save": "UD-04-console.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "limit": 60,
+    "statusMin": 400
+   },
+   "save": "UD-05-net-errors.txt"
+  }
+ ]
+}

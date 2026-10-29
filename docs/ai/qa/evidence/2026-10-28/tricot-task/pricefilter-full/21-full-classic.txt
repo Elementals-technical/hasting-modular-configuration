@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"dialog":true,"count":0,"swatches":[]}
+```

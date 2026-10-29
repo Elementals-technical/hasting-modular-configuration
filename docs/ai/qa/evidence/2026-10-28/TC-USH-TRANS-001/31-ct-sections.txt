@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"section":"Countertop Color","items":["Order free Swatches"]},{"section":"Price","items":["Agata BD MT","Aragosta 77 MT","Arancio Zucca 09 MT","Ardesia DD MT","Argilla DR MT","Bianco 0B MT","Bianco Calce DA MT","Bianco Gloss TAL","Bianco Male FA MT","Bianco Matte TAM","Blu Artico 37 MT","Blu Avio 41 MT","Blu Laguna A7 MT","Blu Oltremare BG MT"]},{"section":"Thickness","items":[]},{"section":"Thickness","items":[]},{"section":"Countertop Style","items":[]},{"section":"Countertop Style","items":[]},{"section":"Basin style","items":[]},{"section":"Basin style","items":["Back to Color","Next: Accessories"]}]
+```

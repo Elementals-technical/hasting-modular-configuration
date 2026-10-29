@@ -1,0 +1,7 @@
+## Console messages
+Showing 1-5 of 5 (Page 1 of 1).
+msgid=734 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args)
+msgid=735 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=740 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=747 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=748 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args)

@@ -1,0 +1,35 @@
+## Latest page snapshot
+uid=1_0 RootWebArea "tagging-modules-tool" url="http://localhost:5173/prebuilt/faucet-holes?collectionId=tricot"
+  uid=1_1 navigation "Configurator steps"
+    uid=1_2 "Pre-Built"
+    uid=1_3 link "Tricot Models" url="http://localhost:5173/prebuilt/model?collectionId=tricot"
+    uid=1_5 link "Cabinet Finishes" url="http://localhost:5173/prebuilt/color?collectionId=tricot"
+    uid=1_7 link "Countertop & Basin" url="http://localhost:5173/prebuilt/countertop?collectionId=tricot"
+    uid=1_9 link "Accessories" url="http://localhost:5173/prebuilt/side-panels?collectionId=tricot"
+    uid=1_11 link "Faucet Details" url="http://localhost:5173/prebuilt/faucet-holes?collectionId=tricot"
+    uid=1_13 link "Summary" url="http://localhost:5173/prebuilt/summary?collectionId=tricot"
+  uid=1_15 Iframe "scene"
+    uid=1_16 RootWebArea "Hasting-phase-2-stage-v79" url="http://localhost:5173/HastingCabinetsParametrization/index.html?v=038"
+      uid=1_17 Canvas
+  uid=1_18 button "Full Dimensions" expandable haspopup="menu"
+  uid=1_19 button
+  uid=1_20 button
+  uid=1_21 button "View in Space"
+  uid=1_22 button "Share"
+  uid=1_23 button "Image"
+  uid=1_24 button disableable disabled
+  uid=1_25 button disableable disabled
+  uid=1_26 "Help"
+  uid=1_27 link "Summary View" url="http://localhost:5173/prebuilt/summary?collectionId=tricot"
+  uid=1_29 "Select Faucet Details"
+  uid=1_30 button "Faucet Holes" expandable expanded
+  uid=1_31 region "Faucet Holes"
+    uid=1_32 button "0"
+    uid=1_33 button "1"
+    uid=1_34 button "2"
+    uid=1_35 button "3"
+  uid=1_36 "Total List Price"
+  uid=1_37 "$8,361.00"
+  uid=1_38 link "Quote" url="http://localhost:5173/prebuilt/faucet-holes"
+  uid=1_40 button "Back to Accessories"
+  uid=1_41 button "Next: Summary"

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot","title":"tagging-modules-tool","canvas":true}
+```

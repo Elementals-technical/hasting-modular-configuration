@@ -1,0 +1,22 @@
+{
+ "description": "Compare cached vs no-store ULH collection files (read-only).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only: compare the ULH collection files as the browser cache serves them vs a no-store fetch.\n  const files = ['manifest.json', 'sku-profile.json', 'product-profile.json', 'ui.json', 'runtime-bindings.json', 'presets.json'];\n  const out = [];\n  for (const f of files) {\n    const u = '/collections/urban-low-height/' + f;\n    const row = { file: f };\n    for (const mode of ['default', 'no-store']) {\n      try {\n        const r = await fetch(u, { cache: mode });\n        const t = await r.text();\n        row[mode] = { status: r.status, bytes: t.length, materialSkus: (t.match(/materialSkus/g) || []).length, etag: r.headers.get('etag'), lastModified: r.headers.get('last-modified'), age: r.headers.get('age'), cf: r.headers.get('cf-cache-status') };\n      } catch (e) { row[mode] = String(e); }\n    }\n    out.push(row);\n  }\n  return out;\n}\n"
+   },
+   "save": "40-static-files.txt",
+   "optional": false
+  }
+ ]
+}

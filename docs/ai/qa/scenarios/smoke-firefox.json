@@ -1,0 +1,18 @@
+{
+  "description": "Firefox DevTools MCP smoke: pages, snapshot, screenshot, console, network, one navigation and back on the Phase 2 staging host (read-only).",
+  "steps": [
+    { "tool": "list_pages", "args": {}, "save": "01-pages-before.txt" },
+    { "tool": "new_page", "args": { "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot" }, "save": "02-new-page.txt" },
+    { "sleep": 15000 },
+    { "tool": "take_snapshot", "args": { "maxLines": 250 }, "save": "03-snapshot.txt" },
+    { "tool": "screenshot_page", "args": {}, "save": "04-screenshot.png" },
+    { "tool": "list_console_messages", "args": { "limit": 80 }, "save": "05-console.txt" },
+    { "tool": "list_network_requests", "args": { "limit": 150 }, "save": "06-network.txt" },
+    { "tool": "navigate_page", "args": { "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height" }, "save": "07-navigate.txt" },
+    { "sleep": 15000 },
+    { "tool": "screenshot_page", "args": {}, "save": "08-after-navigation.png" },
+    { "tool": "navigate_history", "args": { "direction": "back" }, "save": "09-back.txt" },
+    { "sleep": 8000 },
+    { "tool": "list_pages", "args": {}, "save": "10-pages-after.txt" }
+  ]
+}

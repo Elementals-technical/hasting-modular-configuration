@@ -43,6 +43,8 @@ export const findProductConfigBindingErrors = (
     "topDrawerType",
     "TopDrawerDividers",
     "BotDrawerDividers",
+    // Ph2 drawer organizers: written by the scene's own commands, restored with the product.
+    "DrawerOrganizers",
     "positionX",
     "positionY",
     "positionZ",

@@ -1,0 +1,149 @@
+{
+ "description": "Read-only visits of Figma node, PlayCanvas Editor scene 2596616 (view only, no clicks), Notion hub; agent tabs closed afterwards.",
+ "steps": [
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT/Hastings-Module-Configurator?node-id=3142-3",
+    "timeout": 60000
+   },
+   "save": "figma-01-open.txt",
+   "capture": {
+    "p_figma": "(\\d+): [^\\n]*\\(figma\\.com/design/sqOtHXjE9whf3xWM2ojjQT/Hastings-Module-Configurator\\?node-id=3142-3[^\\n]*\\[selected\\]"
+   },
+   "optional": true
+  },
+  {
+   "sleep": 20000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${p_figma}"
+   },
+   "save": "figma-02-snapshot.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${p_figma}"
+   },
+   "save": "figma-03-shot.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${p_figma}",
+    "function": "() => ({ url: location.href, title: document.title, text: document.body.innerText.slice(0, 1500) })"
+   },
+   "save": "figma-04-text.txt",
+   "optional": true
+  },
+  {
+   "tool": "close_page",
+   "args": {
+    "pageId": "${p_figma}"
+   },
+   "save": "figma-05-close.txt",
+   "optional": true
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://playcanvas.com/editor/scene/2596616/",
+    "timeout": 60000
+   },
+   "save": "playcanvas-01-open.txt",
+   "capture": {
+    "p_playcanvas": "(\\d+): [^\\n]*\\(playcanvas\\.com/(editor/scene/2596616|login|account)[^\\n]*\\[selected\\]"
+   },
+   "optional": true
+  },
+  {
+   "sleep": 20000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${p_playcanvas}"
+   },
+   "save": "playcanvas-02-snapshot.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${p_playcanvas}"
+   },
+   "save": "playcanvas-03-shot.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${p_playcanvas}",
+    "function": "() => ({ url: location.href, title: document.title, text: document.body.innerText.slice(0, 1500) })"
+   },
+   "save": "playcanvas-04-text.txt",
+   "optional": true
+  },
+  {
+   "tool": "close_page",
+   "args": {
+    "pageId": "${p_playcanvas}"
+   },
+   "save": "playcanvas-05-close.txt",
+   "optional": true
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://fuzzy-gasoline-9eb.notion.site/Hasting-Modular-Project-Hub-3f0d5051a2df80509715ec9c951da532",
+    "timeout": 60000
+   },
+   "save": "notion-01-open.txt",
+   "capture": {
+    "p_notion": "(\\d+): [^\\n]*\\(notion\\.site/Hasting-Modular-Project-Hub[^\\n]*\\[selected\\]"
+   },
+   "optional": true
+  },
+  {
+   "sleep": 20000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${p_notion}"
+   },
+   "save": "notion-02-snapshot.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${p_notion}"
+   },
+   "save": "notion-03-shot.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${p_notion}",
+    "function": "() => ({ url: location.href, title: document.title, text: document.body.innerText.slice(0, 1500) })"
+   },
+   "save": "notion-04-text.txt",
+   "optional": true
+  },
+  {
+   "tool": "close_page",
+   "args": {
+    "pageId": "${p_notion}"
+   },
+   "save": "notion-05-close.txt",
+   "optional": true
+  }
+ ]
+}

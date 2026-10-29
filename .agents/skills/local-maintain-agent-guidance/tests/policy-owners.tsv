@@ -1,0 +1,14 @@
+# marker-regex<TAB>owner file (one canonical owner). Owner '-' = team-owned rule: must NOT be restated in personal files.
+PENDING_\*? lists only shrink	-
+COMMITTED_SETTERS	-
+prohibitedHookCalls	-
+RECORD_PRICES=1	-
+npm ci	-
+Only on explicit request	-
+Stop and ask before: Save configuration	docs/ai/qa/browser-validation.md
+one controller per session|One controller per session	docs/ai/qa/browser-validation.md
+Reproduce before fix	.agents/skills/local-implement-change/references/ui-regression.md
+Never use the default profile with	docs/ai/qa/browser-validation.md
+Persist only with evidence	.agents/skills/local-maintain-agent-guidance/SKILL.md
+nvm 20\.19\.2 install	.agents/skills/local-implement-change/references/verify-frontend.md
+never send "please check PlayCanvas"|Never send "please check PlayCanvas"	docs/ai/qa/handoffs/ownership-handoff-template.md

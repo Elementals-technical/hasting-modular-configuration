@@ -1,0 +1,143 @@
+Snapshot [DOM truncated]
+
+uid=e141 body
+  uid=e125 div
+    uid=e124 div
+      uid=e123 div
+        uid=e14 div
+          uid=e13 nav "Configurator steps"
+            uid=e1 div
+              uid=e0 div text="Pre-Built"
+            uid=e12 ul
+              uid=e3 li
+                uid=e2 a "Tricot Models" href="https://hasting-modular-pha..." text="Tricot Models"
+              uid=e5 li
+                uid=e4 a "Cabinet Finishes" href="https://hasting-modular-pha..." text="Cabinet Finishes"
+              uid=e7 li
+                uid=e6 a "Accessories" href="https://hasting-modular-pha..." text="Accessories"
+              uid=e9 li
+                uid=e8 a "Countertop & Basin" href="https://hasting-modular-pha..." text="Countertop & Basin"
+              uid=e11 li
+                uid=e10 a "Summary" href="https://hasting-modular-pha..." text="Summary"
+        uid=e40 div
+          uid=e17 div
+            uid=e16 iframe "scene" src="https://hasting-modular-pha..."
+          uid=e18 div
+          uid=e36 div
+            uid=e21 div
+              uid=e20 button
+                uid=e19 span
+            uid=e23 button
+              uid=e22 span
+            uid=e25 button
+              uid=e24 span
+            uid=e27 button
+              uid=e26 span
+            uid=e29 button
+              uid=e28 span
+            uid=e31 button
+              uid=e30 span
+            uid=e33 button
+              uid=e32 span
+            uid=e35 button
+              uid=e34 span
+          uid=e39 div
+            uid=e38 div
+              uid=e37 div text="Help"
+        uid=e122 div
+          uid=e43 a href="https://hasting-modular-pha..."
+            uid=e41 span text="Summary View"
+            uid=e42 span text="→"
+          uid=e48 div
+            uid=e47 div
+              uid=e44 div
+              uid=e45 div text="Select Tricot Models"
+              uid=e46 div
+          uid=e107 div
+            uid=e57 div
+              uid=e52 div
+                uid=e51 div
+                  uid=e49 div text="Pre-Built Models"
+                  uid=e50 p text="Customize your design from ..."
+              uid=e56 div
+                uid=e55 div
+                  uid=e53 div text="Create Your Own"
+                  uid=e54 p text="Build your own custom, tail..."
+            uid=e62 div
+              uid=e59 div
+                uid=e58 button
+              uid=e61 div
+                uid=e60 button
+            uid=e106 div
+              uid=e105 div
+                uid=e63 div
+                uid=e64 div
+                uid=e65 div
+                uid=e66 div
+                uid=e67 div
+                uid=e68 div
+                uid=e69 div
+                uid=e70 div
+                uid=e71 div
+                uid=e72 div
+                uid=e73 div
+                uid=e74 div
+                uid=e75 div
+                uid=e76 div
+                uid=e77 div
+                uid=e78 div
+                uid=e79 div
+                uid=e80 div
+                uid=e81 div
+                uid=e82 div
+                uid=e83 div
+                uid=e84 div
+                uid=e85 div
+                uid=e86 div
+                uid=e87 div
+                uid=e88 div
+                uid=e89 div
+                uid=e90 div
+                uid=e91 div
+                uid=e92 div
+                uid=e93 div
+                uid=e94 div
+                uid=e95 div
+                uid=e96 div
+                uid=e97 div
+                uid=e98 div
+                uid=e99 div
+                uid=e100 div
+                uid=e101 div
+                uid=e102 div
+                uid=e103 div
+                uid=e104 div
+          uid=e121 div
+            uid=e116 div
+              uid=e108 span text="Total List Price"
+              uid=e110 span
+                uid=e109 span "$8,361.00" text="$8,361.00"
+              uid=e115 span
+                uid=e114 a "Quote" href="https://hasting-modular-pha..."
+                  uid=e113 span
+                    uid=e111 span text="Quote"
+                    uid=e112 span
+            uid=e120 div
+              uid=e119 button
+                uid=e118 span
+                  uid=e117 span text="Next: Cabinet Finishes"
+  uid=e140 div
+    uid=e126 div
+    uid=e139 div
+      uid=e138 alertdialog tag=div
+        uid=e129 div
+          uid=e127 div text="Take the Interactive Walkth..."
+          uid=e128 button "Close"
+        uid=e131 div
+          uid=e130 p text="We'll walk through the two ..."
+        uid=e137 div
+          uid=e132 div
+          uid=e134 button "Skip"
+            uid=e133 span text="Skip"
+          uid=e136 button "Next"
+            uid=e135 span text="Next"

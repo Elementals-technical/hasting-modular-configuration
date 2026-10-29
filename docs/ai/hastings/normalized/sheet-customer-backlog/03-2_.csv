@@ -1,0 +1,6 @@
+row,A,B,C,D,E,F,G,H
+1,№,Задача,,,Оценка,Статус,,
+2,1.0,Добавить фильтры по цене,https://gyazo.com/d5e32b1e5fb29de899e2598834ca54a2,,4.0,Done,,
+3,2.0,Перенос динамичных цен с VanillaApp на продакшен,,,4 - 8,Не в роботе,,
+4,3.0,Цены 2д конфигуратор (Vanilla App),https://docs.google.com/spreadsheets/d/1l2StScTtafrv5zJHS12MDGKg6yWESDbo7yoCeYag4e8/edit?gid=0#gid=0,,,На тесте,,Ожидаю фикс от @vak на стороне трикита по продуктам Luna/Sonia Mirror Cabinet
+5,4.0,Download PDF,https://gyazo.com/9ca304e372ff9269f3729a6a81416b0f,,15.0,Done,,

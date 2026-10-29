@@ -20,7 +20,12 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
 import { FieldStack } from "@/shared/ui/FieldStack/FieldStack";
 
-import { selectMaterialHierarchy, type FieldOptionState, type FieldRuntimeState } from "@/entities/collection";
+import {
+  selectMaterialHierarchy,
+  selectPriceTierOverride,
+  type FieldOptionState,
+  type FieldRuntimeState,
+} from "@/entities/collection";
 import { getActiveProductProfile } from "@/entities/configuration";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 
@@ -87,7 +92,8 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
     () => buildColorFilters(options, title, materialHierarchy),
     [options, title, materialHierarchy],
   );
-  const tierOptions = useMemo(() => buildTierFilterOptions(options), [options]);
+  const tierOverride = useMemo(() => selectPriceTierOverride(profile, field.attributeId), [profile, field.attributeId]);
+  const tierOptions = useMemo(() => buildTierFilterOptions(options, tierOverride), [options, tierOverride]);
 
   const allOptions = useMemo(
     () => sortOptions(options, sortByTitle, filters.materials),
@@ -96,11 +102,15 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
   const visibleOptions = useMemo(
     () =>
       sortOptions(
-        filterOptionsByTier(filterOptionsByMaterialSelection(options, selectedFilter), selectedFilter.tier),
+        filterOptionsByTier(
+          filterOptionsByMaterialSelection(options, selectedFilter),
+          selectedFilter.tier,
+          tierOverride,
+        ),
         sortByTitle,
         filters.materials,
       ),
-    [filters.materials, options, selectedFilter, sortByTitle],
+    [filters.materials, options, selectedFilter, sortByTitle, tierOverride],
   );
 
   const activeValue = typeof field.value === "string" ? field.value : null;
@@ -123,6 +133,7 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
         fullModeColorFilterOptions={filters.colors}
         fullModeLookFilterOptions={filters.looks}
         fullModeTierFilterOptions={tierOptions}
+        fullModeTierOverride={tierOverride}
       />
       <FilterRow className={s.filters}>
         <FilterItem

@@ -1,0 +1,54 @@
+## Pages
+1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected]
+2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://github.com/Elementals-technical/hasting-data-modular-review/blob/analysis/products-data/Tricot/docs/TRICOT-PRODUCT-MAP-UA.md)
+3: backlog (Viktor/Customer) - Google Sheets (https://docs.google.com/spreadsheets/d/1t97Pg0xh5SZqUkKcOC4lBJr75DPYmd6iRxe07qHC5Bk/edit?gid=1284086068#gid=1284086068)
+4: Urban-Low-Height-Countertop-Positioning-Clarifi... (https://docs.google.com/document/d/1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp/edit)
+5: <redacted non-project tab>
+6: <redacted non-project tab>
+7: hasting-data-modular-review/developer-c/README.... (https://github.com/Elementals-technical/hasting-data-modular-review/blob/planing/dev/developer-c/README.uk.md)
+8: https://renderadmin.vivid3d.tech/configurators/8?serialize=true&view=full
+9: Hastings Module Configurator – Figma (https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT/Hastings-Module-Configurator?node-id=3142-2&m=dev)
+10: Vivit Build Admin Panel (https://build.vivid3d.tech/configurations?organization=5)
+11: Vivid Admin Panel (https://app.vivid3d.tech/login)
+12: materials UFS - Google Sheets (https://docs.google.com/spreadsheets/d/1HauIiXeYnoit6MIkHdvMi8e-N8nV1NTzOtHU1e8NvKE/edit?gid=0#gid=0)
+13: <redacted non-project tab>
+14: <redacted non-project tab>
+15: tagging-modules-tool (https://hasting-modular-phase-2-p98qb.ondigitalocean.app/prebuilt/model?collectionId=tricot)
+16: Modular Build - Dev Feedback - Google Docs (https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?tab=t.gp0cslpmv5c)
+17: Elementals-technical/viewer-3kit-hastings (https://github.com/Elementals-technical/viewer-3kit-hastings/tree/main)
+18: Inspect with Chrome Developer Tools (chrome://inspect/#remote-debugging)
+19: Urban Standard Height Logic - Google Docs (https://docs.google.com/document/d/151UdAKWlYqcRkyKA3HkvN3_TLgnhJl-hOQyXgqsshro/edit?tab=t.0)
+20: Urban Standard Height | Floating Bathroom Vanit... (https://www.hastingsbathcollection.com/products/vanities/urban-standard-height)
+21: Lamè | Transitional Bathroom Vanity | Hastings ... (https://www.hastingsbathcollection.com/products/vanities/lame)
+22: New page (https://fuzzy-gasoline-9eb.notion.site/3e5d5051a2df808aa95bfce6c1d8591a)
+23: <redacted non-project tab>
+24: Hastings-Pricing-Status-Tracker.xlsx - Google S... (https://docs.google.com/spreadsheets/d/1ygWqHaJWmzWmfOwawCCFBwYL7R_dSs7D/edit?gid=1711846060#gid=1711846060)
+25: Vivit Build Admin Panel (https://build.vivid3d.tech/data_tables/589?organization=5)
+26: tagging-modules-tool (https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot)
+27: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging)
+28: Tricot — Collection Specification (Hasting Modu... (https://docs.google.com/document/d/1KHDD5vRhu0-kL8DVE-aWaP1k1xREG5dk/edit)
+29: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging)
+30: Hastings scoping 2.docx - Google Docs (https://docs.google.com/document/d/1bm4FqTdAoqe2wYQBZfvikE1oOX4x6wGL/edit)
+31: <redacted non-project tab>
+32: <redacted non-project tab>
+33: <redacted non-project tab>
+34: <redacted non-project tab>
+35: <redacted non-project tab>
+36: Copy of Urban Standard Height Logic - Google Docs (https://docs.google.com/document/d/1y_QRaTjODnF4l96uTqYEUukKadcMQjWSHyRqUSv94UA/edit?tab=t.0)
+37: Modular Build - Dev Feedback - Google Docs (https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?tab=t.0)
+38: Modular Build - Dev Feedback - Google Docs (https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?tab=t.eskre7uycvue)
+39: hasting bug-fix - Google Sheets (https://docs.google.com/spreadsheets/d/1iZTeizCS2qAjU73OBbmIfobBSw6gEtATsw1ECHQFKes/edit?gid=744056978#gid=744056978)
+40: Class Tricot Mako Lame WebGL Logic - Google Docs (https://docs.google.com/document/d/1uK0d2ZSa7TcVbarmPD-fZOzfDWKb2j5rKxUO-tLLLxE/edit?tab=t.0)
+41: <redacted non-project tab>
+42: <redacted non-project tab>
+43: <redacted non-project tab>
+44: https://renderadmin.vivid3d.tech/configurators/9?serialize=true&view=full
+45: Urban-Low-Height-Countertop-Positioning-Clarifi... (https://docs.google.com/document/d/1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp/edit)
+46: <redacted non-project tab>
+47: <redacted non-project tab>
+48: https://renderadmin.vivid3d.tech/pricing-v2/resolve?sku=VAN-LAMEV-LEGCAP-LACM-403
+49: Luna (https://viewer-3kit-hastings-d36el.ondigitalocean.app/?asset=efae80e3-65b9-46f1-b907-0e6baa5ff45a)
+50: Elementals-technical/hasting-data-modular-revie... (https://github.com/Elementals-technical/hasting-data-modular-review/tree/analysis/products-data)
+51: <redacted non-project tab>
+52: <redacted non-project tab>
+53: items - Threekit (https://preview.threekit.com/o/hastingstilebath/branches/main/items/7a404ab8-1b4f-4416-972e-6dc407598dd1/edit)

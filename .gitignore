@@ -107,6 +107,7 @@ docs/*
 !docs/side-panel-reasons-refactor.md
 !docs/cabinet-drag-and-drop-ui.md
 !docs/countertop-position-ui.md
+!docs/drawer-organizers-ui.md
 !docs/collection-data-migration-status-v1.md
 !docs/collection-data-migration-status-v2.md
 # Developer C reports: residue, acceptance, handoffs and collection profiles.
@@ -132,3 +133,8 @@ iphone-safari-debugging
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Personal AI layer (AGENTS.local.md, local-* skills, docs/ai): visible in git status, not for commit without team agreement
+!.agents/skills/
+!.claude/skills/
+!docs/ai/

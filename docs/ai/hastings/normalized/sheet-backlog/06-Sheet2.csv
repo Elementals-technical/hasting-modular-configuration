@@ -1,0 +1,116 @@
+row,A,B,C,D,E,F,G,H,I,J,K,L,M,N,O
+6,,,,,,,,,Round 7,,,,,,
+7,,,,,,,,1.0,,Main How-To Tutorial – V2,,,,,vivid-link
+8,,,,,,,,2.0,,,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB2gXs4IY,Комент від Раяна,"Main 'How it Works'
+- I see the animation updates.
+- Step #3: Custom Mode: Please make the punctuation + text updates. See below.
+1) Add the colon
+2) Update the text in first bullet
+https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT?node-id=2716-185#1705542239",
+9,,,,,,,,3.0,,Custom Path – Cabinet Builder Blank Player,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB4Q8lSwY,Комент від Раяна,"Sometimes, when a 46cm Depth cabinet is the 1st cabinet added to the scene, the countertop depth does not match the cabinet depth. It is too short.
+
+It happens intermittently. It seems to concur when a 'error' occurs.",
+10,,,,,,,,4.0,,Persistent ‘How To Buy’ or Quote CTA,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB2gXs4JA,Комент від Раяна,"Please slim the button down height-wise (see the reference image for scale. 
+
+Also, improve the left-right spacing. Currently it is skewed to the left",
+11,41.0,,Update,При востановлении конфигурации - сайд панели ставлятся на 2 стороны,https://take.ms/e7OPw,1 - 2,,5.0,,Persistent Player Actions,Share,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB4Q8lTYk,Комент від Раяна,"This is working well. 
+
+I'm noticing an issue with Side Panels pasting the link when a Side Panel is on 1 side of a cabinet, but not the other. In this scenario, when pasting the copied URL, it is adding the Side Panel to both sides. The scenario in the recording is not available logic-wise, as open Shelf cabs cannot have Side Panels. See the recording below.
+https://drive.google.com/drive/folders/1ePGexUgz0WHA0iBDIr08BBreApdlYfJX
+
+Please ensure all logic structures are intact when copying and pasting",
+13,,,,,,,,,Round 8 – Feedback,,,,,,
+14,,,,,,,,6.0,,Countertop Materials,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB3GEcuVw,,,
+15,8.0,Round 8,Logic,Дополнительная логика для Inner Drawer Dividers,https://take.ms/88eQZ,4,,7.0,,Accessories – Inner Drawer Dividers,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB25-QlXU,запит на логіку Vivid,,https://app.vivid3d.tech/Hastings/projects/68fa6f09abeac9beadf307ae/68fa6f09cc93f54002091d4f/devtasks/69cd5d042d8b2a8a9b2d3ff9?limit=25&taskContent=comments
+16,40.0,,Update,Если цвет ручек отличается от цены кабинета - берем цену материала дороже,https://take.ms/MAuq1,1.5 - 2.5,,8.0,,Pricing Details: Cabinet Color & Handle Groove Color,,,,,
+17,39.0,,Update,неправильная цена каунтертопа кабинета с шириной 60см,https://take.ms/DTRUo,,,9.0,,Default Pricing Upon Entering the App,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB22la1i0,,,
+18,,,,,,,,10.0,,Summary View,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB44KljW8,,,
+19,48.0,,Update,Вместо ску показать ui значения,https://take.ms/EzXty,0.5,,,,,Please display the UI values for all content blocks. See below.,,,,
+20,,,,,,,,,,,Please update the UI elements called out below,,,,
+21,,,,,,,,,,,Swatches Block,,,,
+22,45.0,,Update,Сделать возможность копировать и выделять тултип information,https://take.ms/ieh50,1 - 1.5,,,,,SKU Tooltip UX,,,,
+23,,,,,,,,11.0,,Book Matching – Pricing,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB2_72r-4,,,
+24,15.0,Round 8,Logic,Обновить цены и калькуляцию для сайд-панелей,https://take.ms/YdXGI,2–3,,12.0,,Side Panels – Pricing,,,,,
+25,38.0,,Update,При настроеном пребилд конфигурации - кнопка Create your Own должна сохранять конфигурацию,https://take.ms/7Nkvf,1 - 1.5,,13.0,,Create Your Own Click – Modal Notification,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB22la1ig,,,
+26,,,,,,,,,,Summary View,,,,,
+27,,,,,,,,14.0,,,Add SKU details tooltip,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB2_72sD8,,,
+28,,,,,,,,15.0,,SKU Output – Side Panels – Contrasting Handle Color,,,,,
+29,,,,,,,,16.0,,Pre-Built Mode – Accessory Editing (SPs + Towel Bar),,,?,,
+30,,,,,,,,17.0,,Custom Mode – Cabinet Builder – OS Cab w/ SPs on Configuration,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB3GEcuWI,,,
+31,37.0,,Update,убрать Faucet Hole Spacing секцию,https://take.ms/rb9bG,0.5,,18.0,,Faucet Hole Spacing,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB26kUVq8,,,
+32,,,,,,,,19.0,,Countertop Thickness Dimensions,,,,,
+33,,,,,,,,20.0,,Countertop Materials Order,,,,,
+34,34.0,,Update,для дефолтного HPL цвета включить Gain Direction,https://take.ms/4DyDx,1 - 1.5,,21.0,,Grain Direction Option for Multi-Color Cabinet Units,,,,,
+35,33.0,,Update,изменить Total Dimension Font Style/Size,https://take.ms/dib27,,,22.0,,Player Actions – Total Dimension Font Style/Size,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB3GEcuWM,,,
+36,,,,,,,,23.0,,Summary View - Double Basin SKU | Pricing,,,,,
+37,,,,,,,,24.0,,Cabinet Size Selections – Cabinet Builder + Intraplayer actions,,,,,
+38,,,,,,,,25.0,,Total Dimensions (Countertop Dim)– Adding SPs,,,,,
+39,,,,,,,,26.0,,Help Path – Live Chat,,,,,
+40,,,,,,,,27.0,,Order Free Swatches,,,,,
+41,,,,,,,,28.0,,Pre-Built Mode – Undo Action – Changing Cabinet Colors,,,,,
+42,,,,,,,,29.0,,Countertop + Cabinet Tooltips – Add inch conversions,,,,,
+43,,,,,,,,30.0,,Pre-Built Mode – Default Design Countertop Color,,,,,
+44,,,,,,,,31.0,,Total Dimension Function,,,,,
+45,,,,,,,,32.0,,SKU + Price Feedback,,,,,
+46,,,,,,,,,,Cabinet,,,,,
+47,,,,,,,,33.0,,,Price - There should be a price calculation for each cabinet,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB2gXs4Jg,,,
+49,,,,,,,,,,Countertops,,,,,
+50,,,,,,,,34.0,,,"Price $1,606.93",,,,
+52,,,,,,,,,,Countertop | Basin Style Logic,,,,,
+53,17.0,Round 8,Logic,Изменить текст тултипа для недоступного материала и скрыть 46 см для Glass MT,https://take.ms/7XxwF,2–3,,35.0,,,Grey out ‘Mineralmaro’ option in the Material Filter dropdown. It should not be selectable,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB3lobyb4,,,
+54,,,,,,,,36.0,,,60cm SB is available for Vessel Countertop Style,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB22la1iA,,,
+56,,,,,,,,37.0,,Max Countertop Length – Integrated vs Vessel,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB3lobye0,готово на перевірці,,
+58,,,,,,,,38.0,,Countertop Style: Vessel Style,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB29JfduU,,,
+59,2.0,Round 8,Logic,Обновить зависимости для каунтертопа: при смене ширины кабинета добавить нотификации,https://take.ms/pWqMT,3–4,,39.0,,Countertop Style: Integrated Basin Compatiablitiy,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB26kUV8U,,,
+62,,,,,,,,40.0,,Solid Surface - Tekormud,,,,,
+63,32.0,,Update,поставить картинки для свочесов,https://take.ms/SZqc6,,,,,,"Colors
+- Colors are not displaying",,,,
+64,,,,,,,,,,,"epth options
+46cm Depth 
+Is only available for the Vessel countertop style. See the chart.
+Integrated Countertop Style option: 
+Grey this out in this scenario 
+Add hover tooltip → Integrated basin style not available for 46cm (18.1”) depth configurations",https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB25-QlYQ,,,
+65,,,,,,,,,,,When Integrated Countertop Style is activated,,,,
+67,,,,,,,,41.0,,Vessel Countertop Style,,,,,
+69,,,,,,,,42.0,,Solid Surface - Ocritech,,https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/edit?disco=AAAB2_AFmnM,,,
+70,,,,,,,,,,,"Colors
+Colors are not displaying",,,,
+71,42.0,,Update,Добавить картинки для Ocritech материала и убрать тултип для рамера ⅜,https://take.ms/7JmJl,0.5 - 1,,,,,"Top Thickness
+Please remove the tooltip in the ⅜” option",,,,
+72,44.0,,Update,Убрать 46 depth при resize для всех материалов что 50.5 only,https://take.ms/BxuPw,0.5 - 1,,,,,Basin Styles,,,,
+73,3.0,Round 8,Logic,"Сделать, чтобы материал Tekormud был доступен только для ширины 50.5",https://take.ms/fKcMG,3–4,,43.0,,Solid Surface - Tekorlux,,,,,
+74,,,,,,,,44.0,,Porcelain,,,,,
+75,,,,,,,,45.0,,Glass,,,,,
+88,,,,,35.0,,Update,изменить  Materials Order в каунтертоп,https://take.ms/X6WwQ,0.5 - 1,,,,,
+89,,,,,36.0,,Update,Изменить дробные значения Thickness,https://take.ms/2VKsR,0.5,,,,,
+97,,,,,43.0,,Update,Убрать 46 depth для integrated для tekormud материала,https://take.ms/mM5sP,0.5 - 1,,,,,
+98,,,,,44.0,,Update,Убрать 46 depth при resize для всех материалов что 50.5 only,,0.5 - 1,,,,,
+100,,,,,46.0,,Update,Добавить фильтрацию для Full view материалов,https://take.ms/cqu39,0.5 - 1.5,,,,,
+107,,,,,6.0,Round 7,Logic,При добавлении продукта без поддержки сайд-панелей — убирать панель только с одной стороны,https://take.ms/OiTnHn,1–2,,,,,
+108,,,,,13.0,Round 7,Logic,При смене типа ручек кабинет OSS нужно удалить и показать модальное окно,https://take.ms/rWF52,2–3,,,,,
+109,,,,,18.0,Round 8,Update,Изменить фонт для кнопок дивайдера,https://take.ms/RbS0B,0.5,,,,,
+113,,,,,24.0,Round 8,Update,Обновить UI для Cabinets на Summary,https://take.ms/3df4E,1,,,,,
+114,,,,,На тесте,,,,,,,,,,
+115,,,,,3.0,Round 8,Logic,"Сделать, чтобы материал Tekormud был доступен только для ширины 50.5",https://take.ms/fKcMG,3–4,,,,,
+116,,,,,9.0,—,Logic,Обновить Generate Quote PDF (vivid3d),—,4–8,,,,,
+117,,,,,11.0,Round 8,Logic,Добавить к SKU сайд-панелей цветовой код ручек (handles),https://take.ms/qktDa,1.5–2,,,,,
+118,,,,,4.0,Round 7,Logic,Проверить переприменение сайд-панелей при их удалении через меню на сцене,https://take.ms/TW1D5,1–2,,,,,
+119,,,,,5.0,Round 7,Logic,При смене конфигурации с 2DW на 1DW: обновить сайд-панели по зависимостям,https://take.ms/ylIOh,1–2,,,,,
+120,,,,,16.0,Round 8,Logic,После множества изменений опции каунтертопа становятся недоступны,https://take.ms/UPvF4,3–3.5,,,,,
+121,,,,,10.0,Round 8,Logic,Добавить SKU details tooltip,https://take.ms/Pug6x,1–1.5,,,,,
+122,,,,,12.0,Round 8,Logic,Удаление сайд-панелей/ручек через Interplayer-меню в пребилде,https://take.ms/yYJCz,2–3,,,,,
+123,,,,,14.0,Round 8,Logic,Добавить кнопку Summary view,https://take.ms/JOzAV,0.5,,,,,
+124,,,,,7.0,Round 8,Logic,Для Bookmatching добавить калькуляцию SKU на каждый ящик,https://take.ms/jOcLz,2–3,,,,,
+125,,,,,21.0,Round 8,Update,Заменить картинку для Sink base на меньшую,https://take.ms/ZQE1H,0.5,,,,,
+126,,,,,19.0,Round 8,Update,Отключить блокировку цветов при клике на каунтертоп/OSS продукт,https://take.ms/e25ev,1–1.5,,,,,
+127,,,,,25.0,Round 8,Update,При undo/redo не обновляются towel bar,https://take.ms/AHpXH,1,,,,,
+128,,,,,20.0,Round 8,Update,Vessel нужно красить отдельно от countertop,https://take.ms/5uJLL,1–1.5,,,,,
+129,,,,,22.0,Round 8,Update,Убрать Interplayer меню на самари странице,https://take.ms/AaBEu,0.5,,,,,
+130,,,,,23.0,Round 8,Update,Добавить в меню Interplayer на пребилде дополнительные пункты,https://take.ms/vTRcO,0.5,,,,,
+131,,,,,26.0,Round 8,Update,Сделать Full mode свочесов большего размера,https://take.ms/qR5wC,0.5,,,,,
+132,,,,,27.0,Round 8,Update,При переходе на Color/Countertop style открывать аккордеоны,https://take.ms/wOJ8N,0.5,,,,,
+133,,,,,28.0,Round 8,Update,Обновить название Sink Cabinet → Side Cabinet,https://take.ms/lj2vp,0.5,,,,,
+134,,,,,29.0,Round 8,Update,Добавить модалку при смене Depth через сайдбар,https://take.ms/lbEGFQ,0.5–1,,,,,
+135,,,,,30.0,Round 8,Update,Добавить новую анимацию для модалки How to use,https://take.ms/AVaqe9,0.5,,,,,
+136,,,,,31.0,Round 8,Update,Qoute кнопку сделать больше и уменьшить Next кнопку,https://take.ms/BAa1g,0.5,,,,,

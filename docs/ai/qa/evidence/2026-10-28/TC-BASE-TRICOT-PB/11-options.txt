@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"header":"Select Tricot Models","labels":["Summary View","Customize your design from pre-made solutions","Build your own custom, tailored concept","Size","Style","Product Details","Total List Price","Quote","Next: Cabinet Finishes"],"controls":["[ ] Size","[ ] Style","[ ] Next: Cabinet Finishes"]}
+```

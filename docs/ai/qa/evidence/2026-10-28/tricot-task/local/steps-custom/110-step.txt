@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"path":"/custom/color","tabs":["Tricot Cabinet Builder"],"nav":["Next: Countertop & Basin"]}
+```

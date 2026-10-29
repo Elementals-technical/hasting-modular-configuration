@@ -1,0 +1,24 @@
+ID: 220
+Message: warn> [PlayCanvasIntegration] The basin choice did not reach the scene [object Object]
+### Arguments
+Arg #0: [PlayCanvasIntegration] The basin choice did not reach the scene
+Arg #1: {"status":"applied","applied":[{"attributeId":"VesselColor","target":{"scope":"basin"},"value":"","origin":"requested"}],"skipped":[{"attributeId":"sinkType","value":"Vessel","reason":"no-translation"}]}
+### Stack trace
+at  (index-B-mLU0_Q.js:216:27512)
+--- await ------------------------------
+at onClick (index-B-mLU0_Q.js:198:182637)
+at onClick (index-B-mLU0_Q.js:72:155995)
+at Le (index-B-mLU0_Q.js:5:9846)
+at ct (index-B-mLU0_Q.js:5:10006)
+at Tt (index-B-mLU0_Q.js:5:10066)
+at wh (index-B-mLU0_Q.js:5:31492)
+at Sh (index-B-mLU0_Q.js:5:31936)
+at  (index-B-mLU0_Q.js:5:37175)
+at Y5 (index-B-mLU0_Q.js:8:37793)
+at Ot (index-B-mLU0_Q.js:5:8979)
+at Th (index-B-mLU0_Q.js:5:33263)
+at Go (index-B-mLU0_Q.js:5:17423)
+at Di (index-B-mLU0_Q.js:5:17207)
+at  (VM291 pptr:evaluateHandle;performEvaluation (file:///Users/nazarpatron/.npm/_npx/f8965a27fe43dc9b/n…:16:6)
+at  (VM292 pptr:evaluate;performEvaluation (file:///Users/nazarpatron/.npm/_npx/f8965a27fe43dc9b/node_mo…:3:49)
+Note: line and column numbers use 1-based indexing

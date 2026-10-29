@@ -1,0 +1,8 @@
+row,A,B,C
+2,Product SKUs - Class Vanities,,
+5,,Formula Generator SKU,
+7,,{Product Category}  -  {Product}  -  {Cabinet Type/Cabinet Style} -  {Width}  -  {Height}  -  {Depth}  -  {Product Element #1 (CABF)} - {Material} - {Color Code}  - {Product Element #2 (CABS)} - {Material} - {Color Code}  -  {Product Element #3 (FRM} - {Material} - {Color Code},
+9,,Differences,
+11,,,- Cabinet Front = CABF Class van/stor
+12,,,- Cabinet Side = CABS Class van/stor
+13,,,- Frame = FRM

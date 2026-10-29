@@ -1,0 +1,166 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 15836,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase2/ui-fixes) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 1622,
+      "summary": "Successfully navigated to http://localhost:5173/prebuilt/model?collectionId=tricot. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tr"
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 279,
+      "summary": "Script ran on page and returned: ```json \"clicked: Skip <BUTTON>\" ```"
+    },
+    {
+      "step": 5,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 241,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Cabinet Finishes <BUTTON>\" ``` Page navigated to http://localhost:5173/prebuilt/color?collectionId=tricot."
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 2228,
+      "summary": "Script ran on page and returned: ```json {\"section\":\"Handle Groove Color\",\"expanded\":\"true\",\"was\":\"Price\",\"offered\":[\"Show all\",\"Standard $\"],\"count\":20,\"swatches\":[\"Acqua 419 MT\",\"Agata 407 MT\",\"Ambra 413 MT\",\"Antracite"
+    },
+    {
+      "step": 8,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 1619,
+      "summary": "Script ran on page and returned: ```json {\"section\":\"Handle Groove Color\",\"expanded\":\"true\",\"was\":\"Price\",\"offered\":[\"Show all\",\"Standard $\"],\"picked\":\"Standard $\",\"count\":20,\"swatches\":[\"Acqua 419 MT\",\"Agata 407 MT\",\"Am"
+    },
+    {
+      "step": 9,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 115,
+      "summary": "image 12-groove-standard-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 10,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 2713,
+      "summary": "Script ran on page and returned: ```json \"opened\" ```"
+    },
+    {
+      "step": 11,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 218,
+      "summary": "Script ran on page and returned: ```json {\"dialog\":true,\"count\":20,\"swatches\":[\"Acqua 419 MT\",\"Agata 407 MT\",\"Ambra 413 MT\",\"Antracite 400 MT\",\"Asparago 414 MT\",\"Creta 416 MT\",\"Fumo 401 MT\",\"Grigio Argento 403 MT\",\"Latte"
+    },
+    {
+      "step": 12,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 831,
+      "summary": "Script ran on page and returned: ```json {\"was\":\"Price\",\"picked\":\"Standard $\",\"offered\":[\"Show all\",\"Standard $\"]} ```"
+    },
+    {
+      "step": 14,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json {\"dialog\":true,\"count\":20,\"swatches\":[\"Acqua 419 MT\",\"Agata 407 MT\",\"Ambra 413 MT\",\"Antracite 400 MT\",\"Asparago 414 MT\",\"Creta 416 MT\",\"Fumo 401 MT\",\"Grigio Argento 403 MT\",\"Latte"
+    },
+    {
+      "step": 15,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 85,
+      "summary": "image 24-groove-full-standard-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 16,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 1010,
+      "summary": "Script ran on page and returned: ```json {\"dialogOpen\":true} ```"
+    },
+    {
+      "step": 17,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 2222,
+      "summary": "Script ran on page and returned: ```json {\"section\":\"Cabinet Color\",\"expanded\":\"true\",\"was\":\"Price\",\"offered\":[\"Show all\",\"Standard $\",\"Classic $$\"],\"count\":23,\"swatches\":[\"Acqua 419 MT\",\"Agata 407 MT\",\"Ambra 413 MT\",\"An"
+    },
+    {
+      "step": 18,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 1619,
+      "summary": "Script ran on page and returned: ```json {\"section\":\"Cabinet Color\",\"expanded\":\"true\",\"was\":\"Price\",\"offered\":[\"Show all\",\"Standard $\",\"Classic $$\"],\"picked\":\"Standard $\",\"count\":20,\"swatches\":[\"Acqua 419 MT\",\"Agata 407 "
+    },
+    {
+      "step": 19,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 1615,
+      "summary": "Script ran on page and returned: ```json {\"section\":\"Cabinet Color\",\"expanded\":\"true\",\"was\":\"Standard $\",\"offered\":[\"Show all\",\"Standard $\",\"Classic $$\"],\"picked\":\"Classic $$\",\"count\":3,\"swatches\":[\"Noce Canaletto 933\",\""
+    },
+    {
+      "step": 20,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 210,
+      "summary": "Script ran on page and returned: ```json {\"guard\":true,\"blockedWrites\":[]} ```"
+    },
+    {
+      "step": 21,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 7,
+      "summary": "## Console messages Showing 1-15 of 15 (Page 1 of 1). msgid=8 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready Error Component Stack (2 args) msgid=9 [warn] \u001b[2;38;2;124;124;124m%s %o\u001b[0m [PlayCanvas] Configur"
+    }
+  ]
+}

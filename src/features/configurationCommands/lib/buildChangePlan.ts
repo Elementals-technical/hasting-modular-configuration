@@ -126,7 +126,10 @@ const resolveDrawersTargets = (
  * without a basin of its own reads (one Custom re-keys, one added later). A value addressed at
  * one Sink Base stays there.
  */
-const resolveBasinTargets = (target: ValueTarget, sinkBaseIds: readonly StableCabinetKey[] = []): ValueTarget[] =>
+export const resolveBasinTargets = (
+  target: ValueTarget,
+  sinkBaseIds: readonly StableCabinetKey[] = [],
+): ValueTarget[] =>
   target.scope === "basin" && !target.sinkBaseId
     ? [target, ...sinkBaseIds.map((sinkBaseId): ValueTarget => ({ scope: "basin", sinkBaseId }))]
     : [target];

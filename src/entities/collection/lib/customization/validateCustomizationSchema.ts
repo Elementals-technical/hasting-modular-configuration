@@ -418,6 +418,58 @@ const validateCountertopSettings = (countertop: unknown, diagnostics: Customizat
   }
 };
 
+const VALID_ORGANIZER_MOBILE_LAYOUTS = new Set(["M1", "M2"]);
+
+/** The optional `drawerOrganizers` block: wording of the panel and of the preset cards, and the mobile layout. */
+const validateDrawerOrganizers = (block: unknown, diagnostics: CustomizationSchemaDiagnostic[]) => {
+  if (block === undefined) return;
+  if (!isRecord(block)) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "drawerOrganizers",
+      message: "drawerOrganizers must be an object",
+    });
+    return;
+  }
+
+  (["panelTitle", "customizeLabel"] as const).forEach((field) => {
+    if (block[field] !== undefined && typeof block[field] !== "string") {
+      diagnostics.push({
+        code: "invalid-schema",
+        dataPath: `drawerOrganizers.${field}`,
+        message: `drawerOrganizers.${field} must be a string`,
+      });
+    }
+  });
+
+  if (block.mobileLayout !== undefined && !VALID_ORGANIZER_MOBILE_LAYOUTS.has(block.mobileLayout as string)) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "drawerOrganizers.mobileLayout",
+      message: "drawerOrganizers.mobileLayout must be M1 or M2",
+    });
+  }
+
+  const presets = block.presets;
+  if (presets === undefined) return;
+  if (!isRecord(presets)) {
+    diagnostics.push({
+      code: "invalid-schema",
+      dataPath: "drawerOrganizers.presets",
+      message: "drawerOrganizers.presets must be an object of preset id to { label }",
+    });
+    return;
+  }
+  Object.entries(presets).forEach(([presetId, preset]) => {
+    const dataPath = `drawerOrganizers.presets.${presetId}`;
+    if (!isRecord(preset)) {
+      diagnostics.push({ code: "invalid-schema", dataPath, message: "a preset must be an object with an optional label" });
+    } else if (preset.label !== undefined && typeof preset.label !== "string") {
+      diagnostics.push({ code: "invalid-schema", dataPath: `${dataPath}.label`, message: "a preset label must be a string" });
+    }
+  });
+};
+
 /**
  * A list the interface shows in the declared order: every entry is one of `validIds`, named once.
  */
@@ -627,6 +679,7 @@ export const validateCustomizationSchema = (input: unknown): ValidateCustomizati
   validateCountertopSettings(input.countertop, diagnostics);
   validatePlayerMenu(input.playerMenu, diagnostics);
   validateStyleSidebar(input.styleSidebar, diagnostics);
+  validateDrawerOrganizers(input.drawerOrganizers, diagnostics);
   validateCabinetStyle(input.cabinetStyle, diagnostics);
 
   if (diagnostics.length > 0) return { ok: false, diagnostics };

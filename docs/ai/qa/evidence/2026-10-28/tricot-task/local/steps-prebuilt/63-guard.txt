@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"guard":true,"blockedWrites":[{"method":"POST","url":"https://renderapi-dev.vivid3d.tech/modular/configurations/store","at":"2026-10-28T15:34:43.394Z"},{"method":"POST","url":"https://renderapi-dev.vivid3d.tech/modular/configurations/store","at":"2026-10-28T15:34:43.394Z"}]}
+```

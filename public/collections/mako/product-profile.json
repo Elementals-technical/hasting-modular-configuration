@@ -10,7 +10,8 @@
       "analysis/products-data/Mako/docs/COLLECTION-LOGIC-UA.md"
     ],
     "auditedAt": "2026-09-08",
-    "warning": "Only facts the Mako documents confirm: the WebGL Logic, the Mako price workbook, the GB rules and the Master File. Where the Master File conflicts with the product map, the map wins. Urban and Class values are not inherited."
+    "warning": "Only facts the Mako documents confirm: the WebGL Logic, the Mako price workbook, the GB rules and the Master File. Where the Master File conflicts with the product map, the map wins. Urban and Class values are not inherited.",
+    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list (Metal) keeps the shared (Azzurra) table's tier, which has none for it."
   },
   "sourceRefs": {
     "configuratorId": 9,
@@ -285,6 +286,16 @@
       ]
     },
     {
+      "attributeId": "DividersOption",
+      "scope": "global",
+      "initialValue": "None",
+      "noneValue": "None",
+      "options": [
+        { "value": "None", "label": "None", "order": 10 },
+        { "value": "Customize", "label": "Customize", "order": 20 }
+      ]
+    },
+    {
       "attributeId": "DividersStyle",
       "scope": "drawer",
       "options": [
@@ -304,6 +315,25 @@
     }
   ],
   "ruleData": {
+    "priceTiers": {
+      "bySku": {
+        "LACM": 2,
+        "LACG": 3,
+        "LAM": 1,
+        "POR": 4,
+        "HPL": 4,
+        "SSMT": 2,
+        "SSGL": 2,
+        "SSTL": 2,
+        "SSTM": 2,
+        "SSTEX": 2,
+        "SSTMT": 1,
+        "GLSM": 2,
+        "GLSG": 2,
+        "SGLS": 2,
+        "WDV": 3
+      }
+    },
     "undeterminedRules": [
       {
         "ruleId": "MAKO-LEG-002",
@@ -325,6 +355,7 @@
         "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
+    "drawerOrganizers": { "profile": "ROW-MTL-43" },
     "drawerStyleGroups": [["1"], ["2"]],
     "vesselCompatibility": {
       "hiddenStyles": [],
@@ -350,6 +381,20 @@
     "handle.appliesToAllCabinets": "The handle style will be updated for all drawer cabinets.",
     "drawers.requiredHeight": "Required for selected drawers",
     "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "organizer.hintOpenDrawer": "Click ‘Open Drawer’ on a drawer to add divider columns.",
+    "organizer.lockedZone": "Drain area — dividers can't be placed here.",
+    "organizer.trimmed": "{n} column(s) no longer fit and were removed.",
+    "organizer.drawerRemoved": "{n} column(s) were removed with the drawer.",
+    "organizer.drawerFull": "This drawer is full.",
+    "organizer.unavailable": "Dividers aren't available for this cabinet size.",
+    "organizer.placeFailed": "Couldn't place the column. Try again.",
+    "organizer.maxPositions": "A column holds up to 5 inserts.",
+    "organizer.typeChanged": "Dividers were removed because the cabinet type changed.",
+    "organizer.columnRemoved": "Column removed.",
+    "organizer.cleared": "Dividers removed.",
+    "organizer.undoHint": "Use Undo to bring them back.",
+    "organizer.oakPending": "Oak organizers are not available yet.",
+    "organizer.updateRequired": "These dividers were saved by a newer version. Reload the page to edit them.",
     "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
     "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",

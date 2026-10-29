@@ -1,0 +1,3 @@
+Error: Failed to take snapshot: Selector "[aria-label="Cabinet Color"]" not found
+
+The page may not be fully loaded or accessible.

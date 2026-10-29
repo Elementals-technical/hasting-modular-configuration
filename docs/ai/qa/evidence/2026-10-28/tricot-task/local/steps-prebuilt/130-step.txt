@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"path":"/prebuilt/side-panels","tabs":["Tricot Models"],"nav":["Next: Faucet Details"]}
+```

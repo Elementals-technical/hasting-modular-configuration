@@ -1,0 +1,102 @@
+{
+  "server": "firefox-devtools",
+  "serverInfo": "@mozilla/firefox-devtools-mcp 0.10.7",
+  "tools": [
+    "list_pages",
+    "new_page",
+    "navigate_page",
+    "select_page",
+    "close_page",
+    "get_page_text",
+    "take_snapshot",
+    "resolve_uid_to_selector",
+    "clear_snapshot",
+    "click_by_uid",
+    "hover_by_uid",
+    "fill_by_uid",
+    "drag_by_uid_to_uid",
+    "fill_form_by_uid",
+    "upload_file_by_uid",
+    "press_key",
+    "type_text",
+    "list_network_requests",
+    "get_network_request",
+    "set_network_cache",
+    "list_console_messages",
+    "clear_console_messages",
+    "screenshot_page",
+    "screenshot_by_uid",
+    "list_downloads",
+    "clear_downloads",
+    "set_download_behavior",
+    "accept_dialog",
+    "dismiss_dialog",
+    "navigate_history",
+    "set_viewport_size"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 4075,
+      "summary": "1 pages (selected: 0) >[0] Untitled (about:blank)"
+    },
+    {
+      "step": 2,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 922,
+      "summary": "new page [1] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-standard-height"
+    },
+    {
+      "step": 4,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 4885,
+      "summary": " [full content, 0 chars]"
+    },
+    {
+      "step": 5,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 68,
+      "summary": "image USH-03-shot.png; "
+    },
+    {
+      "step": 6,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 6,
+      "summary": "No console messages found matching filters. Total messages: 0, Filters: level=error"
+    },
+    {
+      "step": 7,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 1179,
+      "summary": "new page [1] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height"
+    },
+    {
+      "step": 9,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 23,
+      "summary": "Pre-Built Urban Low Height Models Color Countertop & Basin Accessories Summary Ready to drag a cabinet Help Summary View → Select Urban Low Height Models Pre-Built Models Customize your design from pre-made solutions Cre"
+    },
+    {
+      "step": 10,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 138,
+      "summary": "image ULH-03-shot.png; "
+    },
+    {
+      "step": 11,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 8,
+      "summary": "2 pages (selected: 1) [0] Untitled (about:blank) >[1] tagging-modules-tool (https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height)"
+    }
+  ]
+}

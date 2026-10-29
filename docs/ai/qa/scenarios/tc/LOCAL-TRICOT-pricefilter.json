@@ -1,0 +1,243 @@
+{
+ "description": "Local: Tricot Cabinet Color price filter, side panel and full mode, each through its own Price control (PF-01..04). Read-only, guarded.",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(52): [^\\n]*\\(http://localhost:5173"
+   }
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "url",
+    "url": "http://localhost:5173/prebuilt/model?collectionId=tricot",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n\n// QA harness (agent tab only): simulates the proposed loader fix \u2014 collection JSON fetched with cache:'no-cache'\n// (forces revalidation, so a heuristically-fresh stale copy is not used). Combine with write-guard.js.\n(() => {\n  if (window.__qaCollectionsNoCache) return;\n  window.__qaCollectionsNoCache = true;\n  const prev = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    if (url && url.includes('/collections/')) return prev(input, { ...init, cache: 'no-cache' });\n    return prev(input, init);\n  };\n})();\n"
+   },
+   "save": "01-nav.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Skip\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Skip\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "02-skip.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "03-next.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const minX=innerWidth*0.62;\nconst vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=minX};\nconst btns=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t)&&!/^Preview /.test(t)&&!/\\$/.test(t));\nconst groups=[...document.querySelectorAll('div,span,p,h4,h5,h6,legend')].filter(vis).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Lacquered GL|Wood Veneer|Metal|Lacquered)$/.test(t));\nconst pressed=[...document.querySelectorAll('button[aria-pressed=\"true\"]')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t));\nconst chips=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.innerText)).filter(t=>/$|Clear All|^(Material|Color|Look|Price)\\b/.test(t)&&t.length<30);\nreturn {count:new Set(btns).size, swatches:[...new Set(btns)], groups:[...new Set(groups)], selected:pressed, chips:[...new Set(chips)]}; }"
+   },
+   "save": "10-grid-nofilter.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/11-grid-nofilter.png"
+   },
+   "save": "11-grid-nofilter.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const root=document; if(!root) return 'NO ROOT'; const btn=[...root.querySelectorAll('button[aria-haspopup=listbox]')].filter(b=>{const r=b.getBoundingClientRect();return r.width>0 && (r.left>=innerWidth*0.62);}).find(b=>/^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText))); if(!btn) return 'NO PRICE BUTTON'; const was=txt(btn.innerText); btn.click(); await new Promise(r=>setTimeout(r,600)); const lb=[...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop(); if(!lb) return 'NO LISTBOX'; const opts=[...lb.querySelectorAll('[role=option]')]; const names=opts.map(o=>txt(o.querySelector('span')?.innerText||o.innerText)); const o=opts.find(o=>txt(o.querySelector('span')?.innerText||o.innerText)===\"Standard $\"); if(!o) return {err:'NO OPTION', names}; (o.querySelector('button')||o).click(); return {was, picked:\"Standard $\", offered:names}; }"
+   },
+   "save": "12-grid-pick-standard.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const minX=innerWidth*0.62;\nconst vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=minX};\nconst btns=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t)&&!/^Preview /.test(t)&&!/\\$/.test(t));\nconst groups=[...document.querySelectorAll('div,span,p,h4,h5,h6,legend')].filter(vis).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Lacquered GL|Wood Veneer|Metal|Lacquered)$/.test(t));\nconst pressed=[...document.querySelectorAll('button[aria-pressed=\"true\"]')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t));\nconst chips=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.innerText)).filter(t=>/$|Clear All|^(Material|Color|Look|Price)\\b/.test(t)&&t.length<30);\nreturn {count:new Set(btns).size, swatches:[...new Set(btns)], groups:[...new Set(groups)], selected:pressed, chips:[...new Set(chips)]}; }"
+   },
+   "save": "13-grid-standard.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/14-grid-standard.png"
+   },
+   "save": "14-grid-standard.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const root=document; if(!root) return 'NO ROOT'; const btn=[...root.querySelectorAll('button[aria-haspopup=listbox]')].filter(b=>{const r=b.getBoundingClientRect();return r.width>0 && (r.left>=innerWidth*0.62);}).find(b=>/^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText))); if(!btn) return 'NO PRICE BUTTON'; const was=txt(btn.innerText); btn.click(); await new Promise(r=>setTimeout(r,600)); const lb=[...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop(); if(!lb) return 'NO LISTBOX'; const opts=[...lb.querySelectorAll('[role=option]')]; const names=opts.map(o=>txt(o.querySelector('span')?.innerText||o.innerText)); const o=opts.find(o=>txt(o.querySelector('span')?.innerText||o.innerText)===\"Classic $$\"); if(!o) return {err:'NO OPTION', names}; (o.querySelector('button')||o).click(); return {was, picked:\"Classic $$\", offered:names}; }"
+   },
+   "save": "15-grid-pick-classic.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const minX=innerWidth*0.62;\nconst vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=minX};\nconst btns=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t)&&!/^Preview /.test(t)&&!/\\$/.test(t));\nconst groups=[...document.querySelectorAll('div,span,p,h4,h5,h6,legend')].filter(vis).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Lacquered GL|Wood Veneer|Metal|Lacquered)$/.test(t));\nconst pressed=[...document.querySelectorAll('button[aria-pressed=\"true\"]')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t));\nconst chips=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.innerText)).filter(t=>/$|Clear All|^(Material|Color|Look|Price)\\b/.test(t)&&t.length<30);\nreturn {count:new Set(btns).size, swatches:[...new Set(btns)], groups:[...new Set(groups)], selected:pressed, chips:[...new Set(chips)]}; }"
+   },
+   "save": "16-grid-classic.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/17-grid-classic.png"
+   },
+   "save": "17-grid-classic.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Clear All\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Clear All\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "18-clear.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const minX=innerWidth*0.62;\nconst vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&r.left>=minX};\nconst btns=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t)&&!/^Preview /.test(t)&&!/\\$/.test(t));\nconst groups=[...document.querySelectorAll('div,span,p,h4,h5,h6,legend')].filter(vis).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Lacquered GL|Wood Veneer|Metal|Lacquered)$/.test(t));\nconst pressed=[...document.querySelectorAll('button[aria-pressed=\"true\"]')].filter(vis).map(b=>txt(b.getAttribute('aria-label')||b.innerText)).filter(t=>/\\b\\d{3}\\b/.test(t));\nconst chips=[...document.querySelectorAll('button')].filter(vis).map(b=>txt(b.innerText)).filter(t=>/$|Clear All|^(Material|Color|Look|Price)\\b/.test(t)&&t.length<30);\nreturn {count:new Set(btns).size, swatches:[...new Set(btns)], groups:[...new Set(groups)], selected:pressed, chips:[...new Set(chips)]}; }"
+   },
+   "save": "19-grid-cleared.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"View in full mode\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"View in full mode\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "20-open-full.txt",
+   "optional": false
+  },
+  {
+   "sleep": 2500
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const d=[...document.querySelectorAll('[role=dialog]')].pop(); if(!d) return {dialog:false}; const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0}; const names=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^[A-Za-z][A-Za-z ]* \\d{3}( MT)?$/.test(t)); const groups=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Wood Veneer)$/.test(t)); return {dialog:true, count:new Set(names).size, swatches:[...new Set(names)].sort(), groups:[...new Set(groups)]}; }"
+   },
+   "save": "21-full-nofilter.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const root=[...document.querySelectorAll('[role=dialog]')].pop(); if(!root) return 'NO ROOT'; const btn=[...root.querySelectorAll('button[aria-haspopup=listbox]')].filter(b=>{const r=b.getBoundingClientRect();return r.width>0 && (true);}).find(b=>/^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText))); if(!btn) return 'NO PRICE BUTTON'; const was=txt(btn.innerText); btn.click(); await new Promise(r=>setTimeout(r,600)); const lb=[...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop(); if(!lb) return 'NO LISTBOX'; const opts=[...lb.querySelectorAll('[role=option]')]; const names=opts.map(o=>txt(o.querySelector('span')?.innerText||o.innerText)); const o=opts.find(o=>txt(o.querySelector('span')?.innerText||o.innerText)===\"Standard $\"); if(!o) return {err:'NO OPTION', names}; (o.querySelector('button')||o).click(); return {was, picked:\"Standard $\", offered:names}; }"
+   },
+   "save": "22-full-pick-standard.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const d=[...document.querySelectorAll('[role=dialog]')].pop(); if(!d) return {dialog:false}; const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0}; const names=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^[A-Za-z][A-Za-z ]* \\d{3}( MT)?$/.test(t)); const groups=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Wood Veneer)$/.test(t)); return {dialog:true, count:new Set(names).size, swatches:[...new Set(names)].sort(), groups:[...new Set(groups)]}; }"
+   },
+   "save": "23-full-standard.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/24-full-standard.png"
+   },
+   "save": "24-full-standard.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const root=[...document.querySelectorAll('[role=dialog]')].pop(); if(!root) return 'NO ROOT'; const btn=[...root.querySelectorAll('button[aria-haspopup=listbox]')].filter(b=>{const r=b.getBoundingClientRect();return r.width>0 && (true);}).find(b=>/^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText))); if(!btn) return 'NO PRICE BUTTON'; const was=txt(btn.innerText); btn.click(); await new Promise(r=>setTimeout(r,600)); const lb=[...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop(); if(!lb) return 'NO LISTBOX'; const opts=[...lb.querySelectorAll('[role=option]')]; const names=opts.map(o=>txt(o.querySelector('span')?.innerText||o.innerText)); const o=opts.find(o=>txt(o.querySelector('span')?.innerText||o.innerText)===\"Classic $$\"); if(!o) return {err:'NO OPTION', names}; (o.querySelector('button')||o).click(); return {was, picked:\"Classic $$\", offered:names}; }"
+   },
+   "save": "25-full-pick-classic.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const d=[...document.querySelectorAll('[role=dialog]')].pop(); if(!d) return {dialog:false}; const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0}; const names=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^[A-Za-z][A-Za-z ]* \\d{3}( MT)?$/.test(t)); const groups=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Wood Veneer)$/.test(t)); return {dialog:true, count:new Set(names).size, swatches:[...new Set(names)].sort(), groups:[...new Set(groups)]}; }"
+   },
+   "save": "26-full-classic.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/27-full-classic.png"
+   },
+   "save": "27-full-classic.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+   },
+   "save": "28-guard.txt",
+   "optional": false
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 300,
+    "types": [
+     "error",
+     "warn"
+    ]
+   },
+   "save": "29-console.txt"
+  }
+ ]
+}

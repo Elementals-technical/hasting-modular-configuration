@@ -1,0 +1,1 @@
+[0] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-duplex

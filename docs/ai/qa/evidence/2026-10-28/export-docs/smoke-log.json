@@ -1,0 +1,75 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 12130,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/document/d/1QB6RxsJ0nwU0izmLB-APFsKrK-UepSQkQZqrayl8sPg/export?format=docx"
+    },
+    {
+      "step": 3,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 6348,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/document/d/151UdAKWlYqcRkyKA3HkvN3_TLgnhJl-hOQyXgqsshro/export?format=docx"
+    },
+    {
+      "step": 5,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1573,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/document/d/1bm4FqTdAoqe2wYQBZfvikE1oOX4x6wGL/export?format=docx"
+    },
+    {
+      "step": 7,
+      "tool": "new_page",
+      "status": "tool-error",
+      "ms": 1052,
+      "summary": "Error: net::ERR_ABORTED at https://docs.google.com/document/d/1KHDD5vRhu0-kL8DVE-aWaP1k1xREG5dk/export?format=docx"
+    },
+    {
+      "step": 9,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 22,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    }
+  ]
+}

@@ -36,8 +36,9 @@ CountertopStyle, basin, vessel color, thickness і faucet details поки state
 ## Pricing
 
 `sku-profile.json` має `status: partial`, cabinet series `CLSV`, countertop series `GB`. Відомі gaps:
-vessel SKU/price (блокує total), Solid Surface group ambiguity, divider assumption, thick tops і
-brackets. Не трактувати наявність SKU profile як повну pricing readiness.
+vessel SKU/price (блокує total), Solid Surface group ambiguity, thick tops і brackets. Ціну
+органайзерів шухляд описує [`drawer-organizers-ui.md`](../drawer-organizers-ui.md). Не трактувати
+наявність SKU profile як повну pricing readiness.
 
 ## Мінімальна перевірка
 

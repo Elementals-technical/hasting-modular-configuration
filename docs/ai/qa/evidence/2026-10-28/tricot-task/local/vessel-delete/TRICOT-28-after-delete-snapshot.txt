@@ -1,0 +1,38 @@
+## Latest page snapshot
+uid=4_0 RootWebArea "tagging-modules-tool" url="http://localhost:5173/prebuilt/countertop?collectionId=tricot"
+  uid=4_1 navigation "Configurator steps"
+    uid=4_2 "Pre-Built"
+    uid=4_3 link "Tricot Models" url="http://localhost:5173/prebuilt/model?collectionId=tricot"
+    uid=4_5 link "Cabinet Finishes" url="http://localhost:5173/prebuilt/color?collectionId=tricot"
+    uid=4_7 link "Countertop & Basin" url="http://localhost:5173/prebuilt/countertop?collectionId=tricot"
+    uid=4_9 link "Accessories" url="http://localhost:5173/prebuilt/side-panels?collectionId=tricot"
+    uid=4_11 link "Faucet Details" url="http://localhost:5173/prebuilt/faucet-holes?collectionId=tricot"
+    uid=4_13 link "Summary" url="http://localhost:5173/prebuilt/summary?collectionId=tricot"
+  uid=4_15 Iframe "scene"
+    uid=4_16 RootWebArea "Hasting-phase-2-stage-v79" url="http://localhost:5173/HastingCabinetsParametrization/index.html?v=038"
+      uid=4_17 Canvas
+  uid=4_18 button "Full Dimensions" expandable haspopup="menu"
+  uid=4_19 button
+  uid=4_20 button
+  uid=4_21 button "View in Space"
+  uid=4_22 button "Share"
+  uid=4_23 button "Image"
+  uid=4_24 button
+  uid=4_25 button disableable disabled
+  uid=4_26 "Help"
+  uid=4_27 link "Summary View" url="http://localhost:5173/prebuilt/summary?collectionId=tricot"
+  uid=4_29 "Select Countertop & Basin"
+  uid=4_30 button "Countertop Color" expandable
+  uid=4_31 button "Thickness" expandable
+  uid=4_32 button "Countertop Style" expandable
+  uid=4_33 button "Vessel Sink Style" expandable expanded
+  uid=4_34 region "Vessel Sink Style"
+    uid=4_35 button "None" pressed
+    uid=4_36 button "Iris"
+    uid=4_37 button "Frame"
+    uid=4_38 button "Plaza"
+  uid=4_39 "Total List Price"
+  uid=4_40 "$5,122.00"
+  uid=4_41 link "Quote" url="http://localhost:5173/prebuilt/countertop"
+  uid=4_43 button "Back to Cabinet Finishes"
+  uid=4_44 button "Next: Accessories"

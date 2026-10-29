@@ -1,0 +1,1 @@
+Input validation error: Invalid arguments for tool take_snapshot: pageId: Invalid input: expected number, received string

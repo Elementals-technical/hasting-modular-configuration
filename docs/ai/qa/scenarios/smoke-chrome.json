@@ -1,0 +1,19 @@
+{
+  "description": "Chrome DevTools MCP smoke via --autoConnect to the user's running Chrome. Reuses the agent-owned staging tab (any staging-ar3wz tab is agent-owned; opens one if absent). Snapshot, screenshot, console, network, one navigation and back. Never touches other tabs.",
+  "steps": [
+    { "tool": "list_pages", "args": {}, "save": "01-pages-before.txt", "capture": { "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz" } },
+    { "tool": "navigate_page", "args": { "pageId": "${pageId}", "type": "url", "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot" }, "save": "02-navigate.txt" },
+    { "sleep": 15000 },
+    { "tool": "take_snapshot", "args": { "pageId": "${pageId}" }, "save": "03-snapshot.txt" },
+    { "tool": "take_screenshot", "args": { "pageId": "${pageId}" }, "save": "04-screenshot.png" },
+    { "tool": "list_console_messages", "args": { "pageId": "${pageId}", "pageSize": 200 }, "save": "05-console.txt" },
+    { "tool": "list_network_requests", "args": { "pageId": "${pageId}", "pageSize": 300 }, "save": "06-network.txt" },
+    { "tool": "navigate_page", "args": { "pageId": "${pageId}", "type": "url", "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height" }, "save": "07-navigate.txt" },
+    { "sleep": 15000 },
+    { "tool": "take_screenshot", "args": { "pageId": "${pageId}" }, "save": "08-after-navigation.png" },
+    { "tool": "navigate_page", "args": { "pageId": "${pageId}", "type": "back" }, "save": "09-back.txt" },
+    { "sleep": 8000 },
+    { "tool": "evaluate_script", "args": { "pageId": "${pageId}", "function": "() => ({ url: location.href, title: document.title, canvas: !!document.querySelector('iframe') })" }, "save": "10-eval.txt" },
+    { "tool": "list_pages", "args": {}, "save": "11-pages-after.txt" }
+  ]
+}

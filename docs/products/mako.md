@@ -42,6 +42,7 @@ SKU contract. Gaps: vessel (блокує total), Solid Surface group ambiguity �
 прочитаний, `X`), невибраний HandleColor або колір без коду (цифри в назві чи `codeByValue`; Gold — `GLD` з
 configurator 9) дають не SKU, а gap «Incomplete price». Так configurator 9 пропонує кольори інших колекцій
 з буквеними кодами (`Agata BD MT`), і вони стоять без ціни, доки product не вирішить палітру Mako.
+Ціну органайзерів шухляд описує [`drawer-organizers-ui.md`](../drawer-organizers-ui.md).
 
 ## Відомі межі
 

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { TagIcon } from "@/shared/assets/images/svg/TagIcon";
 import { ExpandIcon } from "@/shared/assets/images/svg/ExpandIcon";
 import { FullModeColorsModal } from "@/shared/ui/Popups/FullModeColorsModal/FullModeColorsModal";
+import type { PriceTierOverride } from "@/shared/constants/priceFilters";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 import s from "./ViewModePanel.module.scss";
@@ -22,6 +23,8 @@ interface ViewModePanelProps {
   fullModeColorFilterOptions?: FullModeFilterOption[];
   fullModeLookFilterOptions?: FullModeFilterOption[];
   fullModeTierFilterOptions?: FullModeFilterOption[];
+  /** The collection's own price tiers for the field, so the full mode filters as the grid does. */
+  fullModeTierOverride?: PriceTierOverride;
 }
 
 export const ViewModePanel = ({
@@ -36,6 +39,7 @@ export const ViewModePanel = ({
   fullModeColorFilterOptions,
   fullModeLookFilterOptions,
   fullModeTierFilterOptions,
+  fullModeTierOverride,
 }: ViewModePanelProps) => {
   const [isFullModeOpen, setIsFullModeOpen] = useState(false);
 
@@ -81,6 +85,7 @@ export const ViewModePanel = ({
         colorFilterOptions={fullModeColorFilterOptions}
         lookFilterOptions={fullModeLookFilterOptions}
         tierFilterOptions={fullModeTierFilterOptions}
+        tierOverride={fullModeTierOverride}
       />
     </>
   );

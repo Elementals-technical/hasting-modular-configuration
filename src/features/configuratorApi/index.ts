@@ -105,4 +105,30 @@ export {
   isStandardCountertop,
 } from "./countertop";
 export { parseCabinetCoverSegments } from "./cabinetCover";
+export {
+  ORGANIZERS_ERROR_CODES,
+  classifyOrganizersError,
+  isOrganizersErrorCode,
+  parseOrganizersChange,
+  parseOrganizersFrame,
+  parseOrganizersPointer,
+  parseOrganizersReceipt,
+  parseOrganizersState,
+  parseOrganizersView,
+  readModelEntryOf,
+} from "./organizers";
+export type {
+  OrganizersApi,
+  OrganizersChange,
+  OrganizersChangeReason,
+  OrganizersColumnInput,
+  OrganizersErrorCode,
+  OrganizersMethod,
+  OrganizersOverlayApi,
+  OrganizersOverlayFrame,
+  OrganizersPoint,
+  OrganizersPointer,
+  OrganizersView,
+  OrganizersViewInsets,
+} from "./organizers";
 export type { CountertopFailure, CountertopFailureKind } from "./countertop";

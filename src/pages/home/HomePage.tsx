@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ConfiguratorSidebar, Player, SideNavigation } from "@/widgets";
 
 import { useCollectionNavigation } from "@/features/collectionCustomization";
+import { selectOrganizerFocus } from "@/features/drawerOrganizers";
 
 import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 import { SwatchOrder } from "@/features/swatchOrder";
@@ -43,6 +44,8 @@ export const HomePage = () => {
 
   const dispatch = useAppDispatch();
   const isOpenSidebar = useAppSelector(getIsOpenSidebar);
+  // Ph2 drawer organizers, mobile M1: the 3D window grows while a column is selected.
+  const organizerFocus = useAppSelector(selectOrganizerFocus);
   useAvailabilityResets();
   useRuleDrivenHandleSync();
 
@@ -133,7 +136,9 @@ export const HomePage = () => {
 
   return (
     <div className={s.homePageWrap}>
-      <div className={`${s.content} ${isSummary ? s.summaryLayout : ""} ${isCanvasFullMode ? s.canvasFullMode : ""}`}>
+      <div
+        className={`${s.content} ${isSummary ? s.summaryLayout : ""} ${isCanvasFullMode ? s.canvasFullMode : ""} ${organizerFocus ? s.organizerFocus : ""}`}
+      >
         <div className={`${s.navWrap} ${isOpenSidebar && s.opened}`}>
           <SideNavigation />
         </div>

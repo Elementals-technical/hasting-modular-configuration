@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/model?collectionId=class","price":"$7,270.00","step":"Class Models","dialogs":[],"alerts":[],"sceneReady":true,"order":null,"products":[],"countertop":{"productId":"Top_Solid-17793osnk","placementState":"attached","attached":true,"moved":false,"canResize":false,"thickness":0.01905007547072135,"autoLength":0.6,"customLength":null,"size":{"length":0.6,"depth":0.5199999799805682},"lengthLimitsM":{"minLengthM":0.6,"maxLengthM":3.048,"requestedMinM":0.6,"requestedMaxM":3.048,"basinMinLengthM":0.5308},"offset":{"x":0,"y":0}},"coverEntries":0}
+```

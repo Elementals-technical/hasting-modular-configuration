@@ -10,7 +10,8 @@
       "analysis/products-data/Class/docs/COLLECTION-LOGIC-UA.md"
     ],
     "auditedAt": "2026-09-08",
-    "warning": "Only facts the Class documents confirm: the WebGL Scoping rules (CLS-WGL), the Class price workbook (CLS-XLS) and the Master File register (appendix A). Urban Standard Height values are not inherited."
+    "warning": "Only facts the Class documents confirm: the WebGL Scoping rules (CLS-WGL), the Class price workbook (CLS-XLS) and the Master File register (appendix A). Urban Standard Height values are not inherited.",
+    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list (3D, Brushed Metal, Essenze, Soft-Touch, Fenix) keeps the shared (Azzurra) table's tier."
   },
   "sourceRefs": {
     "configuratorId": 8,
@@ -18,12 +19,13 @@
     "cabinetMatrixTableId": 579
   },
   "defaults": {
-    "CabinetColor": "INVISIBLE WHITE LUCIDO 334",
-    "CountertopColor": "INVISIBLE WHITE LUCIDO 334",
-    "CabinetSideColor": "Nero 433 MT",
+    "CabinetColor": "INVISIBLE WHITE OPACO 332",
+    "CountertopColor": "INVISIBLE WHITE OPACO 332",
+    "CabinetSideColor": "Latte 417 MT",
     "FrameColor": "Nero 433 MT",
     "CountertopStyle": "integrated",
-    "sinkType": "LV890"
+    "sinkType": "LV890",
+    "Thickness": "0.75"
   },
   "attributes": [
     {
@@ -54,19 +56,28 @@
           "value": "1",
           "label": "1 Drawer",
           "order": 10,
-          "aliases": ["1D", "1DW"]
+          "aliases": [
+            "1D",
+            "1DW"
+          ]
         },
         {
           "value": "2",
           "label": "2 Drawer",
           "order": 20,
-          "aliases": ["2D", "2DW"]
+          "aliases": [
+            "2D",
+            "2DW"
+          ]
         },
         {
           "value": "1+inner",
           "label": "1 Drawer With Inner Drawer",
           "order": 30,
-          "aliases": ["1DWID", "1+INNER"]
+          "aliases": [
+            "1DWID",
+            "1+INNER"
+          ]
         }
       ]
     },
@@ -109,13 +120,19 @@
           "value": "integrated",
           "label": "Integrated",
           "order": 10,
-          "aliases": ["Integrated", "INTG"]
+          "aliases": [
+            "Integrated",
+            "INTG"
+          ]
         },
         {
           "value": "vessel",
           "label": "Vessel",
           "order": 20,
-          "aliases": ["Vessel", "VES"]
+          "aliases": [
+            "Vessel",
+            "VES"
+          ]
         }
       ]
     },
@@ -293,6 +310,24 @@
       ]
     },
     {
+      "attributeId": "DividersOption",
+      "scope": "global",
+      "initialValue": "None",
+      "noneValue": "None",
+      "options": [
+        {
+          "value": "None",
+          "label": "None",
+          "order": 10
+        },
+        {
+          "value": "Customize",
+          "label": "Customize",
+          "order": 20
+        }
+      ]
+    },
+    {
       "attributeId": "DividersStyle",
       "scope": "drawer",
       "options": [
@@ -325,20 +360,83 @@
         "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
-    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+ 
+    "drawerOrganizers": {
+      "profile": "ROW-MTL-43"
+    },
+    "drawerStyleGroups": [
+      [
+        "1",
+        "1+inner"
+      ],
+      [
+        "2"
+      ]
+    ],
+ 
+    
+ 
+    "priceTiers": {
+      "bySku": {
+        "LACM": 2,
+        "LACG": 3,
+        "LAM": 1,
+        "POR": 4,
+        "HPL": 4,
+        "SSMT": 2,
+        "SSGL": 2,
+        "SSTL": 2,
+        "SSTM": 2,
+        "SSTEX": 2,
+        "SSTMT": 1,
+        "GLSM": 2,
+        "GLSG": 2,
+        "SGLS": 2,
+        "WDV": 3
+      }
+    },
+ 
     "vesselCompatibility": {
       "hiddenStyles": [],
       "allowedMaterialsByStyle": {
-        "Iris": ["lacqueredmt"],
-        "Frame": ["lacqueredmt"],
-        "Plaza": ["lacqueredmt", "lacqueredgl"]
+        "Iris": [
+          "lacqueredmt"
+        ],
+        "Frame": [
+          "lacqueredmt"
+        ],
+        "Plaza": [
+          "lacqueredmt",
+          "lacqueredgl"
+        ]
       },
       "allowedColorCodesByStyle": {},
       "unavailableColorCodesByStyle": {},
       "defaultFinishByStyle": {
-        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
-        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
-        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+        "Iris": {
+          "materialTokens": [
+            "lacqueredmt"
+          ],
+          "colorCodes": [
+            "415"
+          ]
+        },
+        "Frame": {
+          "materialTokens": [
+            "lacqueredmt"
+          ],
+          "colorCodes": [
+            "401"
+          ]
+        },
+        "Plaza": {
+          "materialTokens": [
+            "lacqueredmt"
+          ],
+          "colorCodes": [
+            "400"
+          ]
+        }
       }
     }
   },
@@ -347,7 +445,21 @@
     "change.notAvailable": "This option is not available for the current selection.",
     "change.valueNotInCatalog": "This option is not available in this collection.",
     "drawers.requiredHeight": "Required for selected drawers",
-    "vessel.colorUnavailable": "Not available for selected vessel sink style."
+    "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "organizer.hintOpenDrawer": "Click ‘Open Drawer’ on a drawer to add divider columns.",
+    "organizer.lockedZone": "Drain area — dividers can't be placed here.",
+    "organizer.trimmed": "{n} column(s) no longer fit and were removed.",
+    "organizer.drawerRemoved": "{n} column(s) were removed with the drawer.",
+    "organizer.drawerFull": "This drawer is full.",
+    "organizer.unavailable": "Dividers aren't available for this cabinet size.",
+    "organizer.placeFailed": "Couldn't place the column. Try again.",
+    "organizer.maxPositions": "A column holds up to 5 inserts.",
+    "organizer.typeChanged": "Dividers were removed because the cabinet type changed.",
+    "organizer.columnRemoved": "Column removed.",
+    "organizer.cleared": "Dividers removed.",
+    "organizer.undoHint": "Use Undo to bring them back.",
+    "organizer.oakPending": "Oak organizers are not available yet.",
+    "organizer.updateRequired": "These dividers were saved by a newer version. Reload the page to edit them."
   },
   "excludedFromThisProfile": {
     "handle": "Class has no handle choice: the grip is part of the frame (CLS-WGL-003). No Handle attribute is declared.",

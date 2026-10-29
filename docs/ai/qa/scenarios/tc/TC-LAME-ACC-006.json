@@ -1,0 +1,36 @@
+{
+ "description": "Lame custom colour step: is Undertop offered with the 60 cm SB? (read-only)",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "01-snapshot.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only probe: DOM summary + scene getters. Never calls setters.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const out = { url: location.pathname + location.search };\n  const body = txt(document.body.innerText);\n  const price = body.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/);\n  out.price = price ? price[0].replace('Total List Price', '').trim() : null;\n  out.step = txt(document.querySelector('[aria-current=\"page\"]')?.innerText) || null;\n  out.dialogs = [...document.querySelectorAll('[role=\"dialog\"],[role=\"alertdialog\"]')].map((d) => txt(d.innerText).slice(0, 160));\n  out.alerts = [...document.querySelectorAll('[role=\"alert\"],[role=\"status\"],[class*=\"toast\" i],[class*=\"tooltip\" i]')].map((d) => txt(d.innerText)).filter(Boolean).slice(0, 5);\n  const w = document.querySelector('iframe')?.contentWindow;\n  const api = w?.ConfiguratorAPI;\n  out.sceneReady = !!api?.composition;\n  if (!api) return out;\n  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && o[k] !== undefined).map((k) => [k, o[k]]));\n  try {\n    const all = api.composition.getAllProducts?.() ?? {};\n    const order = api.composition.getOrderProductIds?.() ?? null;\n    out.order = order ? JSON.stringify(order).slice(0, 200) : null;\n    const KEEP = ['CabinetType', 'productType', 'Width', 'Depth', 'Height', 'DrawerStyle', 'Style', 'Handle', 'HandleType', 'CabinetColor', 'HandleGrooveColor', 'LegColor', 'CabinetPattern', 'DrawerPanelFluting', 'LateralPanelSide', 'Series', 'SidePanel', 'SidePanels', 'sinkType', 'SinkType', 'CountertopColor', 'CountertopMaterial', 'Thickness', 'BasinStyle', 'VesselColor'];\n    out.products = Object.entries(all).slice(0, 10).map(([id, cfg]) => {\n      const c = cfg?.config ?? cfg ?? {};\n      const kept = Object.fromEntries(Object.entries(c).filter(([k]) => KEEP.some((x) => k.toLowerCase() === x.toLowerCase())));\n      return { id: id.slice(0, 36), n: Object.keys(c).length, cfg: kept };\n    });\n  } catch (e) { out.productsErr = String(e).slice(0, 200); }\n  try {\n    const ct = await api.countertop.getState();\n    out.countertop = pick(ct, ['productId', 'placementState', 'attached', 'moved', 'canResize', 'thickness', 'autoLength', 'customLength', 'size', 'lengthLimitsM', 'offset']);\n  } catch (e) { out.ctErr = String(e).slice(0, 200); }\n  try { const cv = await api.cabinetCover.getState(); out.coverEntries = cv?.service?.entries?.length ?? null; } catch (e) { out.coverErr = String(e).slice(0, 120); }\n  return out;\n}\n"
+   },
+   "save": "02-probe.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "03-color.png"
+  }
+ ]
+}

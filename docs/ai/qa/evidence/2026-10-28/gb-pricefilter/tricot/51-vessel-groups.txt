@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"groups":[{"group":"Lacquered GL","count":20,"disabled":0,"sample":["Acqua 419 GL","Agata 407 GL","Ambra 413 GL","Antracite 400 GL","Asparago 414 GL","Creta 416 GL"]},{"group":"Lacquered MT","count":20,"disabled":0,"sample":["Acqua 419 MT","Agata 407 MT","Ambra 413 MT","Antracite 400 MT","Asparago 414 MT","Creta 416 MT"]},{"group":"Tekorlux","count":52,"disabled":52,"sample":["Agata BD MT","Aragosta 77 MT","Arancio Zucca 09 MT","Ardesia DD MT","Argilla DR MT","Bianco 0B MT"]}],"configuratorRequests":[]}
+```

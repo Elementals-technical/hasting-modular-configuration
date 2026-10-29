@@ -16,11 +16,13 @@ import countertopFixture from "./fixtures/remote/datatable-593.json";
 import compositionCsv from "../../../../public/collections/tricot/sources/preset-compositions.csv?raw";
 import images from "../../../../public/collections/tricot/sources/model-images.json";
 import { importPresetCompositionCsv } from "../lib/importPresetCompositionCsv";
-import { tricotConfigurator, tricotProfile } from "./tricotFixtures";
+import { tricotConfigurator, tricotMatrixProfile, tricotProfile } from "./tricotFixtures";
 import { buildPendingPresets, importMasterCatalog, parseMasterTable } from "../lib/importMasterCatalog";
 import { loadResolvedCollection } from "../lib/loadCollection";
 import { resolveCollection } from "../lib/resolveCollection";
 import { validatePresetHandoff } from "../lib/validatePresetHandoff";
+import { selectDefaultValue, selectOptionValues } from "../lib/productProfileSelectors";
+import { getSupportedCountertopFaucetHoles } from "@/features/configurator-rule-core/countertop/rules";
 import { presetsSchema, sourceCatalogSchema } from "../model/schemas";
 import { isReadyCollectionData, type CollectionRuntimeDependencies, type RemoteCollectionLoader } from "../model/types";
 
@@ -217,18 +219,21 @@ describe("Tricot source preparation", () => {
       "Side-Cabinet": "Tricot-side-cabinet",
     });
     expect(data.catalog.runtimeBindings?.strictProductConfig).toBe(true);
+    // Client feedback, Steps | Order: Accessories, then Faucet Details, right before the Summary.
     expect(data.catalog.navigation?.prebuilt.map(({ id }) => id)).toEqual([
       "model",
       "color",
-      "side-panels",
       "countertop",
+      "side-panels",
+      "faucet-holes",
       "summary",
     ]);
     expect(data.catalog.navigation?.custom.map(({ id }) => id)).toEqual([
       "cabinet-builder",
       "color",
-      "side-panels",
       "countertop",
+      "side-panels",
+      "faucet-holes",
       "summary",
     ]);
     // Not staged, and its own configurator 12 lets the collection open; the profile keeps its colour lists.
@@ -339,5 +344,14 @@ describe("Tricot basin pictures", () => {
       "images/countertop-style/Vessel.png",
     ]);
     for (const picture of Object.values(pictures)) expect(shippedImages.has(picture), picture).toBe(true);
+  });
+});
+
+describe("Tricot faucet details", () => {
+  // Client feedback, Steps | Order: "Add the 'Faucet Details' step"; it starts without holes, as Urban Standard Height does.
+  it("offers the 0 to 3 faucet holes its countertop table allows, starting at 0", () => {
+    expect(selectOptionValues(tricotProfile, "FaucetHolesAmount")).toEqual(["0", "1", "2", "3"]);
+    expect(selectDefaultValue(tricotProfile, "FaucetHolesAmount")).toBe("0");
+    expect(getSupportedCountertopFaucetHoles(tricotMatrixProfile.countertopRules)).toEqual(["0", "1", "2", "3"]);
   });
 });

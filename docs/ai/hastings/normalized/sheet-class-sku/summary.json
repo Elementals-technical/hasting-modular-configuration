@@ -1,0 +1,68 @@
+{
+  "source_id": "sheet-class-sku",
+  "file": "Class Vanities - SKUs + Pricing.xlsx",
+  "sha256": "4c02eaaee3155cd708f5319fc51c4504538c006cb0869ae024e8f4d6b18a26cd",
+  "size_bytes": 1564621,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "SKU Structure - Product Model",
+      "dimension": "",
+      "non_empty_rows": 7,
+      "max_row_with_value": 13,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 2,
+      "name": "SKU Curation",
+      "dimension": "",
+      "non_empty_rows": 10,
+      "max_row_with_value": 14,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 3,
+      "name": "CabinetPricing",
+      "dimension": "",
+      "non_empty_rows": 41,
+      "max_row_with_value": 64,
+      "formulas": 0,
+      "links": 1,
+      "notes": 8
+    },
+    {
+      "index": 4,
+      "name": "CountertopPricing",
+      "dimension": "",
+      "non_empty_rows": 29,
+      "max_row_with_value": 36,
+      "formulas": 23,
+      "links": 1,
+      "notes": 7
+    },
+    {
+      "index": 5,
+      "name": "Basin StylePricing",
+      "dimension": "",
+      "non_empty_rows": 32,
+      "max_row_with_value": 43,
+      "formulas": 31,
+      "links": 0,
+      "notes": 7
+    },
+    {
+      "index": 6,
+      "name": "AccessoriesPricing",
+      "dimension": "",
+      "non_empty_rows": 44,
+      "max_row_with_value": 46,
+      "formulas": 9,
+      "links": 0,
+      "notes": 2
+    }
+  ]
+}
