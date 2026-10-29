@@ -22,7 +22,7 @@ import {
   type CountertopRuleResult,
 } from "@/features/configurator-rule-core/countertop/rules";
 import { parseThicknessValue, normalizeBasinKey } from "@/features/configurator-rule-core/countertop/parse";
-import { calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm, getSidePanelWidthCm } from "@/entities/countertop";
 import type { AttributeChange, ChangeBlockedReason, PlannedChange } from "../model/types";
 
 /** The material a configurator section lists a countertop colour under, as the matrix names it ("Glass MT"). */
@@ -124,6 +124,7 @@ export const evaluateCountertopChange = (
     cabinets.reduce((sum, c) => sum + (dimensions[c.stableKey]?.width ?? 0), 0),
     options.SidePanelLeft,
     options.SidePanelRight,
+    getSidePanelWidthCm(profile),
   );
   const buildResults = (activeThickness: string) =>
     sinkBases.map((c) =>

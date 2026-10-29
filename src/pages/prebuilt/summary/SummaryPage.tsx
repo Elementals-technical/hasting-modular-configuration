@@ -1,3 +1,4 @@
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { resolveAttributeLabel } from "@/entities/collection/lib/customization/resolveAttributeLabel";
@@ -73,7 +74,6 @@ import {
   formatVesselDimensionLabel,
   vesselHeightCmMap,
   TOWEL_BAR_DEFAULTS,
-  SIDE_PANEL_WIDTH_CM,
   extractColorCode,
   getCountertopMaterialTokensBySku,
   getCountertopMaterialTokensFromBasinType,
@@ -1095,7 +1095,8 @@ export const SummaryPage = () => {
     // The top is priced for the width of the whole composition, presets and added cabinets included.
     const countertopTopLine = lineById("countertop:0");
     const totalCountertopWidth =
-      countertopTopLine?.widthCm ?? calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
+      countertopTopLine?.widthCm ??
+      calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight, getSidePanelWidthCm(activeProfile));
 
     const vesselType = vesselTypeForTokens;
     const vesselLine = lineById("vessel");
@@ -1230,6 +1231,27 @@ export const SummaryPage = () => {
 
     // Side panel SKUs — one line item per active side (single-panel pricing)
     const sidePanelSkuItems: SummaryItem[] = [];
+    pricingLines
+      .filter((line) => line.group === "sidePanel" && line.id !== "sidePanel")
+      .forEach((line) => {
+        sidePanelSkuItems.push({
+          id: `accessories-${line.id}`,
+          title:
+            line.id === "sidePanel:left"
+              ? "Side Panel Left"
+              : line.id === "sidePanel:right"
+                ? "Side Panel Right"
+                : "Side Panels",
+          ...priceOfLines([line], line.quantity),
+          copyable: true,
+          showInfo: true,
+          description: {
+            "Product Category": "Side Panel",
+            Width: getSidePanelWidthCm(activeProfile),
+            Quantity: line.quantity,
+          },
+        });
+      });
     if (sidePanelsOption && sidePanelsOption !== "None") {
       const inferSidePanelMaterialSku = (colorValue?: string | null): string | null => {
         if (!colorValue) return null;
@@ -1306,7 +1328,7 @@ export const SummaryPage = () => {
             "Product Category": "Side Panel",
             "Panel Type": labelOf("SidePanels", sidePanelsOption),
             Side: side,
-            Width: SIDE_PANEL_WIDTH_CM,
+            Width: getSidePanelWidthCm(activeProfile),
             Height: dims.height,
             Depth: normalizeSidePanelSummaryDepth(dims.depth),
             "Cabinet Color": sidePanelCabinetColor || null,

@@ -1,3 +1,4 @@
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { resolveAttributeLabel } from "@/entities/collection/lib/customization/resolveAttributeLabel";
@@ -72,7 +73,6 @@ import {
   formatVesselDimensionLabel,
   vesselHeightCmMap,
   TOWEL_BAR_DEFAULTS,
-  SIDE_PANEL_WIDTH_CM,
   extractColorCode,
   getCountertopMaterialTokensBySku,
   getCountertopMaterialTokensFromBasinType,
@@ -1100,7 +1100,8 @@ export const CustomSummaryPage = () => {
     // The top is priced for the width of the whole composition, open shelves included.
     const countertopTopLine = lineById("countertop:0");
     const totalCountertopWidth =
-      countertopTopLine?.widthCm ?? calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
+      countertopTopLine?.widthCm ??
+      calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight, getSidePanelWidthCm(activeProfile));
 
     const vesselType = vesselTypeForTokens;
     const vesselLine = lineById("vessel");
@@ -1264,6 +1265,27 @@ export const CustomSummaryPage = () => {
 
     // Side panel SKUs — one line item per active side (single-panel pricing)
     const sidePanelSkuItems: SummaryItem[] = [];
+    pricingLines
+      .filter((line) => line.group === "sidePanel" && line.id !== "sidePanel")
+      .forEach((line) => {
+        sidePanelSkuItems.push({
+          id: `accessories-${line.id}`,
+          title:
+            line.id === "sidePanel:left"
+              ? "Side Panel Left"
+              : line.id === "sidePanel:right"
+                ? "Side Panel Right"
+                : "Side Panels",
+          ...priceOfLines([line], line.quantity),
+          copyable: true,
+          showInfo: true,
+          description: {
+            "Product Category": "Side Panel",
+            Width: getSidePanelWidthCm(activeProfile),
+            Quantity: line.quantity,
+          },
+        });
+      });
     if (sidePanelsOption && sidePanelsOption !== "None") {
       // The panels are described at the size of the first cabinet with a confirmed one, not a short cabinet's.
       const panelCabinet = cabinetConfigs.find((config) => !isSteppedSceneConfig(config)) ?? cabinetConfigs[0];
@@ -1321,7 +1343,7 @@ export const CustomSummaryPage = () => {
             "Product Category": "Side Panel",
             "Panel Type": labelOf("SidePanels", sidePanelsOption),
             Side: side,
-            Width: SIDE_PANEL_WIDTH_CM,
+            Width: getSidePanelWidthCm(activeProfile),
             Height: dims.height,
             Depth: normalizeSidePanelSummaryDepth(dims.depth),
             "Cabinet Color": cabinetColor || null,

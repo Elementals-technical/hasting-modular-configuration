@@ -762,17 +762,17 @@
     {
       "attributeId": "SidePanels",
       "status": "unbound",
-      "reason": "Confirmed for Lame but not in its profile yet (excludedFromThisProfile.sidePanels: LAME-SP-01, GEN-SP-01)."
+      "reason": "Composition addon: SidePanels is applied by the side-panel command port as one setConfigBatch patch with SidePanel and SidePanelSide; left/right are scene activation readback and are restored by the side-panel history path, not a generic attribute binding."
     },
     {
       "attributeId": "SidePanelLeft",
       "status": "unbound",
-      "reason": "Per-side status (active/none/auto-removed), not a scene value; Lame side panels are not in its profile yet (LAME-SP-01, GEN-SP-01)."
+      "reason": "Composition addon: SidePanels is applied by the side-panel command port as one setConfigBatch patch with SidePanel and SidePanelSide; left/right are scene activation readback and are restored by the side-panel history path, not a generic attribute binding."
     },
     {
       "attributeId": "SidePanelRight",
       "status": "unbound",
-      "reason": "Per-side status (active/none/auto-removed), not a scene value; Lame side panels are not in its profile yet (LAME-SP-01, GEN-SP-01)."
+      "reason": "Composition addon: SidePanels is applied by the side-panel command port as one setConfigBatch patch with SidePanel and SidePanelSide; left/right are scene activation readback and are restored by the side-panel history path, not a generic attribute binding."
     },
     {
       "attributeId": "DividersOption",

@@ -143,7 +143,7 @@
     "accessories": {
       "label": "Accessories",
       "kind": "fields",
-      "sectionIds": ["dividers"]
+      "sectionIds": ["side-panels", "dividers"]
     },
     "faucet-holes": {
       "label": "Faucet Details",
@@ -285,6 +285,17 @@
           "optionsRef": "VesselColor",
           "availabilityRef": "VesselColor.allowed",
           "autoSelect": "firstAllowed"
+        }
+      ]
+    },
+    "side-panels": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "SidePanels",
+          "control": "options-grid",
+          "availabilityRef": "SidePanels.available"
         }
       ]
     },

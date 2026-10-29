@@ -63,6 +63,90 @@
     "heightIn": ".7",
     "depthIn": "20.5"
   },
+  "sidePanel": {
+    "baseSku": "VAN-LAMEV-SP",
+    "variants": [
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Galles"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/GAL-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Gessato"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/GES-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Oxford"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/OXF-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Piquet"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/PIQ-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Plisse"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/PLIS-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Galles"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/GAL-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Gessato"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/GES-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Oxford"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/OXF-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Piquet"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/PIQ-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Plisse"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/PLIS-2.0W-20.5H-20.5D"
+      }
+    ],
+    "status": "confirmed",
+    "selection": {
+      "attributeId": "SidePanels",
+      "enabledValues": ["NoG"]
+    },
+    "quantitySource": "activeSides",
+    "countertopWidthOffsetCm": 5,
+    "colorAttributeId": "CabinetColor",
+    "elementCode": "CAB"
+  },
   "dividers": {
     "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
     "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
