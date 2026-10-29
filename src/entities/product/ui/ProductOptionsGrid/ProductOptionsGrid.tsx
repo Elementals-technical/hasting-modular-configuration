@@ -32,6 +32,8 @@ export type ProductOptionData = {
   name?: string;
   desc?: string;
   isAvailable?: boolean;
+  /** Available, but choosing it asks first: drawn restricted, with its reason as the hint. */
+  isRestricted?: boolean;
   /** Text a rule resolved itself; used while it names no reason code. */
   disabledReason?: string;
   /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
@@ -125,6 +127,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         title={i.title}
         desc={groupByDesc ? undefined : i.desc}
         isAvailable={isLoading ? false : i.isAvailable}
+        isRestricted={i.isRestricted}
         disabledReason={i.disabledReason}
         disabledReasonCode={i.disabledReasonCode}
         disabledReasonParams={i.disabledReasonParams}

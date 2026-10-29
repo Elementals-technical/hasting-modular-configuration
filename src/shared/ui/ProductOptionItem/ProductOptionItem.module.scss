@@ -302,6 +302,12 @@
   opacity: 0.5;
 }
 
+// Still chosen by a click, which asks first (as a restricted cabinet style card).
+.restrictedOption {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
 .optionHint {
   z-index: 3;
   max-width: 170px;

@@ -1,0 +1,172 @@
+{
+  "scenario": "mako-default-model",
+  "recordedAt": "2026-10-29",
+  "answers": {
+    "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400": {
+      "price": 2702,
+      "resolver": "VAN/matrix",
+      "parsed": {
+        "category": "VAN",
+        "product": "MAKOV",
+        "modelTokens": [
+          "SB",
+          "2DW",
+          "G57"
+        ],
+        "sizes": {
+          "width": 23.6,
+          "height": 20.5,
+          "depth": 20.5
+        },
+        "materials": [
+          {
+            "material": "CAB",
+            "color": null
+          },
+          {
+            "material": "LACM",
+            "color": "400"
+          },
+          {
+            "material": "HDL",
+            "color": null
+          },
+          {
+            "material": "LACM",
+            "color": "400"
+          }
+        ],
+        "baseSku": "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D",
+        "originalSku": "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400",
+        "productElements": [
+          {
+            "element": "CAB",
+            "materials": [
+              {
+                "material": "LACM",
+                "color": "400"
+              }
+            ]
+          },
+          {
+            "element": "HDL",
+            "materials": [
+              {
+                "material": "LACM",
+                "color": "400"
+              }
+            ]
+          }
+        ]
+      },
+      "metadata": {
+        "category": "VAN",
+        "datatables": {
+          "matrix": 556,
+          "colorMap": 495
+        },
+        "approach": "matrix",
+        "datatableId": 556,
+        "matchedSku": "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D"
+      },
+      "error": null
+    },
+    "CT-GBSSTL-INTG-23.6W-.5H-20.7D": {
+      "price": 787,
+      "resolver": "CT/price_per_unit",
+      "parsed": {
+        "category": "CT",
+        "product": "GBSSTL",
+        "modelTokens": [
+          "INTG"
+        ],
+        "sizes": {
+          "width": 23.6,
+          "height": 0.5,
+          "depth": 20.7
+        },
+        "materials": [],
+        "baseSku": "CT-GBSSTL-INTG-23.6W-.5H-20.7D",
+        "originalSku": "CT-GBSSTL-INTG-23.6W-.5H-20.7D",
+        "widthCm": 60
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "price_per_unit",
+        "datatableId": 529,
+        "pricePerCm": 13.11,
+        "widthInches": 23.6,
+        "widthCm": 60,
+        "widthCmSource": "explicit",
+        "material": "SSTL",
+        "colorCode": null
+      },
+      "error": null
+    },
+    "CT-GBSSTL-LB440-.5H": {
+      "price": 1882,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "GBSSTL",
+        "modelTokens": [
+          "LB440"
+        ],
+        "sizes": {
+          "height": 0.5
+        },
+        "materials": [],
+        "baseSku": "CT-GBSSTL-LB440-.5H",
+        "originalSku": "CT-GBSSTL-LB440-.5H"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-GBSSTL-LB440-.5H"
+      },
+      "error": null
+    },
+    "CT-GBSSTL-FAHO/0": {
+      "price": 0,
+      "resolver": "CT/matrix",
+      "parsed": {
+        "category": "CT",
+        "product": "GBSSTL",
+        "modelTokens": [
+          "FAHO",
+          "0"
+        ],
+        "sizes": {},
+        "materials": [],
+        "baseSku": "CT-GBSSTL-FAHO/0",
+        "originalSku": "CT-GBSSTL-FAHO/0"
+      },
+      "metadata": {
+        "category": "CT",
+        "datatables": {
+          "matrix": 536,
+          "pricePerUnit": 529,
+          "colorMap": 496,
+          "basin": 497
+        },
+        "approach": "matrix",
+        "datatableId": 536,
+        "matchedSku": "CT-GBSSTL-FAHO/0"
+      },
+      "error": null
+    }
+  }
+}

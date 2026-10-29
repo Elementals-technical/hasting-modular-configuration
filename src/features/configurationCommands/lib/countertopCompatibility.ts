@@ -6,6 +6,7 @@ import {
   selectConfiguratorGroup,
   selectOption,
   selectDefaultValue,
+  selectMessage,
   type ProductProfile,
 } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -16,14 +17,17 @@ import {
   isSinkBase,
   type ValueTarget,
 } from "@/entities/configuration";
-import { findPlacedCabinetRule } from "@/features/configurator-rule-core/cabinetBuilder";
 import {
   buildCountertopRuleState,
   type CountertopRuleResult,
 } from "@/features/configurator-rule-core/countertop/rules";
 import { parseThicknessValue, normalizeBasinKey } from "@/features/configurator-rule-core/countertop/parse";
+import {
+  INTEGRATED_DRAWERS_REASON,
+  selectSinkBasesUnavailableWithIntegrated,
+} from "@/features/configurator-rule-core/countertop/integratedCountertop";
 import { calcTotalCountertopWidthCm, getSidePanelWidthCm } from "@/entities/countertop";
-import type { AttributeChange, ChangeBlockedReason, PlannedChange } from "../model/types";
+import type { AttributeChange, ChangeBlockedReason, ConfirmationReason, PlannedChange } from "../model/types";
 
 /** The material a configurator section lists a countertop colour under, as the matrix names it ("Glass MT"). */
 const configuratorMaterialOf = (
@@ -46,11 +50,11 @@ export const evaluateCountertopChange = (
   profile: ProductProfile,
   /** The configurator sections a colour the profile does not list is taken from (Tricot's configurator 12). */
   configurator: ConfiguratorGroupCatalog | null = null,
-): { blocked?: ChangeBlockedReason; dependencies: PlannedChange[] } => {
+): { blocked?: ChangeBlockedReason; dependencies: PlannedChange[]; confirmation?: ConfirmationReason[] } => {
   const dependencies: PlannedChange[] = [];
   if (
     !profile.ruleData.countertopCompatibility ||
-    !["CountertopColor", "Thickness", "sinkType", "Drawers"].includes(change.attributeId) ||
+    !["CountertopColor", "Thickness", "sinkType", "Drawers", "CountertopStyle"].includes(change.attributeId) ||
     change.value === ""
   )
     return { dependencies };
@@ -65,7 +69,11 @@ export const evaluateCountertopChange = (
     reasonCode: "change.notAvailable",
     reason: "This material, thickness or basin does not fit the supplied countertop matrix.",
   });
-  if (!profile.countertopRules?.length) return { blocked: unknown(), dependencies };
+  const vesselOnly: ChangeBlockedReason = {
+    attributeId: change.attributeId,
+    reasonCode: "change.notAvailable",
+    reason: "A Sink Base in this design is only compatible with a vessel countertop.",
+  };
   const cabinets = getCabinetEntries(state),
     dimensions = getDimensionsByCabinet(state);
   const sinkBases = cabinets.filter(
@@ -73,15 +81,54 @@ export const evaluateCountertopChange = (
       isSinkBase(state, c.runtimeId) &&
       (target.scope !== "basin" || !target.sinkBaseId || c.stableKey === target.sinkBaseId),
   );
+  const options = state.rootStateUI.product.productOptions;
+  const read = (id: string, legacy: string) =>
+    id === change.attributeId ? String(change.value) : legacy || selectDefaultValue(profile, id);
+  const style = read("CountertopStyle", options.CountertopStyle);
+  // An integrated countertop leaves out some Sink Bases (Tricot: 60 cm with an inner drawer).
+  const leftOut =
+    style === "integrated"
+      ? selectSinkBasesUnavailableWithIntegrated(state, {
+          sinkBases,
+          drawers: change.attributeId === "Drawers" ? String(change.value) : undefined,
+        })
+      : [];
+  // The style itself is judged by that alone: the matrix rules the material, thickness and basin. Chosen
+  // over Sink Bases it leaves out, it takes them to the drawers of their group it takes, once approved.
+  if (change.attributeId === "CountertopStyle") {
+    const switches = leftOut.flatMap(({ cabinet, integratedDrawers }): PlannedChange[] =>
+      integratedDrawers
+        ? [
+            {
+              attributeId: "Drawers",
+              target: { scope: "cabinet", cabinetId: cabinet.stableKey },
+              value: integratedDrawers,
+              origin: "dependency",
+              reasonCode: INTEGRATED_DRAWERS_REASON,
+            },
+          ]
+        : [],
+    );
+    if (switches.length < leftOut.length) return { blocked: vesselOnly, dependencies };
+    if (!switches.length) return { dependencies };
+    return {
+      dependencies: switches,
+      confirmation: [
+        {
+          attributeId: change.attributeId,
+          reasonCode: INTEGRATED_DRAWERS_REASON,
+          reason: selectMessage(profile, INTEGRATED_DRAWERS_REASON),
+        },
+      ],
+    };
+  }
+  if (!profile.countertopRules?.length) return { blocked: unknown(), dependencies };
   if (
     !cabinets.length ||
     !sinkBases.length ||
     cabinets.some((c) => !dimensions[c.stableKey]?.width || !dimensions[c.stableKey]?.depth)
   )
     return { blocked: unknown(), dependencies };
-  const options = state.rootStateUI.product.productOptions;
-  const read = (id: string, legacy: string) =>
-    id === change.attributeId ? String(change.value) : legacy || selectDefaultValue(profile, id);
   const color = read("CountertopColor", options.CountertopColor);
   const canonical = normalizeOptionValue(profile, "CountertopColor", color) ?? color;
   const category =
@@ -90,26 +137,7 @@ export const evaluateCountertopChange = (
   if (!category) return { blocked: invalid(), dependencies };
   const colorChange = change.attributeId === "CountertopColor";
   const thickness = colorChange ? "" : read("Thickness", options.Thickness);
-  const style = options.CountertopStyle || selectDefaultValue(profile, "CountertopStyle");
-  if (
-    style === "integrated" &&
-    sinkBases.some((c) => {
-      const rule = findPlacedCabinetRule(state.rootStateUI.product.cabinetCatalog, c.runtimeId);
-      const raw =
-        change.attributeId === "Drawers"
-          ? String(change.value)
-          : String(
-              getAttributeValue(state, "Drawers", { scope: "cabinet", cabinetId: c.stableKey }) ??
-                state.rootStateUI.product.placedCabinetStyles[c.runtimeId] ??
-                selectDefaultValue(profile, "Drawers"),
-            );
-      const drawers = normalizeOptionValue(profile, "Drawers", raw) ?? raw;
-      return rule?.unavailableWithIntegrated?.some(
-        (pair) => pair.widthCm === dimensions[c.stableKey]?.width && pair.drawers === drawers,
-      );
-    })
-  )
-    return { blocked: invalid(), dependencies };
+  if (leftOut.length) return { blocked: vesselOnly, dependencies };
   if (change.attributeId === "Drawers") return { dependencies };
   const basinFor = (key: string) =>
     change.attributeId === "sinkType"

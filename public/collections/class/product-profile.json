@@ -25,7 +25,8 @@
     "FrameColor": "Nero 433 MT",
     "CountertopStyle": "integrated",
     "sinkType": "LV890",
-    "Thickness": "0.75"
+    "Thickness": "0.75",
+    "FaucetHolesAmount": "0"
   },
   "attributes": [
     {

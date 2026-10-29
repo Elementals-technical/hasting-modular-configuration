@@ -30,6 +30,8 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
+  /** Available, but choosing it asks first: drawn restricted, its reason shown as the hint. */
+  isRestricted?: boolean;
   /** Text a caller resolved itself; used while its rule has no reason code. */
   disabledReason?: string;
   /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
@@ -55,6 +57,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   title,
   desc,
   isAvailable,
+  isRestricted = false,
   disabledReason,
   disabledReasonCode,
   disabledReasonParams,
@@ -93,7 +96,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
 
   const optionContent = (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${isCabinetTypeVariant ? s.cabinetTypeItem : ""} ${isAccessoryVariant ? s.accessoryItem : ""} ${isSinkBaseCabinetType ? s.sinkBaseCabinetTypeItem : ""} ${isSideCabinetType ? s.sideCabinetTypeItem : ""} ${!available ? s.disabledOption : ""}`}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${isCabinetTypeVariant ? s.cabinetTypeItem : ""} ${isAccessoryVariant ? s.accessoryItem : ""} ${isSinkBaseCabinetType ? s.sinkBaseCabinetTypeItem : ""} ${isSideCabinetType ? s.sideCabinetTypeItem : ""} ${!available ? s.disabledOption : ""} ${available && isRestricted ? s.restrictedOption : ""}`}
     >
       <button
         type="button"
@@ -170,7 +173,7 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
     </div>
   );
 
-  if (!available) {
+  if (!available || isRestricted) {
     return (
       <Hint className={s.optionHint} content={unavailableText}>
         {optionContent}

@@ -29,7 +29,8 @@
     "HandleColor": "Fumo 401 MT",
     "CountertopColor": "Matte White",
     "CountertopStyle": "integrated",
-    "sinkType": "LB175"
+    "sinkType": "LB175",
+    "FaucetHolesAmount": "0"
   },
   "attributes": [
     {

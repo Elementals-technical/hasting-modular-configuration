@@ -93,6 +93,7 @@ import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import {
   appendUncoveredLines,
   cabinetCoverItems,
+  ownSidePanelItems,
   resolveSummaryLinePrice,
   tandemCountertopItems,
   type PricingLine,
@@ -154,7 +155,7 @@ import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 
 import s from "./SummaryPage.module.scss";
-import { useCollectionNavigate, useStepPathById } from "@/features/collectionCustomization";
+import { useCollectionNavigate, useScreenTarget, useStepPathById } from "@/features/collectionCustomization";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
@@ -243,17 +244,19 @@ export const CustomSummaryPage = () => {
   const editMenuRef = useRef<HTMLDivElement | null>(null);
   const lastSavedHashRef = useRef<string | null>(null);
   const stepPathById = useStepPathById("custom");
+  // The accessories page by its screen, as the player menu finds it: Tricot names that step `side-panels`.
+  const accessoriesPath = useScreenTarget("accessories")?.path;
   const editPathBySectionId = useMemo<Record<string, string>>(() => {
     const entries: Array<[string, string | undefined]> = [
       ["cabinet", stepPathById["cabinet-colors"]],
       ["cabinet-options", stepPathById["cabinet-colors"]],
       ["countertop", stepPathById["countertop-custom"]],
       ["basin", stepPathById["countertop-custom"]],
-      ["accessories", stepPathById["accessories-custom"]],
+      ["accessories", accessoriesPath],
       ["faucet", stepPathById["faucet-holes"]],
     ];
     return Object.fromEntries(entries.filter((entry): entry is [string, string] => Boolean(entry[1])));
-  }, [stepPathById]);
+  }, [accessoriesPath, stepPathById]);
 
   const buildConfigurationRequest = useBuildConfigurationRequest();
   const priceResult = usePriceResult();
@@ -1356,6 +1359,14 @@ export const CustomSummaryPage = () => {
 
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
+      // A collection's own side panels (Tricot), in the finish their line is ordered in.
+      ...ownSidePanelItems(pricingLines, {
+        priceOfLine: (line) => priceOfLines([line]),
+        swatchOf: resolveSwatch,
+        sidePanelLeft,
+        sidePanelRight,
+        panelType: labelOf("SidePanels", sidePanelsOption) || null,
+      }),
       ...dividerItems,
       ...organizerItems,
       towelBarRightLine
@@ -1468,11 +1479,15 @@ export const CustomSummaryPage = () => {
             },
           ]
         : []),
-      {
-        id: "accessories",
-        title: "Accessories",
-        items: accessoriesItems,
-      },
+      ...(accessoriesItems.length
+        ? [
+            {
+              id: "accessories",
+              title: "Accessories",
+              items: accessoriesItems,
+            },
+          ]
+        : []),
       ...(faucetItems.length
         ? [
             {
