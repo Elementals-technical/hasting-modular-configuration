@@ -92,18 +92,18 @@ describe("mako runtime bindings", () => {
 
   it("maps every Mako basin to its scene sub-product and sends the vessel colour", () => {
     expect(patchOf("sinkType", "None")).toEqual({ sinkType: "Vessel" });
-    expect(patchOf("sinkType", "LB440")).toEqual({ sinkType: "Top_HPLPrisma" });
-    expect(patchOf("sinkType", "LB175")).toEqual({ sinkType: "Top_Tekorlux_Ron" });
-    expect(patchOf("sinkType", "LB575")).toEqual({ sinkType: "Top_Tekorlux_Quadra" });
-    expect(patchOf("sinkType", "LB856")).toEqual({ sinkType: "Top_HPLStrip" });
-    expect(patchOf("sinkType", "VA024")).toEqual({ sinkType: "Top_HPLCover" });
-    expect(patchOf("sinkType", "LV890")).toEqual({ sinkType: "Top_Tekorlux_Trip" });
-    expect(patchOf("sinkType", "LV892")).toEqual({ sinkType: "Top_Ocritech_Orion" });
-    expect(patchOf("sinkType", "VA002")).toEqual({ sinkType: "Top_Ocritech_Oly55" });
-    expect(patchOf("sinkType", "VA005")).toEqual({ sinkType: "Top_Tekorlux_Rectangular" });
+    expect(patchOf("sinkType", "LB440")).toEqual({ sinkType: "Top_LB440" });
+    expect(patchOf("sinkType", "LB175")).toEqual({ sinkType: "Top_LB175" });
+    expect(patchOf("sinkType", "LB575")).toEqual({ sinkType: "Top_LB575" });
+    expect(patchOf("sinkType", "LB856")).toEqual({ sinkType: "Top_LB856" });
+    expect(patchOf("sinkType", "VA024")).toEqual({ sinkType: "Top_VA024" });
+    expect(patchOf("sinkType", "LV890")).toEqual({ sinkType: "Top_LV890" });
+    expect(patchOf("sinkType", "LV892")).toEqual({ sinkType: "Top_LV892" });
+    expect(patchOf("sinkType", "VA002")).toEqual({ sinkType: "Top_VA002" });
+    expect(patchOf("sinkType", "VA005")).toEqual({ sinkType: "Top_VA005" });
     expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
     expect(patchOf("sinkType", "Frame")).toEqual({ sinkType: "Vessel_Frame" });
-    expect(patchOf("sinkType", "Plaza")).toEqual({ sinkType: "Vessel_Blade11" });
+    expect(patchOf("sinkType", "Plaza")).toEqual({ sinkType: "Vessel_Plaza" });
     // A cleared basin, as a switch of countertop style leaves, is the empty cutout: without it the scene
     // has no translation and the whole switch is refused.
     expect(patchOf("sinkType", "")).toEqual({ sinkType: "Vessel" });

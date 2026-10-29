@@ -156,7 +156,7 @@ describe("lame runtime bindings", () => {
   });
 
   it("give the sink cabinet its basin, and hold back VA030, which the scene has no sink for", () => {
-    expect(patchOf("sinkType", "LB440")).toEqual({ sinkType: "Top_HPLPrisma" });
+    expect(patchOf("sinkType", "LB440")).toEqual({ sinkType: "Top_LB440" });
     expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
     expect(patchOf("sinkType", "None")).toEqual({ sinkType: "Vessel" });
     expect(targetOf("sinkType", "LB440")).toEqual({ kind: "productType", productType: "Lame-sink-cabinet" });
