@@ -97,7 +97,7 @@
 | Дані не читаються (`unsupported-version`, `malformed`) | один блокуючий gap `divider`, рядка немає; ніколи не рахується як порожньо |
 | Стиль без SKU | рядка немає, один блокуючий gap на стиль |
 | Oak | 3D його не пропонує (`organizer.oakPending`, Q-K3); SKU Oak лишається в `sku-profile` |
-| Tricot | фіча вимкнена, `dividers: {}`; Q-K12 і Q-N2 |
+| Tricot | фіча вимкнена (Q-K12); `dividers` — SKU Class (VAN-GBDIV-MTL / -OAK, Accessories_Pricing), рішення 29.10 |
 
 **Gap `divider` зі `sku-profile`** (`appliesWhen: DividersStyle`, не блокує total) лишається, поки замовлення має органайзери: для Ph2 `usedValuesOf("DividersStyle")` повертає стилі наборів read-model, а не значення конфігурації. Gap знімуть після підтвердження ціни колонки (Q-K1, Q-N1).
 
@@ -133,7 +133,7 @@
 | Q-K6 при зміні розміру: тост чи діалог | Ryan | тост з Undo |
 | Q-K12 Tricot у релізі | Ryan | ні; дані Tricot не змінені |
 | Q-N1 рядок ціни: кількість = колонки, id `divider:<cabinet>:<drawer>` | Назар | так |
-| Q-N2 SKU для Tricot | Назар | немає SKU, а значить блокуючий gap |
+| Q-N2 SKU для Tricot | Назар | закрито 29.10: SKU Class (VAN-GBDIV-MTL / -OAK), неблокуючий gap ціни як у Class |
 | Q-N4 поле `quantity` у `getSummarySkuJson` | Назар | немає, кількість у підписі |
 | Q-D7 mobile: M1 чи M2 | дизайнер | M2, M1 за прапорцем `mobileLayout` |
 | Q-D9 авто-вибір нової колонки | дизайнер | ні |

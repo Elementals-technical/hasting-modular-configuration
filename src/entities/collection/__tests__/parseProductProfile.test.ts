@@ -299,6 +299,24 @@ describe("parseProductProfile", () => {
     }
   });
 
+  it("reads the price tiers of every colour field and rejects a tier out of 1-4 or a SKU code in lower case", () => {
+    const raw = clone(ushProfile) as { ruleData: Record<string, unknown> };
+    raw.ruleData.priceTiers = { bySku: { LACM: 2, WDV: 3 } };
+
+    const accepted = parseProductProfile(raw);
+    expect(accepted.ok ? accepted.profile.ruleData.priceTiers : null).toEqual({ bySku: { LACM: 2, WDV: 3 } });
+
+    for (const broken of [{ WDV: 5 }, { WDV: 1.5 }, { wdv: 2 }]) {
+      raw.ruleData.priceTiers = { bySku: broken };
+      const rejected = parseProductProfile(raw);
+      expect(rejected.ok ? [] : rejected.diagnostics).toContainEqual({
+        code: "ruleData.invalid_section",
+        dataPath: "/ruleData/priceTiers/bySku",
+        message: "bySku must be a map of upper-case SKU material code to tier 1-4",
+      });
+    }
+  });
+
   it("reports a missing legacy adapter column mapping", () => {
     const raw = clone(ushProfile) as Record<string, unknown>;
     const ruleData = raw.ruleData as Record<string, { columns: Record<string, unknown> }>;

@@ -6,8 +6,9 @@ export const SKU_TIERS: Record<string, number> = skuTiersData;
 
 /**
  * A collection's own price tiers for one field: SKU material code (upper-case) -> tier. The shared
- * table follows the Urban price list; a product line with its own tiers (Tricot: Lacquered MT is
- * Standard $, Wood Veneer is Classic $$) declares them in its profile, and they are read first.
+ * table is the Azzurra block of the client's Material Pricing Tiers; a product line with its own tiers
+ * (the GB block of Tricot, Lame, Mako and Class: Lacquered MT is Classic $$, Wood Veneer Specialty $$$)
+ * declares them in its profile, and they are read first.
  */
 export type PriceTierOverride = { bySku: Readonly<Record<string, number>> };
 

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"path":"/prebuilt/side-panels","panel":"None Customize Click the ⊕ button to place a divider column. Select added columns to customize it. 0 columns · Bottom drawer","pills":[]}
+```

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"section":"Countertop Color","was":"Classic $$","offered":["Show all","Standard $","Classic $$","Exclusive $$$$"],"picked":"Exclusive $$$$","count":29,"groups":["HPL","Porcelain"],"swatches":["Ardesia Nera 328","Bianco Kos 250","Calacatta 259","Calacatta Black 338","Calacatta Oro Opaco 331","Emperador Opaco 322","Grigio Bromo 253","Grigio London 252","Impero 260","Invisible White Lucido 334","Invisible White Opaco 332","Kaspio Argento 262","Kaspio Oro 261","Mine Goffrato 317","Nero Atlante Lucido 326","Nero Ingo 251","Noce Savoia 256","Pietra Grey Goffrato 323","Pietra Piasentina Goffrato 324","Porfido 337","Rivel 257","Rovere Prussia 255","Rovere Slavonia 254","Rovere Texas 264","Sahara Noir Bocciardato 335","Sahara Noir Lucido 339","Silver Voyage 263","Statuario Altissimo Lucido 333","Terre Di Saturnia 336"]}
+```

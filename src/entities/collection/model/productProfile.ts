@@ -274,10 +274,12 @@ export type VesselCompatibilityRuleData = {
 
 /**
  * The collection's own price tiers for colour fields (1 Standard $ … 4 Exclusive $$$$), read
- * before the shared table. Field id -> SKU material code (upper-case) -> tier.
+ * before the shared table. SKU material code (upper-case) -> tier: `bySku` for every colour field
+ * of the collection, `byAttribute` (field id -> code -> tier) over it for one field.
  */
 export type PriceTiersRuleData = {
-  byAttribute: Record<string, Record<string, number>>;
+  bySku?: Record<string, number>;
+  byAttribute?: Record<string, Record<string, number>>;
 };
 
 /**

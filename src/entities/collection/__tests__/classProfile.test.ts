@@ -135,8 +135,8 @@ describe("class product profile", () => {
   });
 
   // The client's Material Pricing Tiers, GB block: Wood Veneer is Tier 3; the shared table ranks no WDV.
-  it("ranks its Wood Veneer cabinet colours as Specialty $$$", () => {
-    expect(profile().ruleData.priceTiers).toEqual({ byAttribute: { CabinetColor: { WDV: 3 } } });
+  it("ranks its Wood Veneer colours as Specialty $$$ in every colour field", () => {
+    expect(profile().ruleData.priceTiers).toEqual({ bySku: expect.objectContaining({ WDV: 3 }) });
   });
 
   it("gives each of its vessels, and only them, a palette and a starting colour", () => {

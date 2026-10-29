@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"section":"Countertop Color","was":"Price","offered":["Show all","Standard $","Classic $$","Exclusive $$$$"],"picked":"Standard $","count":1,"groups":["Solid Surface 3 ⅛"],"swatches":["Matte White 8cm"]}
+```
