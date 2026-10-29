@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTierFilterOptions, filterOptionsByTier } from "../priceFilters";
+import { buildTierFilterOptions, filterOptionsByTier, SKU_TIERS } from "../priceFilters";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 const TIER_LABELS: Record<number, string> = {
@@ -69,6 +69,41 @@ const buildCabinetColor = (title: string, sku: string, material: string, colors:
   desc: material,
   isShortDesc: false,
   metadata: { sku, materials: [material], colors, value: title },
+});
+
+/**
+ * The client's 'list material' > Material Pricing Tiers, Azzurra block, by the SKU material code the
+ * configurators give each of its materials (Tekormud is SSTM there).
+ */
+const AZZURRA_TIERS: Record<string, number> = {
+  "3D": 1,
+  LACM: 2,
+  LACG: 3,
+  ST: 3,
+  BM: 3,
+  HPL: 4,
+  ESS: 4,
+  FX: 4,
+  POR: 4,
+  GLSM: 2,
+  GLSG: 2,
+  SSMMO: 2,
+  SSOCR: 1,
+  SSTKR: 3,
+  SSTM: 3,
+};
+
+describe("shared price tiers", () => {
+  it("are the Azzurra block of the client's Material Pricing Tiers", () => {
+    expect(SKU_TIERS).toEqual(AZZURRA_TIERS);
+  });
+
+  it("rank a white lacquer, MT or GL, as Standard $", () => {
+    const whiteMt = buildCabinetColor("Bianco 0B MT", "LACM", "Lacquered MT", ["White"]);
+    const whiteGl = buildCabinetColor("Bianco 0B GL", "LACG", "Lacquered GL", ["White"]);
+
+    expect(filterOptionsByTier([whiteMt, whiteGl], "tier-1")).toEqual([whiteMt, whiteGl]);
+  });
 });
 
 describe("cabinet colour price tiers", () => {
