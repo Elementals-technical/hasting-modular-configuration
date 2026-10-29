@@ -21,8 +21,8 @@ import { configuratorSchema } from "../model/schemas";
  * workbook (countertops, basins and accessories through the Class workbook), the GB rules and the Master
  * File. Where the Master File conflicts with the price workbook, the workbook wins.
  *
- * Lame is built like Mako but is not Mako: one G58 handle, five cabinet patterns, VA030 instead of the
- * VA023 of the Master File, legs in the cabinet colour with a cap colour of their own, and an undertop.
+ * Lame is built like Mako but is not Mako: one G58 handle, five cabinet patterns, no VA023 of the Master
+ * File (nor the workbook's VA030, dropped), legs in the cabinet colour with a cap colour of their own, and an undertop.
  * Side panels come later; what the prices of the legs and the undertop leave open is in
  * excludedFromThisProfile.
  */
@@ -160,7 +160,7 @@ describe("lame product profile", () => {
     expect(offeredColours("UndertopColor")).toEqual(offeredColours("HandleColor"));
   });
 
-  it("has the ten integrated basins of the price workbook, with VA030 rather than VA023", () => {
+  it("has nine integrated basins: neither VA023 nor VA030, which was dropped (no model, not developed)", () => {
     const basins = attribute("sinkType")?.options ?? [];
 
     expect(basins.filter(({ category }) => category === "integrated").map(({ value }) => value)).toEqual([
@@ -168,7 +168,6 @@ describe("lame product profile", () => {
       "LB175",
       "LB575",
       "LB856",
-      "VA030",
       "VA024",
       "LV890",
       "LV892",
@@ -176,6 +175,7 @@ describe("lame product profile", () => {
       "VA005",
     ]);
     expect(selectOptionValues(profile(), "sinkType")).not.toContain("VA023");
+    expect(selectOptionValues(profile(), "sinkType")).not.toContain("VA030");
   });
 
   it("has the three described vessels and the cutout without one, but not Art or Diamond yet", () => {

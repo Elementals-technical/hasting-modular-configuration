@@ -26,7 +26,7 @@ import {
   INTEGRATED_DRAWERS_REASON,
   selectSinkBasesUnavailableWithIntegrated,
 } from "@/features/configurator-rule-core/countertop/integratedCountertop";
-import { calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { calcTotalCountertopWidthCm, getSidePanelWidthCm } from "@/entities/countertop";
 import type { AttributeChange, ChangeBlockedReason, ConfirmationReason, PlannedChange } from "../model/types";
 
 /** The material a configurator section lists a countertop colour under, as the matrix names it ("Glass MT"). */
@@ -152,6 +152,7 @@ export const evaluateCountertopChange = (
     cabinets.reduce((sum, c) => sum + (dimensions[c.stableKey]?.width ?? 0), 0),
     options.SidePanelLeft,
     options.SidePanelRight,
+    getSidePanelWidthCm(profile),
   );
   const buildResults = (activeThickness: string) =>
     sinkBases.map((c) =>

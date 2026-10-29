@@ -193,9 +193,8 @@ describe("Lame countertop SKUs", () => {
     expect(skus.basins).toEqual(["CT-GBGLSM-VA002-.5H"]);
   });
 
-  it("prices Matte White as SS Technolite, unless VA030 makes it SS Texturizzato", () => {
+  it("prices Matte White as SS Technolite: no Lame basin makes it SS Texturizzato since VA030 was dropped", () => {
     expect(countertop({ color: "Matte White", basins: ["LB440"] }).basins).toEqual(["CT-GBSSTL-LB440-.5H"]);
-    expect(countertop({ color: "Matte White", basins: ["VA030"] }).basins).toEqual(["CT-GBSSTEX-VA030-.5H"]);
   });
 
   it("cuts a vessel top per sink base and has no basin SKU", () => {

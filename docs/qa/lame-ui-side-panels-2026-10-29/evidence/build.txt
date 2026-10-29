@@ -1,0 +1,149 @@
+
+> tagging-modules-tool@0.0.0 build
+> tsc -b && vite build
+
+vite v7.2.4 building client environment for production...
+transforming...
+node_modules/zod/v4/core/regexes.js (72:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+✓ 3280 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                                  0.47 kB │ gzip:   0.31 kB
+dist/assets/hotfire3-DuIImhM5.png                                4.16 kB
+dist/assets/Matte_BlackT1D-BBAL5VJ1.jpg                          4.26 kB
+dist/assets/White-DLNnfbSz.jpg                                   4.26 kB
+dist/assets/Cemento-Matte-OCD-Nh74dO-2.jpg                       4.26 kB
+dist/assets/varA-yUq4BrJn.jpg                                    5.21 kB
+dist/assets/varB-ih5s2CUf.jpg                                    5.59 kB
+dist/assets/varC-DsXsRuzp.jpg                                    6.37 kB
+dist/assets/no_groove-BGpA6xBc.jpg                               7.14 kB
+dist/assets/LacqueredMatte_Color_Grigio_Bromo_-BLY9oXKi.jpg      7.50 kB
+dist/assets/1_groove_upper-MI132PhH.jpg                          8.49 kB
+dist/assets/1_groove_central-CBwfx4EY.jpg                        8.53 kB
+dist/assets/2_groove-COvscYlU.jpg                                8.65 kB
+dist/assets/hastings-logo-CUScwNHj.svg                          10.23 kB │ gzip:   3.79 kB
+dist/assets/Antracite_Matte OCF-CAEyqp4p.jpg                    12.57 kB
+dist/assets/Cenere_Matte OCE-Bi2Mrwx9.jpg                       12.57 kB
+dist/assets/Metal_Grey_TRD-Doq8YWy7.jpg                         15.89 kB
+dist/assets/descr_image-DJSjuUD1.png                            19.84 kB
+dist/assets/Metallizzato_Bronzo_M4-cA1i2TAr.jpg                 33.01 kB
+dist/assets/Metallizzato_Copper_M7-CvyIeCO8.jpg                 34.72 kB
+dist/assets/Metallizzato_Creta_M6-D-C-VTHs.jpg                  37.40 kB
+dist/assets/Avenue_Plumb_TRB-T7s2Tt0C.jpg                       38.95 kB
+dist/assets/Rovere_Termocotto_931-BWJeYqD-.jpg                  44.16 kB
+dist/assets/Poppins-Thin-yKOScHJn.woff2                         45.39 kB
+dist/assets/Metallizzato_Alluminio_M1-B9BXs-P2.jpg              45.70 kB
+dist/assets/Poppins-Black-Ckysalai.woff2                        47.60 kB
+dist/assets/Poppins-SemiBold-CWwf_LBs.woff2                     48.51 kB
+dist/assets/Poppins-Bold-by1NX2R9.woff2                         48.75 kB
+dist/assets/Poppins-ExtraBold-C3_V8osw.woff2                    48.84 kB
+dist/assets/Poppins-ExtraLight-DkvCUPsJ.woff2                   48.86 kB
+dist/assets/Poppins-Light-CN2FUTcY.woff2                        48.96 kB
+dist/assets/Poppins-Medium-Dq1rtk94.woff2                       49.00 kB
+dist/assets/Poppins-Regular-CfG6Z_oO.woff2                      49.05 kB
+dist/assets/Poppins-ThinItalic-BBl3kyIo.woff2                   52.69 kB
+dist/assets/Poppins-BlackItalic-oT39zXda.woff2                  52.86 kB
+dist/assets/Poppins-BoldItalic-CUevA-er.woff2                   55.95 kB
+dist/assets/Metallizzato_Antracite_M5-DtcLZQw7.jpg              56.11 kB
+dist/assets/Poppins-ExtraBoldItalic-B94fDKhW.woff2              56.14 kB
+dist/assets/Poppins-MediumItalic-BRkgdcbw.woff2                 56.29 kB
+dist/assets/Poppins-SemiBoldItalic-Dhn0e54R.woff2               56.39 kB
+dist/assets/Poppins-ExtraLightItalic-BBthInvU.woff2             56.40 kB
+dist/assets/Poppins-LightItalic-BPlZ_216.woff2                  56.68 kB
+dist/assets/Poppins-Italic-D3YSaCBD.woff2                       56.78 kB
+dist/assets/Noce_Canaletto_933-DJBv91I3.jpg                     62.21 kB
+dist/assets/Poppins-Thin-Bhj-jOdi.woff                          64.38 kB
+dist/assets/Poppins-Black-CamRwM2f.woff                         66.01 kB
+dist/assets/Poppins-SemiBold-KaIJe6as.woff                      67.32 kB
+dist/assets/Poppins-ExtraBold-Dmb4ULVR.woff                     67.45 kB
+dist/assets/Poppins-Bold-3_0RkGj2.woff                          67.47 kB
+dist/assets/Poppins-Medium-CYtN2Ar6.woff                        67.87 kB
+dist/assets/Poppins-Regular-OCMhW3O3.woff                       68.03 kB
+dist/assets/Poppins-Light-CD3wTZAN.woff                         68.11 kB
+dist/assets/Poppins-ExtraLight-Byk5skB_.woff                    68.24 kB
+dist/assets/Rovere_Oro_932-CB52vJzm.jpg                         73.55 kB
+dist/assets/Poppins-BlackItalic-BUZyX-Xk.woff                   74.03 kB
+dist/assets/Poppins-ThinItalic-Bv9DG46s.woff                    75.25 kB
+dist/assets/start-CcyZV328.webm                                 77.11 kB
+dist/assets/Poppins-ExtraBoldItalic-CURci4dq.woff               77.18 kB
+dist/assets/Poppins-BoldItalic-DwHDBhre.woff                    77.33 kB
+dist/assets/Poppins-SemiBoldItalic-CaNBZ7nV.woff                77.85 kB
+dist/assets/Poppins-MediumItalic-ClGc1bWH.woff                  78.61 kB
+dist/assets/Poppins-ExtraLightItalic-DS3utWzL.woff              79.28 kB
+dist/assets/Poppins-Italic-C5HAyeDR.woff                        79.30 kB
+dist/assets/Poppins-LightItalic-DbAv39T2.woff                   79.35 kB
+dist/assets/Oltremare_TA4_Diff-B4tQjMC9.jpg                    143.05 kB
+dist/assets/Poppins-Black-CK04eUQs.ttf                         143.72 kB
+dist/assets/Poppins-Black-B1JIUB_M.eot                         144.01 kB
+dist/assets/Poppins-ExtraBold-CcGakcx1.ttf                     144.91 kB
+dist/assets/Poppins-ExtraBold-FAIkR7Jp.eot                     145.21 kB
+dist/assets/Poppins-Bold-DsvMmXFV.ttf                          145.90 kB
+dist/assets/Poppins-Bold-CD_0ctPV.eot                          146.16 kB
+dist/assets/Poppins-SemiBold-rwDNwtJu.ttf                      146.80 kB
+dist/assets/Poppins-SemiBold-CC78M9pL.eot                      147.09 kB
+dist/assets/Poppins-Medium-Lp7XaYPy.ttf                        148.18 kB
+dist/assets/Poppins-Medium-Cw7ptlCz.eot                        148.47 kB
+dist/assets/Poppins-Regular-tUf6uHiW.ttf                       149.94 kB
+dist/assets/Poppins-Regular-C_AqsnhJ.eot                       150.22 kB
+dist/assets/Poppins-Light-CzrqLLvn.ttf                         151.11 kB
+dist/assets/Poppins-Light-1m55fvzb.eot                         151.39 kB
+dist/assets/Poppins-ExtraLight-BjeBwZB5.ttf                    152.58 kB
+dist/assets/Poppins-ExtraLight-Cmalkz5N.eot                    152.88 kB
+dist/assets/Poppins-Thin-BLVlfM5r.ttf                          153.76 kB
+dist/assets/Poppins-Thin-FtO-WTUz.eot                          154.04 kB
+dist/assets/Poppins-BlackItalic-DVdi936f.ttf                   160.42 kB
+dist/assets/Poppins-BlackItalic-Co-NegAi.eot                   160.72 kB
+dist/assets/Poppins-ExtraBoldItalic-zDdvcoQW.ttf               163.18 kB
+dist/assets/Poppins-ExtraBoldItalic-BitUxIQC.eot               163.49 kB
+dist/assets/Poppins-BoldItalic-012HFDiu.ttf                    164.78 kB
+dist/assets/Poppins-BoldItalic-BRpzM3OX.eot                    165.08 kB
+dist/assets/Poppins-SemiBoldItalic-DwUj4J6o.ttf                166.47 kB
+dist/assets/Poppins-SemiBoldItalic-BBAhoiuM.eot                166.78 kB
+dist/assets/custom-DMRijGlh.webm                               167.37 kB
+dist/assets/Poppins-MediumItalic-Dna4GPMD.ttf                  170.41 kB
+dist/assets/Poppins-MediumItalic-cx450EWU.eot                  170.71 kB
+dist/assets/Poppins-Italic-CaFfGbFX.ttf                        172.01 kB
+dist/assets/Poppins-Italic-D_bzcEWm.eot                        172.28 kB
+dist/assets/Poppins-LightItalic-BnOfOa2h.ttf                   173.79 kB
+dist/assets/Poppins-LightItalic-wGNWr7C6.eot                   174.09 kB
+dist/assets/Poppins-ExtraLightItalic-BJ_DHBu8.ttf              175.78 kB
+dist/assets/Poppins-ExtraLightItalic--dt49N7p.eot              176.10 kB
+dist/assets/Poppins-ThinItalic-C9_dDa61.ttf                    177.35 kB
+dist/assets/Poppins-ThinItalic-DE-iwznf.eot                    177.64 kB
+dist/assets/Countertop_Layout_1-CS9Dbr0y.png                   191.18 kB
+dist/assets/Step_1-DKgndoYn.png                                195.89 kB
+dist/assets/Ghiaccio_TA5_Diff-DPr-drPp.jpg                     209.30 kB
+dist/assets/Cenere_TA1_Diff-C9SNK7ml.jpg                       235.22 kB
+dist/assets/Creta_TA3_Diff-Dsyl1zBS.jpg                        252.75 kB
+dist/assets/Tortora_TA2_Diff-DmA8pFrV.jpg                      253.32 kB
+dist/assets/Step_2-CMEEO3BX.png                                274.47 kB
+dist/assets/Step_3-MdU7hDuj.png                                279.56 kB
+dist/assets/prebuild-C0l8xsyG.webm                             822.45 kB
+dist/assets/Fluting_Vertical_TypeA-BobTGJ3H.png              1,419.43 kB
+dist/assets/Fluting_Vertical_TypeB-Bz_X2fv0.png              1,422.45 kB
+dist/assets/Fluting_Horizontal_TypeA-DMXCWq4G.png            1,522.97 kB
+dist/assets/Fluting_Horizontal_TypeB-vLMmX-_t.png            1,540.36 kB
+dist/assets/Grain_Vertical-eskHRGf1.png                      1,730.96 kB
+dist/assets/Grain_Horizontal-CrAvJzaP.png                    1,959.55 kB
+dist/assets/index-DK3rh-0z.css                                 191.53 kB │ gzip:  35.03 kB
+dist/assets/purify.es-DrLDRNlj.js                               21.84 kB │ gzip:   8.65 kB
+dist/assets/index.es-risn8BjG.js                               158.81 kB │ gzip:  53.02 kB
+dist/assets/index-CobIlYMC.js                                2,243.98 kB │ gzip: 687.91 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 10.77s

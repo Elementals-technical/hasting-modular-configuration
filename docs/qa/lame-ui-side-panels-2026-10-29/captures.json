@@ -1,0 +1,86 @@
+[
+  {
+    "collection": "lame",
+    "file": "evidence/01-off-metric.png",
+    "capturedAtUTC": "2026-10-29T17:35:08.106628+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/02-on-metric.png",
+    "capturedAtUTC": "2026-10-29T17:35:22.394858+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/03-undo-off.png",
+    "capturedAtUTC": "2026-10-29T17:35:31.253252+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/04-redo-on.png",
+    "capturedAtUTC": "2026-10-29T17:35:48.787731+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/05-explicit-off.png",
+    "capturedAtUTC": "2026-10-29T17:37:05.376528+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/06-two-cabinets-off.png",
+    "capturedAtUTC": "2026-10-29T17:39:21.388164+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/07-two-cabinets-on.png",
+    "capturedAtUTC": "2026-10-29T17:39:51.510284+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/08-latte-gl-plisse.png",
+    "capturedAtUTC": "2026-10-29T17:40:18.784012+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/09-custom-on.png",
+    "capturedAtUTC": "2026-10-29T17:41:28.986258+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/10-custom-off.png",
+    "capturedAtUTC": "2026-10-29T17:41:52.140875+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/11-custom-right-only.png",
+    "capturedAtUTC": "2026-10-29T17:44:26.088099+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/12-custom-undo-off.png",
+    "capturedAtUTC": "2026-10-29T17:44:33.543016+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/13-custom-redo-right.png",
+    "capturedAtUTC": "2026-10-29T17:44:55.421517+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  },
+  {
+    "collection": "lame",
+    "file": "evidence/baseline-off.png",
+    "capturedAtUTC": "2026-10-29T17:29:17.477328+00:00",
+    "source": "Actual local 3D and rendered UI; screenshot, not preset card"
+  }
+]

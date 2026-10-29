@@ -204,6 +204,8 @@ export type SidePanelsRuleData = {
   groovePriorityByHandle?: Record<string, string[]>;
   exactBlockedCabinetLengthCm: number;
   countertopLengthIncrementCm: number;
+  /** Nominal width of one active end panel; legacy collections use 1 cm. */
+  panelWidthCm?: number;
   defaultQuantityUnlessHeightTypeLow: number;
   availability: SidePanelAvailabilityRow[];
 };
