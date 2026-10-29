@@ -88,3 +88,8 @@ TC-XB-FF-ULH,PASS,docs/ai/qa/evidence/2026-10-28/TC-XB-FIREFOX-002/ULH-03-shot.p
 TC-XB-FF-UD,UNKNOWN,docs/ai/qa/evidence/2026-10-28/TC-XB-FIREFOX-001/UD-03-shot.png
 TC-XB-FF-USH,UNKNOWN,docs/ai/qa/evidence/2026-10-28/TC-XB-FIREFOX-001/USH-03-shot.png
 TC-XB-FF-USH,UNKNOWN,docs/ai/qa/evidence/2026-10-28/TC-XB-FIREFOX-002/USH-03-shot.png
+TC-CLASS-FAUCET-HINTS,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/class-fresh/smoke-log.json
+TC-MAKO-FAUCET-HINTS,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/smoke-log.json
+TC-LAME-FAUCET-HINTS,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/smoke-log.json
+TC-TRICOT-FAUCET-HINTS,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/tricot-41-value-1.png
+TC-USH-FAUCET-HINTS-BASELINE,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/urban-standard-height-fresh/smoke-log.json

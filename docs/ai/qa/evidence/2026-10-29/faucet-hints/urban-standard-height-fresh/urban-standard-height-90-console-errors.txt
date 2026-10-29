@@ -1,0 +1,43 @@
+Console messages (showing 2, 308 total):
+Filters: level=error
+
+[2026-10-29T21:23:34.696Z] ERROR [2a2c12e1-4742-4911-a678-0bc9f61e0fd2]: Failed to compile fragment shader:
+
+ERROR: 0:422: 'vNormalW' : undeclared identifier
+WARNING: 0:422: 'normalize' : operation result is undefined for the values passed in
+ERROR: 0:422: 'normalize' : no matching overloaded function found
+ERROR: 0:422: '=' : dimension mismatch
+ERROR: 0:422: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'
+
+  417:	    vec3 axisY = normalize(matrix_model[1].xyz);
+  418:	    vec3 axisZ = normalize(matrix_model[2].xyz);
+  419:	    mat3 rotationMatrix = mat3(axisX, axisY, axisZ);
+  420:	    vec3 localPos = (vPositionW - offset) * rotationMatrix;
+  421:	
+> 422:	    vec3 localNormal = normalize(normalize(vNormalW) * rotationMatrix);
+  423:	    vec3 blend = vec3(abs(localNormal.x), abs(localNormal.y), abs(localNormal.z));
+  424:	    blend /= (dot(blend, vec3(1.0)) + 0.0001);
+  425:	
+  426:	    float sX = (tri_scale > 0.001) ? tri_scale : 1.0;
+  427:	
+ while rendering undefined
+[2026-10-29T21:23:34.697Z] ERROR [2a2c12e1-4742-4911-a678-0bc9f61e0fd2]: Failed to compile fragment shader:
+
+ERROR: 0:422: 'vNormalW' : undeclared identifier
+WARNING: 0:422: 'normalize' : operation result is undefined for the values passed in
+ERROR: 0:422: 'normalize' : no matching overloaded function found
+ERROR: 0:422: '=' : dimension mismatch
+ERROR: 0:422: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'
+
+  417:	    vec3 axisY = normalize(matrix_model[1].xyz);
+  418:	    vec3 axisZ = normalize(matrix_model[2].xyz);
+  419:	    mat3 rotationMatrix = mat3(axisX, axisY, axisZ);
+  420:	    vec3 localPos = (vPositionW - offset) * rotationMatrix;
+  421:	
+> 422:	    vec3 localNormal = normalize(normalize(vNormalW) * rotationMatrix);
+  423:	    vec3 blend = vec3(abs(localNormal.x), abs(localNormal.y), abs(localNormal.z));
+  424:	    blend /= (dot(blend, vec3(1.0)) + 0.0001);
+  425:	
+  426:	    float sX = (tri_scale > 0.001) ? tri_scale : 1.0;
+  427:	
+ while rendering undefined

@@ -6,6 +6,7 @@ import configurator9 from "@/entities/collection/__tests__/fixtures/remote/confi
 import { readCustomizationSchema } from "@/entities/collection/__tests__/fixtures/readCustomizationSchema";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile as profile } from "@/entities/collection/__tests__/ushProfileFixture";
+import type { CustomizationSchema } from "@/entities/collection";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
 import makoUiJson from "../../../../public/collections/mako/ui.json";
@@ -15,6 +16,11 @@ import uiJson from "../../../../public/collections/urban-standard-height/ui.json
 import { resolveSectionFields } from "../lib/resolveSectionState";
 
 const schema = readCustomizationSchema(uiJson);
+
+// Every shipped ui.json, by the collection folder it lives in.
+const shippedSchemas = Object.entries(
+  import.meta.glob("/public/collections/*/ui.json", { eager: true, import: "default" }),
+).map(([path, document]) => ({ collectionId: path.split("/")[3], schema: readCustomizationSchema(document) }));
 
 describe("resolveSectionFields", () => {
   it("reads the field list for a section straight from the schema", () => {
@@ -45,6 +51,37 @@ describe("resolveSectionFields", () => {
 
     expect(withHint[0]?.field.hint).toBe("Faucet hole placement and spacing to be specified at time of order.");
     expect(withoutHint[0]?.field.hint).toBeUndefined();
+  });
+
+  describe("faucet hole hints of every collection with a Faucet Details step", () => {
+    // Client feedback, Select Faucet Details Step: 1, 2 or 3 holes show the Urban Standard Height texts.
+    const withFaucetStep = shippedSchemas.filter(({ schema: collectionSchema }) =>
+      Boolean(collectionSchema.steps["faucet-holes"]),
+    );
+    const faucetField = (collectionSchema: CustomizationSchema, value: string) =>
+      resolveSectionFields(collectionSchema, "faucet-holes-amount", null, { FaucetHolesAmount: value }, {})[0];
+
+    it("finds the collections the hints were asked for", () => {
+      expect(withFaucetStep.map(({ collectionId }) => collectionId)).toEqual(
+        expect.arrayContaining(["class", "lame", "mako", "tricot"]),
+      );
+    });
+
+    it.each(withFaucetStep)(
+      "$collectionId shows the texts for 1, 2 or 3 holes and none for 0",
+      ({ schema: collectionSchema }) => {
+        expect(faucetField(collectionSchema, "0")?.definition.hints).toEqual(
+          faucetField(schema, "0")?.definition.hints,
+        );
+        expect(faucetField(collectionSchema, "0")?.field.hint).toBeUndefined();
+        expect(faucetField(collectionSchema, "1")?.field.hint).toBe(
+          "Faucet hole placement to be specified at time of order.",
+        );
+        expect(faucetField(collectionSchema, "3")?.field.hint).toBe(
+          "Faucet hole placement and spacing to be specified at time of order.",
+        );
+      },
+    );
   });
 
   it("reads the current value from the values it is given, by attributeId", () => {

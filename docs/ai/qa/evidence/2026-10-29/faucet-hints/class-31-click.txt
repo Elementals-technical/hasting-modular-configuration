@@ -1,0 +1,1 @@
+Error: ${b1_class} stale/invalid. Call take_snapshot first.

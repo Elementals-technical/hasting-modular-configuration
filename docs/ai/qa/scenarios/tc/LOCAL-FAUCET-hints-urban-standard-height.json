@@ -1,0 +1,177 @@
+{
+ "description": "Local dev, fresh session: urban-standard-height Faucet Details by direct link; walkthrough closed; 0/1/2/3 hint text. Read-only, Summary not opened. Closing the walkthrough goes to the entry step, so the step link is opened again.",
+ "steps": [
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/faucet-holes?collectionId=urban-standard-height"
+   },
+   "save": "urban-standard-height-00-open.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 400
+   },
+   "save": "urban-standard-height-01-snapshot.txt",
+   "capture": {
+    "close": "uid=(e\\d+) button \"Close\""
+   },
+   "optional": true
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${close}"
+   },
+   "save": "urban-standard-height-02-close-walkthrough.txt",
+   "optional": true
+  },
+  {
+   "sleep": 3000
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/faucet-holes?collectionId=urban-standard-height"
+   },
+   "save": "urban-standard-height-03-reopen.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-10-value-0-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "urban-standard-height-40-value-0.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "urban-standard-height-21-swatches.txt",
+   "capture": {
+    "b1": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"1\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b1}"
+   },
+   "save": "urban-standard-height-31-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-11-value-1-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "urban-standard-height-41-value-1.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "urban-standard-height-22-swatches.txt",
+   "capture": {
+    "b2": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"2\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b2}"
+   },
+   "save": "urban-standard-height-32-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-12-value-2-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "urban-standard-height-42-value-2.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "urban-standard-height-23-swatches.txt",
+   "capture": {
+    "b3": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"3\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b3}"
+   },
+   "save": "urban-standard-height-33-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-13-value-3-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "urban-standard-height-43-value-3.png",
+   "optional": true
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 50
+   },
+   "save": "urban-standard-height-90-console-errors.txt",
+   "optional": true
+  }
+ ]
+}
