@@ -94,6 +94,7 @@ import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
 import {
   appendUncoveredLines,
   cabinetCoverItems,
+  OWN_SIDE_PANEL_LINE_ID,
   ownSidePanelItems,
   resolveSummaryLinePrice,
   tandemCountertopItems,
@@ -1235,7 +1236,8 @@ export const SummaryPage = () => {
     // Side panel SKUs — one line item per active side (single-panel pricing)
     const sidePanelSkuItems: SummaryItem[] = [];
     pricingLines
-      .filter((line) => line.group === "sidePanel" && line.id !== "sidePanel")
+      // A collection's own composition panel (Tricot) is listed per side by ownSidePanelItems below.
+      .filter((line) => line.group === "sidePanel" && line.id !== "sidePanel" && line.id !== OWN_SIDE_PANEL_LINE_ID)
       .forEach((line) => {
         sidePanelSkuItems.push({
           id: `accessories-${line.id}`,
