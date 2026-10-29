@@ -1,0 +1,278 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 25,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 818,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=lame. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-t"
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 284,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 6,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 225,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=lame\",\"price\":\"$4,477.00\",\"step\":\"Lame Models\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\"countertop\":{\"productId\""
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 228,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Lame Models\",\"labels\":[\"Summary View\",\"Customize your design from pre-made solutions\",\"Build your own custom, tailored concept\",\"Size\",\"Style\",\"Product Details\","
+    },
+    {
+      "step": 8,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 975,
+      "summary": "image 12-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 9,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 462,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Color <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/color?collectionId=lame."
+    },
+    {
+      "step": 11,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 271,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Color\",\"labels\":[\"Summary View\",\"Cabinet Color\",\"View in full mode\",\"Order free Swatches\",\"Material\",\"Color\",\"Look\",\"Price\",\"Acqua 419 GL\",\"Agata 407 GL\",\"Ambra "
+    },
+    {
+      "step": 12,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 216,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/color?collectionId=lame\",\"price\":\"$4,477.00\",\"step\":\"Color\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\"countertop\":{\"productId\":\"Top_"
+    },
+    {
+      "step": 13,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 662,
+      "summary": "image 23-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 14,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 418,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Countertop & Basin <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/countertop?collectionId=lame."
+    },
+    {
+      "step": 16,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 231,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Countertop & Basin\",\"labels\":[\"Summary View\",\"Countertop Color\",\"View in full mode\",\"Order free Swatches\",\"Material\",\"Color\",\"Look\",\"Price\",\"Bianco Kos 250\",\"Cal"
+    },
+    {
+      "step": 17,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 219,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/countertop?collectionId=lame\",\"price\":\"$4,477.00\",\"step\":\"Countertop & Basin\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\"countertop\":"
+    },
+    {
+      "step": 18,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 619,
+      "summary": "image 33-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 19,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 341,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Faucet Details <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/faucet-holes?collectionId=lame."
+    },
+    {
+      "step": 21,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 233,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"Select Faucet Details\",\"labels\":[\"Summary View\",\"Faucet Holes\",\"Total List Price\",\"Quote\",\"Next: Summary\"],\"controls\":[\"[ ] Faucet Holes\",\"[ ] 0\",\"[ ] 1\",\"[ ] 2\",\"[ ] 3"
+    },
+    {
+      "step": 22,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 220,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/faucet-holes?collectionId=lame\",\"price\":\"$4,477.00\",\"step\":\"Faucet Details\",\"dialogs\":[],\"alerts\":[],\"sceneReady\":true,\"order\":null,\"products\":[],\"countertop\":{\""
+    },
+    {
+      "step": 23,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 454,
+      "summary": "image 43-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 24,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 460,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Summary <BUTTON>\" ``` Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/summary?collectionId=lame."
+    },
+    {
+      "step": 26,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[\"Generate Quote\",\"Share\"],\"controls\":[]} ```"
+    },
+    {
+      "step": 27,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/summary?collectionId=lame\",\"price\":\"$4,477.00\",\"step\":\"Summary\",\"dialogs\":[],\"alerts\":[\"Lame Height cabinet: Sink Base unit, 1 Drawer, G58 handle, 23.6\\\" W, 10.2"
+    },
+    {
+      "step": 28,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 181,
+      "summary": "image 53-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 29,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 31,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[\"Generate Quote\",\"Share\"],\"controls\":[]} ```"
+    },
+    {
+      "step": 32,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/summary?collectionId=lame\",\"price\":\"$4,477.00\",\"step\":\"Summary\",\"dialogs\":[],\"alerts\":[\"Lame Height cabinet: Sink Base unit, 1 Drawer, G58 handle, 23.6\\\" W, 10.2"
+    },
+    {
+      "step": 33,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 192,
+      "summary": "image 63-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 34,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 216,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Next:\" ```"
+    },
+    {
+      "step": 36,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 215,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[\"Generate Quote\",\"Share\"],\"controls\":[]} ```"
+    },
+    {
+      "step": 37,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/summary?collectionId=lame\",\"price\":\"$4,477.00\",\"step\":\"Summary\",\"dialogs\":[],\"alerts\":[\"Lame Height cabinet: Sink Base unit, 1 Drawer, G58 handle, 23.6\\\" W, 10.2"
+    },
+    {
+      "step": 38,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 257,
+      "summary": "image 73-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 39,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 209,
+      "summary": "Script ran on page and returned: ```json {\"total\":\"$4,477.00\",\"block\":\"Your Configuration\\nCabinet\\nSink Base\\nLame Height cabinet: Sink Base unit, 1 Drawer, G58 handle, 23.6\\\" W, 10.2\\\" H, 20.5\\\" D - Cabinet Color: Lacq"
+    },
+    {
+      "step": 40,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 3,
+      "summary": "## Console messages Showing 1-7 of 7 (Page 1 of 1). msgid=807 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) msgid=808 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args) msgid=8"
+    },
+    {
+      "step": 41,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 32,
+      "summary": "## Network requests Showing 1-322 of 322 (Page 1 of 1). reqid=2727 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=lame [200] reqid=2728 GET https://hasting-modular-phase-"
+    },
+    {
+      "step": 42,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 153,
+      "summary": "image 93-summary-1.png; Took a screenshot of the current page's viewport."
+    }
+  ]
+}

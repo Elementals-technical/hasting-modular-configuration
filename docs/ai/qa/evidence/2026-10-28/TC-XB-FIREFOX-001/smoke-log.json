@@ -1,0 +1,221 @@
+{
+  "server": "firefox-devtools",
+  "serverInfo": "@mozilla/firefox-devtools-mcp 0.10.7",
+  "tools": [
+    "list_pages",
+    "new_page",
+    "navigate_page",
+    "select_page",
+    "close_page",
+    "get_page_text",
+    "take_snapshot",
+    "resolve_uid_to_selector",
+    "clear_snapshot",
+    "click_by_uid",
+    "hover_by_uid",
+    "fill_by_uid",
+    "drag_by_uid_to_uid",
+    "fill_form_by_uid",
+    "upload_file_by_uid",
+    "press_key",
+    "type_text",
+    "list_network_requests",
+    "get_network_request",
+    "set_network_cache",
+    "list_console_messages",
+    "clear_console_messages",
+    "screenshot_page",
+    "screenshot_by_uid",
+    "list_downloads",
+    "clear_downloads",
+    "set_download_behavior",
+    "accept_dialog",
+    "dismiss_dialog",
+    "navigate_history",
+    "set_viewport_size"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 11986,
+      "summary": "1 pages (selected: 0) >[0] Untitled (about:blank)"
+    },
+    {
+      "step": 2,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 3305,
+      "summary": "new page [1] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height"
+    },
+    {
+      "step": 4,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 21,
+      "summary": "Pre-Built Urban Low Height Models Color Countertop & Basin Accessories Summary Ready to drag a cabinet Help Summary View → Select Urban Low Height Models Pre-Built Models Customize your design from pre-made solutions Cre"
+    },
+    {
+      "step": 5,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 445,
+      "summary": "image ULH-03-shot.png; "
+    },
+    {
+      "step": 6,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 11,
+      "summary": "Console messages (showing 40 of 234 matching, 315 total): Filters: level=error [2026-10-28T13:51:26.543Z] ERROR [3f242f4c-f711-4e43-b975-0e07dc5b6e65]: Cookie “__cf_bm” has been rejected for invalid domain. [2026-10-28T1"
+    },
+    {
+      "step": 7,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 5,
+      "summary": "[network] 0 requests "
+    },
+    {
+      "step": 8,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 476,
+      "summary": "[1] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-standard-height"
+    },
+    {
+      "step": 10,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 6682,
+      "summary": " [full content, 0 chars]"
+    },
+    {
+      "step": 11,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 33,
+      "summary": "image USH-03-shot.png; "
+    },
+    {
+      "step": 12,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 15,
+      "summary": "No console messages found matching filters. Total messages: 0, Filters: level=error"
+    },
+    {
+      "step": 13,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 13,
+      "summary": "[network] 0 requests "
+    },
+    {
+      "step": 14,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 825,
+      "summary": "[0] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot"
+    },
+    {
+      "step": 16,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 32,
+      "summary": "Pre-Built Tricot Models Cabinet Finishes Accessories Countertop & Basin Summary Help Summary View → Select Tricot Models Pre-Built Models Customize your design from pre-made solutions Create Your Own Build your own custo"
+    },
+    {
+      "step": 17,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 418,
+      "summary": "image TRICOT-03-shot.png; "
+    },
+    {
+      "step": 18,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 12,
+      "summary": "Console messages (showing 40 of 61 matching, 119 total): Filters: level=error [2026-10-28T13:52:12.042Z] ERROR [274e5bdb-5401-41b5-952f-4102eb9f487a]: Cookie “__cf_bm” has been rejected for invalid domain. [2026-10-28T13"
+    },
+    {
+      "step": 19,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 16,
+      "summary": "[network] 0 requests "
+    },
+    {
+      "step": 20,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 555,
+      "summary": "[0] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=mako"
+    },
+    {
+      "step": 22,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 18,
+      "summary": "Pre-Built Mako Models Color Countertop & Basin Faucet Details Summary Help Summary View → Select Mako Models Pre-Built Models Customize your design from pre-made solutions Create Your Own Build your own custom, tailored "
+    },
+    {
+      "step": 23,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 224,
+      "summary": "image MAKO-03-shot.png; "
+    },
+    {
+      "step": 24,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 3,
+      "summary": "Console messages (showing 40 of 122 matching, 246 total): Filters: level=error [2026-10-28T13:52:12.042Z] ERROR [274e5bdb-5401-41b5-952f-4102eb9f487a]: Cookie “__cf_bm” has been rejected for invalid domain. [2026-10-28T1"
+    },
+    {
+      "step": 25,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 2,
+      "summary": "[network] 0 requests "
+    },
+    {
+      "step": 26,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 267,
+      "summary": "[0] → https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-duplex"
+    },
+    {
+      "step": 28,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 19,
+      "summary": "Pre-Built Model Color Countertop & Basin Accessories Faucet Details Summary Ready to drag a cabinet Help Summary View → Select Model Pre-Built Models Customize your design from pre-made solutions Create Your Own Build yo"
+    },
+    {
+      "step": 29,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 267,
+      "summary": "image UD-03-shot.png; "
+    },
+    {
+      "step": 30,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 3,
+      "summary": "Console messages (showing 40 of 216 matching, 404 total): Filters: level=error [2026-10-28T13:52:12.042Z] ERROR [274e5bdb-5401-41b5-952f-4102eb9f487a]: Cookie “__cf_bm” has been rejected for invalid domain. [2026-10-28T1"
+    },
+    {
+      "step": 31,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 1,
+      "summary": "[network] 0 requests "
+    }
+  ]
+}

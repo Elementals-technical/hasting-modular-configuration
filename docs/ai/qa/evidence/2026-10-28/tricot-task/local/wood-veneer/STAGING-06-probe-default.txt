@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/color?collectionId=tricot","price":"$8,361.00","step":"Cabinet Finishes","dialogs":[],"alerts":[],"sceneReady":true,"order":null,"products":[],"countertop":{"productId":"Top_Solid-t6hy8b3iw","placementState":"attached","attached":true,"moved":false,"canResize":false,"thickness":0.009525094773724652,"autoLength":0.6,"customLength":null,"size":{"length":0.6,"depth":0.5199999792614525},"lengthLimitsM":{"minLengthM":0.6,"maxLengthM":3.048,"requestedMinM":0.6,"requestedMaxM":3.048,"basinMinLengthM":0.553622},"offset":{"x":0,"y":0}},"coverEntries":0}
+```

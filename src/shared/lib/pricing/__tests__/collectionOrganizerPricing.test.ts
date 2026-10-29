@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { tricotConfigurator, tricotProfile, tricotSkuProfile } from "@/entities/collection/__tests__/tricotFixtures";
 import type { ProductProfile } from "@/entities/collection";
 import type { StableCabinetKey } from "@/entities/configuration";
 import { readDrawerOrganizers, type DrawerOrganizersRead } from "@/entities/configuration/model/drawerOrganizers";
@@ -113,6 +114,36 @@ describe("organizers of Class, Mako and Lame from the read-model", () => {
 
     expect(withOrganizers.lines.filter(({ group }) => group !== "divider")).toEqual(withoutOrganizers.lines);
     expect(ids[ids.indexOf("legs") + 1]).toBe("divider:mko-sb:Top");
+  });
+});
+
+describe("organizers of Tricot from the read-model", () => {
+  // Class's Inner Drawer Dividers (Accessories_Pricing), which Tricot uses: dev decision of 2026-10-29.
+  const tricotOrder = () =>
+    collectionPricingInput(
+      { profile: tricotProfile, skuProfile: tricotSkuProfile, configurator: tricotConfigurator },
+      [SB],
+      { Drawers: [at({ scope: "cabinet", cabinetId: "sb" }, "2")] },
+      {
+        organizersByCabinet: readModelOf({
+          sb: {
+            version: 1,
+            Top: { style: "Metal", columns: [column(-2, [2]), column(2)] },
+            Bot: { style: "Metal", columns: [column(0, [3])] },
+          },
+        }),
+      },
+    );
+
+  it("orders the Class Metal organizer, a column per unit for each drawer", () => {
+    expect(organizerLinesOf(tricotOrder())).toEqual([
+      { id: "divider:sb:Top", sku: METAL, quantity: 2 },
+      { id: "divider:sb:Bot", sku: METAL, quantity: 1 },
+    ]);
+  });
+
+  it("names the unconfirmed divider price as Class does, with no blocking gap", () => {
+    expect(dividerGapsOf(tricotOrder())).toEqual([["divider", false]]);
   });
 });
 

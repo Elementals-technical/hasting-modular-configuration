@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"section":"Side Panels","items":[]},{"section":"Side Panels","items":["*None","Back to Countertop & Basin","Next: Faucet Details"]}]
+```

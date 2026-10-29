@@ -1,0 +1,145 @@
+{"id": "P0001", "style": "Title", "text": "Hasting Modular - Phase 2 Questions (Block 2 )", "links": [], "images": [], "comments": ["0", "1", "2"], "heading": "Hasting Modular - Phase 2 Questions (Block 2 )"}
+{"id": "P0002", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Hasting Modular - Phase 2 Questions (Block 2 )"}
+{"id": "P0003", "style": "Heading1", "text": "Drag & Drop and movement", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0004", "style": "", "text": "Which cabinets can be combined in one row, how many per row, and is there a maximum row length? Today a cabinet joins a row when its bottom is level with the row and its edge touches the row end; overlapping placements are shown in red and cannot be applied.", "links": [], "images": [], "comments": ["3", "4", "5", "6"], "heading": "Drag & Drop and movement"}
+{"id": "P0005", "style": "", "text": "All cabinets can be combined in one row. This is the conventional design approach", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0006", "style": "", "text": "There is no max cabinet count per row; it is dictated based on countertop max length constraints", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0007", "style": "", "text": "Max length is dictated by the countertop material limitations (+ sometimes the integrated basin style)", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0008", "style": "", "text": "Collections below do not support cabinet stacking", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0009", "style": "", "text": "Urban Standard Height, Urban Freestanding, Class, Tricot, Lame + Mako", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0010", "style": "", "text": "Urban Duplex (53 + 56H cabinet heights)", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0011", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0012", "style": "", "text": "Valid and invalid positions: besides overlaps, which placements should be blocked? For example, the number of rows, the number of cabinets side by side, and where cabinets may connect or snap (only at row ends, at specific connection points, or on a grid).", "links": [], "images": [], "comments": ["7"], "heading": "Drag & Drop and movement"}
+{"id": "P0013", "style": "", "text": "There should never be more than 2 rows of cabinets. The countertop does not count as a ‘row’ (see an example below)", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0014", "style": "", "text": "", "links": [], "images": ["media/image2.png"], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0015", "style": "", "text": "A SC cabinet cannot be stacked on top of an SB cabinet.", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0016", "style": "", "text": "", "links": [], "images": ["media/image23.png"], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0017", "style": "", "text": "A SC cabinet cannot be positioned higher than an SB cabinet, nor can it float over any portion of an SB cab", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0018", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0019", "style": "", "text": "", "links": [], "images": ["media/image8.png", "media/image16.png"], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0020", "style": "", "text": "", "links": [], "images": ["media/image18.png"], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0021", "style": "", "text": "A SB cabinets can only be on 1 row; they cannot be stacked on top of another SB cab", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0022", "style": "", "text": "", "links": [], "images": ["media/image11.png"], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0023", "style": "", "text": "Other restrictions are dictated by the trap clearance and V Min from the other GDoc", "links": ["https://docs.google.com/document/d/1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp/edit"], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0024", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0025", "style": "", "text": "Maximum length. Today each collection (for example Urban Low Height) has a maximum length that comes from the countertop. With modular Drag & Drop, cabinets can also be placed without a countertop over them, so that limit no longer covers every case. We assume the countertop limit stays the main rule. What is the maximum length and the maximum number of rows for cabinets that are not under the main countertop: when the countertop is remote, or when cabinets sit below it?", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0026", "style": "", "text": "Correct: the countertop limit stays the main rule", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0027", "style": "", "text": "For cabinets not under a main countertop (e.g., OS cabs), there is no designated limit.", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0028", "style": "", "text": "Max number of rows of cabinets is 2 for all use cases (standard, remote and offset(connected)", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0029", "style": "", "text": "When a cabinet is removed or moved: today with one row the remaining cabinets close the gap; with several rows the row splits at the gap and nothing moves; the basin countertop shrinks to the cabinets under it. Is that what you expect?", "links": [], "images": [], "comments": ["8", "9", "10"], "heading": "Drag & Drop and movement"}
+{"id": "P0030", "style": "", "text": "Single Row", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0031", "style": "", "text": "Yes, if a cabinet in the middle of a composition (e.g. a 3 -cabinet unit) is removed, the remaining cabinets should close the gap. This makes sense", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0032", "style": "", "text": "Multi Row", "links": [], "images": [], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0033", "style": "", "text": "", "links": [], "images": ["media/image28.png"], "comments": [], "heading": "Drag & Drop and movement"}
+{"id": "P0034", "style": "Heading1", "text": "D1. Bottom row: delete the middle cabinet", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0035", "style": "Heading1", "text": "", "links": [], "images": ["media/image17.png"], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0036", "style": "", "text": "A) Nothing moves", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0037", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0038", "style": "", "text": "D2. Bottom row: the remaining cabinet is no longer under the top row", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0039", "style": "", "text": "", "links": [], "images": ["media/image22.png"], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0040", "style": "", "text": "D) Own Group + countertop", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0041", "style": "", "text": "The countertop would only display if the cabinet leftover was an SC cabinet", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0042", "style": "", "text": "OS cabs do not require a countertop when standalone/remote positioned", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0043", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0044", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0045", "style": "", "text": "D3. Top row: delete the middle cabinet", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0046", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0047", "style": "", "text": "Leaning toward A) Nothing Moves", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0048", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0049", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0050", "style": "", "text": "D4. Top row: no top cabinet is left above the bottom cabinets", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0051", "style": "", "text": "", "links": [], "images": ["media/image19.png"], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0052", "style": "", "text": "A Own Group + countertop", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0053", "style": "", "text": "The only time the bottom cabinets would not need a countertop is if they were both OS cabinet types", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0054", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0055", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0056", "style": "", "text": "W2. Top row: make a middle cabinet wider (70 → 90)", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0057", "style": "", "text": "", "links": [], "images": ["media/image3.png"], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0058", "style": "", "text": "A) Push the right part", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0059", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0060", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0061", "style": "", "text": "W5. Bottom row: make a middle cabinet narrower (60 → 35)", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0062", "style": "", "text": "", "links": [], "images": ["media/image12.png"], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0063", "style": "", "text": "A) Right part moves left", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0064", "style": "", "text": "I don't think there is a perfect answer here. The user may want either the left or right cabinet to move. They will have the ‘Drag & Drop’ function to modify it as needed", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0065", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0066", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0067", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0068", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0069", "style": "", "text": "W6. Bottom row: make a middle cabinet wider (60 → 90)", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0070", "style": "", "text": "", "links": [], "images": ["media/image14.png"], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0071", "style": "", "text": "A) Push the right part", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0072", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "D1. Bottom row: delete the middle cabinet"}
+{"id": "P0073", "style": "Heading1", "text": "Countertop and sink", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0074", "style": "", "text": "If the countertop is freestanding (not attached to a cabinet), should the sink be positioned along the length of the countertop? If so, are there any restrictions, such as a minimum distance from the edges of the countertop? (This also seems to be a new rule; it wasn't mentioned before.)", "links": [], "images": [], "comments": ["11", "12"], "heading": "Countertop and sink"}
+{"id": "P0075", "style": "", "text": "Integrated Countertop Style", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0076", "style": "", "text": "The edge of an integrated basin cannot be within 10cm of the edge of the countertop. See the rule here", "links": ["https://docs.google.com/document/d/1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp/edit#bookmark=id.7o8giekulxcs"], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0077", "style": "", "text": "", "links": [], "images": ["media/image7.png"], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0078", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0079", "style": "", "text": "Vessel Countertop Styles", "links": [], "images": [], "comments": ["13"], "heading": "Countertop and sink"}
+{"id": "P0080", "style": "", "text": "The vessel hole cutout cannot be within 15” of the countertop edge", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0081", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0082", "style": "", "text": "Exceptions are for countertops shorter than 32” in length", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0083", "style": "", "text": "The vessel hole must always be centered on the countertop in these applications", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0084", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0085", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Countertop and sink"}
+{"id": "P0086", "style": "Heading1", "text": "Pricing", "links": [], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0087", "style": "", "text": "How does the price of a multi-row configuration differ from that of a single-row one?", "links": [], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0088", "style": "", "text": "The only changes are the additional countertop(s) that get applied on top of the applicable cabinets (SC cabinet types)", "links": [], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0089", "style": "", "text": "", "links": [], "images": ["media/image13.png"], "comments": [], "heading": "Pricing"}
+{"id": "P0090", "style": "", "text": "How is the price of cabinets determined if they are not located under a countertop? If such a cabinet is covered on top by a top panel (decorative panel) instead of a countertop, is this panel considered a separate element that is priced separately? And how does the presence of a countertop above them affect the price?", "links": [], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0091", "style": "", "text": "Yes, the countertop (decorative panel) would be a separate element, its own SKU. We use the same SKU structure. See that here in the other GDoc", "links": ["https://docs.google.com/document/d/1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp/edit#bookmark=id.jxmbxpy5ycgb"], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0092", "style": "", "text": "The cabinet price would be the same", "links": [], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0093", "style": "", "text": "Also, a question about a combination countertop: what if half of the cabinet is covered by a countertop, and the rest is covered by a false panel?", "links": [], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0094", "style": "", "text": "We should calculate the amount of overlap and use it to calculate the price. See examples below. The uncovered portion (red arrow).", "links": [], "images": [], "comments": [], "heading": "Pricing"}
+{"id": "P0095", "style": "", "text": "", "links": [], "images": ["media/image25.png"], "comments": [], "heading": "Pricing"}
+{"id": "P0096", "style": "", "text": "", "links": [], "images": ["media/image29.png"], "comments": [], "heading": "Pricing"}
+{"id": "P0097", "style": "Heading1", "text": "Side panels", "links": [], "images": [], "comments": [], "heading": "Side panels"}
+{"id": "P0098", "style": "", "text": "How are side panels priced when a panel covers a tall cabinet, or two cabinets joined together?", "links": [], "images": [], "comments": ["14", "15", "16"], "heading": "Side panels"}
+{"id": "P0099", "style": "", "text": "", "links": [], "images": ["media/image30.png"], "comments": [], "heading": "Side panels"}
+{"id": "P0100", "style": "", "text": "Urban Freestanding side panels: left, right or both; full height or cabinet height; what happens when the cabinet next to a panel is moved or removed?", "links": [], "images": [], "comments": [], "heading": "Side panels"}
+{"id": "P0101", "style": "", "text": "Cabinet height. It does not extend down to the floor where the plinth is. See an example", "links": [], "images": [], "comments": [], "heading": "Side panels"}
+{"id": "P0102", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": "Side panels"}
+{"id": "P0103", "style": "", "text": "We should use the same Side Panel methodology as the Urban Standard Height WebGL experience", "links": [], "images": [], "comments": [], "heading": "Side panels"}
+{"id": "P0104", "style": "Heading1", "text": "Fluting", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0105", "style": "", "text": "Which cabinet models feature a ribbed pattern: “Tricot,” “Lame,” and others? Is this the same ribbed pattern as before, or is it a new feature?", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0106", "style": "", "text": "Urban Standard Height, Urban Low Height + Urban Freestanding use the same fluted patterning options and logic.", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0107", "style": "", "text": "", "links": [], "images": ["media/image27.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0108", "style": "", "text": "Urban Duplex – does not have a fluting option", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0109", "style": "", "text": "Tricot - has its own fluting", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0110", "style": "", "text": "Different patterns can be applied across the cabinets in a single configuration. See image", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0111", "style": "", "text": "", "links": [], "images": ["media/image26.png", "media/image15.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0112", "style": "", "text": "", "links": [], "images": ["media/image24.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0113", "style": "", "text": "Lame – has its own fluting", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0114", "style": "", "text": "Only 1 pattern can be used in a given concept", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0115", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0116", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0117", "style": "", "text": "Where exactly is the ribbing located in each collection? As far as we understand: in the “Tricot” collection—only on the handles; in the “Lame” collection—on the sides of the wardrobe and on the handles. Please confirm or correct this. And could you describe the logic for each collection?", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0118", "style": "", "text": "Tricot – Cabinet Pattern", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0119", "style": "", "text": "", "links": [], "images": ["media/image5.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0120", "style": "", "text": "Lame – Cabinet Pattern", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0121", "style": "", "text": "", "links": [], "images": ["media/image21.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0122", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0123", "style": "", "text": "Please confirm the lists of cabinet patterns: Tricot—Cannette, Gessatto, Loden, Satin, Twill; Lame—Galles, Gessatto, Oxford, Piquet, Plisse. Is the pattern set for each cabinet individually or for the entire set, and does this affect the price or SKU?", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0124", "style": "", "text": "Tricot - Different patterns can be applied across the cabinets in a single configuration. See image", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0125", "style": "", "text": "Lame - Only 1 pattern can be used in a given concept", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0126", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0127", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0128", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0129", "style": "", "text": "14. Could you please confirm the scope of cabinet movement and countertop positioning across the collections?", "links": [], "images": [], "comments": ["17", "18"], "heading": "Fluting"}
+{"id": "P0130", "style": "", "text": "Free cabinet movement: Are we correct that free horizontal and vertical movement, including offset and multi-row arrangements, should be available only for Urban Low Height and Urban Duplex?", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0131", "style": "", "text": "Offset + multi-row cabinet arrangements are only for Urban Low Height + Urban Duplex.", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0132", "style": "", "text": "Free cabinet movement should be available for all the collections when a thick countertop is in use. This ties into question #3, see below.", "links": [], "images": ["media/image9.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0133", "style": "", "text": "Differences between these collections: Do Urban Low Height and Urban Duplex follow the same cabinet movement rules, or are there collection-specific restrictions?", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0134", "style": "", "text": "We’ll utilize the same rulesets by and large. See a few exceptions below", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0135", "style": "", "text": "Urban Duplex", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0136", "style": "", "text": "53 and 56cm H cabinets are not available for offset and multi-row arrangements", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0137", "style": "", "text": "", "links": [], "images": ["media/image20.png"], "comments": [], "heading": "Fluting"}
+{"id": "P0138", "style": "", "text": "Countertop movement: Which collections should support Offset (connected) and Remote/Floating countertop positioning? Is this limited to Urban Low Height and Urban Duplex, or should it also be available in Class, Tricot, Mako, Lame, or Urban Freestanding?", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0139", "style": "", "text": "All collections should support this when a thick countertop is used.", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0140", "style": "", "text": "I created a countertop compatibility chart for the GB vanity collections (Class, Tricot, Lame + Mako) for integrated and vessel countertop styles.", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0141", "style": "", "text": "https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?disco=AAACIndOUBg", "links": ["https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/edit?disco=AAACIndOUBg"], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0142", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0143", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0144", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}
+{"id": "P0145", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": "Fluting"}

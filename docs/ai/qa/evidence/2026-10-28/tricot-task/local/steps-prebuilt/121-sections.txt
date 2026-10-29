@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"section":"Countertop Color","items":["Order free Swatches"]},{"section":"Price","items":["*Bianco Kos 250","Calacatta 259","Grigio Bromo 253","Grigio London 252","Impero 260","Kaspio Argento 262","Kaspio Oro 261","Nero Ingo 251","Noce Savoia 256","Rivel 257","Rovere Prussia 255","Rovere Slavonia 254","Rovere Texas 264","Silver Voyage 263"]},{"section":"Thickness","items":[]},{"section":"Thickness","items":[]},{"section":"Countertop Style","items":[]},{"section":"Countertop Style","items":[]},{"section":"Basin Style","items":[]},{"section":"Basin Style","items":["Back to Cabinet Finishes","Next: Accessories"]}]
+```

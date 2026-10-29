@@ -1,0 +1,21 @@
+# skill<TAB>regex that MUST match its SKILL.md (or "!regex" that must NOT match)
+local-implement-change	references/ui-regression\.md
+local-implement-change	ownership-handoff-template
+local-implement-change	dependency-graph\.md
+local-implement-change	references/verify-frontend\.md
+local-implement-change	sku-price-oracle-map\.md
+local-debug-root-cause	ownership-handoff-template
+local-debug-root-cause	never report it as fixed
+local-debug-root-cause	one falsifiable hypothesis
+local-plan-change	Stop after the plan
+local-plan-change	conflicts-and-decisions\.md
+local-execute-plan	ui-regression\.md
+local-execute-plan	ai/AGENTS\.md. › Invariants
+local-review-change	^Read-only\.
+local-review-change	paired_pages\.mdc
+local-review-change	dependency-graph\.md
+local-maintain-agent-guidance	ai-env\.mjs snapshot
+local-maintain-agent-guidance	collisions
+local-maintain-agent-guidance	validate-guidance\.mjs
+*	!AirIntelligence|client/AGENTS|server/AGENTS|CentralController|pnpm
+*	!localhost:3000

@@ -1,0 +1,18 @@
+{
+  "source_id": "sheet-ufs-materials",
+  "file": "materials UFS.xlsx",
+  "sha256": "cd2eaf40a4cbb2ad43719643a035975cfec514289ae59acf03a368982522c983",
+  "size_bytes": 48346,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "Sheet1",
+      "dimension": "",
+      "non_empty_rows": 540,
+      "max_row_with_value": 540,
+      "formulas": 0,
+      "links": 170,
+      "notes": 0
+    }
+  ]
+}

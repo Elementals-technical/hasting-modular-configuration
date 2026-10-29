@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+"clicked: Next: Cabinet Finishes <BUTTON>"
+```
+Page navigated to http://localhost:5173/custom/color?collectionId=tricot.

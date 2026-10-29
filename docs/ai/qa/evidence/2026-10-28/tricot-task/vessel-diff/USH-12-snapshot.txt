@@ -1,0 +1,37 @@
+## Latest page snapshot
+uid=7_0 RootWebArea "tagging-modules-tool" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/countertop?collectionId=urban-standard-height"
+  uid=7_1 navigation "Configurator steps"
+    uid=7_2 "Pre-Built"
+    uid=7_3 link "Model" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-standard-height"
+    uid=7_5 link "Color" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/color?collectionId=urban-standard-height"
+    uid=7_7 link "Countertop & Basin" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/countertop?collectionId=urban-standard-height"
+    uid=7_9 link "Accessories" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/accessories?collectionId=urban-standard-height"
+    uid=7_11 link "Faucet Details" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/faucet-holes?collectionId=urban-standard-height"
+    uid=7_13 link "Summary" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/summary?collectionId=urban-standard-height"
+  uid=7_15 Iframe "scene"
+    uid=7_16 RootWebArea "Hasting-phase-2-stage-v79" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/HastingCabinetsParametrization/index.html?v=038"
+      uid=7_17 Canvas
+  uid=7_18 button "Full Dimensions" expandable haspopup="menu"
+  uid=7_19 button
+  uid=7_20 button
+  uid=7_21 button "View in Space"
+  uid=7_22 button "Share"
+  uid=7_23 button "Image"
+  uid=7_24 button
+  uid=7_25 button disableable disabled
+  uid=7_26 "Help"
+  uid=7_27 link "Summary View" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/summary?collectionId=urban-standard-height"
+  uid=7_29 "Select Countertop & Basin"
+  uid=7_30 button "Countertop Color" expandable
+  uid=7_31 button "Thickness" expandable
+  uid=7_32 button "Countertop Style" expandable expanded
+  uid=7_33 region "Countertop Style"
+    uid=7_34 button "Integrated"
+    uid=7_35 button "Vessel" pressed
+  uid=7_36 button "Vessel Sink Style" expandable
+  uid=7_37 button "Vessel Color" expandable
+  uid=7_38 "Total List Price"
+  uid=7_39 "$4,681.00"
+  uid=7_40 link "Quote" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/countertop"
+  uid=7_42 button "Back to Color"
+  uid=7_43 button "Next: Accessories"

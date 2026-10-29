@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"cachedHeaders":{"alt-svc":"h3=\":443\"; ma=86400","cache-control":"private","cf-cache-status":"BYPASS","cf-ray":"a5113c3108c8b65d-WAW","content-encoding":"gzip","content-type":"application/json","date":"Tue, 27 Oct 2026 11:07:05 GMT","etag":"W/\"8737-315532801000\"","last-modified":"Tue, 01 Jan 1980 00:00:01 GMT","priority":"u=1,i","server":"cloudflare","server-timing":"cfExtPri","vary":"Origin","x-do-app-origin":"3e5ee40e-a3bb-4852-a7e7-069565f761f3","x-do-orig-status":"304"},"serviceWorkers":[],"resourceTiming":[{"transferSize":0,"encodedBodySize":2820,"decodedBodySize":8737,"deliveryType":"cache","responseStatus":200},{"transferSize":0,"encodedBodySize":2820,"decodedBodySize":8737,"deliveryType":"cache","responseStatus":200},{"transferSize":3192,"encodedBodySize":2892,"decodedBodySize":8969,"deliveryType":"","responseStatus":200}]}
+```

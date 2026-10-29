@@ -1,0 +1,202 @@
+sheet,cell,formula
+Countertops,E2,0.4*1.1*1.45*1.085*1.15*4
+Countertops,N3,200*0.4*1.1*1.45*1.085*1.15*4
+Countertops,E5,D5*$E$2
+Countertops,J5,H5*$E$2
+Countertops,M5,200
+Countertops,N5,M5*$E$2
+Countertops,S6,R6*$E$2
+Countertops,E7,D7*$E$2
+Countertops,J7,H7*$E$2
+Countertops,E8,(shared 1)
+Countertops,J8,(shared 2)
+Countertops,S8,R8*$E$2
+Countertops,E9,(shared 1)
+Countertops,J9,(shared 2)
+Countertops,E11,D11*$E$2
+Countertops,J11,H11*$E$2
+Countertops,E12,(shared 3)
+Countertops,J12,(shared 4)
+Countertops,E13,(shared 3)
+Countertops,J13,(shared 4)
+Countertops,J14,(shared 4)
+Countertops,J15,(shared 4)
+Countertops,J16,(shared 4)
+Countertops,E18,D18*$E$2
+Countertops,J18,H18*$E$2
+Countertops,J19,(shared 5)
+Countertops,J20,(shared 5)
+Countertops,J21,(shared 5)
+Countertops,E22,D22*$E$2
+Countertops,J22,(shared 5)
+Countertops,J23,(shared 5)
+Countertops,J24,(shared 5)
+Countertops,J25,(shared 5)
+Countertops,E26,D26*$E$2
+Countertops,J26,(shared 5)
+Countertops,J27,(shared 5)
+Countertops,J28,(shared 5)
+Countertops,J29,(shared 5)
+Countertops,E31,D31*$E$2
+Countertops,J31,H31*$E$2
+Countertops,J32,(shared 6)
+Countertops,J33,(shared 6)
+Countertops,J34,(shared 6)
+Countertops,E35,D35*$E$2
+Countertops,E39,D39*$E$2
+Countertops,E44,D44*$E$2
+Countertops,J44,H44*$E$2
+Countertops,J45,(shared 7)
+Countertops,J46,(shared 7)
+Countertops,J47,(shared 7)
+Countertops,E48,D48*$E$2
+Countertops,E52,D52*$E$2
+Countertops,E57,D57*$E$2
+Countertops,J57,H57*$E$2
+Countertops,J58,(shared 8)
+Countertops,J59,(shared 8)
+Countertops,J60,(shared 8)
+Countertops,E61,D61*$E$2
+Countertops,J61,(shared 8)
+Countertops,J62,(shared 8)
+Countertops,J63,(shared 8)
+Countertops,J64,(shared 8)
+Countertops,E65,D65*$E$2
+Countertops,E69,D69*$E$2
+Countertops,E73,D73*$E$2
+Countertops,E77,D77*$E$2
+Countertops,E81,D81*$E$2
+Countertops,E85,D85*$E$2
+Countertops,E90,D90*$E$2
+Countertops,J90,H90*$E$2
+Countertops,J91,(shared 9)
+Countertops,E92,D92*$E$2
+Countertops,J92,(shared 9)
+Countertops,J93,(shared 9)
+Countertops,E98,D98*$E$2
+Countertops,E99,(shared 10)
+Countertops,E100,(shared 10)
+Countertops,E101,(shared 10)
+Countertops,E102,(shared 10)
+Countertops,E103,(shared 10)
+CounterTopPrice,AW4,E4*$AW$2
+CounterTopPrice,AW5,(shared 1)
+CounterTopPrice,AW6,(shared 1)
+CounterTopPrice,AW7,(shared 1)
+CounterTopPrice,AW8,(shared 1)
+CounterTopPrice,AW9,(shared 1)
+CounterTopPrice,AW10,(shared 1)
+CounterTopPrice,AW11,(shared 1)
+CounterTopPrice,AW12,(shared 1)
+CounterTopPrice,AW13,(shared 1)
+CounterTopPrice,AW14,(shared 1)
+CounterTopPrice,AW15,(shared 1)
+CounterTopPrice,AW16,(shared 1)
+CounterTopPrice,AW17,(shared 1)
+CounterTopPrice,AW18,(shared 1)
+CounterTopPrice,AW19,(shared 1)
+CounterTopPrice,AW20,(shared 1)
+CounterTopPrice,AW21,(shared 1)
+CounterTopPrice,AW22,(shared 1)
+CounterTopPrice,AW23,(shared 1)
+CounterTopPrice,AW24,(shared 1)
+CounterTopPrice,AW25,(shared 1)
+CounterTopPrice,AW26,(shared 1)
+CounterTopPrice,AW27,(shared 1)
+CounterTopPrice,AW28,(shared 1)
+CounterTopPrice,AW29,(shared 1)
+BasinStylePrice,G1,0.4*1.1*1.45*1.085*1.15*4
+BasinStylePrice,F2,E2*$G$1
+BasinStylePrice,F4,E4*$G$1
+BasinStylePrice,F5,(shared 1)
+BasinStylePrice,F6,(shared 1)
+BasinStylePrice,F8,E8*$G$1
+BasinStylePrice,F9,(shared 2)
+BasinStylePrice,F10,(shared 2)
+BasinStylePrice,F11,(shared 2)
+BasinStylePrice,F12,(shared 2)
+BasinStylePrice,F13,(shared 2)
+BasinStylePrice,F14,(shared 2)
+BasinStylePrice,F15,(shared 2)
+BasinStylePrice,F16,(shared 2)
+BasinStylePrice,F17,(shared 2)
+BasinStylePrice,F18,(shared 2)
+BasinStylePrice,F19,(shared 2)
+BasinStylePrice,F20,(shared 2)
+BasinStylePrice,F21,(shared 2)
+BasinStylePrice,F22,(shared 2)
+BasinStylePrice,F23,(shared 2)
+BasinStylePrice,F24,(shared 2)
+BasinStylePrice,F25,(shared 2)
+BasinStylePrice,F27,E27*$G$1
+BasinStylePrice,F28,(shared 3)
+BasinStylePrice,F29,(shared 3)
+BasinStylePrice,F30,(shared 3)
+BasinStylePrice,F31,(shared 3)
+BasinStylePrice,F32,(shared 3)
+BasinStylePrice,F33,(shared 3)
+BasinStylePrice,F34,(shared 3)
+BasinStylePrice,F35,(shared 3)
+BasinStylePrice,F36,(shared 3)
+BasinStylePrice,F37,(shared 3)
+BasinStylePrice,F38,(shared 3)
+BasinStylePrice,F40,E40*$G$1
+BasinStylePrice,F41,(shared 4)
+BasinStylePrice,F42,(shared 4)
+BasinStylePrice,F43,(shared 4)
+BasinStylePrice,F44,(shared 4)
+BasinStylePrice,F45,(shared 4)
+BasinStylePrice,F46,(shared 4)
+BasinStylePrice,F47,(shared 4)
+BasinStylePrice,F48,(shared 4)
+BasinStylePrice,F49,(shared 4)
+BasinStylePrice,F50,(shared 4)
+BasinStylePrice,F51,(shared 4)
+BasinStylePrice,F53,E53*$G$1
+BasinStylePrice,F54,(shared 5)
+BasinStylePrice,F55,(shared 5)
+BasinStylePrice,F56,(shared 5)
+BasinStylePrice,F57,(shared 5)
+BasinStylePrice,F58,(shared 5)
+BasinStylePrice,F59,(shared 5)
+BasinStylePrice,F60,(shared 5)
+BasinStylePrice,F61,(shared 5)
+BasinStylePrice,F62,(shared 5)
+BasinStylePrice,F63,(shared 5)
+BasinStylePrice,F64,(shared 5)
+BasinStylePrice,F66,E66*$G$1
+BasinStylePrice,F67,(shared 6)
+BasinStylePrice,F68,(shared 6)
+BasinStylePrice,F69,(shared 6)
+BasinStylePrice,F70,(shared 6)
+BasinStylePrice,F71,(shared 6)
+BasinStylePrice,F72,(shared 6)
+BasinStylePrice,F73,(shared 6)
+BasinStylePrice,F74,(shared 6)
+BasinStylePrice,F75,(shared 6)
+BasinStylePrice,F76,(shared 6)
+BasinStylePrice,F77,(shared 6)
+BasinStylePrice,F78,(shared 6)
+BasinStylePrice,F79,(shared 6)
+BasinStylePrice,F80,(shared 6)
+BasinStylePrice,F81,(shared 6)
+BasinStylePrice,F82,(shared 6)
+BasinStylePrice,F83,(shared 6)
+BasinStylePrice,F84,(shared 6)
+BasinStylePrice,F85,(shared 6)
+BasinStylePrice,F86,(shared 6)
+BasinStylePrice,F87,(shared 6)
+BasinStylePrice,F88,(shared 6)
+BasinStylePrice,F89,(shared 6)
+BasinStylePrice,F90,(shared 6)
+BasinStylePrice,F91,(shared 6)
+BasinStylePrice,F92,(shared 6)
+BasinStylePrice,F93,(shared 6)
+BasinStylePrice,F94,(shared 6)
+BasinStylePrice,F95,(shared 6)
+BasinStylePrice,F96,(shared 6)
+BasinStylePrice,F97,(shared 6)
+BasinStylePrice,F99,E101*$G$1
+BasinStylePrice,F100,(shared 7)
+BasinStylePrice,F101,E99*$G$1
+BasinStylePrice,F102,(shared 8)

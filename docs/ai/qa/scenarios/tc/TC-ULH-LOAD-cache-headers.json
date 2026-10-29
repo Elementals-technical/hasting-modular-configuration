@@ -1,0 +1,22 @@
+{
+ "description": "Headers of the cached ULH sku-profile.json, service workers, resource timing (read-only).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  const r = await fetch('/collections/urban-low-height/sku-profile.json', { cache: 'force-cache' });\n  const h = {}; r.headers.forEach((v, k) => (h[k] = v));\n  const regs = navigator.serviceWorker ? (await navigator.serviceWorker.getRegistrations()).map((x) => x.scope) : 'n/a';\n  const nav = performance.getEntriesByType('resource').filter((e) => /sku-profile\\.json/.test(e.name)).map((e) => ({ transferSize: e.transferSize, encodedBodySize: e.encodedBodySize, decodedBodySize: e.decodedBodySize, deliveryType: e.deliveryType, responseStatus: e.responseStatus }));\n  return { cachedHeaders: h, serviceWorkers: regs, resourceTiming: nav };\n}"
+   },
+   "save": "50-cache-headers.txt",
+   "optional": false
+  }
+ ]
+}

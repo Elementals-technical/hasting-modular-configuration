@@ -1,0 +1,8 @@
+## Console messages
+Showing 1-6 of 6 (Page 1 of 1).
+msgid=1368 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args)
+msgid=1369 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=1374 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=1381 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=1382 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=1708 [error] [Summary Share] Failed to generate configuration link [object Object] (2 args)

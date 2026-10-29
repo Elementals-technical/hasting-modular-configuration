@@ -238,6 +238,11 @@ describe("Tricot delivered runtime bindings", () => {
     expect(isStateOnlyResolution(patch("CountertopStyle", "vessel"))).toBe(true);
   });
 
+  it("records the faucet holes without a scene call, as Class does", () => {
+    for (const holes of ["0", "1", "2", "3"])
+      expect(isStateOnlyResolution(patch("FaucetHolesAmount", holes))).toBe(true);
+  });
+
   it("passes the keys the scene writes into every product it places", () => {
     const sceneOwned = {
       category: "cabinets",

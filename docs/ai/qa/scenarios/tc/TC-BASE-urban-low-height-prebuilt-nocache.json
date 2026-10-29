@@ -1,0 +1,293 @@
+{
+ "description": "ULH prebuilt baseline with write-guard + collections no-cache harness (simulates proposed HO-001 fix / fresh cache).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "url",
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n\n// QA harness (agent tab only): simulates the proposed loader fix \u2014 collection JSON fetched with cache:'no-cache'\n// (forces revalidation, so a heuristically-fresh stale copy is not used). Combine with write-guard.js.\n(() => {\n  if (window.__qaCollectionsNoCache) return;\n  window.__qaCollectionsNoCache = true;\n  const prev = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    if (url && url.includes('/collections/')) return prev(input, { ...init, cache: 'no-cache' });\n    return prev(input, init);\n  };\n})();\n"
+   },
+   "save": "01-nav.txt"
+  },
+  {
+   "sleep": 16000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Skip\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Skip\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "02-skip.txt",
+   "optional": true
+  },
+  {
+   "sleep": 1200
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only probe: DOM summary + scene getters. Never calls setters.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const out = { url: location.pathname + location.search };\n  const body = txt(document.body.innerText);\n  const price = body.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/);\n  out.price = price ? price[0].replace('Total List Price', '').trim() : null;\n  out.step = txt(document.querySelector('[aria-current=\"page\"]')?.innerText) || null;\n  out.dialogs = [...document.querySelectorAll('[role=\"dialog\"],[role=\"alertdialog\"]')].map((d) => txt(d.innerText).slice(0, 160));\n  out.alerts = [...document.querySelectorAll('[role=\"alert\"],[role=\"status\"],[class*=\"toast\" i],[class*=\"tooltip\" i]')].map((d) => txt(d.innerText)).filter(Boolean).slice(0, 5);\n  const w = document.querySelector('iframe')?.contentWindow;\n  const api = w?.ConfiguratorAPI;\n  out.sceneReady = !!api?.composition;\n  if (!api) return out;\n  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && o[k] !== undefined).map((k) => [k, o[k]]));\n  try {\n    const all = api.composition.getAllProducts?.() ?? {};\n    const order = api.composition.getOrderProductIds?.() ?? null;\n    out.order = order ? JSON.stringify(order).slice(0, 200) : null;\n    const KEEP = ['CabinetType', 'productType', 'Width', 'Depth', 'Height', 'DrawerStyle', 'Style', 'Handle', 'HandleType', 'CabinetColor', 'HandleGrooveColor', 'LegColor', 'CabinetPattern', 'DrawerPanelFluting', 'LateralPanelSide', 'Series', 'SidePanel', 'SidePanels', 'sinkType', 'SinkType', 'CountertopColor', 'CountertopMaterial', 'Thickness', 'BasinStyle', 'VesselColor'];\n    out.products = Object.entries(all).slice(0, 10).map(([id, cfg]) => {\n      const c = cfg?.config ?? cfg ?? {};\n      const kept = Object.fromEntries(Object.entries(c).filter(([k]) => KEEP.some((x) => k.toLowerCase() === x.toLowerCase())));\n      return { id: id.slice(0, 36), n: Object.keys(c).length, cfg: kept };\n    });\n  } catch (e) { out.productsErr = String(e).slice(0, 200); }\n  try {\n    const ct = await api.countertop.getState();\n    out.countertop = pick(ct, ['productId', 'placementState', 'attached', 'moved', 'canResize', 'thickness', 'autoLength', 'customLength', 'size', 'lengthLimitsM', 'offset']);\n  } catch (e) { out.ctErr = String(e).slice(0, 200); }\n  try { const cv = await api.cabinetCover.getState(); out.coverEntries = cv?.service?.entries?.length ?? null; } catch (e) { out.coverErr = String(e).slice(0, 120); }\n  return out;\n}\n"
+   },
+   "save": "10-probe.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: option-like controls in the right panel (by screen region) with selected/disabled state.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.left >= minX && getComputedStyle(e).visibility !== 'hidden'; };\n  const sel = 'button,[role=button],[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,select,[aria-pressed],[aria-checked],[aria-selected]';\n  const items = [...document.querySelectorAll(sel)].filter(vis).map((e) => {\n    const label = txt(e.getAttribute('aria-label') || e.innerText || e.value || e.title || e.closest('label')?.innerText || e.querySelector('img')?.alt);\n    const selected = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked|current)([-_ A-Z]|$)/.test(e.className || '');\n    const disabled = e.disabled === true || e.getAttribute('aria-disabled') === 'true' || /disabled/i.test(e.className || '');\n    return (selected ? '[x] ' : '[ ] ') + (disabled ? '(disabled) ' : '') + (e.type === 'number' ? `number=${e.value} ` : '') + label.slice(0, 80);\n  }).filter((s) => s.length > 4);\n  const texts = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,p,span')].filter(vis).map((e) => txt(e.innerText)).filter((s) => s && s.length < 60 && /^[A-Z]/.test(s));\n  return { header: txt([...document.querySelectorAll('button,div')].find((e) => /^Select /.test(txt(e.innerText)) && txt(e.innerText).length < 40)?.innerText), labels: [...new Set(texts)].slice(0, 40), controls: [...new Set(items)].slice(0, 150) };\n}\n"
+   },
+   "save": "11-options.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "12-shot.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "20-next.txt",
+   "optional": true
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: option-like controls in the right panel (by screen region) with selected/disabled state.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.left >= minX && getComputedStyle(e).visibility !== 'hidden'; };\n  const sel = 'button,[role=button],[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,select,[aria-pressed],[aria-checked],[aria-selected]';\n  const items = [...document.querySelectorAll(sel)].filter(vis).map((e) => {\n    const label = txt(e.getAttribute('aria-label') || e.innerText || e.value || e.title || e.closest('label')?.innerText || e.querySelector('img')?.alt);\n    const selected = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked|current)([-_ A-Z]|$)/.test(e.className || '');\n    const disabled = e.disabled === true || e.getAttribute('aria-disabled') === 'true' || /disabled/i.test(e.className || '');\n    return (selected ? '[x] ' : '[ ] ') + (disabled ? '(disabled) ' : '') + (e.type === 'number' ? `number=${e.value} ` : '') + label.slice(0, 80);\n  }).filter((s) => s.length > 4);\n  const texts = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,p,span')].filter(vis).map((e) => txt(e.innerText)).filter((s) => s && s.length < 60 && /^[A-Z]/.test(s));\n  return { header: txt([...document.querySelectorAll('button,div')].find((e) => /^Select /.test(txt(e.innerText)) && txt(e.innerText).length < 40)?.innerText), labels: [...new Set(texts)].slice(0, 40), controls: [...new Set(items)].slice(0, 150) };\n}\n"
+   },
+   "save": "21-options.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only probe: DOM summary + scene getters. Never calls setters.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const out = { url: location.pathname + location.search };\n  const body = txt(document.body.innerText);\n  const price = body.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/);\n  out.price = price ? price[0].replace('Total List Price', '').trim() : null;\n  out.step = txt(document.querySelector('[aria-current=\"page\"]')?.innerText) || null;\n  out.dialogs = [...document.querySelectorAll('[role=\"dialog\"],[role=\"alertdialog\"]')].map((d) => txt(d.innerText).slice(0, 160));\n  out.alerts = [...document.querySelectorAll('[role=\"alert\"],[role=\"status\"],[class*=\"toast\" i],[class*=\"tooltip\" i]')].map((d) => txt(d.innerText)).filter(Boolean).slice(0, 5);\n  const w = document.querySelector('iframe')?.contentWindow;\n  const api = w?.ConfiguratorAPI;\n  out.sceneReady = !!api?.composition;\n  if (!api) return out;\n  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && o[k] !== undefined).map((k) => [k, o[k]]));\n  try {\n    const all = api.composition.getAllProducts?.() ?? {};\n    const order = api.composition.getOrderProductIds?.() ?? null;\n    out.order = order ? JSON.stringify(order).slice(0, 200) : null;\n    const KEEP = ['CabinetType', 'productType', 'Width', 'Depth', 'Height', 'DrawerStyle', 'Style', 'Handle', 'HandleType', 'CabinetColor', 'HandleGrooveColor', 'LegColor', 'CabinetPattern', 'DrawerPanelFluting', 'LateralPanelSide', 'Series', 'SidePanel', 'SidePanels', 'sinkType', 'SinkType', 'CountertopColor', 'CountertopMaterial', 'Thickness', 'BasinStyle', 'VesselColor'];\n    out.products = Object.entries(all).slice(0, 10).map(([id, cfg]) => {\n      const c = cfg?.config ?? cfg ?? {};\n      const kept = Object.fromEntries(Object.entries(c).filter(([k]) => KEEP.some((x) => k.toLowerCase() === x.toLowerCase())));\n      return { id: id.slice(0, 36), n: Object.keys(c).length, cfg: kept };\n    });\n  } catch (e) { out.productsErr = String(e).slice(0, 200); }\n  try {\n    const ct = await api.countertop.getState();\n    out.countertop = pick(ct, ['productId', 'placementState', 'attached', 'moved', 'canResize', 'thickness', 'autoLength', 'customLength', 'size', 'lengthLimitsM', 'offset']);\n  } catch (e) { out.ctErr = String(e).slice(0, 200); }\n  try { const cv = await api.cabinetCover.getState(); out.coverEntries = cv?.service?.entries?.length ?? null; } catch (e) { out.coverErr = String(e).slice(0, 120); }\n  return out;\n}\n"
+   },
+   "save": "22-probe.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "23-shot.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "30-next.txt",
+   "optional": true
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: option-like controls in the right panel (by screen region) with selected/disabled state.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.left >= minX && getComputedStyle(e).visibility !== 'hidden'; };\n  const sel = 'button,[role=button],[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,select,[aria-pressed],[aria-checked],[aria-selected]';\n  const items = [...document.querySelectorAll(sel)].filter(vis).map((e) => {\n    const label = txt(e.getAttribute('aria-label') || e.innerText || e.value || e.title || e.closest('label')?.innerText || e.querySelector('img')?.alt);\n    const selected = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked|current)([-_ A-Z]|$)/.test(e.className || '');\n    const disabled = e.disabled === true || e.getAttribute('aria-disabled') === 'true' || /disabled/i.test(e.className || '');\n    return (selected ? '[x] ' : '[ ] ') + (disabled ? '(disabled) ' : '') + (e.type === 'number' ? `number=${e.value} ` : '') + label.slice(0, 80);\n  }).filter((s) => s.length > 4);\n  const texts = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,p,span')].filter(vis).map((e) => txt(e.innerText)).filter((s) => s && s.length < 60 && /^[A-Z]/.test(s));\n  return { header: txt([...document.querySelectorAll('button,div')].find((e) => /^Select /.test(txt(e.innerText)) && txt(e.innerText).length < 40)?.innerText), labels: [...new Set(texts)].slice(0, 40), controls: [...new Set(items)].slice(0, 150) };\n}\n"
+   },
+   "save": "31-options.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only probe: DOM summary + scene getters. Never calls setters.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const out = { url: location.pathname + location.search };\n  const body = txt(document.body.innerText);\n  const price = body.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/);\n  out.price = price ? price[0].replace('Total List Price', '').trim() : null;\n  out.step = txt(document.querySelector('[aria-current=\"page\"]')?.innerText) || null;\n  out.dialogs = [...document.querySelectorAll('[role=\"dialog\"],[role=\"alertdialog\"]')].map((d) => txt(d.innerText).slice(0, 160));\n  out.alerts = [...document.querySelectorAll('[role=\"alert\"],[role=\"status\"],[class*=\"toast\" i],[class*=\"tooltip\" i]')].map((d) => txt(d.innerText)).filter(Boolean).slice(0, 5);\n  const w = document.querySelector('iframe')?.contentWindow;\n  const api = w?.ConfiguratorAPI;\n  out.sceneReady = !!api?.composition;\n  if (!api) return out;\n  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && o[k] !== undefined).map((k) => [k, o[k]]));\n  try {\n    const all = api.composition.getAllProducts?.() ?? {};\n    const order = api.composition.getOrderProductIds?.() ?? null;\n    out.order = order ? JSON.stringify(order).slice(0, 200) : null;\n    const KEEP = ['CabinetType', 'productType', 'Width', 'Depth', 'Height', 'DrawerStyle', 'Style', 'Handle', 'HandleType', 'CabinetColor', 'HandleGrooveColor', 'LegColor', 'CabinetPattern', 'DrawerPanelFluting', 'LateralPanelSide', 'Series', 'SidePanel', 'SidePanels', 'sinkType', 'SinkType', 'CountertopColor', 'CountertopMaterial', 'Thickness', 'BasinStyle', 'VesselColor'];\n    out.products = Object.entries(all).slice(0, 10).map(([id, cfg]) => {\n      const c = cfg?.config ?? cfg ?? {};\n      const kept = Object.fromEntries(Object.entries(c).filter(([k]) => KEEP.some((x) => k.toLowerCase() === x.toLowerCase())));\n      return { id: id.slice(0, 36), n: Object.keys(c).length, cfg: kept };\n    });\n  } catch (e) { out.productsErr = String(e).slice(0, 200); }\n  try {\n    const ct = await api.countertop.getState();\n    out.countertop = pick(ct, ['productId', 'placementState', 'attached', 'moved', 'canResize', 'thickness', 'autoLength', 'customLength', 'size', 'lengthLimitsM', 'offset']);\n  } catch (e) { out.ctErr = String(e).slice(0, 200); }\n  try { const cv = await api.cabinetCover.getState(); out.coverEntries = cv?.service?.entries?.length ?? null; } catch (e) { out.coverErr = String(e).slice(0, 120); }\n  return out;\n}\n"
+   },
+   "save": "32-probe.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "33-shot.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "40-next.txt",
+   "optional": true
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: option-like controls in the right panel (by screen region) with selected/disabled state.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.left >= minX && getComputedStyle(e).visibility !== 'hidden'; };\n  const sel = 'button,[role=button],[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,select,[aria-pressed],[aria-checked],[aria-selected]';\n  const items = [...document.querySelectorAll(sel)].filter(vis).map((e) => {\n    const label = txt(e.getAttribute('aria-label') || e.innerText || e.value || e.title || e.closest('label')?.innerText || e.querySelector('img')?.alt);\n    const selected = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked|current)([-_ A-Z]|$)/.test(e.className || '');\n    const disabled = e.disabled === true || e.getAttribute('aria-disabled') === 'true' || /disabled/i.test(e.className || '');\n    return (selected ? '[x] ' : '[ ] ') + (disabled ? '(disabled) ' : '') + (e.type === 'number' ? `number=${e.value} ` : '') + label.slice(0, 80);\n  }).filter((s) => s.length > 4);\n  const texts = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,p,span')].filter(vis).map((e) => txt(e.innerText)).filter((s) => s && s.length < 60 && /^[A-Z]/.test(s));\n  return { header: txt([...document.querySelectorAll('button,div')].find((e) => /^Select /.test(txt(e.innerText)) && txt(e.innerText).length < 40)?.innerText), labels: [...new Set(texts)].slice(0, 40), controls: [...new Set(items)].slice(0, 150) };\n}\n"
+   },
+   "save": "41-options.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only probe: DOM summary + scene getters. Never calls setters.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const out = { url: location.pathname + location.search };\n  const body = txt(document.body.innerText);\n  const price = body.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/);\n  out.price = price ? price[0].replace('Total List Price', '').trim() : null;\n  out.step = txt(document.querySelector('[aria-current=\"page\"]')?.innerText) || null;\n  out.dialogs = [...document.querySelectorAll('[role=\"dialog\"],[role=\"alertdialog\"]')].map((d) => txt(d.innerText).slice(0, 160));\n  out.alerts = [...document.querySelectorAll('[role=\"alert\"],[role=\"status\"],[class*=\"toast\" i],[class*=\"tooltip\" i]')].map((d) => txt(d.innerText)).filter(Boolean).slice(0, 5);\n  const w = document.querySelector('iframe')?.contentWindow;\n  const api = w?.ConfiguratorAPI;\n  out.sceneReady = !!api?.composition;\n  if (!api) return out;\n  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && o[k] !== undefined).map((k) => [k, o[k]]));\n  try {\n    const all = api.composition.getAllProducts?.() ?? {};\n    const order = api.composition.getOrderProductIds?.() ?? null;\n    out.order = order ? JSON.stringify(order).slice(0, 200) : null;\n    const KEEP = ['CabinetType', 'productType', 'Width', 'Depth', 'Height', 'DrawerStyle', 'Style', 'Handle', 'HandleType', 'CabinetColor', 'HandleGrooveColor', 'LegColor', 'CabinetPattern', 'DrawerPanelFluting', 'LateralPanelSide', 'Series', 'SidePanel', 'SidePanels', 'sinkType', 'SinkType', 'CountertopColor', 'CountertopMaterial', 'Thickness', 'BasinStyle', 'VesselColor'];\n    out.products = Object.entries(all).slice(0, 10).map(([id, cfg]) => {\n      const c = cfg?.config ?? cfg ?? {};\n      const kept = Object.fromEntries(Object.entries(c).filter(([k]) => KEEP.some((x) => k.toLowerCase() === x.toLowerCase())));\n      return { id: id.slice(0, 36), n: Object.keys(c).length, cfg: kept };\n    });\n  } catch (e) { out.productsErr = String(e).slice(0, 200); }\n  try {\n    const ct = await api.countertop.getState();\n    out.countertop = pick(ct, ['productId', 'placementState', 'attached', 'moved', 'canResize', 'thickness', 'autoLength', 'customLength', 'size', 'lengthLimitsM', 'offset']);\n  } catch (e) { out.ctErr = String(e).slice(0, 200); }\n  try { const cv = await api.cabinetCover.getState(); out.coverEntries = cv?.service?.entries?.length ?? null; } catch (e) { out.coverErr = String(e).slice(0, 120); }\n  return out;\n}\n"
+   },
+   "save": "42-probe.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "43-shot.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "50-next.txt",
+   "optional": true
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: option-like controls in the right panel (by screen region) with selected/disabled state.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.left >= minX && getComputedStyle(e).visibility !== 'hidden'; };\n  const sel = 'button,[role=button],[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,select,[aria-pressed],[aria-checked],[aria-selected]';\n  const items = [...document.querySelectorAll(sel)].filter(vis).map((e) => {\n    const label = txt(e.getAttribute('aria-label') || e.innerText || e.value || e.title || e.closest('label')?.innerText || e.querySelector('img')?.alt);\n    const selected = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked|current)([-_ A-Z]|$)/.test(e.className || '');\n    const disabled = e.disabled === true || e.getAttribute('aria-disabled') === 'true' || /disabled/i.test(e.className || '');\n    return (selected ? '[x] ' : '[ ] ') + (disabled ? '(disabled) ' : '') + (e.type === 'number' ? `number=${e.value} ` : '') + label.slice(0, 80);\n  }).filter((s) => s.length > 4);\n  const texts = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,p,span')].filter(vis).map((e) => txt(e.innerText)).filter((s) => s && s.length < 60 && /^[A-Z]/.test(s));\n  return { header: txt([...document.querySelectorAll('button,div')].find((e) => /^Select /.test(txt(e.innerText)) && txt(e.innerText).length < 40)?.innerText), labels: [...new Set(texts)].slice(0, 40), controls: [...new Set(items)].slice(0, 150) };\n}\n"
+   },
+   "save": "51-options.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only probe: DOM summary + scene getters. Never calls setters.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const out = { url: location.pathname + location.search };\n  const body = txt(document.body.innerText);\n  const price = body.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/);\n  out.price = price ? price[0].replace('Total List Price', '').trim() : null;\n  out.step = txt(document.querySelector('[aria-current=\"page\"]')?.innerText) || null;\n  out.dialogs = [...document.querySelectorAll('[role=\"dialog\"],[role=\"alertdialog\"]')].map((d) => txt(d.innerText).slice(0, 160));\n  out.alerts = [...document.querySelectorAll('[role=\"alert\"],[role=\"status\"],[class*=\"toast\" i],[class*=\"tooltip\" i]')].map((d) => txt(d.innerText)).filter(Boolean).slice(0, 5);\n  const w = document.querySelector('iframe')?.contentWindow;\n  const api = w?.ConfiguratorAPI;\n  out.sceneReady = !!api?.composition;\n  if (!api) return out;\n  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && o[k] !== undefined).map((k) => [k, o[k]]));\n  try {\n    const all = api.composition.getAllProducts?.() ?? {};\n    const order = api.composition.getOrderProductIds?.() ?? null;\n    out.order = order ? JSON.stringify(order).slice(0, 200) : null;\n    const KEEP = ['CabinetType', 'productType', 'Width', 'Depth', 'Height', 'DrawerStyle', 'Style', 'Handle', 'HandleType', 'CabinetColor', 'HandleGrooveColor', 'LegColor', 'CabinetPattern', 'DrawerPanelFluting', 'LateralPanelSide', 'Series', 'SidePanel', 'SidePanels', 'sinkType', 'SinkType', 'CountertopColor', 'CountertopMaterial', 'Thickness', 'BasinStyle', 'VesselColor'];\n    out.products = Object.entries(all).slice(0, 10).map(([id, cfg]) => {\n      const c = cfg?.config ?? cfg ?? {};\n      const kept = Object.fromEntries(Object.entries(c).filter(([k]) => KEEP.some((x) => k.toLowerCase() === x.toLowerCase())));\n      return { id: id.slice(0, 36), n: Object.keys(c).length, cfg: kept };\n    });\n  } catch (e) { out.productsErr = String(e).slice(0, 200); }\n  try {\n    const ct = await api.countertop.getState();\n    out.countertop = pick(ct, ['productId', 'placementState', 'attached', 'moved', 'canResize', 'thickness', 'autoLength', 'customLength', 'size', 'lengthLimitsM', 'offset']);\n  } catch (e) { out.ctErr = String(e).slice(0, 200); }\n  try { const cv = await api.cabinetCover.getState(); out.coverEntries = cv?.service?.entries?.length ?? null; } catch (e) { out.coverErr = String(e).slice(0, 120); }\n  return out;\n}\n"
+   },
+   "save": "52-probe.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "53-shot.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "60-next.txt",
+   "optional": true
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: option-like controls in the right panel (by screen region) with selected/disabled state.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const vis = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.left >= minX && getComputedStyle(e).visibility !== 'hidden'; };\n  const sel = 'button,[role=button],[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,select,[aria-pressed],[aria-checked],[aria-selected]';\n  const items = [...document.querySelectorAll(sel)].filter(vis).map((e) => {\n    const label = txt(e.getAttribute('aria-label') || e.innerText || e.value || e.title || e.closest('label')?.innerText || e.querySelector('img')?.alt);\n    const selected = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked|current)([-_ A-Z]|$)/.test(e.className || '');\n    const disabled = e.disabled === true || e.getAttribute('aria-disabled') === 'true' || /disabled/i.test(e.className || '');\n    return (selected ? '[x] ' : '[ ] ') + (disabled ? '(disabled) ' : '') + (e.type === 'number' ? `number=${e.value} ` : '') + label.slice(0, 80);\n  }).filter((s) => s.length > 4);\n  const texts = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,p,span')].filter(vis).map((e) => txt(e.innerText)).filter((s) => s && s.length < 60 && /^[A-Z]/.test(s));\n  return { header: txt([...document.querySelectorAll('button,div')].find((e) => /^Select /.test(txt(e.innerText)) && txt(e.innerText).length < 40)?.innerText), labels: [...new Set(texts)].slice(0, 40), controls: [...new Set(items)].slice(0, 150) };\n}\n"
+   },
+   "save": "61-options.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  // Read-only probe: DOM summary + scene getters. Never calls setters.\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const out = { url: location.pathname + location.search };\n  const body = txt(document.body.innerText);\n  const price = body.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/);\n  out.price = price ? price[0].replace('Total List Price', '').trim() : null;\n  out.step = txt(document.querySelector('[aria-current=\"page\"]')?.innerText) || null;\n  out.dialogs = [...document.querySelectorAll('[role=\"dialog\"],[role=\"alertdialog\"]')].map((d) => txt(d.innerText).slice(0, 160));\n  out.alerts = [...document.querySelectorAll('[role=\"alert\"],[role=\"status\"],[class*=\"toast\" i],[class*=\"tooltip\" i]')].map((d) => txt(d.innerText)).filter(Boolean).slice(0, 5);\n  const w = document.querySelector('iframe')?.contentWindow;\n  const api = w?.ConfiguratorAPI;\n  out.sceneReady = !!api?.composition;\n  if (!api) return out;\n  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o && o[k] !== undefined).map((k) => [k, o[k]]));\n  try {\n    const all = api.composition.getAllProducts?.() ?? {};\n    const order = api.composition.getOrderProductIds?.() ?? null;\n    out.order = order ? JSON.stringify(order).slice(0, 200) : null;\n    const KEEP = ['CabinetType', 'productType', 'Width', 'Depth', 'Height', 'DrawerStyle', 'Style', 'Handle', 'HandleType', 'CabinetColor', 'HandleGrooveColor', 'LegColor', 'CabinetPattern', 'DrawerPanelFluting', 'LateralPanelSide', 'Series', 'SidePanel', 'SidePanels', 'sinkType', 'SinkType', 'CountertopColor', 'CountertopMaterial', 'Thickness', 'BasinStyle', 'VesselColor'];\n    out.products = Object.entries(all).slice(0, 10).map(([id, cfg]) => {\n      const c = cfg?.config ?? cfg ?? {};\n      const kept = Object.fromEntries(Object.entries(c).filter(([k]) => KEEP.some((x) => k.toLowerCase() === x.toLowerCase())));\n      return { id: id.slice(0, 36), n: Object.keys(c).length, cfg: kept };\n    });\n  } catch (e) { out.productsErr = String(e).slice(0, 200); }\n  try {\n    const ct = await api.countertop.getState();\n    out.countertop = pick(ct, ['productId', 'placementState', 'attached', 'moved', 'canResize', 'thickness', 'autoLength', 'customLength', 'size', 'lengthLimitsM', 'offset']);\n  } catch (e) { out.ctErr = String(e).slice(0, 200); }\n  try { const cv = await api.cabinetCover.getState(); out.coverEntries = cv?.service?.entries?.length ?? null; } catch (e) { out.coverErr = String(e).slice(0, 120); }\n  return out;\n}\n"
+   },
+   "save": "62-probe.txt",
+   "optional": true
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "63-shot.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: Summary page lines (name / spec / finish / price) and total.\n  const t = document.body.innerText;\n  const i = t.indexOf('Your Configuration');\n  const j = t.indexOf('Total List Price', i);\n  return { total: (t.slice(j).match(/\\$[\\d,]+(\\.\\d+)?/) || [null])[0], block: i >= 0 ? t.slice(i, j > 0 ? j : i + 4000).slice(0, 4000) : t.slice(0, 3000) };\n}\n"
+   },
+   "save": "90-summary.txt",
+   "optional": true
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 300,
+    "types": [
+     "error",
+     "warn"
+    ]
+   },
+   "save": "91-console.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 400
+   },
+   "save": "92-network.txt"
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "93-summary.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+   },
+   "save": "94-guard.txt",
+   "optional": false
+  }
+ ]
+}

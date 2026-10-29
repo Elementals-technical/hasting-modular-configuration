@@ -1,0 +1,14 @@
+row,A,B,C,D
+2,Product SKUs - Urban Duplex,,,
+5,,Formula Generator SKU,,
+7,,{Product Category}  -  {Product}  -  {Cabinet Type/Cabinet Style(L or R)/Handle Style/Drawer Panel Fluting} -  {Width}  -  {Height}  -  {Depth}  -  {Product Element #1 (BASP)} - {Material} - {Color Code}  -  {Product Element #2 (LTLP} - {Material} - {Color Code}  -  {Product Element #3 (HDL} - {Material} - {Color Code},,
+9,,SKU Differences,,
+10,,- Cabinet Style,,
+11,,- Lateral Panel designation to include a L or R     e.g.   2DWL   2DWR,,
+12,,VAN-URDPX-SB/2DWL/UG/X-60W-56H-50D,,
+18,,- Product Elements,,
+19,,- This product will have 3 product elements: 1) Base Panel -- BASP,,
+20,,,,2) Lateral Panel -- LTLP
+21,,,,3) Handle Groove -- HDL
+24,,Example,,
+25,,VAN-URDPX-SB/2DWL/UG/X-60W-56H-50D-BASP-HPL-TKH-LTLP-LACM-03-HDL-LACM-03,,

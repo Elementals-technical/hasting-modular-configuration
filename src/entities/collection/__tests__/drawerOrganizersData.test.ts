@@ -228,7 +228,7 @@ describe.each(COLLECTIONS)("$id drawer organizer data", ({ document, ui }) => {
   });
 });
 
-// Tricot (local testing; Q-K12 is still open and its divider SKU is missing, Q-N2): the same organizer data as the
+// Tricot (local testing; Q-K12 is still open): the same organizer data as the
 // three collections above, but its Accessories step is `side-panels`, where Drawer Dividers sit under Side Panels.
 describe("Tricot drawer organizer data", () => {
   it("parses without diagnostics and opens the feature with the ROW-MTL-43 profile", () => {

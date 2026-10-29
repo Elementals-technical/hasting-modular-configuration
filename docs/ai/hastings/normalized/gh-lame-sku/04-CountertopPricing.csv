@@ -1,0 +1,17 @@
+row,A,B,C,D,E,F,G,H,I
+2,Countertops,,,,,,,,SKU Structure
+3,,Material,group_material_1,TopThickness,Price_EU,Price_US/cm,3.084709788,,
+4,SS Technolite,SSTL,,0.5,4.25,13.1100166,,,Same as Class Vanities - Countertop:Pricing
+5,,,,,,,,,"- There is one difference, Lame is only available in thin countertops"
+6,SS Technomood,SSTM,,0.5,4.25,13.1100166,,,
+8,SS Texturizzato,SSTEX,,0.5,4.25,13.1100166,,,
+11,Porcelain,POR,,0.8,9.56,29.48982557,,,
+13,Glass Gloss,GLSG,,0.5,6.36,19.61875425,,,
+14,Glass Matte,GLSM,,0.5,8.11,25.01699638,,,
+15,HPL,HPL,,0.5,4.96,15.30016055,,,
+18,Undertop,,,,,,,,
+19,,MTL,,0.7,2.36,7.2799151,,,CT-GBMTL-UDTP-W-.7H-20.5D
+20,,LACM,,0.7,3.0,9.254129364,,,CT-GBLACM-UDTP-W-.7H-20.5D
+21,,,,,,,,,- The width dimension for these SKUs will need to be autofilled based on the vanity configuration width
+24,,,,,,,,,7/10 Feedback
+25,,,,,,,,,- MTL - color codes not being recognized    GLD   SLV

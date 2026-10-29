@@ -1,0 +1,187 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 54,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase2/ui-fixes) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 7475,
+      "summary": "Successfully navigated to http://localhost:5173/custom/cabinet-builder?collectionId=tricot. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configur"
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 223,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 5,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json {\"path\":\"/custom/cabinet-builder\",\"tabs\":[\"Tricot Cabinet Builder\"],\"nav\":[\"Next: Cabinet Finishes\"]} ```"
+    },
+    {
+      "step": 6,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 216,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Type\",\"items\":[\"Sink Base\",\"Side Cabinet\"]},{\"section\":\"Cabinet Style\",\"items\":[]},{\"section\":\"Cabinet Style\",\"items\":[\"Next: Cabinet Finishes\"]}] ```"
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 247,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Cabinet Finishes <BUTTON>\" ``` Page navigated to http://localhost:5173/custom/color?collectionId=tricot."
+    },
+    {
+      "step": 9,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 219,
+      "summary": "Script ran on page and returned: ```json {\"path\":\"/custom/color\",\"tabs\":[\"Tricot Cabinet Builder\"],\"nav\":[\"Next: Countertop & Basin\"]} ```"
+    },
+    {
+      "step": 10,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 216,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Cabinet Color\",\"items\":[\"Order free Swatches\"]},{\"section\":\"Price\",\"items\":[\"Acqua 419 MT\",\"Agata 407 MT\",\"Ambra 413 MT\",\"Antracite 400 MT\",\"Asparago 414 MT\",\"Creta 4"
+    },
+    {
+      "step": 11,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 488,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Countertop & Basin <BUTTON>\" ``` Page navigated to http://localhost:5173/custom/countertop?collectionId=tricot."
+    },
+    {
+      "step": 13,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 223,
+      "summary": "Script ran on page and returned: ```json {\"path\":\"/custom/countertop\",\"tabs\":[\"Tricot Cabinet Builder\"],\"nav\":[\"Next: Accessories\"]} ```"
+    },
+    {
+      "step": 14,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 217,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Countertop Color\",\"items\":[\"Order free Swatches\"]},{\"section\":\"Price\",\"items\":[\"*Bianco Kos 250\",\"Calacatta 259\",\"Grigio Bromo 253\",\"Grigio London 252\",\"Impero 260\",\""
+    },
+    {
+      "step": 15,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 242,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Accessories <BUTTON>\" ``` Page navigated to http://localhost:5173/custom/side-panels?collectionId=tricot."
+    },
+    {
+      "step": 17,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 215,
+      "summary": "Script ran on page and returned: ```json {\"path\":\"/custom/side-panels\",\"tabs\":[\"Tricot Cabinet Builder\"],\"nav\":[\"Next: Faucet Details\"]} ```"
+    },
+    {
+      "step": 18,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 218,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Side Panels\",\"items\":[]},{\"section\":\"Side Panels\",\"items\":[\"*None\",\"Back to Countertop & Basin\",\"Next: Faucet Details\"]}] ```"
+    },
+    {
+      "step": 19,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 220,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Faucet Details <BUTTON>\" ``` Page navigated to http://localhost:5173/custom/faucet-holes?collectionId=tricot."
+    },
+    {
+      "step": 21,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 220,
+      "summary": "Script ran on page and returned: ```json {\"path\":\"/custom/faucet-holes\",\"tabs\":[\"Tricot Cabinet Builder\"],\"nav\":[\"Next: Summary\"]} ```"
+    },
+    {
+      "step": 22,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json [{\"section\":\"Faucet Holes\",\"items\":[\"*0\",\"1\",\"2\",\"3\",\"Back to Accessories\",\"Next: Summary\"]}] ```"
+    },
+    {
+      "step": 23,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 378,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Summary <BUTTON>\" ``` Page navigated to http://localhost:5173/custom/summary?collectionId=tricot."
+    },
+    {
+      "step": 25,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 218,
+      "summary": "Script ran on page and returned: ```json {\"path\":\"/custom/summary\",\"tabs\":[\"Tricot Cabinet Builder\"],\"nav\":[]} ```"
+    },
+    {
+      "step": 26,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 221,
+      "summary": "Script ran on page and returned: ```json {\"guard\":true,\"blockedWrites\":[]} ```"
+    },
+    {
+      "step": 27,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 20,
+      "summary": "## Console messages Showing 1-18 of 18 (Page 1 of 1). msgid=528 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times] msgid=530 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 a"
+    }
+  ]
+}

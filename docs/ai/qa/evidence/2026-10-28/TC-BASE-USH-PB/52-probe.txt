@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/faucet-holes?collectionId=urban-standard-height","price":"$6,744.00","step":"Faucet Details","dialogs":[],"alerts":[],"sceneReady":true,"order":null,"products":[],"countertop":{"productId":"Top_Solid-n7blwzudw","placementState":"attached","attached":true,"moved":false,"canResize":false,"thickness":0.012700087206922062,"autoLength":0.6,"customLength":null,"size":{"length":0.6,"depth":0.5049999795011575},"lengthLimitsM":{"minLengthM":0.6,"maxLengthM":3.048,"requestedMinM":0.6,"requestedMaxM":3.048,"basinMinLengthM":0.550799},"offset":{"x":0,"y":0}},"coverEntries":0}
+```

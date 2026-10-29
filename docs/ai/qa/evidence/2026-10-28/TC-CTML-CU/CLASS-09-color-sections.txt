@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"section":"Cabinet Color","items":["Order free Swatches"]},{"section":"Price","items":["Acqua 419 GL","Agata 407 GL","Ambra 413 GL","Antracite 400 GL","Asparago 414 GL","Creta 416 GL","Fumo 401 GL","Grigio Argento 403 GL","Latte 417 GL","Metropoli 404 GL","Moka 408 GL","Nebbia 402 GL","Nero 433 GL","Ponente 418 GL"]},{"section":"Cabinet Side Color","items":[]},{"section":"Cabinet Side Color","items":[]},{"section":"Frame Color","items":[]},{"section":"Frame Color","items":["Back to Class Cabinet Builder","Next: Countertop & Basin"]}]
+```

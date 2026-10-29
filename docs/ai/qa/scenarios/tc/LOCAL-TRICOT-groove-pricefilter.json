@@ -1,0 +1,184 @@
+{
+ "description": "Local: Tricot Handle Groove Color price filter is Standard $ alone (20 Lacquered MT), grid and full mode; Cabinet Color still 20 Standard $ / 3 Classic $$. Read-only, guarded.",
+ "steps": [
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "about:blank",
+    "timeout": 60000
+   },
+   "save": "00-new.txt",
+   "capture": {
+    "pageId": "(\\d+): about:blank[^\\n]*\\[selected\\]"
+   }
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "url",
+    "url": "http://localhost:5173/prebuilt/model?collectionId=tricot",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n\n// QA harness (agent tab only): simulates the proposed loader fix — collection JSON fetched with cache:'no-cache'\n// (forces revalidation, so a heuristically-fresh stale copy is not used). Combine with write-guard.js.\n(() => {\n  if (window.__qaCollectionsNoCache) return;\n  window.__qaCollectionsNoCache = true;\n  const prev = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    if (url && url.includes('/collections/')) return prev(input, { ...init, cache: 'no-cache' });\n    return prev(input, init);\n  };\n})();\n"
+   },
+   "save": "01-nav.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Skip\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Skip\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "02-skip.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "03-next.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  const scope = panel || trig.closest('h3,[role=heading]')?.parentElement;\n  return { trig, scope, expanded: trig.getAttribute('aria-expanded') };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button')]\n    .map((b) => txt(b.getAttribute('aria-label') || b.innerText))\n    .filter((t) => /\\b\\d{3}\\b/.test(t) && !/^Preview /.test(t) && !/\\$/.test(t));\n  const groups = [...scope.querySelectorAll('div,span,p,h4,h5,h6,legend')]\n    .map((e) => txt(e.innerText)).filter((t) => /^(Lacquered MT|Lacquered GL|Wood Veneer)$/.test(t));\n  return { count: new Set(names).size, swatches: [...new Set(names)].sort(), groups: [...new Set(groups)] };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  const was = txt(btn.innerText);\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX', was };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  if (!pick) {\n    lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); }\n    return { was, offered };\n  }\n  const o = opts.find((x) => label(x) === pick);\n  if (!o) return { err: 'NO OPTION ' + pick, was, offered };\n  (o.querySelector('button') || o).click(); await wait(800);\n  return { was, offered, picked: pick };\n};\nconst s = await section(\"Handle Groove Color\"); if (s.err) return s; const p = await price(s.scope, null); return { section: \"Handle Groove Color\", expanded: s.expanded, ...p, ...swatches(s.scope) };}"
+   },
+   "save": "10-groove-nofilter.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  const scope = panel || trig.closest('h3,[role=heading]')?.parentElement;\n  return { trig, scope, expanded: trig.getAttribute('aria-expanded') };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button')]\n    .map((b) => txt(b.getAttribute('aria-label') || b.innerText))\n    .filter((t) => /\\b\\d{3}\\b/.test(t) && !/^Preview /.test(t) && !/\\$/.test(t));\n  const groups = [...scope.querySelectorAll('div,span,p,h4,h5,h6,legend')]\n    .map((e) => txt(e.innerText)).filter((t) => /^(Lacquered MT|Lacquered GL|Wood Veneer)$/.test(t));\n  return { count: new Set(names).size, swatches: [...new Set(names)].sort(), groups: [...new Set(groups)] };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  const was = txt(btn.innerText);\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX', was };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  if (!pick) {\n    lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); }\n    return { was, offered };\n  }\n  const o = opts.find((x) => label(x) === pick);\n  if (!o) return { err: 'NO OPTION ' + pick, was, offered };\n  (o.querySelector('button') || o).click(); await wait(800);\n  return { was, offered, picked: pick };\n};\nconst s = await section(\"Handle Groove Color\"); if (s.err) return s; const p = await price(s.scope, \"Standard $\"); return { section: \"Handle Groove Color\", expanded: s.expanded, ...p, ...swatches(s.scope) };}"
+   },
+   "save": "11-groove-standard.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "format": "jpeg",
+    "quality": 70
+   },
+   "save": "12-groove-standard.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  const scope = panel || trig.closest('h3,[role=heading]')?.parentElement;\n  return { trig, scope, expanded: trig.getAttribute('aria-expanded') };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button')]\n    .map((b) => txt(b.getAttribute('aria-label') || b.innerText))\n    .filter((t) => /\\b\\d{3}\\b/.test(t) && !/^Preview /.test(t) && !/\\$/.test(t));\n  const groups = [...scope.querySelectorAll('div,span,p,h4,h5,h6,legend')]\n    .map((e) => txt(e.innerText)).filter((t) => /^(Lacquered MT|Lacquered GL|Wood Veneer)$/.test(t));\n  return { count: new Set(names).size, swatches: [...new Set(names)].sort(), groups: [...new Set(groups)] };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  const was = txt(btn.innerText);\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX', was };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  if (!pick) {\n    lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); }\n    return { was, offered };\n  }\n  const o = opts.find((x) => label(x) === pick);\n  if (!o) return { err: 'NO OPTION ' + pick, was, offered };\n  (o.querySelector('button') || o).click(); await wait(800);\n  return { was, offered, picked: pick };\n};\nconst s = await section(\"Handle Groove Color\"); if (s.err) return s; const v = [...s.scope.querySelectorAll('*')].find((e) => e.children.length === 0 && txt(e.innerText) === 'View in full mode'); if (!v) return 'NO FULL MODE'; (v.closest('button,[role=button],a') || v).click(); await wait(2500); return 'opened';}"
+   },
+   "save": "20-groove-open-full.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const d=[...document.querySelectorAll('[role=dialog]')].pop(); if(!d) return {dialog:false}; const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0}; const names=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^[A-Za-z][A-Za-z ]* \\d{3}( MT)?$/.test(t)); const groups=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Wood Veneer)$/.test(t)); return {dialog:true, count:new Set(names).size, swatches:[...new Set(names)].sort(), groups:[...new Set(groups)]}; }"
+   },
+   "save": "21-groove-full-nofilter.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const root=[...document.querySelectorAll('[role=dialog]')].pop(); if(!root) return 'NO ROOT'; const btn=[...root.querySelectorAll('button[aria-haspopup=listbox]')].filter(b=>{const r=b.getBoundingClientRect();return r.width>0 && (true);}).find(b=>/^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText))); if(!btn) return 'NO PRICE BUTTON'; const was=txt(btn.innerText); btn.click(); await new Promise(r=>setTimeout(r,600)); const lb=[...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop(); if(!lb) return 'NO LISTBOX'; const opts=[...lb.querySelectorAll('[role=option]')]; const names=opts.map(o=>txt(o.querySelector('span')?.innerText||o.innerText)); const o=opts.find(o=>txt(o.querySelector('span')?.innerText||o.innerText)===\"Standard $\"); if(!o) return {err:'NO OPTION', names}; (o.querySelector('button')||o).click(); return {was, picked:\"Standard $\", offered:names}; }"
+   },
+   "save": "22-groove-full-pick-standard.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const d=[...document.querySelectorAll('[role=dialog]')].pop(); if(!d) return {dialog:false}; const vis=e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0}; const names=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^[A-Za-z][A-Za-z ]* \\d{3}( MT)?$/.test(t)); const groups=[...d.querySelectorAll('*')].filter(e=>e.children.length===0&&vis(e)).map(e=>txt(e.innerText)).filter(t=>/^(Lacquered MT|Wood Veneer)$/.test(t)); return {dialog:true, count:new Set(names).size, swatches:[...new Set(names)].sort(), groups:[...new Set(groups)]}; }"
+   },
+   "save": "23-groove-full-standard.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "format": "jpeg",
+    "quality": 70
+   },
+   "save": "24-groove-full-standard.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  const scope = panel || trig.closest('h3,[role=heading]')?.parentElement;\n  return { trig, scope, expanded: trig.getAttribute('aria-expanded') };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button')]\n    .map((b) => txt(b.getAttribute('aria-label') || b.innerText))\n    .filter((t) => /\\b\\d{3}\\b/.test(t) && !/^Preview /.test(t) && !/\\$/.test(t));\n  const groups = [...scope.querySelectorAll('div,span,p,h4,h5,h6,legend')]\n    .map((e) => txt(e.innerText)).filter((t) => /^(Lacquered MT|Lacquered GL|Wood Veneer)$/.test(t));\n  return { count: new Set(names).size, swatches: [...new Set(names)].sort(), groups: [...new Set(groups)] };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  const was = txt(btn.innerText);\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX', was };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  if (!pick) {\n    lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); }\n    return { was, offered };\n  }\n  const o = opts.find((x) => label(x) === pick);\n  if (!o) return { err: 'NO OPTION ' + pick, was, offered };\n  (o.querySelector('button') || o).click(); await wait(800);\n  return { was, offered, picked: pick };\n};\ndocument.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(800); return { dialogOpen: !!document.querySelector('[role=dialog]') };}"
+   },
+   "save": "30-close-full.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  const scope = panel || trig.closest('h3,[role=heading]')?.parentElement;\n  return { trig, scope, expanded: trig.getAttribute('aria-expanded') };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button')]\n    .map((b) => txt(b.getAttribute('aria-label') || b.innerText))\n    .filter((t) => /\\b\\d{3}\\b/.test(t) && !/^Preview /.test(t) && !/\\$/.test(t));\n  const groups = [...scope.querySelectorAll('div,span,p,h4,h5,h6,legend')]\n    .map((e) => txt(e.innerText)).filter((t) => /^(Lacquered MT|Lacquered GL|Wood Veneer)$/.test(t));\n  return { count: new Set(names).size, swatches: [...new Set(names)].sort(), groups: [...new Set(groups)] };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  const was = txt(btn.innerText);\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX', was };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  if (!pick) {\n    lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); }\n    return { was, offered };\n  }\n  const o = opts.find((x) => label(x) === pick);\n  if (!o) return { err: 'NO OPTION ' + pick, was, offered };\n  (o.querySelector('button') || o).click(); await wait(800);\n  return { was, offered, picked: pick };\n};\nconst s = await section(\"Cabinet Color\"); if (s.err) return s; const p = await price(s.scope, null); return { section: \"Cabinet Color\", expanded: s.expanded, ...p, ...swatches(s.scope) };}"
+   },
+   "save": "31-cabinet-nofilter.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  const scope = panel || trig.closest('h3,[role=heading]')?.parentElement;\n  return { trig, scope, expanded: trig.getAttribute('aria-expanded') };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button')]\n    .map((b) => txt(b.getAttribute('aria-label') || b.innerText))\n    .filter((t) => /\\b\\d{3}\\b/.test(t) && !/^Preview /.test(t) && !/\\$/.test(t));\n  const groups = [...scope.querySelectorAll('div,span,p,h4,h5,h6,legend')]\n    .map((e) => txt(e.innerText)).filter((t) => /^(Lacquered MT|Lacquered GL|Wood Veneer)$/.test(t));\n  return { count: new Set(names).size, swatches: [...new Set(names)].sort(), groups: [...new Set(groups)] };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  const was = txt(btn.innerText);\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX', was };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  if (!pick) {\n    lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); }\n    return { was, offered };\n  }\n  const o = opts.find((x) => label(x) === pick);\n  if (!o) return { err: 'NO OPTION ' + pick, was, offered };\n  (o.querySelector('button') || o).click(); await wait(800);\n  return { was, offered, picked: pick };\n};\nconst s = await section(\"Cabinet Color\"); if (s.err) return s; const p = await price(s.scope, \"Standard $\"); return { section: \"Cabinet Color\", expanded: s.expanded, ...p, ...swatches(s.scope) };}"
+   },
+   "save": "32-cabinet-standard.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  const scope = panel || trig.closest('h3,[role=heading]')?.parentElement;\n  return { trig, scope, expanded: trig.getAttribute('aria-expanded') };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button')]\n    .map((b) => txt(b.getAttribute('aria-label') || b.innerText))\n    .filter((t) => /\\b\\d{3}\\b/.test(t) && !/^Preview /.test(t) && !/\\$/.test(t));\n  const groups = [...scope.querySelectorAll('div,span,p,h4,h5,h6,legend')]\n    .map((e) => txt(e.innerText)).filter((t) => /^(Lacquered MT|Lacquered GL|Wood Veneer)$/.test(t));\n  return { count: new Set(names).size, swatches: [...new Set(names)].sort(), groups: [...new Set(groups)] };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  const was = txt(btn.innerText);\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX', was };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  if (!pick) {\n    lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); }\n    return { was, offered };\n  }\n  const o = opts.find((x) => label(x) === pick);\n  if (!o) return { err: 'NO OPTION ' + pick, was, offered };\n  (o.querySelector('button') || o).click(); await wait(800);\n  return { was, offered, picked: pick };\n};\nconst s = await section(\"Cabinet Color\"); if (s.err) return s; const p = await price(s.scope, \"Classic $$\"); return { section: \"Cabinet Color\", expanded: s.expanded, ...p, ...swatches(s.scope) };}"
+   },
+   "save": "33-cabinet-classic.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+   },
+   "save": "40-guard.txt",
+   "optional": false
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 300,
+    "types": [
+     "error",
+     "warn"
+    ]
+   },
+   "save": "41-console.txt"
+  }
+ ]
+}

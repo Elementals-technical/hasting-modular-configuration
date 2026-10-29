@@ -1,0 +1,96 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 13,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 512,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-standard-height. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github"
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 214,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 5,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Create Your Own\" ```"
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 211,
+      "summary": "Script ran on page and returned: ```json {\"header\":\"\",\"labels\":[],\"controls\":[]} ```"
+    },
+    {
+      "step": 8,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 212,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"/prebuilt/model?collectionId=urban-standard-height\",\"price\":null,\"step\":null,\"dialogs\":[],\"alerts\":[\"Collection unavailable The collection data could not be loaded. Please"
+    },
+    {
+      "step": 9,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 39,
+      "summary": "image 06-shot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 10,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 21,
+      "summary": "## Latest page snapshot uid=1_0 RootWebArea \"tagging-modules-tool\" url=\"https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-standard-height\" uid=1_1 alert atomic live=\"asser"
+    }
+  ]
+}

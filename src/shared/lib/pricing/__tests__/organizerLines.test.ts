@@ -233,7 +233,7 @@ describe("buildOrganizerLines", () => {
     });
   });
 
-  describe("a style without a SKU (Tricot sku-profile.dividers is empty)", () => {
+  describe("a style without a SKU", () => {
     const noSku: OrganizerPricingPolicy = { skuByStyle: {}, billEmptyColumns: true };
 
     it("writes no line and one blocking gap that names the style", () => {

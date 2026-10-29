@@ -6,7 +6,8 @@
     "source": "Tricot/input/2d/Hasting-Master-File-[_Tricot Vanity_] (2).csv @ c45df78",
     "skuWorkbook": "Tricot Vanities - SKUs + Pricing.xlsx",
     "status": "source-backed preparation; partial approved runtime handoff integrated",
-    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies."
+    "handoff": "User supplied recipes, defaults, tables 592/593 and the Tricot cabinet runtime contract on 2026-10-07. Product types, cm sizes, drawers and verified lacquer materials are bound, and the cabinet pattern since export v44 (CabinetPattern); panels/countertop/basins and wood assets remain explicit dependencies.",
+    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list keeps the shared (Azzurra) table's tier. It replaces the client feedback 'Modular Build - Dev Feedback', Tricot, Cabinet Color | Price Filter (Lacquered MT Standard $, Wood Veneer Classic $$), by the dev decision of 2026-10-28."
   },
   "sourceRefs": {
     "configuratorId": 12,
@@ -19,7 +20,8 @@
     "HandleGrooveColor": "Agata 407 MT",
     "CountertopColor": "BIANCO KOS 250",
     "sinkType": "VA024",
-    "CountertopStyle": "integrated"
+    "CountertopStyle": "integrated",
+    "FaucetHolesAmount": "0"
   },
   "attributes": [
     {
@@ -369,6 +371,17 @@
       "optionsSource": "configurator:Select Vessel Color"
     },
     {
+      "attributeId": "FaucetHolesAmount",
+      "scope": "countertop",
+      "defaultValue": "0",
+      "options": [
+        { "value": "0", "label": "0", "order": 10 },
+        { "value": "1", "label": "1", "order": 20 },
+        { "value": "2", "label": "2", "order": 30 },
+        { "value": "3", "label": "3", "order": 40 }
+      ]
+    },
+    {
       "attributeId": "DividersOption",
       "scope": "global",
       "initialValue": "None",
@@ -406,8 +419,25 @@
     }
   ],
   "ruleData": {
-    "countertopCompatibility": {
-      "tableId": 593
+    "countertopCompatibility": { "tableId": 593 },
+    "priceTiers": {
+      "bySku": {
+        "LACM": 2,
+        "LACG": 3,
+        "LAM": 1,
+        "POR": 4,
+        "HPL": 4,
+        "SSMT": 2,
+        "SSGL": 2,
+        "SSTL": 2,
+        "SSTM": 2,
+        "SSTEX": 2,
+        "SSTMT": 1,
+        "GLSM": 2,
+        "GLSG": 2,
+        "SGLS": 2,
+        "WDV": 3
+      }
     },
     "vesselCompatibility": {
       "hiddenStyles": [],

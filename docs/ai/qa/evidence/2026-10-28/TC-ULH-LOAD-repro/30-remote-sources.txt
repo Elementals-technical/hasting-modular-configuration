@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"url":"/configurators/4?serialize=true&view=full","status":200,"bytes":289475,"updatedAt":"2026-09-22T15:04:06.089Z","materialSkusHits":0,"context":[]},{"url":"/datatables/589","status":200,"bytes":12142,"updatedAt":"2026-09-30T13:05:10.984Z","materialSkusHits":0,"context":[]},{"url":"/datatables/580","status":200,"bytes":2586,"updatedAt":"2026-09-22T07:21:09.643Z","materialSkusHits":0,"context":[]}]
+```

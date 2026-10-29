@@ -1,0 +1,68 @@
+{
+  "source_id": "local-backlog-xlsx",
+  "file": "hasting bug-fix.xlsx",
+  "sha256": "0edeef0dcb26b5efec58dcb88b5fad3b43fcb319e82d441fab38a2ca99172c82",
+  "size_bytes": 130038,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "Backlog - Phase2v1",
+      "dimension": "",
+      "non_empty_rows": 82,
+      "max_row_with_value": 82,
+      "formulas": 67,
+      "links": 76,
+      "notes": 0
+    },
+    {
+      "index": 2,
+      "name": " Requirement gap",
+      "dimension": "",
+      "non_empty_rows": 9,
+      "max_row_with_value": 10,
+      "formulas": 0,
+      "links": 9,
+      "notes": 0
+    },
+    {
+      "index": 3,
+      "name": "Change Request",
+      "dimension": "",
+      "non_empty_rows": 2,
+      "max_row_with_value": 4,
+      "formulas": 0,
+      "links": 1,
+      "notes": 0
+    },
+    {
+      "index": 4,
+      "name": "Sheet1",
+      "dimension": "",
+      "non_empty_rows": 50,
+      "max_row_with_value": 55,
+      "formulas": 0,
+      "links": 26,
+      "notes": 0
+    },
+    {
+      "index": 5,
+      "name": "Backlogv2",
+      "dimension": "",
+      "non_empty_rows": 239,
+      "max_row_with_value": 267,
+      "formulas": 307,
+      "links": 214,
+      "notes": 0
+    },
+    {
+      "index": 6,
+      "name": "Sheet2",
+      "dimension": "",
+      "non_empty_rows": 93,
+      "max_row_with_value": 136,
+      "formulas": 0,
+      "links": 48,
+      "notes": 0
+    }
+  ]
+}

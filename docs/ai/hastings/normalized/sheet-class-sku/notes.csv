@@ -1,0 +1,99 @@
+sheet,cell,author,text
+CabinetPricing,R50,tc={0791d6b6-0ebc-4ea2-b39e-e01aa4ae96b5},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	link to
+"
+CabinetPricing,E9,tc={75ef2af5-2ecb-4f53-ba4d-d53d17788d05},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	To update SGLS/B material color code recognition - SG
+"
+CabinetPricing,R46,tc={af9cc3bb-7084-44ac-9ee4-5bd9dd0f7ce9},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	link to
+"
+CabinetPricing,B7,tc={cd44d2d8-3f71-4680-a783-8a15048930e4},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	Material columns in Database sheet
+"
+CabinetPricing,R50,{a8f9c5ec-da72-4636-9a50-55b862214905},link to
+CabinetPricing,E9,{a8f9c5ec-da72-4636-9a50-55b862214905},To update SGLS/B material color code recognition - SG
+CabinetPricing,B7,{a8f9c5ec-da72-4636-9a50-55b862214905},Material columns in Database sheet
+CabinetPricing,R46,{a8f9c5ec-da72-4636-9a50-55b862214905},link to
+CountertopPricing,I4,tc={32c77c92-1812-4d65-b29e-5a0421219d53},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	W - Width dimensions get autofilled by the configuration
+"
+CountertopPricing,I15,tc={71323b28-809a-4a55-a22a-97bfd2b571f0},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	link to
+
+- prices are not calculating correctly
+"
+CountertopPricing,I16,tc={f0550969-85bb-4a24-b4d5-d4926474ab5c},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	- prices are not calculating correctly
+Reply:
+	Prices now correct.
+
+To update + remove the need for a period at the end of 63.W for price to calc. see image below
+"
+CountertopPricing,I4,{a8f9c5ec-da72-4636-9a50-55b862214905},W - Width dimensions get autofilled by the configuration
+CountertopPricing,I15,{a8f9c5ec-da72-4636-9a50-55b862214905},"link to
+
+- prices are not calculating correctly"
+CountertopPricing,I16,{a8f9c5ec-da72-4636-9a50-55b862214905},- prices are not calculating correctly
+CountertopPricing,I16,{a8f9c5ec-da72-4636-9a50-55b862214905},"Prices now correct.
+
+To update + remove the need for a period at the end of 63.W for price to calc. see image below"
+Basin StylePricing,A43,tc={30bdfcae-ca50-468e-8147-e42e261247af},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	Product name TBD.... 
+
+CT naming convention
+Reply:
+	Hi @ryan@hastingsbath.com 
+
+Could you please provide more details on how it should work with the 4”/4.7” thickness? Should there be a different price, or are there any dependencies that should be taken into account?
+Reply:
+	Hi @olf@elementalsweb.com, the bracket is the same whether a 3.1"", 4"" or 4.7"" thick top is used. 
+
+I forgot to mention the 3.1"" thick dimension initially.
+
+See the details below:
+- 2 bracket SKUs need to be added when either of the top thickness above are used
+"
+Basin StylePricing,I1,tc={e86a44a8-5efe-48c1-b972-e1fe8a057ea1},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	link to
+Reply:
+	SKUs to be added as of 7/12
+"
+Basin StylePricing,A43,{a8f9c5ec-da72-4636-9a50-55b862214905},"Product name TBD.... 
+
+CT naming convention"
+Basin StylePricing,A43,{c007beef-f74a-4960-821a-f3c7f71b7cf6},"Hi @ryan@hastingsbath.com 
+
+Could you please provide more details on how it should work with the 4”/4.7” thickness? Should there be a different price, or are there any dependencies that should be taken into account?"
+Basin StylePricing,A43,{a8f9c5ec-da72-4636-9a50-55b862214905},"Hi @olf@elementalsweb.com, the bracket is the same whether a 3.1"", 4"" or 4.7"" thick top is used. 
+
+I forgot to mention the 3.1"" thick dimension initially.
+
+See the details below:
+- 2 bracket SKUs need to be added when either of the top thickness above are used"
+Basin StylePricing,I1,{a8f9c5ec-da72-4636-9a50-55b862214905},link to
+Basin StylePricing,I1,{a8f9c5ec-da72-4636-9a50-55b862214905},SKUs to be added as of 7/12
+AccessoriesPricing,A45,tc={18ce1d00-3ad0-4910-9035-3f3cbb5a6468},"[Threaded comment]
+ Your version of Excel allows you to read this threaded comment; however, any edits to it will get removed if the file is opened in a newer version of Excel. Learn more: https://go.microsoft.com/fwlink/?linkid=870924
+Comment:
+	SKUs added
+"
+AccessoriesPricing,A45,{a8f9c5ec-da72-4636-9a50-55b862214905},SKUs added

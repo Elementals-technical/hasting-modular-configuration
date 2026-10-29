@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"section":"Handle Color","total":22,"totalGroups":["Lacquered MT","Metal"],"offered":["Show all","Classic $$"],"ranked":20,"byTier":{"Classic $$":{"count":20,"groups":["Lacquered MT"],"swatches":["Acqua 419 MT","Agata 407 MT","Ambra 413 MT","Antracite 400 MT","Asparago 414 MT","Creta 416 MT","Fumo 401 MT","Grigio Argento 403 MT","Latte 417 MT","Metropoli 404 MT","Moka 408 MT","Nebbia 402 MT","Nero 433 MT","Ponente 418 MT","Sabbia 405 MT","Salvia 415 MT","Seta 406 MT","Turchese 410 MT","Zafferano 412 MT","Zaffiro 411 MT"]}}}
+```

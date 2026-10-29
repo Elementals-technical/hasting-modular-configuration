@@ -1,0 +1,36 @@
+row,A,B,C,D,E,F
+1,,Azzurra,,,,
+3,,Material,Pricing Tier,,,Pricing Tiers
+4,,3D,Tier 1,$,,Tier 1 - Standard $
+5,,Lacq MT/GL White,Tier 1,$,,- Quality finishes offered at a great value
+6,,Lacq MT,Tier 2,$$,,
+7,,Lacq GL,Tier 3,$$$,,Tier 2 - Classic $$
+8,,Soft Touch,Tier 3,$$$,,- Client and designer favorites that are timeless
+9,,Brushed Metal,Tier 3,$$$,,
+10,,HPL,Tier 4,$$$$,,Tier 3 - Specialty $$$
+11,,Essenze,Tier 4,$$$$,,- High-performance surfaces designed to elevate form and function
+12,,Fenix,Tier 4,$$$$,,
+13,,Porcelain,Tier 4,$$$$,,Tier 4 - Exclusive $$$$
+14,,Glass MT,Tier 2,$$,,- Top tier materials that deliver unrivaled longevity and an ultra-luxe feel
+15,,Glass GL,Tier 2,$$,,
+16,,Solid Surface - Mineralmarmo,Tier 2,$$,,
+17,,Solid Surface - Ocritech,Tier 1,$,,
+18,,Solid Surface - Tekorlux,Tier 3,$$$,,
+19,,Solid Surface - Tekormud,Tier 3,$$$,,
+22,,GB,,,,
+24,,Material,Pricing Tier,,,
+25,,- Lacquered Matte = LACM,Tier 2,$$,,
+26,,- Lacquered Gloss = LACG,Tier 3,$$$,,
+27,,- Laminate = LAM,Tier 1,$,,
+28,,- Porcelain = POR,Tier 4,$$$$,,
+29,,- HPL = HPL,Tier 4,$$$$,,
+30,,- Solid Surface Matte = SSMT,Tier 2,$$,,
+31,,- Solid Surface Gloss = SSGL,Tier 2,$$,,
+32,,- SS Technolite = SSTL,Tier 2,$$,,
+33,,- SS Technomood = SSTM,Tier 2,$$,,
+34,,- SS Texturizzato = SSTEX,Tier 2,$$,,
+35,,- SS Technomat = SSTMT,Tier 1,$,,
+36,,- Glass Matte = GLSM,Tier 2,$$,,
+37,,- Glass Gloss = GLSG,Tier 2,$$,,
+38,,- Smoke Glass = SGLS,Tier 2,$$,,
+39,,- Wood Veneer = WDV,Tier 3,$$$,,

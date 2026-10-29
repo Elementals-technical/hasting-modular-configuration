@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"total":"$6,925.00","block":"Your Configuration\nCabinet\nSink Base\nUrban Duplex Height cabinet: Sink Base unit, 1 Drawer, Upper Groove handle, 23.6\" W, 11\" H, 18.1\" D\n1-Drawer | 23.6W-11H-18.1D\nUpper Groove\nCabinet\n$2,754.00\nCountertop\nCountertop\nCountertop - Style: Integrated, 23.6\" W, Thickness: 0.5\", Depth: 18.1\", Material: HPL, Color: Pulpis Chiaro TKH\n0.5\"\nCountertop\nHPL | Pulpis Chiaro TKH\n$1,063.00\nCountertop Style\nIntegrated\nBasin\nBasin - Style: Prisma\nPrisma\n$3,108.00\nAccessories\nFaucet\nFaucet Holes\n0\n$0.00\nSwatches\nAutofill My Swatches\n\nLet us fill your swatch cart with your selected finishes\n\nSwatches list\nFree\nOrder Swatches\n"}
+```

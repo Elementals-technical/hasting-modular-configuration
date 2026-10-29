@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildTierFilterOptions, filterOptionsByTier } from "../priceFilters";
+import { buildTierFilterOptions, filterOptionsByTier, SKU_TIERS } from "../priceFilters";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 const TIER_LABELS: Record<number, string> = {
@@ -60,5 +60,80 @@ describe("countertop material price filters", () => {
 
     const otherTierValue = tier === 1 ? "tier-3" : "tier-1";
     expect(filterOptionsByTier(options, otherTierValue)).toEqual([]);
+  });
+});
+
+const buildCabinetColor = (title: string, sku: string, material: string, colors: string[] = []): ProductOptionData => ({
+  id: title,
+  title,
+  desc: material,
+  isShortDesc: false,
+  metadata: { sku, materials: [material], colors, value: title },
+});
+
+/**
+ * The client's 'list material' > Material Pricing Tiers, Azzurra block, by the SKU material code the
+ * configurators give each of its materials (Tekormud is SSTM there).
+ */
+const AZZURRA_TIERS: Record<string, number> = {
+  "3D": 1,
+  LACM: 2,
+  LACG: 3,
+  ST: 3,
+  BM: 3,
+  HPL: 4,
+  ESS: 4,
+  FX: 4,
+  POR: 4,
+  GLSM: 2,
+  GLSG: 2,
+  SSMMO: 2,
+  SSOCR: 1,
+  SSTKR: 3,
+  SSTM: 3,
+};
+
+describe("shared price tiers", () => {
+  it("are the Azzurra block of the client's Material Pricing Tiers", () => {
+    expect(SKU_TIERS).toEqual(AZZURRA_TIERS);
+  });
+
+  it("rank a white lacquer, MT or GL, as Standard $", () => {
+    const whiteMt = buildCabinetColor("Bianco 0B MT", "LACM", "Lacquered MT", ["White"]);
+    const whiteGl = buildCabinetColor("Bianco 0B GL", "LACG", "Lacquered GL", ["White"]);
+
+    expect(filterOptionsByTier([whiteMt, whiteGl], "tier-1")).toEqual([whiteMt, whiteGl]);
+  });
+});
+
+describe("cabinet colour price tiers", () => {
+  const latte = buildCabinetColor("Latte 417 MT", "LACM", "Lacquered MT", ["White"]);
+  const salvia = buildCabinetColor("Salvia 415 MT", "LACM", "Lacquered MT", ["Green"]);
+  const rovere = buildCabinetColor("Rovere Oro 932", "WDV", "Wood Veneer");
+  const options = [latte, salvia, rovere];
+
+  it("ranks by the shared table without a collection's own tiers: white lacquer first, wood veneer in no tier", () => {
+    expect(buildTierFilterOptions(options).map(({ value }) => value)).toEqual(["tier-1", "tier-2"]);
+    expect(filterOptionsByTier(options, "tier-1")).toEqual([latte]);
+    expect(filterOptionsByTier(options, "tier-2")).toEqual([salvia]);
+  });
+
+  it("ranks by the collection's own tiers before the shared table and its white lacquer rule", () => {
+    const override = { bySku: { LACM: 1, WDV: 2 } };
+
+    expect(buildTierFilterOptions(options, override)).toEqual([
+      expect.objectContaining({ label: "Standard $", value: "tier-1" }),
+      expect.objectContaining({ label: "Classic $$", value: "tier-2" }),
+    ]);
+    expect(filterOptionsByTier(options, "tier-1", override)).toEqual([latte, salvia]);
+    expect(filterOptionsByTier(options, "tier-2", override)).toEqual([rovere]);
+  });
+
+  it("leaves a SKU the collection does not rank to the shared table", () => {
+    const override = { bySku: { WDV: 3 } };
+
+    expect(filterOptionsByTier(options, "tier-1", override)).toEqual([latte]);
+    expect(filterOptionsByTier(options, "tier-2", override)).toEqual([salvia]);
+    expect(filterOptionsByTier(options, "tier-3", override)).toEqual([rovere]);
   });
 });
