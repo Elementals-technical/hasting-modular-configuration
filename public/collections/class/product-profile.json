@@ -18,12 +18,13 @@
     "cabinetMatrixTableId": 579
   },
   "defaults": {
-    "CabinetColor": "INVISIBLE WHITE LUCIDO 334",
-    "CountertopColor": "INVISIBLE WHITE LUCIDO 334",
-    "CabinetSideColor": "Nero 433 MT",
+    "CabinetColor": "INVISIBLE WHITE OPACO 332",
+    "CountertopColor": "INVISIBLE WHITE OPACO 332",
+    "CabinetSideColor": "Latte 417 MT",
     "FrameColor": "Nero 433 MT",
     "CountertopStyle": "integrated",
-    "sinkType": "LV890"
+    "sinkType": "LV890",
+    "Thickness": "0.75"
   },
   "attributes": [
     {
@@ -54,19 +55,28 @@
           "value": "1",
           "label": "1 Drawer",
           "order": 10,
-          "aliases": ["1D", "1DW"]
+          "aliases": [
+            "1D",
+            "1DW"
+          ]
         },
         {
           "value": "2",
           "label": "2 Drawer",
           "order": 20,
-          "aliases": ["2D", "2DW"]
+          "aliases": [
+            "2D",
+            "2DW"
+          ]
         },
         {
           "value": "1+inner",
           "label": "1 Drawer With Inner Drawer",
           "order": 30,
-          "aliases": ["1DWID", "1+INNER"]
+          "aliases": [
+            "1DWID",
+            "1+INNER"
+          ]
         }
       ]
     },
@@ -109,13 +119,19 @@
           "value": "integrated",
           "label": "Integrated",
           "order": 10,
-          "aliases": ["Integrated", "INTG"]
+          "aliases": [
+            "Integrated",
+            "INTG"
+          ]
         },
         {
           "value": "vessel",
           "label": "Vessel",
           "order": 20,
-          "aliases": ["Vessel", "VES"]
+          "aliases": [
+            "Vessel",
+            "VES"
+          ]
         }
       ]
     },
@@ -298,8 +314,16 @@
       "initialValue": "None",
       "noneValue": "None",
       "options": [
-        { "value": "None", "label": "None", "order": 10 },
-        { "value": "Customize", "label": "Customize", "order": 20 }
+        {
+          "value": "None",
+          "label": "None",
+          "order": 10
+        },
+        {
+          "value": "Customize",
+          "label": "Customize",
+          "order": 20
+        }
       ]
     },
     {
@@ -335,21 +359,59 @@
         "handleDrawerConfigs": "handle_drawer_configs"
       }
     },
-    "drawerOrganizers": { "profile": "ROW-MTL-43" },
-    "drawerStyleGroups": [["1", "1+inner"], ["2"]],
+    "drawerOrganizers": {
+      "profile": "ROW-MTL-43"
+    },
+    "drawerStyleGroups": [
+      [
+        "1",
+        "1+inner"
+      ],
+      [
+        "2"
+      ]
+    ],
     "vesselCompatibility": {
       "hiddenStyles": [],
       "allowedMaterialsByStyle": {
-        "Iris": ["lacqueredmt"],
-        "Frame": ["lacqueredmt"],
-        "Plaza": ["lacqueredmt", "lacqueredgl"]
+        "Iris": [
+          "lacqueredmt"
+        ],
+        "Frame": [
+          "lacqueredmt"
+        ],
+        "Plaza": [
+          "lacqueredmt",
+          "lacqueredgl"
+        ]
       },
       "allowedColorCodesByStyle": {},
       "unavailableColorCodesByStyle": {},
       "defaultFinishByStyle": {
-        "Iris": { "materialTokens": ["lacqueredmt"], "colorCodes": ["415"] },
-        "Frame": { "materialTokens": ["lacqueredmt"], "colorCodes": ["401"] },
-        "Plaza": { "materialTokens": ["lacqueredmt"], "colorCodes": ["400"] }
+        "Iris": {
+          "materialTokens": [
+            "lacqueredmt"
+          ],
+          "colorCodes": [
+            "415"
+          ]
+        },
+        "Frame": {
+          "materialTokens": [
+            "lacqueredmt"
+          ],
+          "colorCodes": [
+            "401"
+          ]
+        },
+        "Plaza": {
+          "materialTokens": [
+            "lacqueredmt"
+          ],
+          "colorCodes": [
+            "400"
+          ]
+        }
       }
     }
   },
