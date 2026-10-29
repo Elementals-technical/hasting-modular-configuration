@@ -44,7 +44,7 @@
       "Glass MT": "GLSM",
       "Glass GL": "GLSG"
     },
-    "materialByBasin": { "VA030": "SSTEX" },
+    "materialByBasin": {},
     "thicknessByMaterial": {
       "SSTL": ".5",
       "SSTM": ".5",

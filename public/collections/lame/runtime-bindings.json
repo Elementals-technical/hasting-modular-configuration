@@ -630,9 +630,6 @@
           "Plaza": {
             "sinkType": "Vessel_Plaza"
           }
-        },
-        "unboundValues": {
-          "VA030": "The scene export has no sink product for VA030 (SS Texturizzato, export v66). Until it has one, a change to VA030 is refused as unsupported; a VA030 the state already holds (a saved configuration) is kept and priced, and the sink cabinet is placed without it."
         }
       },
       "order": 40,

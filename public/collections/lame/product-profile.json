@@ -249,12 +249,6 @@
           "category": "integrated"
         },
         {
-          "value": "VA030",
-          "label": "VA030",
-          "order": 50,
-          "category": "integrated"
-        },
-        {
           "value": "VA024",
           "label": "VA024",
           "order": 60,
@@ -511,7 +505,7 @@
     "sidePanels": "Side panels are now offered through the composition addon API and Accessories UI. Pattern and finish follow the adjacent cabinet. Quantity is the number of active left/right sides; one workbook/API unit price is charged per panel.",
     "undertop": "Confirmed: an optional recessed top, Gold or Silver (MTL) or matte lacquer (LACM), priced per cm of the composition with its side panels, not with a 60 cm Sink Base (docx P0258). Offered as the legs are (team, 2026-10-20): UndertopColor turns it on (\"None\", in the handle colour, until a colour is chosen) and off (\"\"), in the 22 colours of the handle palette, which are the MTL and LACM finishes (inference). Priced per cm of the composition's width as CT-GBMTL-UDTP-…-.7H-20.5D ($7.28) or CT-GBLACM-UDTP-…-.7H-20.5D ($9.25), in the handle colour while it names none (sku-profile undertop). Open: whether the 60 cm rule means the Sink Base or any cabinet, and whether the LACM colour is a choice (LAME-ACC-04, LAME-ACC-06).",
     "matteWhite8cm": "Listed in the Master File (L128) but Lame has thin countertops only (xlsx CountertopPricing!I5); configurator 14 does not offer it either (LAME-DAT-02).",
-    "va023": "Listed in the Master File (L202) but bound to the thick 3.1\" Technomat top; the Lame price workbook has VA030 for SS Texturizzato instead (xlsx Basin StylePricing!A2:A36), which this profile offers.",
+    "va023": "Listed in the Master File (L202) but bound to the thick 3.1\" Technomat top; the Lame price workbook has VA030 for SS Texturizzato instead (xlsx Basin StylePricing!A2:A36), which was dropped on 2026-10-29: no model, no further development, not offered.",
     "vesselArtDiamond": "Named in the WebGL Logic (P0274, P0275) but without a picture, size, finish or SKU; hidden until the product gives them (LAME-TOP-01, LAME-TOP-04).",
     "vesselPalettes": "Iris, Frame and Plaza are the vessels Mako prices from the same SKU table (SKU_Vessels_V2); their palettes and starting colours are written here as Mako's, which the Lame documents do not confirm (LAME-TOP-01).",
     "thickness": "Lame has thin countertops only: 0.5\" for six material groups, Porcelain 0.8\" in the price tables and 3/4\" in the client price list (LAME-TOP-03).",
