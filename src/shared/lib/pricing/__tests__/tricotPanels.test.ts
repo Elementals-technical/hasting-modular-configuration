@@ -87,20 +87,27 @@ describe("Tricot own side panels", () => {
   ] as const)("prices only active sides %s/%s as %s panels", (left, right, quantity) => {
     const result = buildCollectionPricingLines(withSides(left, right));
     expect(result.lines.filter((line) => line.group === "sidePanel")).toEqual([
-      { id: "sidePanel:composition", group: "sidePanel", sku: "VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-WDV-933", quantity },
+      {
+        id: "sidePanel:composition",
+        group: "sidePanel",
+        sku: "VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-WDV-933",
+        quantity,
+        finish: { color: "Noce Canaletto 933", materialSku: "WDV" },
+      },
     ]);
     expect(result.gaps.some((gap) => gap.group === "sidePanel")).toBe(false);
   });
 
   it.each([
-    ["Noce Canaletto 933", "WDV-933"],
-    ["Rovere Oro 932", "WDV-932"],
-    ["Nero 433 MT", "LACM-433"],
-  ])("inherits %s without a separate panel color", (color, suffix) => {
+    ["Noce Canaletto 933", "WDV", "933"],
+    ["Rovere Oro 932", "WDV", "932"],
+    ["Nero 433 MT", "LACM", "433"],
+  ])("inherits %s without a separate panel color, and is ordered in it", (color, material, code) => {
     const result = buildCollectionPricingLines(withSides("active", "none", color));
-    expect(result.lines.find((line) => line.group === "sidePanel")?.sku).toBe(
-      `VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-${suffix}`,
-    );
+    expect(result.lines.find((line) => line.group === "sidePanel")).toMatchObject({
+      sku: `VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-${material}-${code}`,
+      finish: { color, materialSku: material },
+    });
   });
 
   it("does not invent two panels before activation, nor silently omit a stale active panel after removal", () => {
@@ -190,7 +197,11 @@ describe("Tricot own side panels", () => {
       color: String(color),
       readConfiguratorColor: createConfiguratorColorReader(tricotProfile, tricotConfigurator),
     });
-    expect(panel).toEqual({ sku: `VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-${material}-${code}`, quantity: 1 });
+    expect(panel).toEqual({
+      sku: `VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-${material}-${code}`,
+      quantity: 1,
+      finish: { color, materialSku: material },
+    });
     expect(
       workbook.cases.find((entry) => entry.baseSku === confirmed.baseSku && entry.material === material)?.price,
     ).toBe(price);
@@ -199,7 +210,13 @@ describe("Tricot own side panels", () => {
   it.each([1, 2, 3])("uses the explicitly supplied quantity %s, never an Urban default", (quantity) => {
     const result = buildCollectionPricingLines(input("NoG", quantity));
     expect(result.lines.filter(({ group }) => group === "sidePanel")).toEqual([
-      { id: "sidePanel:composition", group: "sidePanel", sku: "VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-WDV-933", quantity },
+      {
+        id: "sidePanel:composition",
+        group: "sidePanel",
+        sku: "VAN-TRIC-SP-.8W-15.7H-20.5D-CAB-WDV-933",
+        quantity,
+        finish: { color: "Noce Canaletto 933", materialSku: "WDV" },
+      },
     ]);
     expect(result.gaps.some(({ group }) => group === "sidePanel")).toBe(false);
   });
