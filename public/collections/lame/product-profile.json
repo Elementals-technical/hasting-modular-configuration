@@ -14,7 +14,8 @@
     ],
     "auditedAt": "2026-10-07",
     "warning": "Only facts the Lame documents confirm: the WebGL Logic, the Lame price workbook (countertops, basins and accessories through the Class workbook), the GB rules and the Master File. Where the Master File conflicts with the price workbook, the workbook wins. Mako values are not inherited: where Lame equals Mako, the value is written again here.",
-    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list (Metal) keeps the shared (Azzurra) table's tier, which has none for it."
+    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list (Metal) keeps the shared (Azzurra) table's tier, which has none for it.",
+    "countertopDefaults": "User approved Matte White + integrated LB175 for all local Lame presets on 2026-10-29, based on the supplied UI_Countertop Color / UI_Basin Style screenshot. This defines the requested app default; the screenshot alone does not establish a manufacturer-wide default."
   },
   "sourceRefs": {
     "configuratorId": 14,
@@ -27,7 +28,7 @@
     "HandleColor": "Fumo 401 MT",
     "CountertopColor": "Matte White",
     "CountertopStyle": "integrated",
-    "sinkType": "LB440"
+    "sinkType": "LB175"
   },
   "attributes": [
     {
@@ -428,7 +429,7 @@
     "countertopDepth": "The countertop SKU spells 20.7\" (52.6 cm), the cabinets 20.5\" (52 cm); the table keeps 52 cm (LAME-TOP-02).",
     "compositionLimits": "Confirmed: at most 220 cm, at most two Sink Bases, cabinets abut only, one drawer style per composition (P0223-P0227). Only the drawer style is expressed (drawerStyleGroups).",
     "floating": "Mentioned like Urban Low Height, but it needs a thick countertop and Lame has thin ones only, so no floating option is valid today (GEN-TOP-23).",
-    "defaults": "Not described. The models start in Antracite 400 MT, with handles in Antracite 400 MT too, with a white Solid Surface top and an integrated basin, as the pre-render thumbnails show them (inference); LB440 is the first basin the price list gives that top. A cabinet of the builder starts in the same handle colour, rather than the scene's Antracite Matte OCF.",
+    "defaults": "The original documents do not describe collection-wide defaults. LB440 was previously inferred from the first basin in the price list. The user-approved local countertop and basin default is now Matte White + integrated LB175; see provenance.countertopDefaults.",
     "presets": "43 of the 44 Master File models. Their compositions are read from the pre-render thumbnails, since no document describes them (GEN-MOD-01). The thumbnail of Lame 79 2DW w/leg_70 (L37) does not exist in the pre-render, so that model is left out. Lame 63 2DW_60 (L28) and Lame 63 2DW w/leg_60 (L30) are tagged by what the thumbnail shows: one basin and two basins, not the filters the Master File gives them. Every model carries the starting pattern, Oxford, which the scene would otherwise lay as Galles; the models whose titles name legs stand on them.",
     "faucetHolesOnGlass": "0 to 3 holes for every material as GB and the Class price list give them; USH allows 0 or 1 on glass (GEN-TOP-02)."
   }
