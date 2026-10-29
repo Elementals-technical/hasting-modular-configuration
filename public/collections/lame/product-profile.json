@@ -22,9 +22,9 @@
     "cabinetMatrixTableId": 596
   },
   "defaults": {
-    "CabinetColor": "Antracite 400 MT",
+    "CabinetColor": "Fumo 401 MT",
     "CabinetPattern": "Oxford",
-    "HandleColor": "Antracite 400 MT",
+    "HandleColor": "Fumo 401 MT",
     "CountertopColor": "Matte White",
     "CountertopStyle": "integrated",
     "sinkType": "LB440"
