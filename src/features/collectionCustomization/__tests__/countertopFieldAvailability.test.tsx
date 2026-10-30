@@ -21,11 +21,14 @@ import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture"
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import { resetConfiguration } from "@/entities/configuration";
+import { changeAttribute } from "@/features/configurationCommands";
+import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import type { ConfiguratorVariant } from "@/entities/configurator/api";
 import {
   reset,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  setActiveCountertopThickness,
   setActiveProfile,
   setCountertopStyle,
   setSelectedDimensions,
@@ -277,6 +280,69 @@ describe("Class countertop fields follow the countertop matrix", () => {
     store.dispatch(setActiveCountertopColor("Matte White"));
     expect(shownValues("basin-style")).toEqual(["LB440", "LB175", "LB575", "LB856", "VA023"]);
   });
+});
+
+describe.each(["Solid Surface 3 ⅛", "Solid Surface"])("Class unsupported 8cm colour (%s metadata)", (material) => {
+  const groups = configuratorGroups.map((group) =>
+    group.proxyName === "Select Countertop Color"
+      ? {
+          ...group,
+          options: group.options.map((option, index) =>
+            index === 0
+              ? {
+                  ...option,
+                  variants: [...option.variants, makoCountertopVariant("Matte White 8cm", material, "SSTMT", "MW")],
+                }
+              : option,
+          ),
+        }
+      : group,
+  );
+  const collection = {
+    profile: parsedClassProfile.profile,
+    ready: readyCollectionOf("class", classManifest, classUi, datatable578, groups),
+  };
+  const { fieldOf, enabledValues } = fieldsOf(collection);
+
+  beforeEach(() => {
+    startWith(collection);
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it.each(["Acqua 419 GL", "Matte White"])("disables the 8cm swatch with a reason while %s stays chosen", (colour) => {
+    store.dispatch(setActiveCountertopColor(colour));
+    const field = fieldOf("countertop-color");
+    const white8cm = field?.options.find(({ value }) => value === "Matte White 8cm");
+    expect(white8cm).toMatchObject({ enabled: false, reasonCode: "product.missingData" });
+    expect(selectMessage(collection.profile, white8cm?.reasonCode ?? "")).toContain("Not available yet");
+    expect(field?.options.find(({ value }) => value === colour)?.enabled).toBe(true);
+    expect(store.getState().rootStateUI.product.productOptions.CountertopColor).toBe(colour);
+  });
+
+  it("keeps the ordinary Matte White's supported 3.1-inch VA023 choice", () => {
+    store.dispatch(setActiveCountertopColor("Matte White"));
+    store.dispatch(setActiveCountertopThickness("3.125"));
+    expect(enabledValues("thickness")).toContain("3.125");
+    expect(enabledValues("basin-style")).toContain("VA023");
+  });
+
+  it.each(["prebuilt", "custom"] as const)(
+    "refuses an 8cm command in %s before touching scene or state",
+    async (flow) => {
+      store.dispatch(setActiveCountertopColor("Acqua 419 GL"));
+      store.dispatch(setActiveCountertopThickness("0.5"));
+      store.dispatch(setActiveBasinStyle("VA002"));
+      const before = store.getState().rootStateUI.product.productOptions;
+      const runtime = createTestRuntimePort();
+      const result = await changeAttribute(
+        { attributeId: "CountertopColor", scope: "countertop", value: "Matte White 8cm" },
+        { getState: store.getState, dispatch: store.dispatch, runtime: runtime.port, flow },
+      );
+      expect(result).toMatchObject({ status: "blocked", reasonCode: "product.missingData" });
+      expect(runtime.calls).toHaveLength(0);
+      expect(store.getState().rootStateUI.product.productOptions).toEqual(before);
+    },
+  );
 });
 
 // The Urban Standard Height basins name their matrix row by their label ("HPL Cover 50" is the

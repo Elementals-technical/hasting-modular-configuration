@@ -347,6 +347,14 @@
     }
   ],
   "ruleData": {
+    "undeterminedRules": [
+      {
+        "ruleId": "CLASS-CT-COLOR-001",
+        "attributeId": "CountertopColor",
+        "values": ["Matte White 8cm"],
+        "source": "C-1 spec 4.4 / 7.5; Q-CLASS-016: separate 8cm colour is not supported by the current countertop flow"
+      }
+    ],
     "cabinetMatrixLegacyAdapter": {
       "tableId": 579,
       "columns": {

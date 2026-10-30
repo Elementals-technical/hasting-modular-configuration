@@ -130,6 +130,7 @@ describe("class product profile", () => {
       "drawerOrganizers",
       "drawerStyleGroups",
       "priceTiers",
+      "undeterminedRules",
       "vesselCompatibility",
     ]);
   });
