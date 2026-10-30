@@ -43,6 +43,8 @@ export default defineConfig({
     allowedHosts: [
       "hasting-modular-configuration-v3aur.ondigitalocean.app",
       "hastings-modular.vivid3d.tech",
+      "drag-and-droup-xepyx.ondigitalocean.app",
+      "https://drag-and-droup-xepyx.ondigitalocean.app",
       "hasting-modular-phase-2-p98qb.ondigitalocean.app",
       "hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app",
     ],
