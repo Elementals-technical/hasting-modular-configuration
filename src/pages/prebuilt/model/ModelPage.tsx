@@ -27,6 +27,7 @@ import {
   selectDefaultValue,
   selectOptions,
   selectRuntimeBinding,
+  selectRuleData,
   semanticValueOf,
   useActiveCollection,
   useCollectionPresets,
@@ -136,6 +137,7 @@ type PendingModelSelection = {
 
 type ApplyPresetSelectionOptions = {
   syncUrl?: boolean;
+  preserveSelections?: boolean;
   preserveCountertopSelections?: boolean;
 };
 
@@ -716,13 +718,27 @@ export const ModelPage = () => {
       const runSelection = async () => {
         if (requestId !== presetSelectionRequestIdRef.current) return;
 
-        const preserveCountertopSelections = options?.preserveCountertopSelections !== false;
-        const overrides = preserveCountertopSelections ? transferableOverrides : colorTransferableOverrides;
+        const preserveSelections = options?.preserveSelections !== false;
+        const preserveCountertopSelections = preserveSelections && options?.preserveCountertopSelections !== false;
+        const overrides = !preserveSelections
+          ? {}
+          : preserveCountertopSelections
+            ? transferableOverrides
+            : colorTransferableOverrides;
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
         const globalConfig = resolveCompatibleCountertopSceneConfig(
           {
+            ...(!preserveSelections
+              ? {
+                  CabinetColor: selectDefaultValue(activeProfile, "CabinetColor"),
+                  CountertopColor: selectDefaultValue(activeProfile, "CountertopColor"),
+                  sinkType: selectDefaultValue(activeProfile, "sinkType"),
+                  CountertopStyle: inferCountertopStyleFromSinkType(selectDefaultValue(activeProfile, "sinkType")),
+                  Thickness: selectDefaultValue(activeProfile, "Thickness"),
+                }
+              : {}),
             ...resolvePresetSceneDefaults(effectivePresetProducts),
-            ...resolveColorSceneOverrides(),
+            ...(preserveSelections ? resolveColorSceneOverrides() : {}),
             ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
           },
           effectivePresetProducts,
@@ -748,6 +764,7 @@ export const ModelPage = () => {
         }
         const placed = await composition.applyPreset({
           products: toCompositionProducts(effectivePresetProducts),
+          preserveSelections,
           shared: toConfigurationValues(globalConfig),
           afterPlacement: countertopValuesAfterPlacement(globalConfig),
         });
@@ -761,7 +778,21 @@ export const ModelPage = () => {
           dispatch(addProductPreset(effectivePresetProducts));
           syncCountertopSelectionFromSceneConfig(globalConfig, { clearMissing: !preserveCountertopSelections });
         }
-        if (!preserveCountertopSelections) {
+        if (!preserveSelections) {
+          record({
+            ...Object.fromEntries(
+              (["CabinetSideColor", "FrameColor"] as const).map((attributeId) => [
+                attributeId,
+                effectivePresetProducts.find(
+                  (product) => typeof product[attributeId] === "string" && product[attributeId],
+                )?.[attributeId] ?? selectDefaultValue(activeProfile, attributeId),
+              ]),
+            ),
+            Thickness: globalConfig.Thickness ?? "",
+            VesselColor: "",
+            FaucetHolesAmount: "0",
+          });
+        } else if (!preserveCountertopSelections) {
           resetRestrictedCountertopSelections();
         }
         await updateSelectedDimensionsFromScene(effectivePresetProducts, sceneProductIds);
@@ -816,6 +847,7 @@ export const ModelPage = () => {
     },
     [
       applyAndAdoptCompactPreset,
+      activeProfile,
       colorTransferableOverrides,
       composition,
       dispatch,
@@ -842,6 +874,11 @@ export const ModelPage = () => {
     ) => {
       if (!presetProducts?.length) {
         await applyPresetSelection(presetProducts, presetId, options);
+        return;
+      }
+
+      if (selectRuleData(activeProfileRef.current, "prebuiltModelSelection")?.resetSelections) {
+        await applyPresetSelection(presetProducts, presetId, { ...options, preserveSelections: false });
         return;
       }
 

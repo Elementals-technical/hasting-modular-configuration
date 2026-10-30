@@ -348,6 +348,7 @@
     }
   ],
   "ruleData": {
+    "prebuiltModelSelection": { "resetSelections": true },
     "undeterminedRules": [
       {
         "ruleId": "CLASS-CT-COLOR-001",

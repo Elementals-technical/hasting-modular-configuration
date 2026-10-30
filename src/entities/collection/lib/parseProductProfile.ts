@@ -413,6 +413,9 @@ const NUMBER: FieldCheck = [isFiniteNumber, "a finite number"];
 const NON_EMPTY_STRING: FieldCheck = [isNonEmptyString, "a non-empty string"];
 
 const RULE_SECTION_FIELDS = {
+  prebuiltModelSelection: {
+    resetSelections: [isBoolean, "a boolean"],
+  },
   cabinetColorTraits: {
     materialBySku: [isStringRecord, "a map of SKU to material token"],
     materialByCategory: [optional(isStringRecord), "a map of category to material token"],
@@ -700,6 +703,11 @@ const parseRuleSections = (
       "countertopCompatibility requires a positive integer tableId",
     );
   const sections: Omit<ProfileRuleData, "cabinetMatrixLegacyAdapter"> = {
+    prebuiltModelSelection: parseRuleSection<ProfileRuleData["prebuiltModelSelection"]>(
+      ruleData,
+      "prebuiltModelSelection",
+      collect,
+    ),
     ...(validCompatibility ? { countertopCompatibility: { tableId: compatibility.tableId as number } } : {}),
     cabinetModules: parseCabinetModules(ruleData.cabinetModules, collect),
     seriesModules: parseSeriesModules(ruleData.seriesModules, collect),

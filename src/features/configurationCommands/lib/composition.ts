@@ -83,6 +83,8 @@ export type CompositionResult =
   | { status: "error"; code: CompositionErrorCode; message: string; sceneCode?: string };
 
 export type ApplyPresetRequest = {
+  /** False for a model selection that starts from its own finishes rather than the user's choices. */
+  preserveSelections?: boolean;
   /** The preset's products, in order. */
   products: readonly SceneCompositionProduct[];
   /** Configuration values every product is placed with. */
@@ -448,7 +450,7 @@ const settleValues = async (
 };
 
 export const applyPreset = async (
-  { products, shared = {}, afterPlacement, record }: ApplyPresetRequest,
+  { products, shared = {}, afterPlacement, record, preserveSelections = true }: ApplyPresetRequest,
   deps: CompositionDeps,
 ): Promise<CompositionResult> => {
   const state = deps.getState();
@@ -463,7 +465,7 @@ export const applyPreset = async (
 
   // A colour the configuration holds goes on the model too, as the price already reads it:
   // the model's own colours stand only while nothing was chosen.
-  const chosen = selectPlacedWithValues(state, { chosenOnly: true });
+  const chosen = preserveSelections ? selectPlacedWithValues(state, { chosenOnly: true }) : {};
   const placedProducts =
     Object.keys(chosen).length > 0
       ? products.map((product) => ({ ...product, config: { ...product.config, ...chosen } }))

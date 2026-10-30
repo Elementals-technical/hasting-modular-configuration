@@ -96,6 +96,31 @@ describe("composition commands", () => {
   });
 
   describe("applyPreset", () => {
+    it.each([true, false])(
+      "preserveSelections=%s controls whether chosen finishes override the preset",
+      async (preserveSelections) => {
+        const parsed = parseProductProfile(classProfileDocument);
+        if (!parsed.ok) throw new Error("Class profile must parse");
+        store.dispatch(setActiveProfile(parsed.profile));
+        store.dispatch(setActiveRuntimeBindings(classRuntimeBindings));
+        const { composition, deps } = setup();
+        store.dispatch(
+          setAttributeValue({ attributeId: "FrameColor", target: { scope: "global" }, value: "Moka 408 MT" }),
+        );
+        await applyPreset(
+          {
+            products: [{ productType: "Sink-Base", config: { FrameColor: "Nero 433 MT", Drawers: "1D" } }],
+            preserveSelections,
+          },
+          deps,
+        );
+        expect(lastCall(composition)).toMatchObject({
+          op: "replace",
+          request: { products: [{ config: { FrameColor: preserveSelections ? "Moka 408 MT" : "Nero 433 MT" } }] },
+        });
+      },
+    );
+
     it("places the preset once and records its products, their drawer styles and stable keys", async () => {
       const { composition, runtime, deps } = setup();
 
