@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode } from "react";
+import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import clsx from "clsx";
 
@@ -14,6 +14,7 @@ export interface DropdownItem {
   onClick?: () => void;
   disabled?: boolean;
   disabledReason?: string;
+  checked?: boolean;
 }
 
 interface NestedDropdownProps {
@@ -29,9 +30,25 @@ interface MenuItemProps {
 
 const MenuItem = ({ item, renderItems }: MenuItemProps) => {
   const hasChildren = Boolean(item.children?.length);
+  const submenuRef = useRef<HTMLDivElement>(null);
+  const [submenuTop, setSubmenuTop] = useState(0);
 
   return (
     <div
+      onMouseEnter={(event) => {
+        if (!hasChildren || !submenuRef.current) return;
+        const top = event.currentTarget.getBoundingClientRect().top;
+        setSubmenuTop(Math.min(0, window.innerHeight - top - submenuRef.current.offsetHeight - 8));
+      }}
+      role={item.checked !== undefined ? "checkbox" : undefined}
+      aria-checked={item.checked}
+      tabIndex={item.checked !== undefined ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (item.checked !== undefined && (event.key === " " || event.key === "Enter")) {
+          event.preventDefault();
+          if (!item.disabled) item.onClick?.();
+        }
+      }}
       className={clsx(s.item, hasChildren && s.hasChildren, item.disabled && s.disabled)}
       title={item.disabled && item.disabledReason ? item.disabledReason : undefined}
       onClick={() => {
@@ -52,7 +69,11 @@ const MenuItem = ({ item, renderItems }: MenuItemProps) => {
         )}
       </div>
 
-      {hasChildren && <div className={s.subWrapper}>{renderItems(item.children ?? [], true)}</div>}
+      {hasChildren && (
+        <div ref={submenuRef} className={s.subWrapper} style={{ top: submenuTop }}>
+          {renderItems(item.children ?? [], true)}
+        </div>
+      )}
     </div>
   );
 };

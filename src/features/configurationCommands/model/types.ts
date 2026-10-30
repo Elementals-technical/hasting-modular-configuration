@@ -28,6 +28,7 @@ export type AttributeChange = { attributeId: string; value: AttributeValue } & (
    * `onlyThisCabinet`: the cabinet named is the only one that changes. Without it a value the
    * scene gives every cabinet at once goes to them all, the named cabinet being where a field
    * records it. Taken only for a value whose binding allows it (`perProduct`).
+   * A perProduct binding targeting product expands a shared choice into one change per cabinet.
    */
   | { scope: "cabinet"; cabinetId: StableCabinetKey; onlyThisCabinet?: boolean }
   | { scope: "drawer"; cabinetId: StableCabinetKey; drawerType: DrawerType }

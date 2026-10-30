@@ -2176,9 +2176,13 @@ export const PlayCanvasIntegration = ({
     customizationSchema?.playerMenu?.attributes,
     selectedCabinetKey,
   );
+  const [applyCabinetAttributeToAll, setApplyCabinetAttributeToAll] = useState(false);
+  useEffect(() => {
+    setApplyCabinetAttributeToAll(false);
+  }, [selectedCabinetKey]);
 
   const handleSetCabinetAttribute = useCallback(
-    async (attributeId: string, value: string) => {
+    async (attributeId: string, value: string, applyToAll = false) => {
       setDropdownState((prev) => ({ ...prev, visible: false }));
       if (!selectedCabinetKey) return;
 
@@ -2189,7 +2193,7 @@ export const PlayCanvasIntegration = ({
             value,
             scope: "cabinet",
             cabinetId: selectedCabinetKey,
-            onlyThisCabinet: true,
+            onlyThisCabinet: !applyToAll,
           }),
         );
         if (result.status !== "applied") {
@@ -3478,10 +3482,11 @@ export const PlayCanvasIntegration = ({
     () =>
       buildCabinetAttributeMenuItems(
         cabinetAttributeFields,
-        (attributeId, value) => void handleSetCabinetAttribute(attributeId, value),
+        (attributeId, value, applyToAll) => void handleSetCabinetAttribute(attributeId, value, applyToAll),
         <AppIcon icon={Check} size={12} />,
+        { checked: applyCabinetAttributeToAll, onToggle: () => setApplyCabinetAttributeToAll((checked) => !checked) },
       ),
-    [cabinetAttributeFields, handleSetCabinetAttribute],
+    [applyCabinetAttributeToAll, cabinetAttributeFields, handleSetCabinetAttribute],
   );
 
   const rawDropdownItems: DropdownItem[] = useMemo(() => {

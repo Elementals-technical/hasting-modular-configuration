@@ -256,6 +256,7 @@
     {
       "attributeId": "DrawerPanelFluting",
       "status": "bound",
+      "perProduct": true,
       "target": {
         "kind": "product"
       },

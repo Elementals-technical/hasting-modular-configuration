@@ -1,5 +1,6 @@
 {
   "collectionId": "tricot",
+  "playerMenu": { "attributes": ["DrawerPanelFluting"] },
   "optionImages": {
     "sinkType": {
       "LB440": "images/basin/LB440.png",
