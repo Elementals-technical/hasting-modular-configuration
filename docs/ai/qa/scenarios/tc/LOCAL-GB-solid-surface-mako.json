@@ -1,0 +1,113 @@
+{
+  "description": "Local: mako Countertop Color, Solid Surface types Technolite / Technomat from GBMaterial: menu, grid, availability, price tier, full mode. Read-only, guarded.",
+  "steps": [
+    {
+      "tool": "list_pages",
+      "args": {},
+      "save": "00-pages.txt",
+      "capture": {
+        "pageId": "[\\s\\S]*\\n(\\d+): [^\\n]*\\(http://localhost:5173/[^\\n]*collectionId=(?:mako|lame|class|tricot)\\)"
+      }
+    },
+    {
+      "tool": "navigate_page",
+      "args": {
+        "pageId": "${pageId}",
+        "type": "url",
+        "url": "http://localhost:5173/prebuilt/model?collectionId=mako",
+        "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n\n// QA harness (agent tab only): simulates the proposed loader fix \u2014 collection JSON fetched with cache:'no-cache'\n// (forces revalidation, so a heuristically-fresh stale copy is not used). Combine with write-guard.js.\n(() => {\n  if (window.__qaCollectionsNoCache) return;\n  window.__qaCollectionsNoCache = true;\n  const prev = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    if (url && url.includes('/collections/')) return prev(input, { ...init, cache: 'no-cache' });\n    return prev(input, init);\n  };\n})();\n"
+      },
+      "save": "01-nav.txt"
+    },
+    {
+      "sleep": 15000
+    },
+    {
+      "tool": "evaluate_script",
+      "args": {
+        "pageId": "${pageId}",
+        "function": "() => {\n  // Click the visible element whose text matches \"Skip\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Skip\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+      },
+      "save": "02-skip.txt",
+      "optional": true
+    },
+    {
+      "tool": "evaluate_script",
+      "args": {
+        "pageId": "${pageId}",
+        "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+      },
+      "save": "03-next-color.txt",
+      "optional": false
+    },
+    {
+      "sleep": 5000
+    },
+    {
+      "tool": "evaluate_script",
+      "args": {
+        "pageId": "${pageId}",
+        "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+      },
+      "save": "20-next-countertop.txt",
+      "optional": false
+    },
+    {
+      "sleep": 6000
+    },
+    {
+      "tool": "evaluate_script",
+      "args": {
+        "pageId": "${pageId}",
+        "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst swatchButtons = (scope) => [...scope.querySelectorAll('button[class*=selectButton]')];\nconst shown = (scope) => swatchButtons(scope).map((b) => txt(b.getAttribute('aria-label')));\nconst groups = (scope) => [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\nconst filterButton = (scope, re) => [...scope.querySelectorAll('button[aria-haspopup=listbox]')].find((b) => re.test(txt(b.innerText)));\nconst MATERIAL = /^(Material|Show all|HPL|Porcelain|Fenix|Solid Surface|Technolite|Technomat|Glass|Glass GL|Glass MT|Laminate)$/;\nconst PRICE = /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$)$/;\nconst close = async () => { document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); await wait(300); };\nconst openMenu = async (scope, re, name) => { const b = scope.querySelectorAll('button[aria-haspopup=listbox]')[0] && filterButton(scope, re); if (!b) return null; b.click(); await wait(500); return [...document.querySelectorAll(`[role=listbox][aria-label=${name}]`)].pop(); };\nconst labels = (lb) => [...lb.querySelectorAll('[role=option]')].map((o) => txt(o.querySelector('span')?.innerText || o.innerText));\nconst pickIn = async (scope, re, name, text, expand) => {\n  const lb = await openMenu(scope, re, name);\n  if (!lb) return { err: 'NO ' + name + ' MENU' };\n  if (expand) { const caret = lb.querySelector(`button[aria-label=\"Expand ${expand}\"]`); if (!caret) { const offered = labels(lb); await close(); return { err: 'NO CARET ' + expand, offered }; } caret.click(); await wait(300); }\n  const btn = [...lb.querySelectorAll('button')].find((b) => txt(b.querySelector('span')?.innerText || b.innerText) === text);\n  if (!btn) { const offered = labels(lb); await close(); return { err: 'NO ITEM ' + text, offered }; }\n  btn.click(); await wait(900);\n  const names = shown(scope);\n  return { pick: text, count: names.length, swatches: names.length <= 4 ? names : undefined, groups: groups(scope) };\n};\nconst pick = (scope, text, expand) => pickIn(scope, MATERIAL, 'Material', text, expand);\nconst solidSurfaceSwatches = (scope) => swatchButtons(scope)\n  .filter((b) => /^Matte White/.test(txt(b.getAttribute('aria-label'))))\n  .map((b) => ({ name: txt(b.getAttribute('aria-label')), group: txt(b.closest('section')?.querySelector('[class*=groupTitle]')?.innerText), unavailable: b.getAttribute('aria-disabled') === 'true', chosen: b.getAttribute('aria-pressed') === 'true' }));\nconst panelOf = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return null;\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  return document.getElementById(trig.getAttribute('aria-controls') || '');\n};\n\nconst panel = await panelOf('Countertop Color');\nif (!panel) return { err: 'NO COUNTERTOP COLOR PANEL' };\nconst r = { noFilter: { count: shown(panel).length, groups: groups(panel) } };\nlet lb = await openMenu(panel, MATERIAL, 'Material');\nr.menu = labels(lb);\nconst caret = lb.querySelector('button[aria-label=\"Expand Solid Surface\"]');\nr.solidSurfaceIsHeader = !!caret;\nif (caret) { caret.click(); await wait(300); r.menuExpanded = labels(lb); }\nawait close();\nr.technolite = await pick(panel, 'Technolite', 'Solid Surface');\nr.technomat = await pick(panel, 'Technomat', 'Solid Surface');\nr.header = await pick(panel, 'Solid Surface');\nr.solidSurfaceSwatches = solidSurfaceSwatches(panel);\nlb = await openMenu(panel, PRICE, 'Price');\nr.priceOfferedForSolidSurface = lb ? labels(lb) : 'NO PRICE MENU';\nawait close();\nr.priceTiers = {};\nfor (const tier of (Array.isArray(r.priceOfferedForSolidSurface) ? r.priceOfferedForSolidSurface : []).filter((t) => t !== 'Show all')) {\n  const res = await pickIn(panel, PRICE, 'Price', tier);\n  r.priceTiers[tier] = res.swatches ?? res;\n}\nawait pickIn(panel, PRICE, 'Price', 'Show all');\nr.glass = await pick(panel, 'Glass');\nr.showAll = await pick(panel, 'Show all');\nreturn r;\n}"
+      },
+      "save": "10-grid.txt"
+    },
+    {
+      "tool": "evaluate_script",
+      "args": {
+        "pageId": "${pageId}",
+        "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst swatchButtons = (scope) => [...scope.querySelectorAll('button[class*=selectButton]')];\nconst shown = (scope) => swatchButtons(scope).map((b) => txt(b.getAttribute('aria-label')));\nconst groups = (scope) => [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\nconst filterButton = (scope, re) => [...scope.querySelectorAll('button[aria-haspopup=listbox]')].find((b) => re.test(txt(b.innerText)));\nconst MATERIAL = /^(Material|Show all|HPL|Porcelain|Fenix|Solid Surface|Technolite|Technomat|Glass|Glass GL|Glass MT|Laminate)$/;\nconst PRICE = /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$)$/;\nconst close = async () => { document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true })); await wait(300); };\nconst openMenu = async (scope, re, name) => { const b = scope.querySelectorAll('button[aria-haspopup=listbox]')[0] && filterButton(scope, re); if (!b) return null; b.click(); await wait(500); return [...document.querySelectorAll(`[role=listbox][aria-label=${name}]`)].pop(); };\nconst labels = (lb) => [...lb.querySelectorAll('[role=option]')].map((o) => txt(o.querySelector('span')?.innerText || o.innerText));\nconst pickIn = async (scope, re, name, text, expand) => {\n  const lb = await openMenu(scope, re, name);\n  if (!lb) return { err: 'NO ' + name + ' MENU' };\n  if (expand) { const caret = lb.querySelector(`button[aria-label=\"Expand ${expand}\"]`); if (!caret) { const offered = labels(lb); await close(); return { err: 'NO CARET ' + expand, offered }; } caret.click(); await wait(300); }\n  const btn = [...lb.querySelectorAll('button')].find((b) => txt(b.querySelector('span')?.innerText || b.innerText) === text);\n  if (!btn) { const offered = labels(lb); await close(); return { err: 'NO ITEM ' + text, offered }; }\n  btn.click(); await wait(900);\n  const names = shown(scope);\n  return { pick: text, count: names.length, swatches: names.length <= 4 ? names : undefined, groups: groups(scope) };\n};\nconst pick = (scope, text, expand) => pickIn(scope, MATERIAL, 'Material', text, expand);\nconst solidSurfaceSwatches = (scope) => swatchButtons(scope)\n  .filter((b) => /^Matte White/.test(txt(b.getAttribute('aria-label'))))\n  .map((b) => ({ name: txt(b.getAttribute('aria-label')), group: txt(b.closest('section')?.querySelector('[class*=groupTitle]')?.innerText), unavailable: b.getAttribute('aria-disabled') === 'true', chosen: b.getAttribute('aria-pressed') === 'true' }));\nconst panelOf = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return null;\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  return document.getElementById(trig.getAttribute('aria-controls') || '');\n};\n\nawait close();\nconst panel = await panelOf('Countertop Color');\nconst link = [...panel.querySelectorAll('a')].find((a) => txt(a.innerText) === 'View in full mode');\nif (!link) return { err: 'NO FULL MODE LINK' };\nlink.click(); await wait(1500);\nconst dialog = document.querySelector('[role=dialog][aria-label=\"Countertop Color\"]');\nif (!dialog) return { err: 'NO DIALOG' };\nconst r = { technolite: await pick(dialog, 'Technolite', 'Solid Surface'), technomat: await pick(dialog, 'Technomat', 'Solid Surface'), header: await pick(dialog, 'Solid Surface') };\nr.solidSurfaceSwatches = solidSurfaceSwatches(dialog);\nlet lb = await openMenu(dialog, MATERIAL, 'Material'); lb?.querySelector('button[aria-label=\"Expand Solid Surface\"]')?.click(); await wait(400);\nreturn r;\n}"
+      },
+      "save": "20-fullmode.txt"
+    },
+    {
+      "tool": "take_screenshot",
+      "args": {
+        "pageId": "${pageId}",
+        "format": "jpeg",
+        "quality": 70
+      },
+      "save": "21-fullmode-menu.jpg"
+    },
+    {
+      "tool": "evaluate_script",
+      "args": {
+        "pageId": "${pageId}",
+        "function": "async () => { const d = document.querySelector('[role=dialog][aria-label=\"Countertop Color\"]'); d?.querySelector('button[class*=closeBtn]')?.click(); await new Promise((r) => setTimeout(r, 600)); return { closed: !document.querySelector('[role=dialog][aria-label=\"Countertop Color\"]') }; }"
+      },
+      "save": "22-close.txt"
+    },
+    {
+      "tool": "evaluate_script",
+      "args": {
+        "pageId": "${pageId}",
+        "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+      },
+      "save": "40-guard.txt",
+      "optional": false
+    },
+    {
+      "tool": "list_console_messages",
+      "args": {
+        "pageId": "${pageId}",
+        "pageSize": 300,
+        "types": [
+          "error",
+          "warn"
+        ]
+      },
+      "save": "41-console.txt"
+    }
+  ]
+}

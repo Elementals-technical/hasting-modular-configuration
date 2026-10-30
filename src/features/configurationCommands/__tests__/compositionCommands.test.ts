@@ -6,7 +6,7 @@ import tricotBindingsDocument from "../../../../public/collections/tricot/runtim
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import { store } from "@/app/store";
-import { parseProductProfile, parseRuntimeBindings } from "@/entities/collection";
+import { parseProductProfile, parseRuntimeBindings, resolveProductConfig } from "@/entities/collection";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
@@ -96,6 +96,31 @@ describe("composition commands", () => {
   });
 
   describe("applyPreset", () => {
+    it.each([true, false])(
+      "preserveSelections=%s controls whether chosen finishes override the preset",
+      async (preserveSelections) => {
+        const parsed = parseProductProfile(classProfileDocument);
+        if (!parsed.ok) throw new Error("Class profile must parse");
+        store.dispatch(setActiveProfile(parsed.profile));
+        store.dispatch(setActiveRuntimeBindings(classRuntimeBindings));
+        const { composition, deps } = setup();
+        store.dispatch(
+          setAttributeValue({ attributeId: "FrameColor", target: { scope: "global" }, value: "Moka 408 MT" }),
+        );
+        await applyPreset(
+          {
+            products: [{ productType: "Sink-Base", config: { FrameColor: "Nero 433 MT", Drawers: "1D" } }],
+            preserveSelections,
+          },
+          deps,
+        );
+        expect(lastCall(composition)).toMatchObject({
+          op: "replace",
+          request: { products: [{ config: { FrameColor: preserveSelections ? "Moka 408 MT" : "Nero 433 MT" } }] },
+        });
+      },
+    );
+
     it("places the preset once and records its products, their drawer styles and stable keys", async () => {
       const { composition, runtime, deps } = setup();
 
@@ -699,6 +724,62 @@ describe("composition commands", () => {
         });
         expect(heldBy("HandleColor")).toEqual(["Gold", "Gold", "Gold", "Gold"]);
       });
+
+      it.each(["left", "right"] as const)(
+        "keeps Mako legs in the scene and the order when a scene-config copy is placed on the %s",
+        async (side) => {
+          const fixture = setup();
+          await applyPreset({ products: makoModel.slice(0, 2) }, fixture.deps);
+          const anchorRuntimeId = product().productIds[side === "left" ? 0 : 1];
+
+          await addCabinet(
+            {
+              product: {
+                productType: "Sink-Cabinet",
+                config: {
+                  Width: 60,
+                  Drawers: "2D",
+                  HandleColor: "Silver",
+                  ShowLegs: "Enable",
+                  LegColor: "Antracite 400 Lacquered MT",
+                },
+              },
+              placement: { kind: "beside", anchorRuntimeId, side },
+            },
+            fixture.deps,
+          );
+
+          expect(lastCall(fixture.composition)).toMatchObject({
+            op: "add",
+            product: { config: { LegColor: "Antracite 400 MT" } },
+          });
+          const call = lastCall(fixture.composition);
+          if (call.op !== "add") throw new Error("expected a cabinet addition");
+          expect(resolveProductConfig(makoRuntimeBindings, call.product.config)).toMatchObject({
+            ShowLegs: "Enable",
+            LegColor: "Antracite 400 Lacquered MT",
+          });
+          expect(heldBy("LegColor")).toEqual(Array(3).fill("Antracite 400 MT"));
+          const state = store.getState();
+          const input = collectionPricingInput(
+            MAKO,
+            getCabinetEntries(state).map(({ stableKey, runtimeId }) => ({
+              stableKey,
+              runtimeId,
+              size: { width: 60, height: 52, depth: 52 },
+            })),
+            { ...getValuesByAttributeId(state) },
+            {
+              runtimeBindings: makoRuntimeBindings,
+              selectedProductConfig: product().selectedProductConfig,
+              placedCabinetStyles: product().placedCabinetStyles,
+            },
+          );
+          expect(buildCollectionPricingLines(input).lines.filter(({ group }) => group === "legs")).toEqual([
+            { id: "legs", group: "legs", sku: "VAN-MAKOV-LEG-LACM-400", quantity: 2 },
+          ]);
+        },
+      );
 
       it("does not put legs back on a cabinet that joins a composition whose legs were switched off", async () => {
         const fixture = setup();

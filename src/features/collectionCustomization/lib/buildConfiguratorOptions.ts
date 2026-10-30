@@ -61,6 +61,7 @@ export const buildConfiguratorOptions = (group: ConfiguratorAvailableOption | un
             sku: pick(meta.sku, nested.sku),
             // The section name is never a material; it used to be filtered back out by the colour grid.
             materials: [...new Set(optionMaterial ? [optionMaterial, ...materials] : materials)],
+            gbMaterial: pick(meta.GBMaterial, nested.GBMaterial),
             colors: fromCsv(pick(nested.Color, meta.Color)),
             looks: fromCsv(pick(nested.Look, meta.Look)),
             hex: hex ?? resolveCountertopFallbackHex(variant.name),

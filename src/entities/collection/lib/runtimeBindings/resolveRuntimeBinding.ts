@@ -198,8 +198,12 @@ export const semanticValueOf = (set: RuntimeBindingSet | null, attributeId: stri
   const binding = set ? selectRuntimeBinding(set, attributeId) : null;
   if (binding?.status !== "bound") return sceneValue;
 
+  // A compound patch may keep the attribute's material alongside a visibility flag (Mako
+  // LegColor + ShowLegs). Only that attribute's key identifies its value, never the flag.
   const sentAs = (scenePatch: ScenePatch) =>
-    Object.keys(scenePatch).length === 1 && Object.values(scenePatch)[0] === sceneValue;
+    Object.hasOwn(scenePatch, attributeId)
+      ? scenePatch[attributeId] === sceneValue
+      : Object.keys(scenePatch).length === 1 && Object.values(scenePatch)[0] === sceneValue;
   const values =
     binding.values.kind === "identity"
       ? Object.entries(binding.values.overrides ?? {}).flatMap(([value, sceneName]) =>

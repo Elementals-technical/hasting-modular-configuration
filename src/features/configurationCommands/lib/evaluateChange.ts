@@ -194,13 +194,31 @@ export const evaluateChange = (
     };
   }
 
+  const bindings = getActiveRuntimeBindings(state);
+  const requestedBinding = bindings ? selectRuntimeBinding(bindings, change.attributeId) : null;
+  // Shared fields set every cabinet even when the scene requires one product address.
+  // Separate changes preserve per-cabinet results, overrides and replay.
+  const applyToEveryProduct =
+    !onlyThisCabinet &&
+    requestedBinding?.status === "bound" &&
+    requestedBinding.perProduct &&
+    requestedBinding.target.kind === "product";
   const requestedPlan = onlyThisCabinet
     ? planResult.plan.map((entry) =>
         entry.origin === "requested" && entry.attributeId === change.attributeId
           ? { ...entry, onlyThisCabinet: true }
           : entry,
       )
-    : planResult.plan;
+    : applyToEveryProduct
+      ? planResult.plan.flatMap((entry) =>
+          entry.origin === "requested" && entry.attributeId === change.attributeId && entry.target.scope === "cabinet"
+            ? cabinets.map(({ stableKey }) => ({
+                ...entry,
+                target: { scope: "cabinet" as const, cabinetId: stableKey },
+              }))
+            : [entry],
+        )
+      : planResult.plan;
   // A value the new drawers leave undetermined goes with them (the legs of a one-drawer Mako cabinet).
   const undeterminedResets = planUndeterminedResets(planResult.plan, state, activeProfile);
 

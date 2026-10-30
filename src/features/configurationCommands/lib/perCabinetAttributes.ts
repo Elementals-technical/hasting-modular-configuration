@@ -24,10 +24,11 @@ import type { ScopedValue, StableCabinetKey } from "@/entities/configuration";
  * style sidebar and the menu of a placed cabinet show the same field, built here once.
  */
 export type PerCabinetAttributeField = {
+  canApplyToAll?: boolean;
   attributeId: string;
   /** As the collection's ui.json names the value (the entry's `label`, else a section's), else its id. */
   label: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean }[];
   /** What the cabinet holds; the composition's value, else the collection's starting one, where it holds none. */
   value: string | null;
 };

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"countertop":{"display":"flex","paddingRight":20,"width":669,"filters":[{"name":"Material","left":20,"gapToRight":535},{"name":"Color","left":145,"gapToRight":430},{"name":"Look","left":251,"gapToRight":330},{"name":"Price","left":558,"gapToRight":20}]}}
+```

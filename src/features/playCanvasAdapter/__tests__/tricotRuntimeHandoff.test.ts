@@ -23,6 +23,7 @@ import {
 import { buildCabinetCatalogFromProfile } from "@/entities/product/lib/matrixCabinet";
 import presets from "../../../../public/collections/tricot/presets.json";
 import { changeAttribute } from "@/features/configurationCommands/lib/changeAttribute";
+import { resolveChangeRequest } from "@/features/configurationCommands/lib/resolveChangeRequest";
 import { createCompositionPort, type SceneCompositionBridge } from "../lib/createCompositionPort";
 import { createSceneRestorer } from "../lib/createSceneRestorer";
 import { createPlayCanvasRuntimePort, type SceneBridge } from "../lib/createPlayCanvasRuntimePort";
@@ -407,10 +408,73 @@ describe("Tricot confirmed commands through production runtime bindings", () => 
     );
 
     expect(
-      await changeAttribute({ attributeId: "DrawerPanelFluting", scope: "cabinet", cabinetId, value: "Loden" }, deps),
+      await changeAttribute(
+        { attributeId: "DrawerPanelFluting", scope: "cabinet", cabinetId, value: "Loden", onlyThisCabinet: true },
+        deps,
+      ),
     ).toMatchObject({ status: "applied" });
     expect(apply).toHaveBeenCalledWith({ productIds: ["Tricot-sink-cabinet-a1b2c3d4e"] }, { CabinetPattern: "Loden" });
     expect(getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId })).toBe("Loden");
+  });
+
+  it("applies a Cabinet Finishes pattern to all three cabinets and can override just the second", async () => {
+    const ids = ["Tricot-sink-cabinet-one", "Tricot-side-cabinet-two", "Tricot-side-cabinet-three"];
+    store.dispatch(syncCabinets(ids));
+    store.dispatch(setCabinetColorMaterial("WDV"));
+    const apply = vi.fn<SceneBridge["apply"]>(async () => ({ status: "applied", updatedIds: ids }));
+    const runtime = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene: { isReady: () => true, apply } });
+    const deps = {
+      getState: () => store.getState(),
+      dispatch: store.dispatch,
+      runtime,
+      flow: "custom" as const,
+      configurator: tricotConfigurator,
+    };
+    const request = resolveChangeRequest(store.getState(), "DrawerPanelFluting", "Twill");
+    if (!request) throw new Error("Missing pattern request");
+    expect((await changeAttribute(request, deps)).status).toBe("applied");
+    const cabinets = getCabinetEntries(store.getState());
+    for (const { stableKey, runtimeId } of cabinets) {
+      expect(apply).toHaveBeenCalledWith({ productIds: [runtimeId] }, { CabinetPattern: "Twill" });
+      expect(
+        getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: stableKey }),
+      ).toBe("Twill");
+    }
+    apply.mockClear();
+    expect(
+      (
+        await changeAttribute(
+          {
+            attributeId: "DrawerPanelFluting",
+            scope: "cabinet",
+            cabinetId: cabinets[1].stableKey,
+            value: "Satin",
+            onlyThisCabinet: true,
+          },
+          deps,
+        )
+      ).status,
+    ).toBe("applied");
+    expect(apply).toHaveBeenCalledExactlyOnceWith({ productIds: [ids[1]] }, { CabinetPattern: "Satin" });
+    expect(
+      cabinets.map(({ stableKey }) =>
+        getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: stableKey }),
+      ),
+    ).toEqual(["Twill", "Satin", "Twill"]);
+    // The checkbox in the second cabinet's menu uses the same shared command.
+    expect(
+      (
+        await changeAttribute(
+          { attributeId: "DrawerPanelFluting", scope: "cabinet", cabinetId: cabinets[1].stableKey, value: "Gessato" },
+          deps,
+        )
+      ).status,
+    ).toBe("applied");
+    expect(
+      cabinets.map(({ stableKey }) =>
+        getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: stableKey }),
+      ),
+    ).toEqual(["Gessato", "Gessato", "Gessato"]);
   });
 
   it("moves every cabinet to Loden in the scene when a lacquer color rules out its wood pattern", async () => {

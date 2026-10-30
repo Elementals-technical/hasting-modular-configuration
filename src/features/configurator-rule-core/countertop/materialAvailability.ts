@@ -54,6 +54,27 @@ const offersFloatingTop = (rule: CountertopMatrixRule, inputs: CountertopMateria
 /** The reason code of colours that failed different checks. */
 export const REASON_COUNTERTOP_MATERIAL_SELECTION = "countertop.materialNotAvailableForSelection";
 
+/**
+ * The materials the countertop matrix judges a colour by. A colour whose GB material (configurator `GBMaterial`)
+ * has rows of its own is judged by those rows alone: Technomat by its 3-1/8" VA023 row, not by the Solid Surface
+ * rows of the material it is listed under. Any other colour keeps its materials, so a GB material the table does
+ * not name (Technolite) shares the rows of its material.
+ */
+export const resolveCountertopRuleMaterials = (
+  materials: readonly string[],
+  gbMaterial: string | null | undefined,
+  rules: readonly CountertopMatrixRule[],
+  profile: ProductProfile | null,
+): string[] => {
+  const gb = gbMaterial?.trim();
+  if (!gb || materials.some((material) => normalizeMaterialToken(material) === normalizeMaterialToken(gb))) {
+    return [...materials];
+  }
+
+  const aliasTable = selectMaterialAliasTable(profile);
+  return rules.some((rule) => materialMatchesRule(gb, rule.material, aliasTable)) ? [gb] : [...materials];
+};
+
 /** Whether a colour's materials pass the composition, depth and width rules, and which check failed first. */
 export const evaluateCountertopMaterial = (
   materials: readonly string[],

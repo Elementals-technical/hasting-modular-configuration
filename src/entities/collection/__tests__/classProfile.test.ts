@@ -135,7 +135,9 @@ describe("class product profile", () => {
       "cabinetMatrixLegacyAdapter",
       "drawerOrganizers",
       "drawerStyleGroups",
+      "prebuiltModelSelection",
       "priceTiers",
+      "undeterminedRules",
       "vesselCompatibility",
     ]);
   });

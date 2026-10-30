@@ -37,4 +37,19 @@ describe("the menu entries of a placed cabinet's own values", () => {
   it("has no entry for a collection that offers no such value", () => {
     expect(buildCabinetAttributeMenuItems([], vi.fn(), "✓")).toEqual([]);
   });
+
+  it.each([false, true])("offers an apply-to-all checkbox and sends its %s state with the pattern", (checked) => {
+    const onSelect = vi.fn();
+    const onToggle = vi.fn();
+    const [item] = buildCabinetAttributeMenuItems([{ ...side, canApplyToAll: true }], onSelect, "✓", {
+      checked,
+      onToggle,
+    });
+    const [toggle, option] = item.children ?? [];
+    expect(toggle).toMatchObject({ label: "Apply to all cabinets", checked });
+    toggle.onClick?.();
+    expect(onToggle).toHaveBeenCalledOnce();
+    option.onClick?.();
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith("LateralPanelSide", "L", checked);
+  });
 });

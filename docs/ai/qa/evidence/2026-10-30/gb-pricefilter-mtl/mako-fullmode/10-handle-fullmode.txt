@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"dialog":"Handle Color","totalBefore":22,"offered":["Show all","Standard $","Classic $$"],"standardCount":2,"standard":["Gold","Silver"]}
+```
