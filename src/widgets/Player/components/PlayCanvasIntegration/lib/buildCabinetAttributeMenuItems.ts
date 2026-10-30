@@ -10,17 +10,35 @@ import type { DropdownItem } from "@/shared/ui/NestedDropdown/NestedDropdown";
  */
 export const buildCabinetAttributeMenuItems = (
   fields: readonly PerCabinetAttributeField[],
-  onSelect: (attributeId: string, value: string) => void,
+  onSelect: (attributeId: string, value: string, applyToAll?: boolean) => void,
   check: ReactNode,
+  broadcast?: { checked: boolean; onToggle: () => void },
 ): DropdownItem[] =>
-  fields.map(({ attributeId, label, options, value }) => ({
+  fields.map(({ attributeId, label, options, value, canApplyToAll }) => ({
     id: `cabinet-attribute:${attributeId}`,
     label,
     trailing: "",
-    children: options.map((option) => ({
-      id: `cabinet-attribute:${attributeId}:${option.value}`,
-      label: option.label,
-      trailing: option.value === value ? check : null,
-      onClick: () => onSelect(attributeId, option.value),
-    })),
+    children: [
+      ...(canApplyToAll && broadcast
+        ? [
+            {
+              id: `cabinet-attribute:${attributeId}:apply-to-all`,
+              label: "Apply to all cabinets",
+              checked: broadcast.checked,
+              trailing: broadcast.checked ? check : "☐",
+              onClick: broadcast.onToggle,
+            },
+          ]
+        : []),
+      ...options.map((option) => ({
+        id: `cabinet-attribute:${attributeId}:${option.value}`,
+        label: option.label,
+        trailing: option.value === value ? check : null,
+        disabled: option.disabled,
+        onClick: () =>
+          canApplyToAll && broadcast
+            ? onSelect(attributeId, option.value, broadcast.checked)
+            : onSelect(attributeId, option.value),
+      })),
+    ],
   }));

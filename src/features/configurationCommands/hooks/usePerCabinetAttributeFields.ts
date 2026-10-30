@@ -1,7 +1,13 @@
 import { useMemo } from "react";
 
-import { useActiveCollection, type PerCabinetAttribute } from "@/entities/collection";
-import { getActiveProductProfile, getCabinetEntries, getValuesByAttributeId } from "@/entities/configuration";
+import { selectRuntimeBinding, useActiveCollection, type PerCabinetAttribute } from "@/entities/collection";
+import {
+  getActiveProductProfile,
+  getActiveRuntimeBindings,
+  getCabinetEntries,
+  getValuesByAttributeId,
+} from "@/entities/configuration";
+import { selectFlutingState } from "@/entities/product/model/store/derivedSelectors";
 import type { StableCabinetKey } from "@/entities/configuration";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 
@@ -20,14 +26,38 @@ export const usePerCabinetAttributeFields = (
 ): PerCabinetAttributeField[] => {
   const schema = useActiveCollection((collection) => collection.catalog.customization ?? null);
   const profile = useAppSelector(getActiveProductProfile);
+  const bindings = useAppSelector(getActiveRuntimeBindings);
+  const fluting = useAppSelector(selectFlutingState);
   const recorded = useAppSelector(getValuesByAttributeId);
   const firstCabinetId = useAppSelector((state) => getCabinetEntries(state)[0]?.stableKey);
 
   return useMemo(
     () =>
       attributes?.length
-        ? buildPerCabinetAttributeFields({ profile, schema, recorded, firstCabinetId, attributes, cabinetId, pending })
+        ? buildPerCabinetAttributeFields({
+            profile,
+            schema,
+            recorded,
+            firstCabinetId,
+            attributes,
+            cabinetId,
+            pending,
+          }).map((field) => {
+            const binding = bindings ? selectRuntimeBinding(bindings, field.attributeId) : null;
+            return {
+              ...field,
+              canApplyToAll:
+                binding?.status === "bound" && binding.perProduct === true && binding.target.kind === "product",
+              options:
+                field.attributeId === "DrawerPanelFluting"
+                  ? field.options.map((option) => ({
+                      ...option,
+                      disabled: !fluting.options.some(({ value, enabled }) => value === option.value && enabled),
+                    }))
+                  : field.options,
+            };
+          })
         : NO_FIELDS,
-    [attributes, cabinetId, firstCabinetId, pending, profile, recorded, schema],
+    [attributes, bindings, cabinetId, firstCabinetId, fluting, pending, profile, recorded, schema],
   );
 };
