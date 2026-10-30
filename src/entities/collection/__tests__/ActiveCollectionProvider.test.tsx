@@ -221,14 +221,14 @@ describe("ActiveCollectionProvider", () => {
   it("takes the production registry default through resolving and loading to ready", async () => {
     renderProvider("/", makeDependencies(undefined, productionRemote, productionRegistry));
     await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-standard-height"),
+      expect(screen.getByTestId("collection-state").textContent).toContain("ready:urban-low-height"),
     );
     expect(productionRemote.loadConfigurator).toHaveBeenCalledWith(
       expect.objectContaining({ id: 4 }),
       expect.any(AbortSignal),
     );
-    expect(productionRemote.loadCountertopTable).toHaveBeenCalledWith(438, expect.any(AbortSignal));
-    expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(439, expect.any(AbortSignal));
+    expect(productionRemote.loadCountertopTable).toHaveBeenCalledWith(589, expect.any(AbortSignal));
+    expect(productionRemote.loadCabinetTable).toHaveBeenCalledWith(580, expect.any(AbortSignal));
   });
 
   it.each([
@@ -320,7 +320,7 @@ describe("ActiveCollectionProvider", () => {
     };
     renderProvider("/", makeDependencies(undefined, failingRemote, productionRegistry));
     await waitFor(() =>
-      expect(screen.getByTestId("collection-state").textContent).toBe("error:urban-standard-height:source-load-failed"),
+      expect(screen.getByTestId("collection-state").textContent).toBe("error:urban-low-height:source-load-failed"),
     );
   });
 });

@@ -66,7 +66,7 @@ const loadUshLocalContract = async (manifest: unknown, sources: Record<string, u
     remote: unusedRemote(),
   };
   const registry = await loadCollectionRegistry(dependencies, abortSignal);
-  const resolution = resolveCollection({ registry, urlCollectionId: null });
+  const resolution = resolveCollection({ registry, urlCollectionId: "urban-standard-height" });
   if (!resolution.ok) throw new Error("Expected USH to resolve");
   return loadResolvedCollection(resolution, dependencies, abortSignal);
 };
@@ -104,7 +104,7 @@ describe("collection loading and assembly", () => {
     };
 
     const registry = await loadCollectionRegistry(dependencies, abortSignal);
-    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    const resolution = resolveCollection({ registry, urlCollectionId: "urban-standard-height" });
     if (!resolution.ok) throw new Error("Expected a resolved collection");
 
     const error = await loadResolvedCollection(resolution, dependencies, abortSignal).then(
@@ -124,7 +124,7 @@ describe("collection loading and assembly", () => {
     });
   });
 
-  it("loads the complete default USH package and starts all declared remote sources in parallel", async () => {
+  it("loads the complete USH package and starts all declared remote sources in parallel", async () => {
     const manifestUrl = `${rootUrl}urban-standard-height/manifest.json`;
     const fetchJson = jsonFetcher({
       [registryUrl]: productionRegistry,
@@ -151,7 +151,7 @@ describe("collection loading and assembly", () => {
     };
     const dependencies: CollectionRuntimeDependencies = { registryUrl, collectionsRootUrl: rootUrl, fetchJson, remote };
     const registry = await loadCollectionRegistry(dependencies, abortSignal);
-    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    const resolution = resolveCollection({ registry, urlCollectionId: "urban-standard-height" });
     expect(resolution.ok).toBe(true);
     if (!resolution.ok) throw new Error("Expected a resolved collection");
 
@@ -381,7 +381,7 @@ describe("collection loading and assembly", () => {
       },
     };
     const registry = await loadCollectionRegistry(dependencies, abortSignal);
-    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    const resolution = resolveCollection({ registry, urlCollectionId: "urban-standard-height" });
     if (!resolution.ok) throw new Error("Expected USH to resolve");
     await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow(
       "countertop unavailable",
@@ -412,7 +412,7 @@ describe("collection loading and assembly", () => {
       },
     };
     const registry = await loadCollectionRegistry(dependencies, abortSignal);
-    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    const resolution = resolveCollection({ registry, urlCollectionId: "urban-standard-height" });
     if (!resolution.ok) throw new Error("Expected USH to resolve");
 
     await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow(
@@ -449,7 +449,7 @@ describe("collection loading and assembly", () => {
       },
     };
     const registry = await loadCollectionRegistry(dependencies, abortSignal);
-    const resolution = resolveCollection({ registry, urlCollectionId: null });
+    const resolution = resolveCollection({ registry, urlCollectionId: "urban-standard-height" });
     if (!resolution.ok) throw new Error("Expected USH to resolve");
 
     await expect(loadResolvedCollection(resolution, dependencies, abortSignal)).rejects.toThrow(

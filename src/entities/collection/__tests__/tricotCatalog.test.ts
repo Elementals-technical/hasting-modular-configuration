@@ -244,7 +244,7 @@ describe("Tricot source preparation", () => {
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(593, expect.any(AbortSignal));
     expect(data.catalog.productProfile?.countertopRules).toHaveLength(12);
     expect(data.catalog.cabinets?.typeCabinetRules.map((rule) => rule.code)).toEqual(["Sink-Base", "Side-Cabinet"]);
-    expect(registry.defaultCollectionId).toBe("urban-standard-height");
+    expect(registry.defaultCollectionId).toBe("urban-low-height");
   });
 
   it("requires exact handoff coverage and rejects empty recipes, bad dimensions, styles and basin positions", () => {

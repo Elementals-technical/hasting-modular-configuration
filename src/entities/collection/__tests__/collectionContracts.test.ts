@@ -38,7 +38,7 @@ const COLLECTION_UI_DOCUMENTS: [string, unknown][] = [
 describe("collection contracts", () => {
   it("validates the production registry and collection manifests", () => {
     const registry = validateCollectionRegistry(productionRegistry, registryUrl, rootUrl);
-    expect(registry.defaultCollectionId).toBe("urban-standard-height");
+    expect(registry.defaultCollectionId).toBe("urban-low-height");
     expect(registry.collections).toEqual([
       { id: "urban-standard-height", manifest: "urban-standard-height/manifest.json" },
       { id: "urban-low-height", manifest: "urban-low-height/manifest.json" },
@@ -290,7 +290,7 @@ describe("collection identity resolution", () => {
   it("uses URL identity or the registry default for a new launch", () => {
     expect(resolveCollection({ registry, urlCollectionId: null })).toMatchObject({
       ok: true,
-      collectionId: "urban-standard-height",
+      collectionId: "urban-low-height",
       source: "default",
     });
     expect(resolveCollection({ registry: extendedRegistry, urlCollectionId: "fixture-ui" })).toMatchObject({

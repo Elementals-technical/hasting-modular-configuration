@@ -6,7 +6,7 @@
 - Live: <https://hasting-modular-phase-2-p98qb.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height>
 - Package: `public/collections/urban-low-height/`
 - Registry entry: `public/collections/registry.json`
-- Default collection: ні; без query parameter відкривається USH.
+- Default collection: так; без query parameter відкривається ULH (`registry.json` → `defaultCollectionId`). Старі збереження без `collectionId` і далі відновлюються як USH.
 
 ULH — окрема колекція, а не mode USH. Вона ділить з USH remote configurator 4, але має власні UI,
 product profile, SKU profile, countertop table 589, cabinet table 580, presets та runtime bindings.
