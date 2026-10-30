@@ -288,7 +288,7 @@ export const FilterSelection = ({
   };
 
   return (
-    <div className={s.wrapper} ref={wrapperRef}>
+    <div className={s.wrapper} ref={wrapperRef} data-filter={label}>
       <button
         type="button"
         ref={buttonRef}
