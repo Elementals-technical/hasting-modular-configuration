@@ -53,6 +53,11 @@ export type PricingLine = {
    * material; an own side panel's, its cabinet colour and the material the SKU profile names for it.
    */
   finish?: { color: string; materialSku: string };
+  /**
+   * The ends whose panel a side panel line orders, one piece each, where Summary cannot read them from the side
+   * statuses: the panel beside an Urban Freestanding short cabinet is active but not ordered (UFS-SP-01).
+   */
+  sides?: ("left" | "right")[];
 };
 
 /**

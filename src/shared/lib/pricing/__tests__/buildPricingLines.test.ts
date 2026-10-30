@@ -1,14 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { calcTotalCountertopWidthCm } from "@/entities/countertop";
+import { selectEffectiveFallback } from "@/entities/collection";
+import { tricotProfile } from "@/entities/collection/__tests__/tricotFixtures";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { presetsSchema } from "@/entities/collection/model/schemas";
 import { deriveBookMatchingChargeInfo } from "@/shared/lib/bookMatching";
 import { createSkuBuilders } from "@/shared/lib/sku";
 import { ushSkuProfile } from "@/shared/lib/sku/__tests__/ushSkuProfileFixture";
 
-import { buildPricingLines } from "../buildPricingLines";
+import { buildPricingLines, resolveSceneCabinetHandle, resolveSummaryCabinetHandle } from "../buildPricingLines";
 import { expandLineSkus } from "../pricingLines";
 import { cabinet, openShelf, pricingInput } from "./fixtures/pricingScenarios";
+import tricotPresetsDocument from "../../../../../public/collections/tricot/presets.json";
+
+const tricotPresets = presetsSchema.parse(tricotPresetsDocument);
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => undefined);
@@ -134,5 +140,70 @@ describe("buildPricingLines", () => {
     );
 
     expect(lines).toEqual([]);
+  });
+});
+
+describe("resolveSceneCabinetHandle", () => {
+  const cabinetWithHandle = { Handle: "handle_urban_topcut" };
+
+  it("orders a scene cabinet with its own handle", () => {
+    expect(
+      resolveSceneCabinetHandle(cabinetWithHandle, { shouldUsePresets: false, selectedHandle: "handle_urban_pto" }),
+    ).toBe("handle_urban_topcut");
+    expect(resolveSceneCabinetHandle({ Handle: null }, { shouldUsePresets: false, selectedHandle: "x" })).toBeNull();
+  });
+
+  it("gives a cabinet added beside presets the selected handle, as the presets have, else its own", () => {
+    expect(
+      resolveSceneCabinetHandle(cabinetWithHandle, { shouldUsePresets: true, selectedHandle: "handle_urban_pto" }),
+    ).toBe("handle_urban_pto");
+    expect(resolveSceneCabinetHandle(cabinetWithHandle, { shouldUsePresets: true, selectedHandle: null })).toBe(
+      "handle_urban_topcut",
+    );
+  });
+});
+
+describe("resolveSummaryCabinetHandle", () => {
+  const noFallback = { fallbackHandle: null };
+
+  it("describes a cabinet whose scene keeps no Handle with the selected one: Mako, Lame in the custom flow", () => {
+    // Mako's scene reads HandleStyle and Lame's none, so their products carry no Handle: never "Unknown handle".
+    expect(
+      resolveSummaryCabinetHandle({ Handle: null }, { shouldUsePresets: false, selectedHandle: "G57", ...noFallback }),
+    ).toBe("G57");
+    expect(
+      resolveSummaryCabinetHandle({ Handle: null }, { shouldUsePresets: false, selectedHandle: null, ...noFallback }),
+    ).toBeNull();
+  });
+
+  it("describes a cabinet with the handle it or its preset names, never the declared one over it", () => {
+    const cabinetWithHandle = { Handle: "handle_urban_topcut" };
+    const options = { selectedHandle: "handle_urban_pto", fallbackHandle: "handle_urban_topcut" };
+
+    expect(resolveSummaryCabinetHandle(cabinetWithHandle, { shouldUsePresets: false, ...options })).toBe(
+      "handle_urban_topcut",
+    );
+    expect(
+      resolveSummaryCabinetHandle(
+        { Handle: "G50" },
+        { shouldUsePresets: true, selectedHandle: null, fallbackHandle: "G57" },
+      ),
+    ).toBe("G50");
+  });
+
+  it("describes every Tricot model with Upper Groove, the collection's one handle, though no model names it", () => {
+    const fallbackHandle = selectEffectiveFallback(tricotProfile, "Handle");
+    const products = tricotPresets.flatMap(({ presetProducts }) => presetProducts);
+
+    expect(fallbackHandle).toBe("UG");
+    expect(products.length).toBeGreaterThan(0);
+    for (const { Handle } of products) {
+      expect(
+        resolveSummaryCabinetHandle(
+          { Handle: Handle ?? null },
+          { shouldUsePresets: true, selectedHandle: null, fallbackHandle },
+        ),
+      ).toBe("UG");
+    }
   });
 });

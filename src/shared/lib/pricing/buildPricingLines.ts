@@ -31,6 +31,29 @@ const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
 const DEFAULT_SINK_TYPE = "Top_Tekorlux_Rectangular";
 const normalizeCabinetToken = (value: string) => value.toLowerCase().replace(/[\s_]+/g, "-");
 
+/**
+ * The handle a cabinet from the scene is ordered with: its own, except beside presets, where a cabinet added on
+ * top of them takes the selected handle, as the presets do. Summary describes the cabinet with the same one.
+ */
+export const resolveSceneCabinetHandle = (
+  config: Pick<NormalizedProductConfigSnapshot, "Handle">,
+  { shouldUsePresets, selectedHandle }: { shouldUsePresets: boolean; selectedHandle: string | null },
+): string | null => (shouldUsePresets ? selectedHandle || config.Handle || null : config.Handle);
+
+/**
+ * The handle Summary describes a cabinet (a preset or one from the scene) with: the one it is ordered with, else
+ * the selected one, else the collection's declared handle (`effectiveFallbackValue`).
+ * - A scene that keeps no `Handle` of its own (Mako reads `HandleStyle`; Lame, Tricot and Urban Duplex keep the
+ *   handle in state only) is ordered with the selected handle, which the collection's SKU falls back to as well.
+ * - Tricot's models carry no handle and none is selected in the prebuilt flow: its one handle, Upper Groove, is
+ *   the declared one, which the style sidebar falls back to in the custom flow too.
+ * Example: a Mako cabinet in the custom flow, scene `{ HandleStyle: "G57" }`, G57 selected -> "G57", not "Unknown".
+ */
+export const resolveSummaryCabinetHandle = (
+  config: Pick<NormalizedProductConfigSnapshot, "Handle">,
+  options: { shouldUsePresets: boolean; selectedHandle: string | null; fallbackHandle: string | null },
+): string | null => resolveSceneCabinetHandle(config, options) || options.selectedHandle || options.fallbackHandle;
+
 export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   const {
     skuBuilders,
@@ -82,6 +105,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
   };
 
   const grainSku = grainDirection === "GrainHorizontal" ? "H" : grainDirection === "GrainVertical" ? "V" : null;
+  const selectedHandle = typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null;
 
   /** Resolve a PlayCanvas product name (e.g. "SinkBase60") → catalog code ("Sink-Base") */
   const resolveCabinetType = (productName: string | null): string | null => {
@@ -373,11 +397,13 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
 
     // Extra products added on top of presets (e.g. via sidebar in prebuilt mode)
     sceneConfigs.forEach((cfg, idx) =>
-      addSceneCabinet(cfg, idx, (selectedProductConfig?.Handle as string | undefined) || cfg.Handle || null),
+      addSceneCabinet(cfg, idx, resolveSceneCabinetHandle(cfg, { shouldUsePresets, selectedHandle })),
     );
   } else if (sceneConfigs.length > 0) {
     // Custom path: iterate all products from PlayCanvas
-    sceneConfigs.forEach((cfg, idx) => addSceneCabinet(cfg, idx, cfg.Handle));
+    sceneConfigs.forEach((cfg, idx) =>
+      addSceneCabinet(cfg, idx, resolveSceneCabinetHandle(cfg, { shouldUsePresets, selectedHandle })),
+    );
   } else {
     // Fallback: single product from selectedProductConfig
     const cabMaterialSku = resolveCabinetMaterialSku(cabinetColor);
@@ -559,6 +585,7 @@ export const buildPricingLines = (input: PricingInput): PricingLine[] => {
       cabinet: {
         materialSku: sidePanelCabinetMaterialSku,
         colorCode: resolveMaterialColorCode(sidePanelCabinetColor, sidePanelCabinetMaterialSku),
+        color: sidePanelCabinetColor || null,
       },
       groove: {
         materialSku: handleMaterialSku,
