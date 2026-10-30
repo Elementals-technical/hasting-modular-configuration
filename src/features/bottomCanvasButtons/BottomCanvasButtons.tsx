@@ -200,7 +200,7 @@ export const BottomCanvasButtons = () => {
 
   return (
     <>
-      <div className={s.bottomCanvasButtons}>
+      <div className={s.bottomCanvasButtons} data-canvas-toolbar>
         <div className={s.dimensionButtonWrap}>
           <BaseButton
             variant="ghost"

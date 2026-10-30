@@ -68,6 +68,7 @@ import {
   deleteSide as spDeleteSide,
   useSidePanelEnforce,
 } from "@/features/sidePanel";
+import { protectDrawerWidgetInput } from "@/utils/functions/playcanvas/drawerWidgetInput";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneProducts";
@@ -2899,6 +2900,7 @@ export const PlayCanvasIntegration = ({
 
       const button = document.createElement("button");
       button.type = "button";
+      protectDrawerWidgetInput(button);
       const label = document.createElement("span");
       label.textContent = "Open Drawer";
       const plus = document.createElement("span");
@@ -2986,13 +2988,7 @@ export const PlayCanvasIntegration = ({
             applyDrawerTopViewDefaultZoomOut();
           }
         };
-        const openResult = api?.showTopView?.(drawerInfo.cabinetId, drawerType) as Promise<unknown> | unknown;
-        const isThenable = !!openResult && typeof (openResult as Promise<unknown>).then === "function";
-        if (isThenable) {
-          (openResult as Promise<unknown>).catch(() => null).then(applyDefaultZoomOut);
-        } else {
-          applyDefaultZoomOut();
-        }
+        const openResult = canOpenTopView ? api?.showTopView?.(drawerInfo.cabinetId, drawerType) : false;
         if (shouldHideDividerSlotsForPreview) {
           window.setTimeout(hideDividerSlots, 0);
           window.setTimeout(hideDividerSlots, 250);
@@ -3012,7 +3008,14 @@ export const PlayCanvasIntegration = ({
             selectTool?.setSelectedByName(selectedSceneProduct, { mode: "replace" });
           }
         };
-        window.requestAnimationFrame(watchTopViewClose);
+        void Promise.resolve(openResult).then((result) => {
+          if (result === false) return;
+          applyDefaultZoomOut();
+          if (shouldHideDividerSlotsForPreview) hideDividerSlots();
+          window.requestAnimationFrame(watchTopViewClose);
+        }).catch((error: unknown) => {
+          console.warn("[drawerPreview] Could not open drawer", error);
+        });
       });
       parentEl.appendChild(button);
     });

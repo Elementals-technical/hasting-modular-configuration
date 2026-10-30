@@ -298,9 +298,6 @@
       ]
     }
   },
-  "playerMenu": {
-    "hidden": ["open"]
-  },
   "drawerOrganizers": {
     "panelTitle": "Divider Options",
     "mobileLayout": "M2"
