@@ -1,7 +1,13 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
-import { normalizeOptionValue, selectAttribute, selectDefaultValue } from "@/entities/collection";
+import {
+  normalizeOptionValue,
+  resolveRuntimeBinding,
+  selectAttribute,
+  selectDefaultValue,
+  semanticValueOf,
+} from "@/entities/collection";
 import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
@@ -156,10 +162,17 @@ const toSceneProducts = (
   products.map(({ productType, config }) => ({
     productType,
     config: Object.fromEntries(
-      Object.entries(config).map(([attributeId, value]) => [
-        attributeId,
-        isAttributeValue(value) ? toSceneValue(profile, bindings, attributeId, value) : value,
-      ]),
+      Object.entries(config).map(([attributeId, value]) => {
+        if (!isAttributeValue(value)) return [attributeId, value];
+        const canonical = toSceneValue(profile, bindings, attributeId, value);
+        // A copied scene config may name the material asset rather than the catalogue option.
+        // Keep an already accepted option: some collections reuse an asset name for another option.
+        const placedValue =
+          typeof canonical === "string" && bindings && !resolveRuntimeBinding(bindings, attributeId, canonical).ok
+            ? semanticValueOf(bindings, attributeId, canonical)
+            : canonical;
+        return [attributeId, placedValue];
+      }),
     ),
   }));
 
@@ -504,7 +517,7 @@ export const addCabinet = async (
     runtimeId && style ? { [runtimeId]: style } : {},
   );
   if (runtimeId) {
-    recordInherited(deps, runtimeId, inherited, product.config);
+    recordInherited(deps, runtimeId, inherited, sceneProduct.config);
     recordOwnValues(deps, runtimeId, product.config);
   }
 
