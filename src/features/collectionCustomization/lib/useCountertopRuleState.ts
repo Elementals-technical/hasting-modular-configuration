@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { selectOption, useActiveCollection } from "@/entities/collection";
+import { selectConfiguratorVariant, selectOption, useActiveCollection } from "@/entities/collection";
 import {
   getActiveCountertopColor,
   getActiveCountertopThickness,
@@ -13,6 +13,7 @@ import {
 } from "@/entities/product/model/store/selectors";
 import {
   buildCountertopRuleState,
+  resolveCountertopRuleMaterials,
   useCountertopLength,
   useCountertopRules,
   type CountertopMaterialRuleInputs,
@@ -61,7 +62,18 @@ export const useCountertopRuleState = (): CountertopRuleState => {
       preferredMaterialTokens: getCountertopMaterialTokensFromBasinType(basinStyle),
     });
     const category = selectOption(activeProfile, "CountertopColor", countertopColor)?.category;
-    const activeMaterialTokens = resolvedMaterials.length ? resolvedMaterials : category ? [category] : [];
+    const gbMaterial = selectConfiguratorVariant(
+      activeProfile,
+      "CountertopColor",
+      { groups: configuratorGroups },
+      countertopColor,
+    )?.metadata.GBMaterial;
+    const activeMaterialTokens = resolveCountertopRuleMaterials(
+      resolvedMaterials.length ? resolvedMaterials : category ? [category] : [],
+      typeof gbMaterial === "string" ? gbMaterial : undefined,
+      rules,
+      activeProfile,
+    );
 
     const sinkBaseWidth = sinkBaseDims.width ?? selectedDimensions.width;
     const totalWidth = sceneTotalWidth ?? selectedDimensions.width;

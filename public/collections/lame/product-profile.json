@@ -14,7 +14,7 @@
     ],
     "auditedAt": "2026-10-07",
     "warning": "Only facts the Lame documents confirm: the WebGL Logic, the Lame price workbook (countertops, basins and accessories through the Class workbook), the GB rules and the Master File. Where the Master File conflicts with the price workbook, the workbook wins. Mako values are not inherited: where Lame equals Mako, the value is written again here.",
-    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list (Metal) keeps the shared (Azzurra) table's tier, which has none for it.",
+    "priceTiers": "Client 'list material' > Material Pricing Tiers, GB block, for every colour field; a material it does not list keeps the shared (Azzurra) table's tier.",
     "countertopDefaults": "User approved Matte White + integrated LB175 for all local Lame presets on 2026-10-29, based on the supplied UI_Countertop Color / UI_Basin Style screenshot. This defines the requested app default; the screenshot alone does not establish a manufacturer-wide default.",
     "sidePanels": "Side panels: Lame price workbook CabinetPricing rows 121–131 and SKU Curation U10/Y10; user approved outer-wall anchoring and one SKU unit price per active panel (both ends = 2 pieces), 2026-10-29. Nominal panel width 5 cm; body heights 26/52 cm; depth 52 cm."
   },
@@ -432,7 +432,8 @@
         "GLSM": 2,
         "GLSG": 2,
         "SGLS": 2,
-        "WDV": 3
+        "WDV": 3,
+        "MTL": 1
       }
     },
     "cabinetMatrixLegacyAdapter": {

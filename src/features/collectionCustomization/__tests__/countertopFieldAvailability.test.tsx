@@ -10,6 +10,7 @@ import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/en
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
+import configurator8 from "@/entities/collection/__tests__/fixtures/remote/configurator-8.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
@@ -282,67 +283,68 @@ describe("Class countertop fields follow the countertop matrix", () => {
   });
 });
 
-describe.each(["Solid Surface 3 ⅛", "Solid Surface"])("Class unsupported 8cm colour (%s metadata)", (material) => {
-  const groups = configuratorGroups.map((group) =>
-    group.proxyName === "Select Countertop Color"
-      ? {
-          ...group,
-          options: group.options.map((option, index) =>
-            index === 0
-              ? {
-                  ...option,
-                  variants: [...option.variants, makoCountertopVariant("Matte White 8cm", material, "SSTMT", "MW")],
-                }
-              : option,
-          ),
-        }
-      : group,
-  );
-  const collection = {
-    profile: parsedClassProfile.profile,
-    ready: readyCollectionOf("class", classManifest, classUi, datatable578, groups),
-  };
-  const { fieldOf, enabledValues } = fieldsOf(collection);
+// Configurator 8 and table 578 as they answer on 2026-10-30, which the recorded samples predate: Matte White and
+// Matte White 8cm are Solid Surface with their GB materials, Technolite and Technomat, and the 3-1/8" VA023 row is
+// named Technomat.
+const withGbMaterial = (variant: ConfiguratorVariant, GBMaterial: string): ConfiguratorVariant => ({
+  ...variant,
+  metadata: { ...variant.metadata, Material: "Solid Surface", GBMaterial },
+});
+const classLive = {
+  profile: parsedClassProfile.profile,
+  ready: readyCollectionOf(
+    "class",
+    classManifest,
+    classUi,
+    {
+      ...datatable578,
+      rows: datatable578.rows.map((row) => (row.basin_style === "VA023" ? { ...row, material: "Technomat" } : row)),
+    },
+    configuratorSchema.parse(configurator8).availableOptions.map((group) =>
+      group.proxyName === "Select Countertop Color"
+        ? {
+            ...group,
+            options: group.options.map((option) => ({
+              ...option,
+              variants: option.variants.map((variant) =>
+                variant.name === "Matte White"
+                  ? withGbMaterial(variant, "Technolite")
+                  : variant.name === "Matte White 8cm"
+                    ? withGbMaterial(variant, "Technomat")
+                    : variant,
+              ),
+            })),
+          }
+        : group,
+    ),
+  ),
+};
+
+describe("Class countertop colours follow table 578", () => {
+  const { fieldOf, shownValues, enabledValues } = fieldsOf(classLive);
+  const colorOf = (value: string) => fieldOf("countertop-color")?.options.find((option) => option.value === value);
 
   beforeEach(() => {
-    startWith(collection);
+    startWith(classLive);
     store.dispatch(setCountertopStyle("integrated"));
   });
 
-  it.each(["Acqua 419 GL", "Matte White"])("disables the 8cm swatch with a reason while %s stays chosen", (colour) => {
-    store.dispatch(setActiveCountertopColor(colour));
-    const field = fieldOf("countertop-color");
-    const white8cm = field?.options.find(({ value }) => value === "Matte White 8cm");
-    expect(white8cm).toMatchObject({ enabled: false, reasonCode: "product.missingData" });
-    expect(selectMessage(collection.profile, white8cm?.reasonCode ?? "")).toContain("Not available yet");
-    expect(field?.options.find(({ value }) => value === colour)?.enabled).toBe(true);
-    expect(store.getState().rootStateUI.product.productOptions.CountertopColor).toBe(colour);
+  it("refuses Matte White 8cm on a Sink Base under 80 cm, in the collection's words, and keeps Matte White", () => {
+    store.dispatch(setSelectedDimensions({ width: 60, depth: 52 }));
+    const reasonCode = colorOf("Matte White 8cm")?.reasonCode ?? "";
+
+    expect(colorOf("Matte White 8cm")?.enabled).toBe(false);
+    expect(selectMessage(classLive.profile, reasonCode)).toBe("Not available for current cabinet width");
+    expect(colorOf("Matte White")?.enabled).toBe(true);
   });
 
-  it("keeps the ordinary Matte White's supported 3.1-inch VA023 choice", () => {
-    store.dispatch(setActiveCountertopColor("Matte White"));
-    store.dispatch(setActiveCountertopThickness("3.125"));
-    expect(enabledValues("thickness")).toContain("3.125");
-    expect(enabledValues("basin-style")).toContain("VA023");
-  });
+  it('gives Matte White 8cm on an 80 cm Sink Base the 3-1/8" top and VA023 only', () => {
+    store.dispatch(setActiveCountertopColor("Matte White 8cm"));
 
-  it.each(["prebuilt", "custom"] as const)(
-    "refuses an 8cm command in %s before touching scene or state",
-    async (flow) => {
-      store.dispatch(setActiveCountertopColor("Acqua 419 GL"));
-      store.dispatch(setActiveCountertopThickness("0.5"));
-      store.dispatch(setActiveBasinStyle("VA002"));
-      const before = store.getState().rootStateUI.product.productOptions;
-      const runtime = createTestRuntimePort();
-      const result = await changeAttribute(
-        { attributeId: "CountertopColor", scope: "countertop", value: "Matte White 8cm" },
-        { getState: store.getState, dispatch: store.dispatch, runtime: runtime.port, flow },
-      );
-      expect(result).toMatchObject({ status: "blocked", reasonCode: "product.missingData" });
-      expect(runtime.calls).toHaveLength(0);
-      expect(store.getState().rootStateUI.product.productOptions).toEqual(before);
-    },
-  );
+    expect(colorOf("Matte White 8cm")?.enabled).toBe(true);
+    expect(enabledValues("thickness")).toEqual(["3.125"]);
+    expect(shownValues("basin-style")).toEqual(["VA023"]);
+  });
 });
 
 // The Urban Standard Height basins name their matrix row by their label ("HPL Cover 50" is the
@@ -808,6 +810,63 @@ describe.each(["integrated", "vessel"])(
     });
   },
 );
+
+// Table 593 as uploaded on 2026-10-30 names its 3-1/8" VA023 row, the GB row SSTMT, Technomat: the GB material
+// configurator 12 gives Matte White 8cm. The recorded fixture still names the row Solid Surface.
+const tricotWithTechnomat = {
+  profile: parsedTricotProfile.profile,
+  ready: readyCollectionOf(
+    "tricot",
+    tricotManifest,
+    tricotUi,
+    {
+      ...datatable593,
+      rows: datatable593.rows.map((row) => (row.basin_style === "VA023" ? { ...row, material: "Technomat" } : row)),
+    },
+    tricotConfiguratorGroups,
+  ),
+};
+
+describe("Tricot Solid Surface tops follow their GB material once table 593 names Technomat", () => {
+  const { fieldOf, shownValues, enabledValues } = fieldsOf(tricotWithTechnomat);
+  const colorOf = (value: string) => fieldOf("countertop-color")?.options.find((option) => option.value === value);
+
+  beforeEach(() => {
+    startWith(tricotWithTechnomat);
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it('gives Matte White 8cm (Technomat) the 3-1/8" top and VA023 only', () => {
+    store.dispatch(setActiveCountertopColor("Matte White 8cm"));
+
+    expect(enabledValues("thickness")).toEqual(["3.125"]);
+    expect(shownValues("basin-style")).toEqual(["VA023"]);
+  });
+
+  it('keeps Matte White (Technolite) to the 1/2" and 4-3/4" tops and the LB basins', () => {
+    store.dispatch(setActiveCountertopColor("Matte White"));
+
+    expect(enabledValues("thickness")).toEqual(["0.5", "4.75"]);
+    expect(shownValues("basin-style")).toEqual(["LB440", "LB175", "LB575", "LB856"]);
+  });
+
+  it('gives a vessel Matte White 8cm top the 3-1/8" thickness too', () => {
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveCountertopColor("Matte White 8cm"));
+
+    expect(enabledValues("thickness")).toEqual(["3.125"]);
+  });
+
+  it("refuses Matte White 8cm on a Sink Base under 80 cm with its reason, and keeps Matte White", () => {
+    store.dispatch(setSelectedDimensions({ width: 60, depth: 52 }));
+
+    expect(colorOf("Matte White 8cm")).toMatchObject({
+      enabled: false,
+      reasonCode: expect.stringMatching(/^countertop\./),
+    });
+    expect(colorOf("Matte White")?.enabled).toBe(true);
+  });
+});
 
 // The Urban Standard Height vessels take the colours its vesselCompatibility names, judged by the
 // material a colour is listed under and its colour code, as the USH countertop step judges them.

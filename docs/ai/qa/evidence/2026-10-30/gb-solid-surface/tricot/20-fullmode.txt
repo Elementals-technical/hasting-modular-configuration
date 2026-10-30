@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"technolite":{"pick":"Technolite","count":1,"swatches":["Matte White"],"groups":["Technolite"]},"technomat":{"pick":"Technomat","count":1,"swatches":["Matte White 8cm"],"groups":["Technomat"]},"header":{"pick":"Solid Surface","count":2,"swatches":["Matte White","Matte White 8cm"],"groups":["Technolite","Technomat"]},"solidSurfaceSwatches":[{"name":"Matte White","group":"Technolite","unavailable":false,"chosen":false},{"name":"Matte White 8cm","group":"Technomat","unavailable":false,"chosen":false}]}
+```
