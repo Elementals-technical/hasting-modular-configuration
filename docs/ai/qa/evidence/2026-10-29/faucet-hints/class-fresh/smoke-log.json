@@ -1,0 +1,172 @@
+{
+  "server": "firefox-devtools",
+  "serverInfo": "@mozilla/firefox-devtools-mcp 0.10.7",
+  "tools": [
+    "list_pages",
+    "new_page",
+    "navigate_page",
+    "select_page",
+    "close_page",
+    "get_page_text",
+    "take_snapshot",
+    "resolve_uid_to_selector",
+    "clear_snapshot",
+    "click_by_uid",
+    "hover_by_uid",
+    "fill_by_uid",
+    "drag_by_uid_to_uid",
+    "fill_form_by_uid",
+    "upload_file_by_uid",
+    "press_key",
+    "type_text",
+    "list_network_requests",
+    "get_network_request",
+    "set_network_cache",
+    "list_console_messages",
+    "clear_console_messages",
+    "screenshot_page",
+    "screenshot_by_uid",
+    "list_downloads",
+    "clear_downloads",
+    "set_download_behavior",
+    "accept_dialog",
+    "dismiss_dialog",
+    "navigate_history",
+    "set_viewport_size"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "new_page",
+      "status": "ok",
+      "ms": 2697,
+      "summary": "new page [1] → http://localhost:5173/prebuilt/faucet-holes?collectionId=class"
+    },
+    {
+      "step": 3,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 38,
+      "summary": "Snapshot [DOM truncated] uid=e95 body uid=e79 div uid=e78 div uid=e77 div uid=e16 div uid=e15 nav \"Configurator steps\" uid=e1 div uid=e0 div text=\"Pre-Built\" uid=e14 ul uid=e3 li uid=e2 a \"Class Models\" href=\"http://loca"
+    },
+    {
+      "step": 4,
+      "tool": "click_by_uid",
+      "status": "ok",
+      "ms": 55,
+      "summary": "click e82"
+    },
+    {
+      "step": 6,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 857,
+      "summary": "[1] → http://localhost:5173/prebuilt/faucet-holes?collectionId=class"
+    },
+    {
+      "step": 9,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 27,
+      "summary": "Pre-Built Class Models Color Countertop & Basin Accessories Faucet Details Summary Help Summary View → Select Faucet Details Faucet Holes 0 1 2 3 Total List Price $0.00 Quote Next: Summary [full content, 188 chars]"
+    },
+    {
+      "step": 10,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 254,
+      "summary": "image class-40-value-0.png; "
+    },
+    {
+      "step": 11,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 9,
+      "summary": "Snapshot [selector: [class*=swatchesGrid]] [includeAll: true] uid=e104 div uid=e97 button uid=e96 div text=\"0\" uid=e99 button uid=e98 div text=\"1\" uid=e101 button uid=e100 div text=\"2\" uid=e103 button uid=e102 div text=\""
+    },
+    {
+      "step": 12,
+      "tool": "click_by_uid",
+      "status": "ok",
+      "ms": 43,
+      "summary": "click e99"
+    },
+    {
+      "step": 14,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 6,
+      "summary": "Pre-Built Class Models Color Countertop & Basin Accessories Faucet Details Summary Help Summary View → Select Faucet Details Faucet Holes 0 1 2 3 Faucet hole placement to be specified at time of order. Total List Price $"
+    },
+    {
+      "step": 15,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 207,
+      "summary": "image class-41-value-1.png; "
+    },
+    {
+      "step": 16,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 6,
+      "summary": "Snapshot [selector: [class*=swatchesGrid]] [includeAll: true] uid=e104 div uid=e97 button uid=e96 div text=\"0\" uid=e99 button uid=e98 div text=\"1\" uid=e101 button uid=e100 div text=\"2\" uid=e103 button uid=e102 div text=\""
+    },
+    {
+      "step": 17,
+      "tool": "click_by_uid",
+      "status": "ok",
+      "ms": 29,
+      "summary": "click e101"
+    },
+    {
+      "step": 19,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 6,
+      "summary": "Pre-Built Class Models Color Countertop & Basin Accessories Faucet Details Summary Help Summary View → Select Faucet Details Faucet Holes 0 1 2 3 Faucet hole placement and spacing to be specified at time of order. Total "
+    },
+    {
+      "step": 20,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 211,
+      "summary": "image class-42-value-2.png; "
+    },
+    {
+      "step": 21,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 5,
+      "summary": "Snapshot [selector: [class*=swatchesGrid]] [includeAll: true] uid=e104 div uid=e97 button uid=e96 div text=\"0\" uid=e99 button uid=e98 div text=\"1\" uid=e101 button uid=e100 div text=\"2\" uid=e103 button uid=e102 div text=\""
+    },
+    {
+      "step": 22,
+      "tool": "click_by_uid",
+      "status": "ok",
+      "ms": 26,
+      "summary": "click e103"
+    },
+    {
+      "step": 24,
+      "tool": "get_page_text",
+      "status": "ok",
+      "ms": 6,
+      "summary": "Pre-Built Class Models Color Countertop & Basin Accessories Faucet Details Summary Help Summary View → Select Faucet Details Faucet Holes 0 1 2 3 Faucet hole placement and spacing to be specified at time of order. Total "
+    },
+    {
+      "step": 25,
+      "tool": "screenshot_page",
+      "status": "ok",
+      "ms": 206,
+      "summary": "image class-43-value-3.png; "
+    },
+    {
+      "step": 26,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 2,
+      "summary": "No console messages found matching filters. Total messages: 139, Filters: level=error"
+    }
+  ]
+}

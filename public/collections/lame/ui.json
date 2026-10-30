@@ -11,7 +11,6 @@
       "LV892": "images/basin/LV892.png",
       "VA002": "images/basin/VA002.png",
       "VA005": "images/basin/VA005.png",
-      "VA030": "images/basin/VA030.png",
       "Iris": "images/vessel/Iris.png",
       "Frame": "images/vessel/Frame.png",
       "Plaza": "images/vessel/Plaza.png"
@@ -143,7 +142,7 @@
     "accessories": {
       "label": "Accessories",
       "kind": "fields",
-      "sectionIds": ["dividers"]
+      "sectionIds": ["side-panels", "dividers"]
     },
     "faucet-holes": {
       "label": "Faucet Details",
@@ -288,6 +287,17 @@
         }
       ]
     },
+    "side-panels": {
+      "label": "Side Panels",
+      "defaultOpen": true,
+      "fields": [
+        {
+          "attributeId": "SidePanels",
+          "control": "options-grid",
+          "availabilityRef": "SidePanels.available"
+        }
+      ]
+    },
     "dividers": {
       "label": "Drawer Dividers",
       "defaultOpen": true,
@@ -308,7 +318,12 @@
         {
           "attributeId": "FaucetHolesAmount",
           "control": "swatches",
-          "availabilityRef": "FaucetHolesAmount.allowed"
+          "availabilityRef": "FaucetHolesAmount.allowed",
+          "hints": {
+            "1": "Faucet hole placement to be specified at time of order.",
+            "2": "Faucet hole placement and spacing to be specified at time of order.",
+            "3": "Faucet hole placement and spacing to be specified at time of order."
+          }
         }
       ]
     }

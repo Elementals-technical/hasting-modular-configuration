@@ -1,0 +1,2 @@
+No console messages found matching filters.
+Total messages: 136, Filters: level=error

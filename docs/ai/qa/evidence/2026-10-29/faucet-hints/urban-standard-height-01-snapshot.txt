@@ -1,0 +1,82 @@
+Snapshot [DOM truncated]
+
+uid=e449 body
+  uid=e447 div
+    uid=e446 div
+      uid=e445 div
+        uid=e385 div
+          uid=e384 nav "Configurator steps"
+            uid=e370 div
+              uid=e369 div text="Pre-Built"
+            uid=e383 ul
+              uid=e372 li
+                uid=e371 a "Model" href="http://localhost:5173/prebu..." text="Model"
+              uid=e374 li
+                uid=e373 a "Color" href="http://localhost:5173/prebu..." text="Color"
+              uid=e376 li
+                uid=e375 a "Countertop & Basin" href="http://localhost:5173/prebu..." text="Countertop & Basin"
+              uid=e378 li
+                uid=e377 a "Accessories" href="http://localhost:5173/prebu..." text="Accessories"
+              uid=e380 li
+                uid=e379 a "Faucet Details" href="http://localhost:5173/prebu..." text="Faucet Details"
+              uid=e382 li
+                uid=e381 a "Summary" href="http://localhost:5173/prebu..." text="Summary"
+        uid=e411 div
+          uid=e388 div
+            uid=e387 iframe "scene" src="http://localhost:5173/Hasti..."
+          uid=e389 div
+          uid=e407 div
+            uid=e392 div
+              uid=e391 button
+                uid=e390 span
+            uid=e394 button
+              uid=e393 span
+            uid=e396 button
+              uid=e395 span
+            uid=e398 button
+              uid=e397 span
+            uid=e400 button
+              uid=e399 span
+            uid=e402 button
+              uid=e401 span
+            uid=e404 button
+              uid=e403 span
+            uid=e406 button
+              uid=e405 span
+          uid=e410 div
+            uid=e409 div
+              uid=e408 div text="Help"
+        uid=e444 div
+          uid=e414 a href="http://localhost:5173/prebu..."
+            uid=e412 span text="Summary View"
+            uid=e413 span text="→"
+          uid=e419 div
+            uid=e418 div
+              uid=e415 div
+              uid=e416 div text="Select Faucet Details"
+              uid=e417 div
+          uid=e428 div
+            uid=e427 div
+              uid=e426 div
+                uid=e422 h3
+                  uid=e421 button
+                    uid=e420 span text="Faucet Holes"
+                uid=e425 region tag=div
+                  uid=e424 div
+                    uid=e423 div
+          uid=e443 div
+            uid=e437 div
+              uid=e429 span text="Total List Price"
+              uid=e431 span
+                uid=e430 span "$0.00" text="$0.00"
+              uid=e436 span
+                uid=e435 a "Quote" href="http://localhost:5173/prebu..."
+                  uid=e434 span
+                    uid=e432 span text="Quote"
+                    uid=e433 span
+            uid=e442 div
+              uid=e438 button "Back to Accessories"
+              uid=e441 button
+                uid=e440 span
+                  uid=e439 span text="Next: Summary"
+  uid=e448 div

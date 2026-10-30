@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { resolveCabinetDimensions } from "@/entities/configuration/model/identity";
-import {
-  getActiveRuntimeBindings,
-  getCabinetEntries,
-  getDimensionsByCabinet,
-} from "@/entities/configuration/model/store/selectors";
+import { getCabinetEntries, getDimensionsByCabinet } from "@/entities/configuration/model/store/selectors";
 import { setActiveBasinStyle } from "@/entities/product/model/store/slice";
 import {
   isRuleWidthEligibleForIntegratedContext,
@@ -21,13 +17,7 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
-import {
-  markPendingBasins,
-  matchesThickness,
-  pendingBasinValues,
-  resolveIntegratedBasinOptions,
-  resolveVesselBasinOptions,
-} from "./basinOptions";
+import { matchesThickness, resolveIntegratedBasinOptions, resolveVesselBasinOptions } from "./basinOptions";
 import { VESSEL_SINK_NONE_OPTION_VALUE } from "./countertopColorOptions";
 
 import type { CountertopContext } from "./useCountertopContext";
@@ -141,10 +131,7 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
     [basinField],
   );
 
-  const runtimeBindings = useAppSelector(getActiveRuntimeBindings);
-  const pendingBasins = useMemo(() => pendingBasinValues(runtimeBindings), [runtimeBindings]);
-
-  const resolvedBasinOptions = useMemo<ProductOptionData[]>(() => {
+  const basinOptions = useMemo<ProductOptionData[]>(() => {
     if (!basinCatalog.length) return [];
     if (isBasinSelectionVesselStyle) return resolveVesselBasinOptions(basinCatalog, context);
 
@@ -177,11 +164,6 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
     selectedDimensions.width,
     sinkBaseDims.width,
   ]);
-
-  const basinOptions = useMemo(
-    () => markPendingBasins(resolvedBasinOptions, pendingBasins),
-    [pendingBasins, resolvedBasinOptions],
-  );
 
   const availableBasinOptions = useMemo(
     () => basinOptions.filter((option) => option.isAvailable !== false),

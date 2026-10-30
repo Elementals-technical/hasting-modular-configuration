@@ -155,12 +155,12 @@ describe("lame runtime bindings", () => {
     expect(placedWithNewProducts("UndertopColor")).toBe(true);
   });
 
-  it("give the sink cabinet its basin, and hold back VA030, which the scene has no sink for", () => {
+  it("give the sink cabinet its basin, and know no VA030, which Lame no longer offers", () => {
     expect(patchOf("sinkType", "LB440")).toEqual({ sinkType: "Top_LB440" });
     expect(patchOf("sinkType", "Iris")).toEqual({ sinkType: "Vessel_Iris" });
     expect(patchOf("sinkType", "None")).toEqual({ sinkType: "Vessel" });
     expect(targetOf("sinkType", "LB440")).toEqual({ kind: "productType", productType: "Lame-sink-cabinet" });
-    expect(resolve("sinkType", "VA030")).toMatchObject({ ok: false, reason: "unbound" });
+    expect(resolve("sinkType", "VA030")).toMatchObject({ ok: false, reason: "unknown-value" });
 
     expect(patchOf("VesselColor", "Antracite 400 GL")).toEqual({ VesselColor: "Antracite 400 Lacquered GL" });
     expect(targetOf("VesselColor", "Antracite 400 GL")).toEqual({

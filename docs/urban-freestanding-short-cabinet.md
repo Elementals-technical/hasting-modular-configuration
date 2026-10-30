@@ -56,7 +56,7 @@ stepped-стиль має шафа. Без стилю лишається Side Ca
 | Сцена (`sceneBridge`, `setConfigBatch`, `steppedSceneProducts.ts`) | Коротка тумба ставиться зі своєю висотою (add / insert / preset); після команди з `Handle` міст повертає їй висоту за новим handle (56 ↔ 53), бо сцена `Handle` розсилає, а збережена висота йде в підпис і SKU. |
 | Cabinet Builder | Стиль «1 Drawer» короткої тумби недоступний, доки немає поставленої високої drawer-шафи. Він не обмежується `drawerStyleGroups`, а поставлені короткі тумби не входять у стилі композиції — без модалки «Update Design?». Місце на краю тримає сцена; Move Left / Right перестрибує блок високих (`resolveMoveSwaps`). |
 | `sku-profile.json` | `CabinetType` `Short-Cabinet` → `SC`, `Drawers` "1" → `1DW`: `VAN-URFS-SC/1DW/<handle>/<fluting>-<W>-<H>-<D>-CAB-…`, висота з цоколем у дюймах (56 см → 22H, 53 см → 20.9H). |
-| Summary / pricing | Коротка тумба — звичайний рядок. Бокова панель біля неї не ціниться (gap `sidePanel`, P1125/UFS-SP-01); панелі описуються за першою високою шафою (обидві сторінки Summary). |
+| Summary / pricing | Коротка тумба — звичайний рядок. Бокова панель біля неї не ціниться (gap `sidePanel`, P1125/UFS-SP-01) і в Summary не показується: рядок `sidePanel` називає замовлені краї (`sides`), і Summary показує панель лише для них. Панелі описуються за першою високою шафою (обидві сторінки Summary). |
 
 ## Відомі обмеження
 

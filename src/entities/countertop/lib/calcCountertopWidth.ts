@@ -1,4 +1,9 @@
+import type { ProductProfile } from "@/entities/collection/model/productProfile";
 import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
+
+/** Nominal width of a panel of the active collection. */
+export const getSidePanelWidthCm = (profile: ProductProfile | null | undefined): number =>
+  profile?.ruleData.sidePanels?.panelWidthCm ?? SIDE_PANEL_WIDTH_CM;
 
 /** Counts only scene-reported active sides, never an assumed pair from a Yes/No choice. */
 export const getActiveSidePanelCount = (left: string | null | undefined, right: string | null | undefined): number =>
@@ -6,7 +11,7 @@ export const getActiveSidePanelCount = (left: string | null | undefined, right: 
 
 /**
  * Calculates the total countertop width in centimeters,
- * including the +1 cm offset for each active side panel.
+ * including the collection's nominal width for each active side panel.
  *
  * Single source of truth — used by usePriceCalculation (pricing SKU + widthCm)
  * and both Summary pages (display SKU).
@@ -20,8 +25,9 @@ export function calcTotalCountertopWidthCm(
   cabinetWidthSum: number,
   sidePanelLeft: string | null | undefined,
   sidePanelRight: string | null | undefined,
+  panelWidthCm = SIDE_PANEL_WIDTH_CM,
 ): number | null {
-  const sidePanelOffset = getActiveSidePanelCount(sidePanelLeft, sidePanelRight) * SIDE_PANEL_WIDTH_CM;
+  const sidePanelOffset = getActiveSidePanelCount(sidePanelLeft, sidePanelRight) * panelWidthCm;
 
   return cabinetWidthSum + sidePanelOffset || null;
 }

@@ -1,3 +1,4 @@
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { resolveAttributeLabel } from "@/entities/collection/lib/customization/resolveAttributeLabel";
@@ -73,7 +74,6 @@ import {
   formatVesselDimensionLabel,
   vesselHeightCmMap,
   TOWEL_BAR_DEFAULTS,
-  SIDE_PANEL_WIDTH_CM,
   extractColorCode,
   getCountertopMaterialTokensBySku,
   getCountertopMaterialTokensFromBasinType,
@@ -87,7 +87,12 @@ import {
   resolveCollectionColorCode,
 } from "@/shared/lib/sku";
 import { useSaveConfigurationMutation } from "@/entities";
-import { configurationValueOf, resolveCabinetTypeOfRuntimeId, useActiveCollection } from "@/entities/collection";
+import {
+  configurationValueOf,
+  resolveCabinetTypeOfRuntimeId,
+  selectEffectiveFallback,
+  useActiveCollection,
+} from "@/entities/collection";
 import { useOptionLabel } from "@/features/collectionCustomization";
 import { usePriceResult } from "@/shared/hooks/usePriceResult";
 import { useSkuBuilders } from "@/shared/hooks/useSkuBuilders";
@@ -95,8 +100,10 @@ import {
   appendUncoveredLines,
   cabinetCoverItems,
   ownSidePanelItems,
+  resolveSummaryCabinetHandle,
   resolveSummaryLinePrice,
   tandemCountertopItems,
+  ushSidePanelItems,
   type PricingLine,
   type SummaryPriceState,
 } from "@/shared/lib/pricing";
@@ -155,7 +162,11 @@ import { shouldUsePresetProducts } from "@/shared/lib/shouldUsePresetProducts";
 import { deriveBookMatchingChargeInfo, type BookMatchingCabinetInput } from "@/shared/lib/bookMatching";
 
 import s from "./SummaryPage.module.scss";
-import { useCollectionNavigate, useScreenTarget, useStepPathById } from "@/features/collectionCustomization";
+import {
+  useCollectionNavigate,
+  useCollectionNavigation,
+  useSummaryEditTargets,
+} from "@/features/collectionCustomization";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 const DEFAULT_COUNTERTOP_COLOR = "Cacao Orinoco FF MT";
@@ -201,11 +212,6 @@ type SummarySection = {
   copyLabel?: string;
 };
 
-const SIDE_PANEL_SUMMARY_DEPTH_MAP: Record<number, number> = {
-  46: 45.5,
-  50.5: 50,
-};
-
 // Maps a summary `section.id` to the Threekit parent group name the section's
 // swatch values originate from. Used to disambiguate variants that share the
 // same `value` across multiple Threekit groups (e.g. "Aragosta 77 MT" present
@@ -228,12 +234,6 @@ const getSummarySwatchPreferredMaterialTokens = (
   return tokens.length ? tokens : undefined;
 };
 
-const normalizeSidePanelSummaryDepth = (value: number | null): number | null => {
-  if (value === null) return null;
-  const rounded = Math.round(value * 10) / 10;
-  return SIDE_PANEL_SUMMARY_DEPTH_MAP[rounded] ?? value;
-};
-
 export const SummaryPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useCollectionNavigate();
@@ -243,20 +243,9 @@ export const SummaryPage = () => {
   const [openEditMenuSectionId, setOpenEditMenuSectionId] = useState<string | null>(null);
   const editMenuRef = useRef<HTMLDivElement | null>(null);
   const lastSavedHashRef = useRef<string | null>(null);
-  const stepPathById = useStepPathById("prebuilt");
-  // The accessories page by its screen, as the player menu finds it: Tricot names that step `side-panels`.
-  const accessoriesPath = useScreenTarget("accessories")?.path;
-  const editPathBySectionId = useMemo<Record<string, string>>(() => {
-    const entries: Array<[string, string | undefined]> = [
-      ["cabinet", stepPathById.cabinet],
-      ["cabinet-options", stepPathById.cabinet],
-      ["countertop", stepPathById.countertop],
-      ["basin", stepPathById.countertop],
-      ["accessories", accessoriesPath],
-      ["faucet", stepPathById["faucet-holes"]],
-    ];
-    return Object.fromEntries(entries.filter((entry): entry is [string, string] => Boolean(entry[1])));
-  }, [accessoriesPath, stepPathById]);
+  // Edit leads to the step of the flow the Summary is open in that shows the section's value (ui.json).
+  const editTargets = useSummaryEditTargets();
+  const flowId = useCollectionNavigation()?.flowId;
 
   const buildConfigurationRequest = useBuildConfigurationRequest();
   const priceResult = usePriceResult();
@@ -335,19 +324,19 @@ export const SummaryPage = () => {
         setOpenEditMenuSectionId((current) => (current === sectionId ? null : sectionId));
         return;
       }
-      const path = editPathBySectionId[sectionId];
+      const path = editTargets.pathBySectionId[sectionId];
       if (path) navigate(path);
     },
-    [dispatch, navigate, editPathBySectionId],
+    [dispatch, navigate, editTargets],
   );
   const handleOrderSummarySwatches = useCallback(() => {
     trackModularOrderFreeSwatchesClick({
       cta_location: "summary_view",
-      configurator_flow: "prebuilt",
+      configurator_flow: flowId,
       product_element: "Swatches",
     });
     handleEditSection("swatches");
-  }, [handleEditSection]);
+  }, [flowId, handleEditSection]);
 
   const handleCabinetEditMenuNavigate = useCallback(
     (path: string) => {
@@ -357,18 +346,19 @@ export const SummaryPage = () => {
     [navigate],
   );
 
-  const cabinetEditMenuItems = useMemo<DropdownItem[]>(() => {
-    const items: Array<{ id: string; label: string; path: string | undefined }> = [
-      { id: "model-selection", label: "Model Selection", path: stepPathById.model },
-      { id: "color", label: "Color", path: stepPathById.cabinet },
-    ];
-
-    return items.flatMap(({ id, label, path }) =>
-      path
-        ? [{ id, label, trailing: <ArrowTopRight color="#333" />, onClick: () => handleCabinetEditMenuNavigate(path) }]
-        : [],
-    );
-  }, [handleCabinetEditMenuNavigate, stepPathById]);
+  const cabinetEditMenuItems = useMemo<DropdownItem[]>(
+    () =>
+      editTargets.cabinetMenu.map(({ id, label, path }) => ({
+        id,
+        label,
+        trailing: <ArrowTopRight color="#333" />,
+        onClick: () => handleCabinetEditMenuNavigate(path),
+      })),
+    [editTargets, handleCabinetEditMenuNavigate],
+  );
+  // Swatches open the swatch order; any other section has Edit only where its flow has a step for it.
+  const canEditSection = (sectionId: string) =>
+    sectionId === "cabinet" ? cabinetEditMenuItems.length > 0 : Boolean(editTargets.pathBySectionId[sectionId]);
 
   useEffect(() => {
     if (!openEditMenuSectionId) return;
@@ -632,6 +622,11 @@ export const SummaryPage = () => {
       const normalized = normalizeCabinetToken(value);
       return normalized.includes("sink-base") || normalized.includes("sinkbase");
     };
+    // The handle a cabinet is described with when neither it nor the choice names one: the collection's declared one.
+    const handleOptions = {
+      selectedHandle: typeof selectedProductConfig?.Handle === "string" ? selectedProductConfig.Handle : null,
+      fallbackHandle: selectEffectiveFallback(activeProfile, "Handle"),
+    };
     const presetCabinetItems = shouldUsePresets
       ? productsPresets.map((preset, index) => {
           const recordedDimensions = resolveCabinetDimensions(
@@ -658,10 +653,13 @@ export const SummaryPage = () => {
             depth: presetDepth,
             height: presetHeight,
           });
-          const resolvedHandle = (selectedProductConfig?.Handle as string | undefined) || preset.Handle || null;
+          const resolvedHandle = resolveSummaryCabinetHandle(
+            { Handle: preset.Handle ?? null },
+            { shouldUsePresets, ...handleOptions },
+          );
 
           return {
-            id: `cabinet-${index}`,
+            id: `cabinet-preset-${index}`,
             title: formatCabinetTitleForSummary(placedType ?? preset.name ?? activeCabinetType),
             subtitle,
             ...priceOfLines([lineById(`cabinet:preset-${index}`)]),
@@ -737,7 +735,7 @@ export const SummaryPage = () => {
         description: buildCabinetDescription({
           cabinetType: productCabinetType,
           drawers: typeof config.Drawers === "string" ? config.Drawers : null,
-          handle: (selectedProductConfig?.Handle as string | undefined) || config.Handle || null,
+          handle: resolveSummaryCabinetHandle(config, { shouldUsePresets, ...handleOptions }),
           pattern: drawerPanelFluting || null,
           width: width ?? null,
           height: height ?? null,
@@ -1089,16 +1087,22 @@ export const SummaryPage = () => {
       bookMatchingItem,
     ].filter(Boolean) as SummaryItem[];
 
-    const cabinetWidthSum =
-      cabinetConfigs.length > 0
+    // TODO(architecture): productsPresets[*].Width is a frozen snapshot from
+    // prebuilt→custom transition; it does NOT reflect user resizes in custom
+    // mode. Any aggregate computed from presets can diverge from actual scene
+    // widths after resize. Prefer live scene (getConfig per productId) or
+    // selectedDimensions. See slice.ts setSelectedDimensions note.
+    const cabinetWidthSum = shouldUsePresets
+      ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0) +
+        cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
+      : cabinetConfigs.length > 0
         ? cabinetConfigs.reduce((sum, c) => sum + (typeof c.Width === "number" ? c.Width : 0), 0)
-        : productsPresets.length > 0
-          ? productsPresets.reduce((sum, p) => sum + (p.Width ?? 0), 0)
-          : (selectedDimensions.width ?? 0);
+        : (selectedDimensions.width ?? 0);
     // The top is priced for the width of the whole composition, presets and added cabinets included.
     const countertopTopLine = lineById("countertop:0");
     const totalCountertopWidth =
-      countertopTopLine?.widthCm ?? calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight);
+      countertopTopLine?.widthCm ??
+      calcTotalCountertopWidthCm(cabinetWidthSum, sidePanelLeft, sidePanelRight, getSidePanelWidthCm(activeProfile));
 
     const vesselType = vesselTypeForTokens;
     const vesselLine = lineById("vessel");
@@ -1231,94 +1235,28 @@ export const SummaryPage = () => {
     const towelBarRightLine = lineById("towelBar:right");
     const towelBarLeftLine = lineById("towelBar:left");
 
-    // Side panel SKUs — one line item per active side (single-panel pricing)
-    const sidePanelSkuItems: SummaryItem[] = [];
-    if (sidePanelsOption && sidePanelsOption !== "None") {
-      const inferSidePanelMaterialSku = (colorValue?: string | null): string | null => {
-        if (!colorValue) return null;
-        const upper = colorValue.trim().toUpperCase();
-        if (!upper) return null;
-        if (/\bTK[A-Z0-9]+\b/.test(upper)) return "HPL";
-        if (/\b(10B|10F|10G|10N|1PE|1A[1-5])\b/.test(upper)) return "3D";
-        if (/\bGL\b/.test(upper)) return "LACG";
-        if (/\bMT\b/.test(upper)) return "LACM";
-        return null;
-      };
-      const sidePanelCabinetColor =
-        (cabinetConfigs.find((c) => typeof c.CabinetColor === "string" && c.CabinetColor)?.CabinetColor as
-          | string
-          | undefined) ??
-        productsPresets.find((p) => typeof p.CabinetColor === "string" && p.CabinetColor)?.CabinetColor ??
-        cabinetColor;
-      // The panels are described at the size of the first cabinet with a confirmed one, not a short cabinet's.
-      const panelCabinet =
-        cabinetConfigs.find((config) => !isSteppedSceneConfig(config)) ??
-        cabinetConfigs[0];
-      const dims =
-        cabinetConfigs.length > 0
-          ? {
-              height: typeof panelCabinet.Height === "number" ? panelCabinet.Height : null,
-              depth: typeof panelCabinet.Depth === "number" ? panelCabinet.Depth : null,
-            }
-          : productsPresets.length > 0
-            ? { height: productsPresets[0].Height ?? null, depth: productsPresets[0].Depth ?? null }
-            : { height: selectedDimensions.height, depth: selectedDimensions.depth };
-
-      const handleMaterialSku = handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null;
-      const sidePanelCabinetMaterialSku =
-        resolveCabinetMaterialSku(sidePanelCabinetColor) || inferSidePanelMaterialSku(sidePanelCabinetColor);
-      // One line for all active sides; each side is one piece of it.
-      const sidePanelLine = lineById("sidePanel");
-      const sidePanelMaterialElements = buildSummaryMaterialElements([
-        {
-          productElement: "Cabinet",
-          materialSku: sidePanelCabinetMaterialSku,
-          colorCode: sidePanelCabinetColor,
-        },
-        {
-          productElement: "Handle",
-          materialSku: handleMaterialSku,
-          colorCode: handleGrooveColor,
-        },
-      ]);
-      const sidePanelCabinetSwatch = resolveSwatch(sidePanelCabinetColor);
-
-      const activeSides: Array<{ side: "left" | "right"; label: string }> = [];
-      if (sidePanelLeft === "active") activeSides.push({ side: "left", label: "Side Panel Left" });
-      if (sidePanelRight === "active") activeSides.push({ side: "right", label: "Side Panel Right" });
-
-      activeSides.forEach(({ side, label }) => {
-        if (!sidePanelLine) return;
-        sidePanelSkuItems.push({
-          id: `accessories-side-panel-${side}`,
-          title: label,
-          subtitle: labelOf("SidePanels", sidePanelsOption),
-          ...priceOfLines([sidePanelLine]),
-          swatch: sidePanelCabinetColor
-            ? {
-                label: "Cabinet",
-                value: sidePanelCabinetColor,
-                color: sidePanelCabinetSwatch.color,
-                image: sidePanelCabinetSwatch.image,
-                materialSku: sidePanelCabinetMaterialSku,
-              }
-            : undefined,
-          copyable: true,
-          showInfo: true,
-          description: {
-            "Product Category": "Side Panel",
-            "Panel Type": labelOf("SidePanels", sidePanelsOption),
-            Side: side,
-            Width: SIDE_PANEL_WIDTH_CM,
-            Height: dims.height,
-            Depth: normalizeSidePanelSummaryDepth(dims.depth),
-            "Cabinet Color": sidePanelCabinetColor || null,
-            "Groove Color": handleGrooveColor || null,
-            elements: sidePanelMaterialElements,
-          },
-        });
-      });
-    }
+    // The side panels priced as Urban Standard Height's: one per end the line orders, in the finish it is ordered
+    // in. A collection's own panels (Tricot, Lame) are listed by ownSidePanelItems below.
+    // The panels are described at the size of the first cabinet with a confirmed one, not a short cabinet's.
+    const panelCabinet = cabinetConfigs.find((config) => !isSteppedSceneConfig(config)) ?? cabinetConfigs[0];
+    const panelSize = panelCabinet
+      ? {
+          heightCm: typeof panelCabinet.Height === "number" ? panelCabinet.Height : null,
+          depthCm: typeof panelCabinet.Depth === "number" ? panelCabinet.Depth : null,
+        }
+      : productsPresets.length > 0
+        ? { heightCm: productsPresets[0].Height ?? null, depthCm: productsPresets[0].Depth ?? null }
+        : { heightCm: selectedDimensions.height, depthCm: selectedDimensions.depth };
+    const sidePanelSkuItems: SummaryItem[] = ushSidePanelItems(pricingLines, {
+      priceOfLine: (line) => priceOfLines([line]),
+      swatchOf: resolveSwatch,
+      panelType: labelOf("SidePanels", sidePanelsOption) || null,
+      size: { widthCm: getSidePanelWidthCm(activeProfile), ...panelSize },
+      groove: {
+        color: handleGrooveColor || null,
+        materialSku: handleGrooveColorSku || handleGrooveColorSkuByName.get(handleGrooveColor) || null,
+      },
+    });
 
     const dividerItems: SummaryItem[] = (() => {
       if (activePlacedDividers.length > 0) {
@@ -1350,13 +1288,14 @@ export const SummaryPage = () => {
 
     const accessoriesItems: SummaryItem[] = [
       ...sidePanelSkuItems,
-      // A collection's own side panels (Tricot), in the finish their line is ordered in.
+      // A collection's own side panels (Tricot, Lame), in the finish their line is ordered in.
       ...ownSidePanelItems(pricingLines, {
         priceOfLine: (line) => priceOfLines([line]),
         swatchOf: resolveSwatch,
         sidePanelLeft,
         sidePanelRight,
         panelType: labelOf("SidePanels", sidePanelsOption) || null,
+        panelWidthCm: getSidePanelWidthCm(activeProfile),
       }),
       ...dividerItems,
       ...organizerItems,
@@ -1745,16 +1684,18 @@ export const SummaryPage = () => {
             <div className={s.sectionHeader}>
               <div className={s.sectionTitle}>{section.title}</div>
               <div className={s.sectionAction} ref={section.id === "cabinet" ? editMenuRef : null}>
-                <button
-                  type="button"
-                  className={s.editButton}
-                  aria-label={`Edit ${section.title}`}
-                  aria-expanded={section.id === "cabinet" ? openEditMenuSectionId === section.id : undefined}
-                  aria-haspopup={section.id === "cabinet" ? "menu" : undefined}
-                  onClick={() => handleEditSection(section.id)}
-                >
-                  <EditPenIcon />
-                </button>
+                {canEditSection(section.id) && (
+                  <button
+                    type="button"
+                    className={s.editButton}
+                    aria-label={`Edit ${section.title}`}
+                    aria-expanded={section.id === "cabinet" ? openEditMenuSectionId === section.id : undefined}
+                    aria-haspopup={section.id === "cabinet" ? "menu" : undefined}
+                    onClick={() => handleEditSection(section.id)}
+                  >
+                    <EditPenIcon />
+                  </button>
+                )}
                 {section.id === "cabinet" && openEditMenuSectionId === section.id && (
                   <NestedDropdown items={cabinetEditMenuItems} className={s.summaryEditDropdown} />
                 )}
