@@ -53,7 +53,9 @@ import {
 import { clearHistory } from "@/entities/history/model/store/slice";
 import { getCountertopStyle, getProductsPresets, getSinkType } from "@/entities/product/model/store/selectors";
 import { reset, setActiveBasinStyle, setActiveProfile } from "@/entities/product/model/store/slice";
-import type { AttributeChange } from "@/features/configurationCommands";
+import { recordValues, type AttributeChange } from "@/features/configurationCommands";
+import { createTestCompositionPort, createTestRuntimePort } from "@/features/playCanvasAdapter";
+import type { UseChangeAttributeOptions } from "@/features/configurationCommands/hooks/useChangeAttribute";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { FieldsStepPage } from "@/pages/fieldsStep/FieldsStepPage";
 import { ModelPage } from "@/pages/prebuilt/model/ModelPage";
@@ -70,6 +72,7 @@ const mocks = vi.hoisted(() => ({
   record: null as ConfigurationRecord | null,
   changes: [] as AttributeChange[],
   sceneReady: true,
+  ports: null as UseChangeAttributeOptions | null,
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => mocks.sceneReady }));
@@ -112,7 +115,7 @@ vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (impo
   const { useMemo } = await import("react");
   return {
     useChangeAttribute: (options?: Parameters<typeof actual.useChangeAttribute>[0]) => {
-      const runner = actual.useChangeAttribute(options);
+      const runner = actual.useChangeAttribute({ ...options, ...mocks.ports });
       return useMemo(
         () => ({
           ...runner,
@@ -127,7 +130,10 @@ vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (impo
   };
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  mocks.ports = null;
+});
 
 const parsedClassProfile = parseProductProfile(classProfileDocument);
 if (!parsedClassProfile.ok) throw new Error("Class profile must parse");
@@ -541,6 +547,98 @@ describe("urban-duplex: a Prebuilt order opened from its link keeps each cabinet
       { Series: "URDPX", LateralPanelSide: "L" },
       { Series: "URSTD", LateralPanelSide: undefined },
     ]);
+  });
+});
+
+describe("Class model selection", () => {
+  const testCase = CASES[1];
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(testCase.profile));
+    store.dispatch(setActiveCollectionId(testCase.collectionId));
+    store.dispatch(setActiveRuntimeBindings(testCase.bindings));
+    mocks.sceneReady = false;
+  });
+
+  it.each([
+    ["Iris", true],
+    ["VA023", true],
+    ["Iris", false],
+  ] as const)("selecting another model after %s, resetSelections=%s", async (basin, resetSelections) => {
+    if (!resetSelections) {
+      store.dispatch(
+        setActiveProfile({
+          ...testCase.profile,
+          ruleData: {
+            ...testCase.profile.ruleData,
+            prebuiltModelSelection: undefined,
+          },
+        }),
+      );
+    }
+    const style = basin === "Iris" ? "vessel" : "integrated";
+    const composition = createTestCompositionPort();
+    const runtime = createTestRuntimePort();
+    mocks.ports = { composition: composition.port, runtime: runtime.port };
+    recordValues(
+      {
+        CabinetColor: "Seta 406 MT",
+        CabinetSideColor: "Moka 408 MT",
+        FrameColor: "Moka 408 MT",
+        CountertopColor: "Matte White",
+        CountertopStyle: style,
+        sinkType: basin,
+        Thickness: "0.5",
+        VesselColor: "Acqua 419 GL",
+        FaucetHolesAmount: "1",
+      },
+      { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" },
+    );
+
+    renderAt(testCase, "/prebuilt/model?collectionId=class", <ModelPage />, true);
+    // Returning to this step alone must keep the user's configuration.
+    expect(getCountertopStyle(store.getState())).toBe(style);
+    expect(composition.calls).toHaveLength(0);
+    fireEvent.click(await screen.findByText('Class Vanity 55" 1-Drawer 1'));
+
+    await waitFor(() => expect(getProductsPresets(store.getState())).toHaveLength(2));
+    if (!resetSelections) {
+      expect(store.getState().rootStateUI.product.productOptions).toMatchObject({
+        CabinetColor: "Seta 406 MT",
+        CountertopColor: "Matte White",
+        sinkType: "Iris",
+      });
+      expect(getCountertopStyle(store.getState()).toLowerCase()).toBe("vessel");
+      expect(getAttributeValue(store.getState(), "FrameColor", { scope: "global" })).toBe("Moka 408 MT");
+      return;
+    }
+    expect(getCountertopStyle(store.getState()).toLowerCase()).toBe("integrated");
+    const options = store.getState().rootStateUI.product.productOptions;
+    expect(options).toMatchObject({
+      CabinetColor: "INVISIBLE WHITE OPACO 332",
+      CountertopColor: "INVISIBLE WHITE OPACO 332",
+      Thickness: "0.75",
+      sinkType: "LV890",
+      VesselColor: "",
+      FaucetHolesAmount: "0",
+    });
+    expect(getAttributeValue(store.getState(), "FrameColor", { scope: "global" })).toBe("Nero 433 MT");
+    expect(getAttributeValue(store.getState(), "CabinetSideColor", { scope: "global" })).toBe("Latte 417 MT");
+    expect(composition.calls[0]).toMatchObject({
+      op: "replace",
+      request: {
+        products: [
+          { config: { Width: 60, CabinetColor: "INVISIBLE WHITE OPACO 332", FrameColor: "Nero 433 MT" } },
+          { config: { Width: 80, CabinetColor: "INVISIBLE WHITE OPACO 332", FrameColor: "Nero 433 MT" } },
+        ],
+      },
+    });
+    expect(
+      getProductsPresets(store.getState()).every(({ CabinetColor }) => CabinetColor === "INVISIBLE WHITE OPACO 332"),
+    ).toBe(true);
   });
 });
 

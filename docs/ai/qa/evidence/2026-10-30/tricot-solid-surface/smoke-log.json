@@ -1,0 +1,124 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 2832,
+      "summary": "## Pages [non-localhost tabs redacted] "
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 4029,
+      "summary": "Successfully navigated to http://localhost:5173/prebuilt/model?collectionId=tricot. ## Pages [non-localhost tabs redacted] "
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 229,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 5,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 372,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Cabinet Finishes <BUTTON>\" ``` Page navigated to http://localhost:5173/prebuilt/color?collectionId=tricot."
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 349,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Countertop & Basin <BUTTON>\" ``` Page navigated to http://localhost:5173/prebuilt/countertop?collectionId=tricot."
+    },
+    {
+      "step": 9,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 9970,
+      "summary": "Script ran on page and returned: ```json {\"initialGroups\":[\"HPL\",\"Porcelain\",\"Technolite\",\"Technomat\",\"Glass GL\",\"Glass MT\"],\"initialCount\":71,\"menu\":[\"Show all\",\"HPL\",\"Porcelain\",\"Solid Surface\",\"Glass\"],\"solidSurfaceIs"
+    },
+    {
+      "step": 10,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 774,
+      "summary": "image 11-material-menu-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 11,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 5137,
+      "summary": "Script ran on page and returned: ```json {\"dialog\":true,\"technolite\":{\"pick\":\"Technolite\",\"count\":1,\"swatches\":[\"Matte White\"],\"groups\":[\"Technolite\"]},\"header\":{\"pick\":\"Solid Surface\",\"count\":2,\"swatches\":[\"Matte White\""
+    },
+    {
+      "step": 12,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 591,
+      "summary": "image 21-fullmode-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 13,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 814,
+      "summary": "Script ran on page and returned: ```json {\"closed\":true} ```"
+    },
+    {
+      "step": 14,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 217,
+      "summary": "Script ran on page and returned: ```json {\"guard\":true,\"blockedWrites\":[]} ```"
+    },
+    {
+      "step": 15,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 3,
+      "summary": "## Console messages Showing 1-8 of 8 (Page 1 of 1). msgid=8 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times] msgid=10 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args) "
+    }
+  ]
+}

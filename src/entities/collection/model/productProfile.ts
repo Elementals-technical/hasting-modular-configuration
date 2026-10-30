@@ -349,6 +349,8 @@ export type DrawerOrganizersRuleData = {
  */
 export type ProfileRuleData = {
   cabinetMatrixLegacyAdapter: CabinetMatrixLegacyAdapter;
+  /** Absent keeps user selections on model changes; true applies the new model's own defaults. */
+  prebuiltModelSelection?: { resetSelections: boolean };
   /** Requires the loader's approved countertop matrix for command validation. */
   countertopCompatibility?: { tableId: number };
   /** Source-backed module catalog, usable before publication of a compatibility table. */

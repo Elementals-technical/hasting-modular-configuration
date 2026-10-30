@@ -18,14 +18,18 @@ interface FilterItemI {
   hintPlacement?: "top" | "bottom" | "left" | "right";
 }
 
-const hasAllOption = (options: FilterOption[]) =>
-  options.some((option) => {
-    const optionLabel = (option.label ?? "").toLowerCase();
-    const optionValue = (option.value ?? "").toLowerCase();
-    return optionLabel === "all" || optionLabel === "show all" || optionValue === "all";
-  });
+const isAllOption = (option: FilterOption) => {
+  const optionLabel = (option.label ?? "").toLowerCase();
+  const optionValue = (option.value ?? "").toLowerCase();
+  return optionLabel === "all" || optionLabel === "show all" || optionValue === "all";
+};
+
+const hasAllOption = (options: FilterOption[]) => options.some(isAllOption);
 
 export const FilterItem: React.FC<FilterItemI> = ({ label, options, value, onSelect, allowShowAll, hintPlacement }) => {
+  // A filter with nothing to choose (no option but All) is left out; one holding a value stays, so it can be cleared.
+  if (options.every(isAllOption) && (value === undefined || value === "")) return null;
+
   const handleSelect = (val?: string | number) => {
     onSelect?.(val);
   };

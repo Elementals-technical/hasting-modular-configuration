@@ -5,12 +5,13 @@
 - `collectionId`: `class`
 - Live: <https://hasting-modular-phase-2-p98qb.ondigitalocean.app/prebuilt/model?collectionId=class>
 - Package: `public/collections/class/`
-- Remote: configurator 9, countertop table 578, cabinet table 579.
+- Remote: configurator 8, countertop table 578, cabinet table 579.
 - Local: presets, UI, product profile, runtime bindings і partial SKU profile.
 
-Class ділить configurator 9 з Mako, але має власні tables, products, profile та bindings. Profile colors
-посилаються на `configurator:Select Cabinet Color` / `Select Countertop Color`; отже фактичний catalog
-обмежений групами configurator 9, доки Class не отримає окремий configurator.
+Class має власний configurator 8, tables, products, profile та bindings. Profile colors посилаються на
+групи `configurator:Select Cabinet Color`, `Select Cabinet Side Color`, `Select Frame Color` і
+`Select Countertop Color`. Лише side- і frame-групи містять каталоги Class; решта груп — копії груп
+Mako (configurator 9), тож пропонують і кольори інших колекцій (`sourceRefs` у `product-profile.json`).
 
 ## Product contract
 
@@ -27,11 +28,10 @@ CountertopStyle, basin, vessel color, thickness і faucet details поки state
 
 ## Presets і production стан
 
-44 model cards мають композиції (92 cabinet entries). Як у Mako, кожен cabinet пресету несе кольори, а
-`defaults` профілю дають стартові значення. Їх узято з головного фото сайту (2026-09-29): фасад
-`NERO ATLANTE LUCIDO 326`, боковини й рамка `Nero 433 MT`, integrated скляна стільниця `Nero 433 GL` з VA005.
-Тому model має повну ціну одразу. Бічні кольори й рамку, яких ніхто не вибрав, pricing бере з `defaults`.
-У сцені поки немає porcelain-матеріалів, тож фасад за замовчуванням не фарбується.
+24 model cards мають композиції (51 cabinet entries). Як у Mako, кожен cabinet пресету несе кольори, а
+`defaults` профілю дають стартові значення: фасад і стільниця `INVISIBLE WHITE OPACO 332`, боковини
+`Latte 417 MT`, рамка `Nero 433 MT`. Тому model має повну ціну одразу. Бічні кольори й рамку, яких
+ніхто не вибрав, pricing бере з `defaults`.
 
 ## Pricing
 
