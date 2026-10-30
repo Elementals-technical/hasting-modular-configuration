@@ -3,6 +3,7 @@ import {
   selectAttribute,
   selectConfiguratorGroup,
   selectConfiguratorSection,
+  selectDefaultValue,
   selectOptions,
   selectResetValue,
 } from "@/entities/collection";
@@ -127,6 +128,22 @@ const resolveFieldToggle = (
   return { label: toggle.label, on: value !== null && value !== "" && value !== offValue, onValue, offValue };
 };
 
+// A colour nothing has recorded yet shows the collection's starting value, the one the SKU and the price read
+// for it. A recorded value stands, an empty one included. A field with a switch shows what it stores: a starting
+// value would draw legs on a cabinet that has none.
+const resolveShownValue = (
+  profile: ProductProfile | null,
+  { attributeId, control, toggle }: CustomizationFieldDefinition,
+  values: Record<string, unknown>,
+  storedValue: FieldRuntimeState["value"],
+): FieldRuntimeState["value"] => {
+  const startingValue =
+    control === "colors" && !toggle && values[attributeId] === undefined
+      ? selectDefaultValue(profile, attributeId)
+      : "";
+  return startingValue === "" ? storedValue : startingValue;
+};
+
 export const resolveSectionFields = (
   schema: CustomizationSchema | null,
   sectionId: string,
@@ -188,8 +205,8 @@ export const resolveSectionFields = (
       };
     });
 
-    const value =
-      storedValue === null || storedValue === "" ? (availability.valueWhenEmpty ?? storedValue) : storedValue;
+    const shownValue = resolveShownValue(profile, definition, values, storedValue);
+    const value = shownValue === null || shownValue === "" ? (availability.valueWhenEmpty ?? shownValue) : shownValue;
     const field: FieldRuntimeState = {
       attributeId: definition.attributeId,
       value,
