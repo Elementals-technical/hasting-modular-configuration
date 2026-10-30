@@ -37,6 +37,7 @@ import {
   REASON_COUNTERTOP_MATERIAL_BY_FAILURE,
   REASON_COUNTERTOP_MATERIAL_SELECTION,
   REASON_VESSEL_COLOR_UNAVAILABLE,
+  resolveCountertopRuleMaterials,
   selectMaterialAliasTable,
   selectSinkBasesUnavailableWithIntegrated,
   useCountertopRules,
@@ -105,9 +106,15 @@ const resolveCountertopColorAvailability = (
   { materialRuleInputs }: CountertopRuleState,
 ): FieldAvailability => {
   // The verdict depends on the materials alone: one judgement per material list, for every option that lists it.
+  // A colour whose GB material has rows of its own (Technomat) is judged by that material instead.
   const verdicts = new Map<string, ReturnType<typeof evaluateCountertopMaterial>>();
   const judge = ({ traits }: FieldOptionState) => {
-    const materials = traits?.materials ?? [];
+    const materials = resolveCountertopRuleMaterials(
+      traits?.materials ?? [],
+      traits?.gbMaterial,
+      materialRuleInputs.countertopRules,
+      profile,
+    );
     const key = materials.join("\u0000");
     let verdict = verdicts.get(key);
     if (!verdict) {
