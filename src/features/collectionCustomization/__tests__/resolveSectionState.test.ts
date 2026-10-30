@@ -9,6 +9,8 @@ import { ushProfile as profile } from "@/entities/collection/__tests__/ushProfil
 import type { CustomizationSchema } from "@/entities/collection";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
+import classProfileDocument from "../../../../public/collections/class/product-profile.json";
+import classUiJson from "../../../../public/collections/class/ui.json";
 import makoUiJson from "../../../../public/collections/mako/ui.json";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import ulhUiJson from "../../../../public/collections/urban-low-height/ui.json";
@@ -290,6 +292,51 @@ describe("resolveSectionFields", () => {
   it("returns no fields for an unknown or missing section", () => {
     expect(resolveSectionFields(schema, "does-not-exist", profile, {}, {})).toEqual([]);
     expect(resolveSectionFields(null, "drawer-panel-custom", profile, {}, {})).toEqual([]);
+  });
+});
+
+describe("resolveSectionFields for a colour nothing has recorded yet", () => {
+  const classSchema = readCustomizationSchema(classUiJson);
+  const parsedClassProfile = parseProductProfile(classProfileDocument);
+  if (!parsedClassProfile.ok) throw new Error("Class profile must parse");
+  const classProfile = parsedClassProfile.profile;
+  const classField = (sectionId: string, values: Record<string, unknown>) =>
+    resolveSectionFields(classSchema, sectionId, classProfile, values, {})[0]?.field;
+
+  it.each([
+    { sectionId: "cabinet-side-color", value: "Latte 417 MT" },
+    { sectionId: "frame-color", value: "Nero 433 MT" },
+  ])("shows the profile's default under $sectionId", ({ sectionId, value }) => {
+    expect(classField(sectionId, {})?.value).toBe(value);
+  });
+
+  it("lets a recorded colour win over the default", () => {
+    expect(classField("cabinet-side-color", { CabinetSideColor: "Creta 416 MT" })?.value).toBe("Creta 416 MT");
+  });
+
+  it("keeps a recorded empty value or null, as a typed option holds it", () => {
+    expect(classField("cabinet-color", { CabinetColor: "" })?.value).toBe("");
+    expect(classField("cabinet-side-color", { CabinetSideColor: "" })?.value).toBe("");
+    expect(classField("cabinet-side-color", { CabinetSideColor: null })?.value).toBeNull();
+  });
+
+  it("keeps a colour without a default empty", () => {
+    expect(classProfile.defaults.VesselColor).toBeUndefined();
+    expect(classField("vessel-color", {})?.value).toBeNull();
+  });
+
+  it("leaves a field of another control empty, though its attribute has a default", () => {
+    expect(classProfile.defaults.CountertopStyle).toBe("integrated");
+    expect(classField("countertop-style", {})?.value).toBeNull();
+  });
+
+  it("keeps a field with a switch off and empty, though its attribute has a default", () => {
+    const makoSchema = readCustomizationSchema(makoUiJson);
+    const withLegDefault = { ...makoProfile, defaults: { ...makoProfile.defaults, LegColor: "Antracite 400 MT" } };
+    const field = resolveSectionFields(makoSchema, "leg-color", withLegDefault, {}, {})[0]?.field;
+
+    expect(field?.toggle?.on).toBe(false);
+    expect(field?.value).toBeNull();
   });
 });
 
