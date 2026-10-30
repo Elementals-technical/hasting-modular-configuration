@@ -1,3 +1,5 @@
+import type { ProductProfile } from "@/entities/collection";
+
 import type { GrooveType, SidePanelStatus } from "./sidePanelService";
 import { sidePanelAvailabilityRule } from "./sidePanelRules";
 import {
@@ -93,23 +95,28 @@ export const isSidePanelGrooveAvailableForSide = ({
   groove,
   height,
   edgeDrawers,
+  profile,
 }: {
   edgeState: SidePanelEdgeState;
   side: SidePanelPhysicalSide;
   groove: GrooveType;
   height?: number | null;
   edgeDrawers?: string | null;
+  profile: ProductProfile | null;
 }): boolean => {
   if (groove === "None") return true;
 
   const group = EDGE_GROUP_BY_SIDE[side](edgeState);
   if (group !== "SBSC") return false;
 
-  return sidePanelAvailabilityRule({
-    height,
-    handleType: mapSidePanelDrawersToHandleType(edgeDrawers),
-    cabinetType: "SBSC",
-  }).allowed.has(groove);
+  return sidePanelAvailabilityRule(
+    {
+      height,
+      handleType: mapSidePanelDrawersToHandleType(edgeDrawers, profile),
+      cabinetType: "SBSC",
+    },
+    profile,
+  ).allowed.has(groove);
 };
 
 export const resolveSidePanelSyncPrompt = ({

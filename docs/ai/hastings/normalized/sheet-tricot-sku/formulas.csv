@@ -1,0 +1,4 @@
+sheet,cell,formula
+CountertopPricing,G3,0.4*1.45*1.1*1*1.04*1.03*1.085*1.04*4
+Basin StylePricing,G1,0.4*1.45*1.1*1*1.04*1.03*1.085*1.04*4
+AccessoriesPricing,D2,0.4*1.45*1.1*1*1.04*1.03*1.085*1.04*4

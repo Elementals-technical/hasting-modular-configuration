@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hastings ULH"
+  short_description: "Work safely on Urban Low Height"
+  default_prompt: "Use $hastings-ulh to analyze or change Urban Low Height collection behavior."

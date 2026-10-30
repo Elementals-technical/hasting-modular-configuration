@@ -1,0 +1,494 @@
+import { describe, expect, it } from "vitest";
+
+import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
+import type { RuntimeBindingSet, ScenePatch } from "@/entities/collection";
+import type { RuntimeChange, RuntimeContext } from "@/entities/configuration";
+import type { SceneCallResult, SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
+
+import { createPlayCanvasRuntimePort } from "../lib/createPlayCanvasRuntimePort";
+import type { SceneBridge } from "../lib/createPlayCanvasRuntimePort";
+
+type FakeScene = SceneBridge & {
+  calls: { selector: SceneSelector; patch: ScenePatch }[];
+  productCalls: { runtimeId: string; patch: ScenePatch }[];
+  ready: boolean;
+  /** Answers per call index; unlisted calls apply. */
+  answers: Map<number, SceneCallResult>;
+};
+
+const createFakeScene = (): FakeScene => {
+  const scene: FakeScene = {
+    calls: [],
+    productCalls: [],
+    ready: true,
+    answers: new Map(),
+    isReady: () => scene.ready,
+    async apply(selector, patch) {
+      const index = scene.calls.push({ selector, patch }) - 1;
+      // Like the real scene: a broadcast updates every product.
+      return scene.answers.get(index) ?? { status: "applied", updatedIds: selector.productIds ?? ALL_PRODUCTS };
+    },
+    async applyProduct(runtimeId, patch) {
+      scene.productCalls.push({ runtimeId, patch });
+      return { status: "applied", updatedIds: [runtimeId] };
+    },
+  };
+  return scene;
+};
+
+const RUNTIME_IDS: Record<string, string> = { "cab-1": "rt-1", "cab-2": "rt-2" };
+const ALL_PRODUCTS = ["rt-1", "rt-2", "countertop-1"];
+
+const context = (overrides: Partial<RuntimeContext> = {}): RuntimeContext => ({
+  collectionId: "urban-standard-height",
+  flow: "custom",
+  resolveRuntimeId: (cabinetId) => RUNTIME_IDS[cabinetId] ?? null,
+  cabinetRuntimeIds: ["rt-1", "rt-2"],
+  ...overrides,
+});
+
+const drawers = (value: string, cabinetId = "cab-1"): RuntimeChange => ({
+  attributeId: "Drawers",
+  target: { scope: "cabinet", cabinetId },
+  value,
+});
+
+const height = (value: number): RuntimeChange => ({ attributeId: "Height", target: { scope: "global" }, value });
+
+const setUp = () => {
+  const scene = createFakeScene();
+  const port = createPlayCanvasRuntimePort({ getBindings: () => ushRuntimeBindings, scene });
+  return { scene, port };
+};
+
+describe("createPlayCanvasRuntimePort", () => {
+  it("delegates a translated change to the addressed product", async () => {
+    const { scene, port } = setUp();
+
+    const result = await port.apply([drawers("2")], context());
+
+    expect(result).toEqual({ status: "applied", applied: [drawers("2")] });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-1"] }, patch: { Drawers: "2D" } }]);
+  });
+
+  it("keeps Width on the scene's direct-product resize API", async () => {
+    const { scene, port } = setUp();
+    const width: RuntimeChange = { attributeId: "Width", target: { scope: "cabinet", cabinetId: "cab-2" }, value: 80 };
+
+    await expect(port.apply([width], context())).resolves.toEqual({ status: "applied", applied: [width] });
+    expect(scene.productCalls).toEqual([{ runtimeId: "rt-2", patch: { Width: 80 } }]);
+    expect(scene.calls).toEqual([]);
+  });
+
+  it("broadcasts the height and runs the set in the planned order, one call per change", async () => {
+    const { scene, port } = setUp();
+
+    await port.apply([drawers("2"), height(56)], context());
+
+    expect(scene.calls).toEqual([
+      { selector: { productIds: ["rt-1"] }, patch: { Drawers: "2D" } },
+      { selector: {}, patch: { Height: 56 } },
+    ]);
+  });
+
+  it("sends a flow-dependent attribute to every product in prebuilt and to the cabinets in custom", async () => {
+    const { scene, port } = setUp();
+    const grain: RuntimeChange = { attributeId: "GrainDirection", target: { scope: "global" }, value: "GrainVertical" };
+
+    await port.apply([grain], context({ flow: "prebuilt" }));
+    await port.apply([grain], context({ flow: "custom" }));
+
+    expect(scene.calls.map(({ selector }) => selector)).toEqual([{}, { productIds: ["rt-1", "rt-2"] }]);
+  });
+
+  it("answers not-ready without touching the scene", async () => {
+    const { scene, port } = setUp();
+    scene.ready = false;
+
+    expect(port.isReady()).toBe(false);
+    expect(await port.apply([drawers("2")], context())).toEqual({ status: "not-ready" });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("sends nothing when any change of the set has no translation", async () => {
+    const { scene, port } = setUp();
+    const sidePanels: RuntimeChange = { attributeId: "SidePanels", target: { scope: "global" }, value: "UpperG" };
+
+    const result = await port.apply([drawers("2"), drawers("3"), sidePanels], context());
+
+    expect(result).toMatchObject({
+      status: "unsupported",
+      unsupported: [
+        { change: drawers("3"), reason: "unknown-value" },
+        { change: sidePanels, reason: "unbound" },
+      ],
+    });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("records a value the scene never shows without a scene call, even before the scene is ready", async () => {
+    const { scene, port } = setUp();
+    scene.ready = false;
+    const faucetHoles: RuntimeChange = { attributeId: "FaucetHolesAmount", target: { scope: "countertop" }, value: "3" };
+    const led: RuntimeChange = { attributeId: "LedOption", target: { scope: "global" }, value: "Auto Fill" };
+
+    expect(await port.apply([faucetHoles, led], context())).toEqual({
+      status: "applied",
+      applied: [faucetHoles, led],
+    });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("sends only the scene part of a mixed set and records the rest with it", async () => {
+    const { scene, port } = setUp();
+    const bookMatching: RuntimeChange = { attributeId: "BookMatching", target: { scope: "global" }, value: "enabled" };
+
+    const result = await port.apply([bookMatching, drawers("2")], context());
+
+    expect(result).toEqual({ status: "applied", applied: [drawers("2"), bookMatching] });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-1"] }, patch: { Drawers: "2D" } }]);
+  });
+
+  it("records nothing when the scene part of the set failed before changing the scene", async () => {
+    const { scene, port } = setUp();
+    scene.answers.set(0, { status: "failed", code: "scene-rejected", message: "rejected" });
+    const bookMatching: RuntimeChange = { attributeId: "BookMatching", target: { scope: "global" }, value: "enabled" };
+
+    const result = await port.apply([bookMatching, drawers("2")], context());
+
+    expect(result).toMatchObject({ status: "failed", failed: [{ change: drawers("2") }] });
+  });
+
+  it("does not record a state-only value for a collection without bindings", async () => {
+    const { scene, port } = setUp();
+    const led: RuntimeChange = { attributeId: "LedOption", target: { scope: "global" }, value: "Auto Fill" };
+
+    const result = await port.apply([led], context({ collectionId: "mako" }));
+
+    expect(result).toMatchObject({ status: "unsupported", unsupported: [{ reason: "no-binding" }] });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("treats bindings of another collection as no bindings at all", async () => {
+    const { scene, port } = setUp();
+
+    const result = await port.apply([drawers("2")], context({ collectionId: "mako" }));
+
+    expect(result).toMatchObject({ status: "unsupported", unsupported: [{ reason: "no-binding" }] });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("fails before any call when a cabinet has no runtime id", async () => {
+    const { scene, port } = setUp();
+
+    const result = await port.apply([height(56), drawers("2", "cab-9")], context());
+
+    expect(result).toMatchObject({ status: "failed", failed: [{ code: "unknown-target" }] });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("keeps the scene's reason when the first command fails", async () => {
+    const { scene, port } = setUp();
+    scene.answers.set(0, { status: "failed", code: "product-not-found", message: "The scene did not update rt-1." });
+
+    const result = await port.apply([drawers("2"), height(56)], context());
+
+    expect(result).toEqual({
+      status: "failed",
+      failed: [
+        { change: drawers("2"), code: "product-not-found", message: "The scene did not update rt-1." },
+        { change: height(56), code: "not-attempted", message: expect.any(String) },
+      ],
+    });
+    expect(scene.calls).toHaveLength(1);
+  });
+
+  it("reports a partial result instead of a success when a later command fails", async () => {
+    const { scene, port } = setUp();
+    scene.answers.set(1, { status: "failed", code: "scene-error", message: "boom" });
+
+    const result = await port.apply([drawers("2"), height(56)], context());
+
+    expect(result).toEqual({
+      status: "partial",
+      applied: [drawers("2")],
+      failed: [{ change: height(56), code: "scene-error", message: "boom" }],
+    });
+  });
+
+  it("reports not-ready when the scene goes away before the first command runs", async () => {
+    const { scene, port } = setUp();
+    scene.answers.set(0, { status: "not-ready" });
+
+    expect(await port.apply([drawers("2"), height(56)], context())).toEqual({ status: "not-ready" });
+  });
+
+  it("marks the rest of the set not ready when the scene goes away midway", async () => {
+    const { scene, port } = setUp();
+    scene.answers.set(1, { status: "not-ready" });
+
+    const result = await port.apply([drawers("2"), height(56)], context());
+
+    expect(result).toMatchObject({ status: "partial", applied: [drawers("2")], failed: [{ code: "not-ready" }] });
+  });
+
+  it("applies an empty set without calling the scene", async () => {
+    const { scene, port } = setUp();
+
+    expect(await port.apply([], context())).toEqual({ status: "applied", applied: [] });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("has nothing to send to the cabinets when none are placed", async () => {
+    const { scene, port } = setUp();
+    const fluting: RuntimeChange = { attributeId: "DrawerPanelFluting", target: { scope: "global" }, value: "None" };
+
+    const result = await port.apply([fluting], context({ cabinetRuntimeIds: [] }));
+
+    expect(result).toEqual({ status: "applied", applied: [fluting] });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("refuses a one-cabinet binding for a change that names no cabinet", async () => {
+    const { scene, port } = setUp();
+    const globalDrawers: RuntimeChange = { attributeId: "Drawers", target: { scope: "global" }, value: "2" };
+
+    const result = await port.apply([globalDrawers], context());
+
+    expect(result).toMatchObject({ status: "failed", failed: [{ code: "unknown-target" }] });
+    expect(scene.calls).toHaveLength(0);
+  });
+
+  it("sends a basin that names no sink base to every sink base of the configuration", async () => {
+    const { scene, port } = setUp();
+    const basin: RuntimeChange = { attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel_Blade11" };
+
+    expect(await port.apply([basin], context())).toMatchObject({ status: "applied" });
+    expect(scene.calls).toEqual([{ selector: { productType: "Sink-Base" }, patch: { sinkType: "Vessel_Blade11" } }]);
+  });
+
+  // An integrated basin fits only the sink bases wide enough for it, so the countertop step
+  // sends one change per fitting sink base and the others keep the basin they have.
+  it("sends a basin that names its sink base to that product alone", async () => {
+    const { scene, port } = setUp();
+    const basin: RuntimeChange = {
+      attributeId: "sinkType",
+      target: { scope: "basin", sinkBaseId: "cab-2" },
+      value: "Top_HPLPrisma",
+    };
+
+    expect(await port.apply([basin], context())).toMatchObject({ status: "applied" });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-2"] }, patch: { sinkType: "Top_HPLPrisma" } }]);
+  });
+
+  it("refuses a basin whose sink base the scene does not hold, before any command", async () => {
+    const { scene, port } = setUp();
+    const basin: RuntimeChange = {
+      attributeId: "sinkType",
+      target: { scope: "basin", sinkBaseId: "cab-9" },
+      value: "Top_HPLPrisma",
+    };
+
+    expect(await port.apply([basin], context())).toMatchObject({
+      status: "failed",
+      failed: [{ code: "unknown-target" }],
+    });
+    expect(scene.calls).toHaveLength(0);
+  });
+});
+
+/**
+ * A value with more than one place in the scene, and a product type whose name is a part of
+ * another's: the scene takes every product whose id contains the type it is given.
+ */
+describe("createPlayCanvasRuntimePort: a value sent to more places", () => {
+  const bindings: RuntimeBindingSet = {
+    schemaVersion: 1,
+    collectionId: "test",
+    productTypes: {},
+    bindings: [
+      {
+        attributeId: "Body",
+        status: "bound",
+        target: { kind: "productType", productType: "UD-sink-cabinet" },
+        values: { kind: "identity", sceneKey: "CabinetColor" },
+        also: [{ target: { kind: "productType", productType: "UD-open-shelves" }, sceneKey: "CabinetColor" }],
+      },
+      {
+        attributeId: "Trim",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "identity", sceneKey: "CabinetColorLateral" },
+        also: [
+          { target: { kind: "all" }, sceneKey: "HandleGrooveColor" },
+          { target: { kind: "productType", productType: "UD-open-shelves-side" }, sceneKey: "CabinetColor" },
+        ],
+      },
+    ],
+  };
+  const SINK = "UD-sink-cabinet-a1b2c3d4e";
+  const SHELF = "UD-open-shelves-f5g6h7i8j";
+  const SIDE_SHELF = "UD-open-shelves-side-k9l0m1n2o";
+
+  const setUpWith = (cabinetRuntimeIds: string[]) => {
+    const scene = createFakeScene();
+    // A type-addressed call updates the products of that type; a broadcast every cabinet.
+    scene.apply = async (selector, patch) => {
+      scene.calls.push({ selector, patch });
+      const updatedIds =
+        selector.productIds ??
+        (selector.productType
+          ? cabinetRuntimeIds.filter((id) => id.includes(selector.productType ?? ""))
+          : cabinetRuntimeIds);
+      return { status: "applied", updatedIds };
+    };
+    const port = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene });
+    const ctx = context({ collectionId: "test", cabinetRuntimeIds });
+    return { scene, port, ctx };
+  };
+
+  const change = (attributeId: string, value: string): RuntimeChange => ({
+    attributeId,
+    target: { scope: "global" },
+    value,
+  });
+
+  it("sends the value to each place in turn, as one applied change", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SIDE_SHELF]);
+
+    expect(await port.apply([change("Trim", "bronze")], ctx)).toEqual({
+      status: "applied",
+      applied: [change("Trim", "bronze")],
+    });
+    expect(scene.calls).toEqual([
+      { selector: {}, patch: { CabinetColorLateral: "bronze" } },
+      { selector: {}, patch: { HandleGrooveColor: "bronze" } },
+      { selector: { productType: "UD-open-shelves-side" }, patch: { CabinetColor: "bronze" } },
+    ]);
+  });
+
+  it("does not ask a delivery to one product type to reach every cabinet", async () => {
+    // Only the broadcast steps must update all of them; the last one updates the side shelf alone.
+    const { port, ctx } = setUpWith([SINK, SHELF, SIDE_SHELF]);
+
+    expect(await port.apply([change("Trim", "bronze")], ctx)).toMatchObject({ status: "applied" });
+  });
+
+  it("addresses a product type by id when another placed product's id contains its name", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SHELF, SIDE_SHELF]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls).toEqual([
+      { selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } },
+      // "UD-open-shelves" alone would also repaint the open side shelf.
+      { selector: { productIds: [SHELF] }, patch: { CabinetColor: "white" } },
+    ]);
+  });
+
+  it("sends nothing for a product type none of the placed products is of", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SIDE_SHELF]);
+
+    expect(await port.apply([change("Body", "white")], ctx)).toMatchObject({ status: "applied" });
+    expect(scene.calls).toEqual([{ selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } }]);
+  });
+
+  it("keeps the product type as the binding gives it while no other product's id contains it", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SHELF]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls[1]).toEqual({ selector: { productType: "UD-open-shelves" }, patch: { CabinetColor: "white" } });
+  });
+
+  // A sink lift or landing, an undo or a restored layout re-creates the products under UUID ids.
+  const SINK_UUID = "UD-sink-cabinet-6fcfc4a0-34e5-4800-a09b-1d9067b71e46";
+  const SHELF_UUID = "UD-open-shelves-0b469498-c4dc-4dfa-bcc3-26af650d0706";
+  const SIDE_SHELF_UUID = "UD-open-shelves-side-75e5db00-de42-42d2-805d-e5a7a5003489";
+
+  it("reaches a product the scene re-created under a UUID id", async () => {
+    const { scene, port, ctx } = setUpWith([SINK_UUID, SHELF]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls).toEqual([
+      { selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } },
+      { selector: { productType: "UD-open-shelves" }, patch: { CabinetColor: "white" } },
+    ]);
+  });
+
+  it("still tells an open side shelf with a UUID id from the open shelves", async () => {
+    const { scene, port, ctx } = setUpWith([SINK, SHELF_UUID, SIDE_SHELF_UUID]);
+
+    await port.apply([change("Body", "white")], ctx);
+
+    expect(scene.calls).toEqual([
+      { selector: { productType: "UD-sink-cabinet" }, patch: { CabinetColor: "white" } },
+      { selector: { productIds: [SHELF_UUID] }, patch: { CabinetColor: "white" } },
+    ]);
+  });
+});
+
+/**
+ * A value bound to every product that the scene keeps on each (`perProduct`): a field sets it
+ * for all, a change for one cabinet alone reaches that cabinet only.
+ */
+describe("createPlayCanvasRuntimePort: a value for one cabinet alone", () => {
+  const side = { kind: "map", patches: { L: { HandleSide: "Left" }, R: { HandleSide: "Right" } } } as const;
+  const bindings: RuntimeBindingSet = {
+    schemaVersion: 1,
+    collectionId: "test",
+    productTypes: {},
+    bindings: [
+      { attributeId: "PanelSide", status: "bound", target: { kind: "all" }, values: side, perProduct: true },
+      { attributeId: "SharedSide", status: "bound", target: { kind: "all" }, values: side },
+    ],
+  };
+
+  const setUpSides = () => {
+    const scene = createFakeScene();
+    const port = createPlayCanvasRuntimePort({ getBindings: () => bindings, scene });
+    return { scene, port, ctx: context({ collectionId: "test" }) };
+  };
+
+  const sideOf = (attributeId: string, extra: Partial<RuntimeChange> = {}): RuntimeChange => ({
+    attributeId,
+    target: { scope: "cabinet", cabinetId: "cab-2" },
+    value: "L",
+    ...extra,
+  });
+
+  it("goes to the named product only", async () => {
+    const { scene, port, ctx } = setUpSides();
+    const change = sideOf("PanelSide", { onlyThisCabinet: true });
+
+    expect(await port.apply([change], ctx)).toEqual({ status: "applied", applied: [change] });
+    expect(scene.calls).toEqual([{ selector: { productIds: ["rt-2"] }, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("stays a broadcast when the change does not ask for one cabinet", async () => {
+    const { scene, port, ctx } = setUpSides();
+
+    await port.apply([sideOf("PanelSide")], ctx);
+
+    expect(scene.calls).toEqual([{ selector: {}, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("stays a broadcast where the binding keeps one value for the composition", async () => {
+    const { scene, port, ctx } = setUpSides();
+
+    await port.apply([sideOf("SharedSide", { onlyThisCabinet: true })], ctx);
+
+    expect(scene.calls).toEqual([{ selector: {}, patch: { HandleSide: "Left" } }]);
+  });
+
+  it("fails before any call when the cabinet has no product in the scene", async () => {
+    const { scene, port, ctx } = setUpSides();
+    const change = sideOf("PanelSide", { onlyThisCabinet: true, target: { scope: "cabinet", cabinetId: "gone" } });
+
+    const result = await port.apply([change], ctx);
+
+    expect(result.status).toBe("failed");
+    expect(scene.calls).toEqual([]);
+  });
+});

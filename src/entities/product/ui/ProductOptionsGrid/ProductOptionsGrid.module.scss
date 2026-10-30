@@ -1,6 +1,9 @@
 .optionsContainer {
   position: relative;
-  height: 100%;
+
+  &[aria-busy="true"] {
+    min-height: 80px;
+  }
 }
 
 .optionsGrid {
@@ -8,20 +11,6 @@
   grid-template-columns: repeat(4, 1fr);
   grid-column-gap: 12px;
   grid-row-gap: 12px;
-}
-
-.flatOptions {
-  height: 100%;
-  max-height: 392px;
-  min-height: 185px;
-  overflow-y: auto;
-}
-
-.groupedOptions {
-  height: 100%;
-  max-height: 392px;
-  min-height: 185px;
-  overflow-y: auto;
 }
 
 .groupSection + .groupSection {
@@ -46,13 +35,8 @@
 }
 
 @media (max-width: 1024px) {
-  .optionsGrid,
-  .groupedOptions .optionsGrid {
+  .optionsGrid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .flatOptions {
-    max-height: none;
   }
 }
 
@@ -67,11 +51,6 @@
     grid-auto-rows: auto;
     grid-column-gap: 8px;
     grid-row-gap: 8px;
-  }
-
-  .groupedOptions {
-    max-height: none;
-    min-height: 0;
   }
 
   .groupTitle {
@@ -120,6 +99,4 @@
   font-style: normal;
   font-weight: 600;
   line-height: 20px; /* 142.857% */
-
-  height: 100%;
 }

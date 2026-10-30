@@ -4,6 +4,14 @@ import skuTiersData from "./skuTiers.json";
 
 export const SKU_TIERS: Record<string, number> = skuTiersData;
 
+/**
+ * A collection's own price tiers for one field: SKU material code (upper-case) -> tier. The shared
+ * table is the Azzurra block of the client's Material Pricing Tiers; a product line with its own tiers
+ * (the GB block of Tricot, Lame, Mako and Class: Lacquered MT is Classic $$, Wood Veneer Specialty $$$)
+ * declares them in its profile, and they are read first.
+ */
+export type PriceTierOverride = { bySku: Readonly<Record<string, number>> };
+
 type FilterOption = { label: string; value: string; description?: string };
 
 export const TIER_DEFINITIONS = [
@@ -153,7 +161,11 @@ const isLacquerOption = (option: ProductOptionData): boolean => {
   });
 };
 
-const getTierForOption = (option: ProductOptionData): number | undefined => {
+const getTierForOption = (option: ProductOptionData, override?: PriceTierOverride): number | undefined => {
+  const sku = option.metadata?.sku?.trim().toUpperCase();
+  const own = sku ? override?.bySku[sku] : undefined;
+  if (own !== undefined) return own;
+
   // Rule from table: Lacq MT/GL White => Tier 1.
   if (
     isLacquerOption(option) &&
@@ -188,11 +200,11 @@ const getTierForOption = (option: ProductOptionData): number | undefined => {
   return undefined;
 };
 
-export const buildTierFilterOptions = (options: ProductOptionData[]): FilterOption[] => {
+export const buildTierFilterOptions = (options: ProductOptionData[], override?: PriceTierOverride): FilterOption[] => {
   const usedTiers = new Set<number>();
 
   for (const option of options) {
-    const tier = getTierForOption(option);
+    const tier = getTierForOption(option, override);
     if (tier !== undefined) usedTiers.add(tier);
   }
 
@@ -203,14 +215,18 @@ export const buildTierFilterOptions = (options: ProductOptionData[]): FilterOpti
   }));
 };
 
-export const filterOptionsByTier = (options: ProductOptionData[], tierValue?: string): ProductOptionData[] => {
+export const filterOptionsByTier = (
+  options: ProductOptionData[],
+  tierValue?: string,
+  override?: PriceTierOverride,
+): ProductOptionData[] => {
   if (!tierValue) return options;
 
   const def = TIER_DEFINITIONS.find((t) => t.value === tierValue);
   if (!def) return options;
 
   return options.filter((option) => {
-    const tier = getTierForOption(option);
+    const tier = getTierForOption(option, override);
     if (tier === undefined) return false;
     return tier === def.tier;
   });

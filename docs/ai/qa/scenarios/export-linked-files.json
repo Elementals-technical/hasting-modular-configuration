@@ -1,0 +1,241 @@
+{
+ "description": "Read-only xlsx/docx export of linked Google files through the user's Chrome session (downloads). Error tabs are closed in a follow-up step.",
+ "steps": [
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1iZTeizCS2qAjU73OBbmIfobBSw6gEtATsw1ECHQFKes/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-backlog.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1t97Pg0xh5SZqUkKcOC4lBJr75DPYmd6iRxe07qHC5Bk/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-customer-backlog.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1uCOysG4G_ODEKgMx0tteUK0oH9FB29BgPlEwDBCdDNc/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-ush-sku-price.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1Kiciol2oxUbDxVLbfvx1WB5myzkFzlffc_FqfF0wKHE/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-ud-sku-price.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1B37NlJJNF9aob0F73fBdcQOlbWR1gK1Ywcy6wec7iz8/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-ufs-sku.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1ZmGk1OcPASzAH_uC4HR6JRh89qH8gid0gJla33nq6GM/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-class-sku.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/10YKejH2sM-FVTxjr5ej5pI6d4Tvfqq3W1zo8G5-ciRk/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-tricot-sku.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1ZNHK45AUfJ_1wAYjzqhi0ydbJTY_SnuC4iZARz1FIzk/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-mako-sku.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1y_Q5Cgv5rPL-bXjaevAQ7tcXHbJ2lvINhRjOapwYbjE/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-ct-basin-rules.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/18Pi9aYZwHd4SUUeImJmsdNxovn4qcmmcZ_-MfDrrjd4/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-ct-basin-rules-gb.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1DcCbKcuMe6G-HMqRXElGF9NFq39Nf2v6OWet6LjJZNw/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-handle-cabinet-options.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1UzXp64mllWY3Jy7AFFcGG70VSjCiDtUmYwvhBLAQ_kU/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-list-material.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/spreadsheets/d/1HauIiXeYnoit6MIkHdvMi8e-N8nV1NTzOtHU1e8NvKE/export?format=xlsx",
+    "background": true
+   },
+   "save": "sheet-ufs-materials.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://drive.google.com/uc?export=download&id=1Kg1_GQiXEZpBke1tybbqStdYN4bqG_h6",
+    "background": true
+   },
+   "save": "file-fluting.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://drive.google.com/uc?export=download&id=1ygWqHaJWmzWmfOwawCCFBwYL7R_dSs7D",
+    "background": true
+   },
+   "save": "file-pricing-tracker.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://drive.google.com/uc?export=download&id=1BtDeZVwUBpW7QcMK_tm2dkdFlT7Y-Kqv",
+    "background": true
+   },
+   "save": "file-phase2-questions-b2.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://drive.google.com/uc?export=download&id=1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp",
+    "background": true
+   },
+   "save": "file-ulh-clarification-live.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/document/d/1uK0d2ZSa7TcVbarmPD-fZOzfDWKb2j5rKxUO-tLLLxE/export?format=docx",
+    "background": true
+   },
+   "save": "gdoc-webgl-live.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "https://docs.google.com/document/d/1y_QRaTjODnF4l96uTqYEUukKadcMQjWSHyRqUSv94UA/export?format=docx",
+    "background": true
+   },
+   "save": "gdoc-ush-copy-live.txt",
+   "optional": true
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "sleep": 10000
+  },
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "zz-pages.txt"
+  }
+ ]
+}

@@ -1,8 +1,23 @@
-import { typeCabinetCatalog, type ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import type { ProductProfile } from "@/entities/collection";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { autoChange } from "./lib/autoChange";
 export { getUniqueCatalogWidths } from "./lib/catalogDimensions";
+export {
+  heightsOfDrawerStyle,
+  isDrawerStyleHeightRestricted,
+  resolveDrawerStyleSwitch,
+  resolvePlacedDrawerHeights,
+} from "./lib/drawerStyleHeightRule";
+export { resolveHeightsByHandle } from "./lib/handleForcedHeight";
 export { buildHandleStyleConfigPatch } from "./lib/handleStyleConfig";
+export { resolveHeightStyleCards } from "./lib/heightStyles";
+export type { HeightStyleCard } from "./lib/heightStyles";
+export { REASON_HANDLE_HEIGHT_LOCKED } from "./lib/handleRule";
+export { findPlacedCabinetRule } from "./lib/placedCabinetRule";
+export { isLeavingSideShelfHandle, isSideShelfBlockedByHandle } from "./lib/sideShelfHandleRule";
+export { resolveMoveSwaps, resolveSteppedEndPlacement } from "./lib/steppedPlacement";
+export type { CabinetSwap } from "./lib/steppedPlacement";
 import { ruleCore } from "./lib/ruleCore";
 import type { Intent, RuleContext } from "./model/types";
 import type { RuleResult, AutoChangeResult, Selection } from "./model/types";
@@ -11,11 +26,19 @@ export type { Selection, Intent, OptionState, AvailableOptions } from "./model/t
 
 type ApplyRulesResult = RuleResult & AutoChangeResult;
 
+/**
+ * `catalog` and `profile` are required arguments on purpose.
+ *
+ * They used to default to the empty packaged catalog, which silently allowed every
+ * value when no source had been loaded. A missing source must be visible to the caller,
+ * not turned into a permissive result.
+ */
 export const applyConfiguratorRules = (
   selection: Selection,
-  intent?: Intent,
-  extraContext?: Omit<RuleContext, "selection">,
-  catalog: ConfiguratorCatalog = typeCabinetCatalog,
+  intent: Intent | undefined,
+  extraContext: Omit<RuleContext, "selection"> | undefined,
+  catalog: ConfiguratorCatalog,
+  profile: ProductProfile | null,
 ): ApplyRulesResult => {
   const context: RuleContext = {
     selection: { ...selection, width: Number(selection.width) },
@@ -25,7 +48,7 @@ export const applyConfiguratorRules = (
   // Placeholder for intent-aware rules in future; currently we rely on the context only.
   void intent;
 
-  const rulesResult = ruleCore(catalog, context);
+  const rulesResult = ruleCore(catalog, context, profile);
   const autoChangeResult = autoChange(rulesResult, context);
 
   return {

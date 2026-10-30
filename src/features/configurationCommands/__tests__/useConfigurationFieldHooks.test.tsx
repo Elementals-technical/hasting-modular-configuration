@@ -1,0 +1,389 @@
+// @vitest-environment jsdom
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { store } from "@/app/store";
+import cabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-592.json";
+import {
+  tricotConfigurator,
+  tricotMatrixProfile,
+  tricotTestBindings,
+} from "@/entities/collection/__tests__/tricotFixtures";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { ReadyCollectionContext } from "@/entities/collection";
+import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
+import {
+  finishRestore,
+  recordSceneState,
+  resetConfiguration,
+  setActiveCollectionId,
+  setActiveRuntimeBindings,
+  setAttributeValue,
+  startRestore,
+  syncCabinets,
+} from "@/entities/configuration";
+import type { ProductDatatable } from "@/entities/product/api";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
+import {
+  getActiveCountertopThickness,
+  getBookMatching,
+  getFaucetHolesAmount,
+} from "@/entities/product/model/store/selectors";
+import {
+  reset,
+  setActiveCabinetType,
+  setActiveCountertopThickness,
+  setActiveProfile,
+  setBookMatching,
+  setCabinetCatalog,
+  setCabinetColorMaterial,
+  setSelectedProductConfig,
+} from "@/entities/product/model/store/slice";
+import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop";
+import { createPlayCanvasRuntimePort, createTestRuntimePort, type SceneBridge } from "@/features/playCanvasAdapter";
+
+import { useAttributeChangeHandler } from "../hooks/useAttributeChangeHandler";
+import { useAvailabilityResets } from "../hooks/useAvailabilityResets";
+import { useDefaultCountertopThickness } from "../hooks/useDefaultCountertopThickness";
+import { resolveChangeRequest } from "../lib/resolveChangeRequest";
+import { readyCollectionFixture } from "./readyCollectionFixture";
+
+// Each undo step the handler takes runs its change; the step's own rules are useHistoryStep's tests.
+const runStepMock = vi.fn(<T,>(change: () => Promise<T>) => change());
+
+vi.mock("@/entities/history/lib/useHistoryStep", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/entities/history/lib/useHistoryStep")>()),
+  useHistoryStep: () => ({ run: runStepMock }),
+}));
+
+vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => true }));
+
+const matrix = {
+  rows: [
+    {
+      cabinet_type: "Sink-Base",
+      widths_cm: "60|80",
+      depths_cm: "46",
+      heights_cm: "50|53|56",
+      drawer_configs: "1D|2D",
+      handles_allowed: "handle_pto|handle_urban_topcut|handle_urban_botcut",
+      supports_height: "50|53|56",
+      handle_pto_forced_height_cm: "1D:50|2D:50",
+      handle_urban_topcut_forced_height_cm: "1D:53|2D:56",
+      handle_urban_botcut_forced_height_cm: "2D:56",
+      handle_urban_botcut_requires_drawers: "2D",
+    },
+  ],
+} as unknown as ProductDatatable;
+
+/** The PlayCanvas adapter over a scene that has not loaded: whatever reaches it is recorded. */
+const createUnloadedScenePort = () => {
+  const sceneCalls: unknown[] = [];
+  const scene: SceneBridge = {
+    isReady: () => false,
+    apply: async (selector, patch) => {
+      sceneCalls.push({ selector, patch });
+      return { status: "not-ready" };
+    },
+  };
+
+  return { sceneCalls, port: createPlayCanvasRuntimePort({ getBindings: () => ushRuntimeBindings, scene }) };
+};
+
+const wrapper = ({ children }: { children: ReactNode }) => (
+  <ReadyCollectionContext.Provider value={readyCollectionFixture}>
+    <Provider store={store}>
+      <MemoryRouter initialEntries={["/custom/cabinet-colors"]}>{children}</MemoryRouter>
+    </Provider>
+  </ReadyCollectionContext.Provider>
+);
+
+beforeEach(() => {
+  runStepMock.mockClear();
+  store.dispatch(reset());
+  store.dispatch(resetConfiguration());
+  store.dispatch(setActiveProfile(ushProfile));
+  store.dispatch(setActiveCollectionId("urban-standard-height"));
+  store.dispatch(setCabinetCatalog(buildCabinetCatalogFromMatrix(matrix, ushProfile)));
+  store.dispatch(setActiveCabinetType("Sink-Base"));
+  store.dispatch(setSelectedProductConfig({ Drawers: "1D", Handle: "handle_urban_topcut" }));
+  store.dispatch(syncCabinets(["runtime-a", "runtime-b"]));
+});
+
+afterEach(cleanup);
+
+describe("resolveChangeRequest", () => {
+  it("addresses a value at the scope its attribute declares", () => {
+    expect(resolveChangeRequest(store.getState(), "TowelBarOption", "Left")).toEqual({
+      attributeId: "TowelBarOption",
+      value: "Left",
+      scope: "global",
+    });
+    expect(resolveChangeRequest(store.getState(), "Thickness", "2.4")).toMatchObject({ scope: "countertop" });
+    expect(resolveChangeRequest(store.getState(), "DrawerPanelFluting", "None")).toEqual({
+      attributeId: "DrawerPanelFluting",
+      value: "None",
+      scope: "cabinet",
+      cabinetId: "cab-1",
+    });
+  });
+
+  it("asks for the basin of the composition once a Sink Base is placed", () => {
+    // The scene names a product after its type; the command puts the basin on every Sink Base.
+    store.dispatch(syncCabinets(["Sink-Base-a", "Sink-Base-b"]));
+
+    expect(resolveChangeRequest(store.getState(), "sinkType", "Top_Tekorlux_Rectangular")).toEqual({
+      attributeId: "sinkType",
+      value: "Top_Tekorlux_Rectangular",
+      scope: "basin",
+    });
+  });
+
+  it("cannot address a cabinet value without cabinets, a basin without a Sink Base, or an unknown attribute", () => {
+    expect(resolveChangeRequest(store.getState(), "NotAnAttribute", "x")).toBeNull();
+    // runtime-a and runtime-b are no Sink Base of the collection.
+    expect(resolveChangeRequest(store.getState(), "sinkType", "Top_Tekorlux_Rectangular")).toBeNull();
+
+    store.dispatch(resetConfiguration());
+
+    expect(resolveChangeRequest(store.getState(), "DrawerPanelFluting", "None")).toBeNull();
+  });
+});
+
+describe("useAttributeChangeHandler", () => {
+  it("runs a picked value through the command service after recording a history step", async () => {
+    store.dispatch(setCabinetColorMaterial("LACM"));
+    const runtime = createTestRuntimePort();
+    const { result } = renderHook(() => useAttributeChangeHandler("DrawerPanelFluting", { runtime: runtime.port }), {
+      wrapper,
+    });
+
+    let status: string | undefined;
+    await act(async () => {
+      status = (await result.current.onChange("FlutingVerticalA")).status;
+    });
+
+    expect(status).toBe("applied");
+    expect(runStepMock).toHaveBeenCalledTimes(1);
+    expect(runtime.calls[0][0]).toMatchObject({
+      attributeId: "DrawerPanelFluting",
+      value: "FlutingVerticalA",
+      target: { scope: "cabinet", cabinetId: "cab-1" },
+    });
+  });
+
+  it("turns a refusal into a notice without a history step or a scene call", async () => {
+    store.dispatch(setCabinetColorMaterial("HPL"));
+    const runtime = createTestRuntimePort();
+    const { result } = renderHook(() => useAttributeChangeHandler("DrawerPanelFluting", { runtime: runtime.port }), {
+      wrapper,
+    });
+
+    await act(async () => {
+      await result.current.onChange("FlutingVerticalA");
+    });
+
+    expect(result.current.notice).toBe("Fluting is available only for Lacquer Matte (LACM).");
+    expect(runStepMock).not.toHaveBeenCalled();
+    expect(runtime.calls).toHaveLength(0);
+  });
+
+  it("records the number of faucet holes without the scene", async () => {
+    const { sceneCalls, port } = createUnloadedScenePort();
+    const { result } = renderHook(() => useAttributeChangeHandler("FaucetHolesAmount", { runtime: port }), {
+      wrapper,
+    });
+
+    let status: string | undefined;
+    await act(async () => {
+      status = (await result.current.onChange("3")).status;
+    });
+
+    expect(status).toBe("applied");
+    expect(getFaucetHolesAmount(store.getState())).toBe("3");
+    expect(sceneCalls).toHaveLength(0);
+  });
+});
+
+describe("useAvailabilityResets", () => {
+  it("clears an unavailable fluting in the scene once through the command service", async () => {
+    store.dispatch(setCabinetColorMaterial("HPL"));
+    const runtime = createTestRuntimePort();
+
+    const { rerender } = renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper });
+
+    await waitFor(() => expect(runtime.calls).toHaveLength(1));
+    expect(runtime.calls[0].map(({ attributeId, value }) => [attributeId, value])).toEqual([
+      ["DrawerPanelFluting", ""],
+    ]);
+
+    rerender();
+    await act(async () => Promise.resolve());
+
+    expect(runtime.calls).toHaveLength(1);
+  });
+
+  it("clears an unavailable grain direction", async () => {
+    store.dispatch(setCabinetColorMaterial("LACM"));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper });
+
+    await waitFor(() => expect(runtime.calls).toHaveLength(1));
+    expect(runtime.calls[0][0]).toMatchObject({ attributeId: "GrainDirection", value: "" });
+  });
+
+  it("clears book matching the rules no longer allow, without the scene", async () => {
+    store.dispatch(setBookMatching("enabled"));
+    const { sceneCalls, port } = createUnloadedScenePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: port }), { wrapper });
+
+    await waitFor(() => expect(getBookMatching(store.getState())).toBe(""));
+    expect(sceneCalls).toHaveLength(0);
+  });
+
+  it("waits for a restore to finish before clearing book matching", async () => {
+    store.dispatch(startRestore("saved-1"));
+    store.dispatch(setBookMatching("enabled"));
+    const { port } = createUnloadedScenePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: port }), { wrapper });
+    await act(async () => Promise.resolve());
+
+    expect(getBookMatching(store.getState())).toBe("enabled");
+
+    act(() => {
+      store.dispatch(finishRestore({ status: "restored", reason: null, message: null }));
+    });
+
+    await waitFor(() => expect(getBookMatching(store.getState())).toBe(""));
+  });
+
+  it("clears nothing before the collection loads", async () => {
+    store.dispatch(setActiveProfile(null));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper });
+    await act(async () => Promise.resolve());
+
+    expect(runtime.calls).toHaveLength(0);
+  });
+});
+
+describe("useDefaultCountertopThickness", () => {
+  /** One row of the countertop matrix: for HPL its first thickness is the default. */
+  const hplRule: CountertopMatrixRule = {
+    material: "HPL",
+    topThicknesses: ["0.5", "4"],
+    depths: [],
+    depthsByStyle: {},
+    basinStyle: "",
+    minSbCm: null,
+    minVesselCm: null,
+    maxIntegratedCm: null,
+    maxVesselCm: null,
+    maxUndermountCm: null,
+    faucetHoles: [],
+    depthOnlyCm: [],
+    allowedFinishes: [],
+    allowMultiCabinet: null,
+    sidePanelsAction: null,
+    integratedAllowedSizesOnly: [],
+  };
+  const countertop = { rules: [hplRule], activeMaterialTokens: ["HPL"], width: null, depth: null };
+
+  it("sets the thickness the rules give first while none is set", async () => {
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useDefaultCountertopThickness(countertop, { runtime: runtime.port }), { wrapper });
+
+    await waitFor(() => expect(getActiveCountertopThickness(store.getState())).toBe("0.5"));
+    expect(runtime.calls[0][0]).toMatchObject({
+      attributeId: "Thickness",
+      value: "0.5",
+      target: { scope: "countertop" },
+    });
+  });
+
+  it("leaves the thickness to a restore that is running", async () => {
+    // The restore brings the saved thickness with the countertop it was saved with; a default sent
+    // before it lands makes the countertop thin and resets the length the user dragged.
+    store.dispatch(startRestore("saved-1"));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useDefaultCountertopThickness(countertop, { runtime: runtime.port }), { wrapper });
+    await act(async () => Promise.resolve());
+
+    expect(runtime.calls).toHaveLength(0);
+
+    act(() => {
+      store.dispatch(setActiveCountertopThickness("4"));
+      store.dispatch(finishRestore({ status: "restored", reason: null, message: null }));
+    });
+    await act(async () => Promise.resolve());
+
+    expect(runtime.calls).toHaveLength(0);
+    expect(getActiveCountertopThickness(store.getState())).toBe("4");
+  });
+
+  it("sets the default once the scene reports the cabinets' sizes, which the countertop matrix needs", async () => {
+    // Tricot judges a thickness by its countertop matrix and the actual module sizes (countertopCompatibility).
+    const sinkBaseId = `${tricotTestBindings.productTypes["Sink-Base"]}-1`;
+    store.dispatch(setActiveProfile(tricotMatrixProfile));
+    store.dispatch(setActiveCollectionId("tricot"));
+    store.dispatch(setActiveRuntimeBindings(tricotTestBindings));
+    store.dispatch(
+      setCabinetCatalog(buildCabinetCatalogFromMatrix(cabinetTable, tricotMatrixProfile, tricotTestBindings)),
+    );
+    store.dispatch(syncCabinets([sinkBaseId]));
+    store.dispatch(
+      setAttributeValue({ attributeId: "Drawers", target: { scope: "cabinet", cabinetId: "cab-1" }, value: "1" }),
+    );
+    const tricotWrapper = ({ children }: { children: ReactNode }) => (
+      <ReadyCollectionContext.Provider
+        value={{
+          ...readyCollectionFixture,
+          catalog: { ...readyCollectionFixture.catalog, configurator: tricotConfigurator },
+        }}
+      >
+        <Provider store={store}>
+          <MemoryRouter initialEntries={["/custom/cabinet-builder"]}>{children}</MemoryRouter>
+        </Provider>
+      </ReadyCollectionContext.Provider>
+    );
+    const runtime = createTestRuntimePort();
+
+    renderHook(
+      () =>
+        useDefaultCountertopThickness(
+          {
+            rules: tricotMatrixProfile.countertopRules,
+            activeMaterialTokens: ["Solid Surface"],
+            width: 60,
+            depth: 52,
+          },
+          { runtime: runtime.port },
+        ),
+      { wrapper: tricotWrapper },
+    );
+    await act(async () => Promise.resolve());
+
+    // Before the scene reports the sizes, the command cannot judge the thickness and sets none.
+    expect(getActiveCountertopThickness(store.getState())).toBe("");
+
+    act(() => {
+      store.dispatch(
+        recordSceneState({
+          order: [sinkBaseId],
+          cabinets: [{ runtimeId: sinkBaseId, dimensions: { width: 60, height: 40, depth: 52 } }],
+        }),
+      );
+    });
+
+    await waitFor(() => expect(getActiveCountertopThickness(store.getState())).toBe("0.5"));
+  });
+});

@@ -1,0 +1,28 @@
+{
+  "_comment": "Merge into .claude/settings.local.json by hand (agents may not edit their own settings). Keep existing keys.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && node .agents/skills/local-maintain-agent-guidance/scripts/ai-env.mjs sync --quiet && node .agents/skills/local-maintain-agent-guidance/scripts/ai-env.mjs collisions --quiet"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/validate-guidance.mjs:*)",
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/test-routing.mjs:*)",
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/test-tooling.mjs:*)",
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/qa-coverage.mjs:*)",
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/ai-env.mjs check-sync:*)",
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/ai-env.mjs collisions:*)",
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/ai-env.mjs list:*)",
+      "Bash(node .agents/skills/local-maintain-agent-guidance/scripts/ai-env.mjs verify:*)"
+    ]
+  }
+}

@@ -72,14 +72,6 @@ export const dividerTypeSetsEqual = (
   return true;
 };
 
-/** Parses "Option A" / "Option B" / "Option C" UI labels into a domain divider type. */
-export const getDividerTypeFromOptionTitle = (title: string): DividerType | null => {
-  if (title.trim() === "Option A") return "A";
-  if (title.trim() === "Option B") return "B";
-  if (title.trim() === "Option C") return "C";
-  return null;
-};
-
 const normalizePosition = (value: unknown): DividerSlotPosition | null => {
   if (!isRecord(value)) return null;
 

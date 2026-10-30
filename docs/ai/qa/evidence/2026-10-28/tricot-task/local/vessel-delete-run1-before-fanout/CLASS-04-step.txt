@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"path":"/prebuilt/countertop","tabs":[],"nav":["Next: Faucet Details"]}
+```

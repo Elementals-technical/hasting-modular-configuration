@@ -1,7 +1,9 @@
 .productOption {
+  position: relative;
   cursor: pointer;
 
   .title {
+    display: block;
     color: #282828;
     font-family: Poppins;
     font-size: 12px;
@@ -13,7 +15,14 @@
     margin-bottom: 4px;
   }
 
+  .titleHint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
   .desc {
+    display: block;
     color: #282828;
     font-family: Poppins;
     font-size: 12px;
@@ -34,12 +43,12 @@
     justify-content: center;
 
     background-color: #fbfaf9;
+    // Clip visuals to the inner border curve instead of rounding them independently.
     overflow: hidden;
 
     .colorSwatch {
       width: 100%;
       height: 100%;
-      border-radius: 10px;
     }
   }
 
@@ -48,7 +57,6 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 10px;
     }
   }
 
@@ -73,6 +81,30 @@
       }
     }
   }
+
+  &:focus-within .expandBtn {
+    opacity: 1;
+  }
+}
+
+.selectButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: inherit;
+}
+
+.selectButton:focus-visible,
+.expandBtn:focus-visible,
+.disabledAction:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .materialOption {
@@ -82,17 +114,10 @@
     height: auto;
     aspect-ratio: 1 / 1;
   }
-
-  > div {
-    > div {
-      img {
-        object-fit: cover !important;
-      }
-    }
-  }
 }
 
 .imageContainer {
+  display: block;
   position: relative;
 }
 
@@ -219,7 +244,6 @@
       border-radius: 7px;
 
       img {
-        border-radius: 7px;
         object-fit: contain;
       }
     }
@@ -278,6 +302,12 @@
   opacity: 0.5;
 }
 
+// Still chosen by a click, which asks first (as a restricted cabinet style card).
+.restrictedOption {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
 .optionHint {
   z-index: 3;
   max-width: 170px;
@@ -302,10 +332,4 @@
   cursor: pointer;
 
   text-align: left;
-}
-
-.titleHint {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }

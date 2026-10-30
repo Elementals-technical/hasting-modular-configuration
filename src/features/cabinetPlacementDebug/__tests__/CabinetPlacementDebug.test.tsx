@@ -1,0 +1,1241 @@
+// @vitest-environment jsdom
+import { createRef } from "react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { ConfiguratorError, type CabinetPlacementOption, type ConfiguratorClient } from "@/features/configuratorApi";
+import { isDragDropEnabled, parseProductProfile, type RuntimeBindingSet } from "@/entities/collection";
+import { CabinetPlacementDebug, type CabinetPlacementControls } from "../ui/CabinetPlacementDebug";
+import { resolveCabinetDebugSelection } from "../lib/resolveCabinetDebugSelection";
+
+const selection = {
+  definitionId: "Example-side-cabinet",
+  selection: { Width: 80, Height: 28, Depth: 46, Handle: "handle_urban_topcut", SupportGroupId: "group-custom" },
+};
+const preview = { sessionId: "draft-1", lifecycle: "preview", kind: "add", canApply: true, canCancel: true };
+const fixture = (
+  methods = [
+    "cabinetPlacement.beginAdd",
+    "cabinetPlacement.beginMove",
+    "cabinetPlacement.apply",
+    "cabinetPlacement.cancel",
+  ],
+) => {
+  const listeners = new Map<string, (event: unknown) => void>();
+  const client = {
+    connect: vi.fn(async () => undefined),
+    getCapabilities: vi.fn(async () => ({ readiness: "ready", supportedMethods: methods })),
+    getCompositionState: vi.fn(async () => ({ activeSessionId: null })),
+    getPlacementState: vi.fn(async () => preview),
+    getCabinetsState: vi.fn(async () => ({
+      cabinets: [{ id: "runtime-selected" }],
+      selectedCabinetId: "runtime-selected",
+    })),
+    getPlacementOptions: vi.fn(async () => [
+      {
+        id: "right-option",
+        kind: "right",
+        availability: "available",
+        frameId: "wall",
+        positionM: { x: 0, y: 0, z: 0 },
+      },
+    ]),
+    beginAdd: vi.fn(async () => preview),
+    beginMove: vi.fn(async () => ({ ...preview, kind: "move" })),
+    apply: vi.fn(async () => ({ requestId: "apply-1", kind: "add", addedProductIds: ["new-cabinet"] })),
+    cancel: vi.fn(async () => ({ ...preview, lifecycle: "cancelled" })),
+    exportPreset: vi.fn(async () => ({
+      presetSchemaVersion: 2,
+      collection: { id: "example" },
+      presetProducts: [],
+      presetLayout: { featureSettings: { cover: true } },
+    })),
+    importPreset: vi.fn(async () => ({
+      requestId: "import-1",
+      kind: "import",
+      keyToProductId: { cabinet0: "new-runtime-id" },
+    })),
+    on: vi.fn(async (namespace: string, event: string, listener: (event: unknown) => void) => {
+      listeners.set(`${namespace}.${event}`, listener);
+      return () => listeners.delete(`${namespace}.${event}`);
+    }),
+    dispose: vi.fn(() => listeners.clear()),
+  };
+  const createClient = () => client as unknown as ConfiguratorClient;
+  const emit = (event: string, data: unknown) => act(() => listeners.get(event)?.({ data }));
+  return { client, createClient, emit };
+};
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  vi.useRealTimers();
+});
+
+describe("Cabinet drag and drop test controls", () => {
+  it("repositions the explicit context-menu cabinet even when runtime selection differs, then applies through the existing controls", async () => {
+    const { client, createClient } = fixture();
+    client.getCabinetsState.mockResolvedValue({
+      cabinets: [{ id: "runtime-selected" }, { id: "context-menu-target" }],
+      selectedCabinetId: "runtime-selected",
+    });
+    const controls = createRef<CabinetPlacementControls>();
+    const available = vi.fn();
+    const committed = vi.fn();
+    const { unmount } = render(
+      <CabinetPlacementDebug
+        ref={controls}
+        ready
+        selection={selection}
+        selectedProductId="old-redux-id"
+        createClient={createClient}
+        onRepositionAvailabilityChange={available}
+        onCompositionCommitted={committed}
+      />,
+    );
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    act(() => {
+      controls.current?.reposition("context-menu-target");
+      controls.current?.reposition("runtime-selected");
+    });
+    await screen.findByRole("button", { name: "Apply" });
+    expect(client.beginMove).toHaveBeenCalledExactlyOnceWith("context-menu-target");
+    expect(client.getCabinetsState).toHaveBeenCalledOnce();
+    expect(available).toHaveBeenLastCalledWith({ supported: true, available: false });
+    act(() => controls.current?.reposition("runtime-selected"));
+    expect(client.beginMove).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(client.apply).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await waitFor(() => expect(committed).toHaveBeenCalledOnce());
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    unmount();
+    expect(available).toHaveBeenLastCalledWith({ supported: false, available: false });
+    expect(controls.current).toBeNull();
+  });
+
+  it("rejects a missing explicit cabinet ID without moving the selected cabinet", async () => {
+    const { client, createClient } = fixture();
+    const controls = createRef<CabinetPlacementControls>();
+    const available = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        ref={controls}
+        ready
+        selection={selection}
+        selectedProductId="runtime-selected"
+        createClient={createClient}
+        onRepositionAvailabilityChange={available}
+      />,
+    );
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    act(() => controls.current?.reposition("missing-cabinet"));
+    expect((await screen.findByRole("alert")).textContent).toContain("Cabinet not found");
+    expect(client.beginMove).not.toHaveBeenCalled();
+    expect(client.apply).not.toHaveBeenCalled();
+  });
+
+  it("cancels context-menu reposition without committing and re-enables availability", async () => {
+    const { client, createClient } = fixture();
+    const controls = createRef<CabinetPlacementControls>();
+    const available = vi.fn();
+    const committed = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        ref={controls}
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        onRepositionAvailabilityChange={available}
+        onCompositionCommitted={committed}
+      />,
+    );
+    act(() => controls.current?.reposition("runtime-selected"));
+    expect(client.beginMove).not.toHaveBeenCalled();
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    act(() => controls.current?.reposition("runtime-selected"));
+    const cancel = (await screen.findByRole("button", { name: "Cancel" })) as HTMLButtonElement;
+    await waitFor(() => expect(cancel.disabled).toBe(false));
+    fireEvent.click(cancel);
+    await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await waitFor(() => expect(available).toHaveBeenLastCalledWith({ supported: true, available: true }));
+    expect(committed).not.toHaveBeenCalled();
+    expect(client.apply).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+  });
+
+  it("uses the runtime seed pose instead of an option invalidated by the first collection claim", async () => {
+    const { client, createClient } = fixture();
+    client.getCabinetsState.mockResolvedValueOnce({ cabinets: [], selectedCabinetId: "" });
+    client.getPlacementOptions.mockResolvedValueOnce([
+      {
+        id: "seed-option",
+        kind: "seed",
+        availability: "available",
+        frameId: "wall",
+        positionM: { x: 0.2, y: 0, z: 0 },
+      },
+    ]);
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+    expect(client.getPlacementOptions).toHaveBeenCalledOnce();
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection, {
+      kind: "free",
+      frameId: "wall",
+      positionM: { x: 0.2, y: 0, z: 0 },
+    });
+  });
+
+  it("recovers from unsupported bootstrap to ready without duplicate subscriptions or mutations", async () => {
+    vi.useFakeTimers();
+    const { client, createClient } = fixture();
+    client.getCapabilities.mockResolvedValueOnce({
+      readiness: "unsupported",
+      supportedMethods: ["cabinetPlacement.beginAdd"],
+    });
+    let unmount!: () => void;
+    await act(async () => {
+      ({ unmount } = render(
+        <CabinetPlacementDebug
+          offerAdd
+          ready
+          selection={selection}
+          selectedProductId={null}
+          createClient={createClient}
+        />,
+      ));
+    });
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    expect(add.disabled).toBe(true);
+    expect(screen.getByRole("status").textContent).toBe("Cabinet runtime: unsupported");
+    expect(client.connect).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(300);
+    });
+    expect(add.disabled).toBe(false);
+    expect(client.connect).toHaveBeenCalledOnce();
+    expect(client.on).toHaveBeenCalledTimes(3);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(client.getCapabilities).toHaveBeenCalledTimes(2);
+    expect(client.beginAdd).not.toHaveBeenCalled();
+    expect(client.importPreset).not.toHaveBeenCalled();
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("refreshes capabilities on composition changes, disabling stale controls while initializing", async () => {
+    const { client, createClient, emit } = fixture();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    client.getCapabilities.mockResolvedValueOnce({
+      readiness: "initializing",
+      supportedMethods: ["cabinetPlacement.beginAdd"],
+    });
+    emit("composition.change", { status: "ready", activeSessionId: null });
+    expect(add.disabled).toBe(true);
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("Waiting for cabinet runtime…"));
+    expect(screen.queryByRole("button", { name: "Move selected cabinet" })).toBeNull();
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(client.on).toHaveBeenCalledTimes(3);
+    expect(client.beginAdd).not.toHaveBeenCalled();
+  });
+
+  it("refreshes capabilities after commands and preserves draft controls when a method becomes unsupported", async () => {
+    const { client, createClient } = fixture();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    client.getCapabilities.mockResolvedValueOnce({
+      readiness: "ready",
+      supportedMethods: ["cabinetPlacement.beginAdd", "cabinetPlacement.cancel"],
+    });
+    fireEvent.click(add);
+    const apply = (await screen.findByRole("button", { name: "Apply" })) as HTMLButtonElement;
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    expect(apply.disabled).toBe(true);
+    expect(client.getCapabilities).toHaveBeenCalledTimes(2);
+    fireEvent.click(apply);
+    expect(client.apply).not.toHaveBeenCalled();
+    expect(client.on).toHaveBeenCalledTimes(3);
+  });
+
+  it("bounds readiness polling and cancels its pending timer on unmount", async () => {
+    vi.useFakeTimers();
+    const { client, createClient } = fixture();
+    client.getCapabilities.mockResolvedValue({ readiness: "initializing", supportedMethods: [] });
+    let unmount!: () => void;
+    await act(async () => {
+      ({ unmount } = render(
+        <CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />,
+      ));
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(16_000);
+    });
+    expect(screen.getByRole("status").textContent).toContain("Reload the runtime to retry");
+    const calls = client.getCapabilities.mock.calls.length;
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    expect(client.getCapabilities).toHaveBeenCalledTimes(calls);
+    expect(client.on).not.toHaveBeenCalled();
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("passes the current type/config, blocks repeated starts and waits for explicit Apply", async () => {
+    const { client, createClient, emit } = fixture();
+    const committed = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        onCompositionCommitted={committed}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+    // Normal (non-debug) path: the runtime picks the best free end-of-row slot.
+    expect(client.getPlacementOptions).not.toHaveBeenCalled();
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
+    expect(
+      screen.queryByRole("button", { name: "Drag to Place" }),
+      "Cancel replaces Drag to Place in drag mode",
+    ).toBeNull();
+    expect(client.apply).not.toHaveBeenCalled();
+    expect(committed).not.toHaveBeenCalled();
+    emit("cabinetPlacement.change", { ...preview, canApply: false });
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(true);
+    emit("cabinetPlacement.change", preview);
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(client.apply).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    expect(screen.getByRole("status").textContent).toBe("Placement applied");
+    // The receipt goes with the state: it names the cabinet the Add placed.
+    expect(committed).toHaveBeenCalledExactlyOnceWith(
+      await client.getCabinetsState(),
+      expect.objectContaining({ requestId: "apply-1", addedProductIds: ["new-cabinet"] }),
+    );
+    emit("cabinetPlacement.action", { status: "committed", sessionId: "draft-1", receipt: { requestId: "apply-1" } });
+    expect(committed).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the draft open on Apply failure and permits cancelling it", async () => {
+    const { client, createClient } = fixture();
+    const committed = vi.fn();
+    client.apply.mockRejectedValueOnce(Object.assign(new Error("Candidate is invalid"), { code: "APPLY_UNAVAILABLE" }));
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        onCompositionCommitted={committed}
+      />,
+    );
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Drag to Place" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Apply" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("APPLY_UNAVAILABLE");
+    expect(screen.queryByRole("button", { name: "Drag to Place" }), "the draft stays open").toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull());
+    expect(committed).not.toHaveBeenCalled();
+  });
+
+  it("reads the runtime selected cabinet when Move is clicked", async () => {
+    const { client, createClient } = fixture();
+    render(
+      <CabinetPlacementDebug
+        ready
+        showDebugTools
+        selection={selection}
+        selectedProductId="old-redux-id"
+        createClient={createClient}
+      />,
+    );
+    const move = (await screen.findByRole("button", { name: "Move selected cabinet" })) as HTMLButtonElement;
+    await waitFor(() => expect(move.disabled).toBe(false));
+    fireEvent.click(move);
+    await waitFor(() => expect(client.beginMove).toHaveBeenCalledExactlyOnceWith("runtime-selected"));
+    expect(client.apply).not.toHaveBeenCalled();
+  });
+
+  it("does not clear a draft when Cancel returns a nonterminal lifecycle", async () => {
+    const { client, createClient } = fixture();
+    client.cancel.mockResolvedValueOnce({ ...preview, lifecycle: "preview" });
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(client.cancel).toHaveBeenCalledOnce());
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Apply" })).toBeTruthy();
+  });
+
+  it("refuses Add when fresh placement options have no available chosen side or seed", async () => {
+    const { client, createClient } = fixture();
+    client.getPlacementOptions.mockResolvedValueOnce([
+      { id: "left-only", kind: "left", availability: "available", frameId: "wall", positionM: { x: 0, y: 0, z: 0 } },
+    ]);
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        showDebugTools
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    expect((await screen.findByRole("alert")).textContent).toContain("No available placement");
+    expect(client.beginAdd).not.toHaveBeenCalled();
+  });
+
+  it("uses the debug side selector's explicit option anchored at the runtime selection", async () => {
+    const { client, createClient } = fixture();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        showDebugTools
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+    expect(client.getPlacementOptions).toHaveBeenCalledExactlyOnceWith({
+      ...selection,
+      operation: "add",
+      anchorCabinetId: "runtime-selected",
+    });
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "right-option",
+    });
+  });
+
+  it("saves the full JSON and restores only after explicit confirmation while idle", async () => {
+    const { client, createClient } = fixture([
+      "cabinetPlacement.beginAdd",
+      "composition.exportPreset",
+      "composition.importPreset",
+    ]);
+    const committed = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        showDebugTools
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        onCompositionCommitted={committed}
+      />,
+    );
+    fireEvent.click(await screen.findByText("Save / Restore JSON"));
+    fireEvent.click(screen.getByRole("button", { name: "Save JSON" }));
+    await waitFor(() => expect(localStorage.getItem("cabinet-placement-debug-preset")).toContain("featureSettings"));
+    const preset = await client.exportPreset();
+    expect(JSON.parse((screen.getByLabelText("Preset JSON") as HTMLTextAreaElement).value)).toEqual(preset);
+    const restore = screen.getByRole("button", { name: "Restore JSON" }) as HTMLButtonElement;
+    expect(restore.disabled).toBe(true);
+    fireEvent.click(restore);
+    expect(client.importPreset).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByLabelText("Replace the current composition with this JSON"));
+    fireEvent.click(restore);
+    await waitFor(() => expect(client.importPreset).toHaveBeenCalledExactlyOnceWith(preset));
+    await waitFor(() => expect(committed).toHaveBeenCalledOnce());
+    expect(restore.disabled).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Drag to Place" }));
+    await screen.findByRole("button", { name: "Cancel" });
+    expect((screen.getByRole("button", { name: "Save JSON" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("honours unsupported capabilities and other active runtime sessions", async () => {
+    const { createClient, emit } = fixture(["cabinetPlacement.beginAdd"]);
+    const { unmount } = render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(screen.queryByRole("button", { name: "Move selected cabinet" })).toBeNull();
+    expect(screen.queryByText("Countertop test controls")).toBeNull();
+    emit("composition.change", { activeSessionId: "external-draft" });
+    expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
+    emit("composition.change", { activeSessionId: null });
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    unmount();
+  });
+
+  it("responds to runtime Cancel and disposes subscriptions on unmount", async () => {
+    const { client, createClient, emit } = fixture();
+    const { unmount } = render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Cancel" });
+    emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-1" });
+    expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false);
+    unmount();
+    expect(client.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("clears draft controls when the placement stream publishes data: null", async () => {
+    const { createClient, emit } = fixture();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Cancel" });
+    emit("cabinetPlacement.change", null);
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+    expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("blocks cabinet commands while the countertop is being edited", async () => {
+    const { client, createClient } = fixture();
+    const controls = createRef<CabinetPlacementControls>();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ref={controls}
+        ready
+        showDebugTools
+        externalBusy
+        selection={selection}
+        selectedProductId="runtime-selected"
+        createClient={createClient}
+      />,
+    );
+    await screen.findByRole("button", { name: "Move selected cabinet" });
+    expect((screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Move selected cabinet" }) as HTMLButtonElement).disabled).toBe(true);
+    act(() => controls.current?.reposition("runtime-selected"));
+    expect(client.beginMove).not.toHaveBeenCalled();
+  });
+});
+
+describe("Cabinet drag and drop overlay", () => {
+  const frame = (overrides: Record<string, unknown> = {}) => ({
+    sessionId: "draft-1",
+    kind: "add",
+    lifecycle: "preview",
+    status: "clear",
+    collidesWith: [],
+    canApply: true,
+    canCancel: true,
+    dragging: false,
+    visible: true,
+    viewport: { width: 800, height: 600 },
+    hull: [],
+    bounds: { left: 300, top: 100, right: 500, bottom: 220, width: 200, height: 120 },
+    points: {
+      center: { x: 400, y: 160 },
+      frontCenter: { x: 400, y: 170 },
+      topLeft: { x: 300, y: 100 },
+      topRight: { x: 500, y: 100 },
+      bottomLeft: { x: 300, y: 220 },
+      bottomRight: { x: 500, y: 220 },
+      topCenter: { x: 400, y: 100 },
+      bottomCenter: { x: 400, y: 220 },
+    },
+    ...overrides,
+  });
+  const overlayFixture = () => {
+    const base = fixture();
+    let publish: ((value: unknown) => void) | null = null;
+    const stopOverlay = vi.fn(() => {
+      publish = null;
+    });
+    const client = Object.assign(base.client, {
+      onPlacementOverlay: vi.fn(async (callback: (value: unknown) => void) => {
+        publish = callback;
+        return stopOverlay;
+      }),
+      setPlacementOverlayPlaceholders: vi.fn(async () => true),
+    });
+    const emitFrame = (value: unknown) => act(() => publish?.(value));
+    return { ...base, client, emitFrame, stopOverlay };
+  };
+
+  it("starts dragging straight from Drag to Place and puts Apply / discard at the PlayCanvas anchors", async () => {
+    const { client, createClient, emit, emitFrame, stopOverlay } = overlayFixture();
+    const { unmount } = render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(client.setPlacementOverlayPlaceholders).toHaveBeenCalledExactlyOnceWith(false);
+    expect(screen.queryByTestId("cabinet-draft-overlay")).toBeNull();
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(client.beginAdd).toHaveBeenCalledOnce();
+    emitFrame(frame());
+    const overlay = screen.getByTestId("cabinet-draft-overlay");
+    expect(overlay.dataset.status).toBe("clear");
+    const apply = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect(overlay.contains(apply), "a single Apply, at the anchor, not in the toolbar").toBe(true);
+    expect([apply.style.left, apply.style.top]).toEqual(["497px", "225px"]);
+    const discard = screen.getByRole("button", { name: "Discard cabinet placement" }) as HTMLButtonElement;
+    expect([discard.style.left, discard.style.top]).toEqual(["503px", "223px"]);
+    expect(apply.disabled).toBe(false);
+
+    // Red: the runtime blocks Apply while the cabinet overlaps another one.
+    emit("cabinetPlacement.change", {
+      ...preview,
+      canApply: false,
+      collision: { status: "colliding", collidesWith: ["cab-a"] },
+    });
+    emitFrame(frame({ status: "colliding", collidesWith: ["cab-a"], canApply: false }));
+    expect(screen.getByTestId("cabinet-draft-overlay").dataset.status).toBe("colliding");
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText(/overlaps another cabinet/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(client.apply).not.toHaveBeenCalled();
+
+    // The separate countertop reason keeps the red overlay and blocks Apply too.
+    emit("cabinetPlacement.change", {
+      ...preview,
+      canApply: false,
+      collision: { status: "colliding", collidesWith: ["custom-top-id"] },
+      validation: { status: "invalid", reasons: [{ code: "COUNTERTOP_COLLISION", affectedProductIds: ["custom-top-id"] }] },
+    });
+    emitFrame(frame({ status: "colliding", collidesWith: ["custom-top-id"], canApply: false }));
+    expect(screen.getByTestId("cabinet-draft-overlay").dataset.status).toBe("colliding");
+    const blockedByTop = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect(blockedByTop.disabled).toBe(true);
+    expect(blockedByTop.title).toBe("This cabinet overlaps the countertop. Move it to a free spot to apply.");
+    expect(screen.getByText(/overlaps the countertop/)).toBeTruthy();
+    fireEvent.click(blockedByTop);
+    expect(client.apply).not.toHaveBeenCalled();
+
+    // A corner at the viewport edge: Apply / discard stay on screen.
+    emit("cabinetPlacement.change", preview);
+    emitFrame(frame({ points: { ...frame().points, bottomRight: { x: 795, y: 598 } } }));
+    const edgeApply = screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement;
+    expect([edgeApply.style.left, edgeApply.style.top]).toEqual(["767px", "575px"]);
+
+    // Off screen: no anchors, Apply falls back next to Cancel.
+    emit("cabinetPlacement.change", preview);
+    emitFrame(frame({ visible: false, points: null }));
+    expect(screen.queryByTestId("cabinet-draft-overlay")).toBeNull();
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false);
+    emitFrame(frame());
+    fireEvent.click(screen.getByRole("button", { name: "Discard cabinet placement" }));
+    await waitFor(() => expect(client.cancel).toHaveBeenCalledExactlyOnceWith("draft-1"));
+    await screen.findByRole("button", { name: "Drag to Place" });
+    unmount();
+    expect(stopOverlay).toHaveBeenCalled();
+    expect(client.setPlacementOverlayPlaceholders).toHaveBeenLastCalledWith(true);
+  });
+
+  it("ignores overlay frames of another session", async () => {
+    const { createClient, emitFrame } = overlayFixture();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Cancel" });
+    emitFrame(frame({ sessionId: "someone-else" }));
+    expect(screen.queryByTestId("cabinet-draft-overlay")).toBeNull();
+    expect(screen.getByRole("button", { name: "Apply" }), "fallback Apply next to Cancel").toBeTruthy();
+  });
+
+  it("leaves PlayCanvas' placeholders on for a build without the overlay", async () => {
+    const { client, createClient } = overlayFixture();
+    client.onPlacementOverlay.mockResolvedValueOnce(null as never);
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(client.onPlacementOverlay).toHaveBeenCalledOnce();
+    expect(client.setPlacementOverlayPlaceholders).not.toHaveBeenCalled();
+  });
+});
+
+describe("Cabinet debug selection and mode", () => {
+  it("preserves scene config and resolves its registered product type without an arbitrary id suffix", () => {
+    const config = { ...selection.selection, ProductType: "Example-side-cabinet" };
+    expect(
+      resolveCabinetDebugSelection({
+        config,
+        selectedProductId: "Example-side-cabinet-abcdefghi",
+        addedCabinetType: null,
+        bindings: null,
+      }),
+    ).toEqual({ definitionId: "Example-side-cabinet", selection: config });
+    expect(selection.selection.SupportGroupId).toBe("group-custom");
+    expect(
+      resolveCabinetDebugSelection({
+        config: null,
+        selectedProductId: "Example-side-cabinet-abcdefghi",
+        addedCabinetType: null,
+        bindings: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("resolves scene IDs and the type the builder adds through the collection's runtime bindings", () => {
+    const bindings: RuntimeBindingSet = {
+      schemaVersion: 1,
+      collectionId: "example",
+      bindings: [],
+      productTypes: { "Side-Cabinet": "Example-side-cabinet", "Open-Shelf": "Example-open-shelf" },
+    };
+    expect(
+      resolveCabinetDebugSelection({
+        config: selection.selection,
+        selectedProductId: "Example-side-cabinet-abcdefghi",
+        addedCabinetType: null,
+        bindings,
+      }),
+    ).toEqual(selection);
+    expect(
+      resolveCabinetDebugSelection({
+        config: selection.selection,
+        selectedProductId: null,
+        addedCabinetType: "Open-Shelf",
+        bindings,
+      }),
+    ).toEqual({ definitionId: "Example-open-shelf", selection: selection.selection });
+    expect(
+      resolveCabinetDebugSelection({
+        config: { ...selection.selection, productType: "Example-open-shelf" },
+        selectedProductId: null,
+        addedCabinetType: null,
+        bindings,
+      })?.definitionId,
+    ).toBe("Example-open-shelf");
+  });
+
+  it("resolves the cabinet the builder adds, not the placed one a click in the canvas put in its config", () => {
+    const bindings: RuntimeBindingSet = {
+      schemaVersion: 1,
+      collectionId: "example",
+      bindings: [],
+      productTypes: { "Sink-Base": "Example-sink-cabinet", "Side-Cabinet": "Example-side-cabinet" },
+    };
+    // The builder adds a sink base; the side cabinet clicked in the canvas left its scene config.
+    const placedSideCabinetConfig = {
+      ...selection.selection,
+      ProductType: "Example-side-cabinet",
+      productType: "Example-side-cabinet",
+    };
+    expect(
+      resolveCabinetDebugSelection({
+        config: placedSideCabinetConfig,
+        selectedProductId: "Example-side-cabinet-abcdefghi",
+        addedCabinetType: "Sink-Base",
+        bindings,
+      })?.definitionId,
+    ).toBe("Example-sink-cabinet");
+  });
+});
+
+describe("Cabinet drag and drop reports a change from its start to its end", () => {
+  const setUp = (client: ReturnType<typeof fixture>) => {
+    const before = vi.fn();
+    const abandoned = vi.fn();
+    const committed = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={client.createClient}
+        onBeforeCompositionChange={before}
+        onCompositionChangeAbandoned={abandoned}
+        onCompositionCommitted={committed}
+      />,
+    );
+    return { before, abandoned, committed };
+  };
+  const startDraft = async () => {
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+  };
+
+  it("announces the change before the draft opens, while the scene can still describe itself", async () => {
+    const f = fixture();
+    const { before, abandoned } = setUp(f);
+
+    await startDraft();
+
+    expect(before).toHaveBeenCalledOnce();
+    expect(before.mock.invocationCallOrder[0]).toBeLessThan(f.client.beginAdd.mock.invocationCallOrder[0]);
+    expect(abandoned).not.toHaveBeenCalled();
+  });
+
+  it("waits for the announcement before it opens the draft", async () => {
+    const f = fixture();
+    let release: () => void = () => undefined;
+    const { before } = setUp(f);
+    before.mockImplementation(() => new Promise<void>((resolve) => (release = resolve)));
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+
+    fireEvent.click(add);
+    await waitFor(() => expect(before).toHaveBeenCalledOnce());
+    expect(f.client.beginAdd).not.toHaveBeenCalled();
+
+    await act(async () => release());
+    await waitFor(() => expect(f.client.beginAdd).toHaveBeenCalledOnce());
+  });
+
+  it("ends an applied draft as a change", async () => {
+    const f = fixture();
+    const { abandoned, committed } = setUp(f);
+    await startDraft();
+
+    await waitFor(() =>
+      expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+    await waitFor(() => expect(committed).toHaveBeenCalledOnce());
+    expect(abandoned).not.toHaveBeenCalled();
+  });
+
+  it("ends a cancelled draft as no change", async () => {
+    const f = fixture();
+    const { abandoned, committed } = setUp(f);
+    await startDraft();
+
+    const cancel = screen.getByRole("button", { name: "Cancel" }) as HTMLButtonElement;
+    await waitFor(() => expect(cancel.disabled).toBe(false));
+    fireEvent.click(cancel);
+
+    await waitFor(() => expect(abandoned).toHaveBeenCalledOnce());
+    expect(committed).not.toHaveBeenCalled();
+  });
+
+  it("ends a draft the runtime refused to open as no change", async () => {
+    const f = fixture();
+    f.client.beginAdd.mockRejectedValueOnce(new Error("COMPOSITION_BUSY"));
+    const { before, abandoned } = setUp(f);
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+
+    fireEvent.click(add);
+
+    await waitFor(() => expect(abandoned).toHaveBeenCalledOnce());
+    expect(before).toHaveBeenCalledOnce();
+  });
+
+  it("ends the open draft as no change when the runtime cancels it, and ignores a report of another one", async () => {
+    const f = fixture();
+    const { abandoned } = setUp(f);
+    await startDraft();
+
+    f.emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-0" });
+    expect(abandoned).not.toHaveBeenCalled();
+
+    f.emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-1" });
+    expect(abandoned).toHaveBeenCalledOnce();
+
+    f.emit("cabinetPlacement.action", { status: "cancelled", sessionId: "draft-1" });
+    expect(abandoned).toHaveBeenCalledOnce();
+  });
+});
+
+describe("Cabinet drag and drop with a collection whose rows hold columns", () => {
+  const prepared = { definitionId: "UD-side-cabinet", selection: { Width: 35, HandleStyle: "Default" } };
+
+  it("starts an Add with the cabinet resolved when it starts", async () => {
+    const { client, createClient } = fixture();
+    const prepareSelection = vi.fn(() => prepared);
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        prepareSelection={prepareSelection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    expect(prepareSelection).not.toHaveBeenCalled();
+
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+
+    expect(prepareSelection).toHaveBeenCalledOnce();
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(prepared.definitionId, prepared.selection);
+  });
+
+  it("leaves alone a session a command opened and applied (a cabinet placed in a column)", async () => {
+    const { createClient, emit } = fixture();
+    const committed = vi.fn();
+    const abandoned = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+        onCompositionCommitted={committed}
+        onCompositionChangeAbandoned={abandoned}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+
+    emit("composition.change", { status: "ready", activeSessionId: "command-placement-1" });
+    emit("cabinetPlacement.change", { ...preview, sessionId: "command-placement-1" });
+    expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
+
+    emit("cabinetPlacement.action", {
+      status: "committed",
+      sessionId: "command-placement-1",
+      receipt: { requestId: "command-placement-2" },
+    });
+    await act(async () => undefined);
+
+    // The command records what it placed; these controls neither adopt it nor end an edit.
+    expect(committed).not.toHaveBeenCalled();
+    expect(abandoned).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Drag to Place" })).toBeTruthy();
+  });
+
+  it("keeps a side shelf at an end of its row before Apply", async () => {
+    const { client, emit } = fixture();
+    const row = {
+      cabinets: [
+        { id: "a", definitionId: "UD-sink-cabinet", selection: { Width: 60 }, positionM: { x: 0.3, y: 0, z: 0 } },
+        { id: "b", definitionId: "UD-side-cabinet", selection: { Width: 60 }, positionM: { x: 0.9005, y: 0, z: 0 } },
+      ],
+      connections: [],
+      selectedCabinetId: null,
+    };
+    const rowClient = { ...client, getCabinetsState: vi.fn(async () => row) };
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={{ definitionId: "UD-open-shelves-side", selection: { Width: 15 } }}
+        selectedProductId={null}
+        createClient={() => rowClient as unknown as ConfiguratorClient}
+        isSideShelfType={(definitionId) => definitionId === "UD-open-shelves-side"}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+    const shelfAt = (x: number) => ({
+      ...preview,
+      candidate: {
+        definitionId: "UD-open-shelves-side",
+        selection: { Width: 15 },
+        productId: null,
+        effectivePlacement: { positionM: { x, y: 0, z: 0 } },
+      },
+    });
+
+    // Between the two cabinets: the scene allows it, the side shelf rule does not.
+    emit("cabinetPlacement.change", shelfAt(0.6));
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText("A side shelf stands at an end of the row. Move it to an end to apply.")).toBeTruthy();
+
+    // At the right end of the row.
+    emit("cabinetPlacement.change", shelfAt(1.2765));
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
+describe("Drag to Place", () => {
+  it("is not offered while the builder shows no + buttons: Drag & Drop has no button of its own", async () => {
+    const { client, createClient } = fixture();
+    render(<CabinetPlacementDebug ready selection={selection} selectedProductId={null} createClient={createClient} />);
+    await waitFor(() => expect(client.connect).toHaveBeenCalled());
+
+    expect(screen.queryByRole("button", { name: /Drag/ })).toBeNull();
+  });
+
+  it("is offered beside the builder's + buttons and opens one draft on press", async () => {
+    const { client, createClient } = fixture();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={createClient}
+      />,
+    );
+    const option = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(option.disabled).toBe(false));
+
+    // The press closes the builder's sidebar, and this option with it, before a click could land.
+    fireEvent.mouseDown(option);
+    fireEvent.click(option, { detail: 1 });
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
+    expect(screen.queryByRole("button", { name: "Drag to Place" })).toBeNull();
+  });
+});
+
+describe("Drag to Place starts the draft where the host chooses", () => {
+  const rowEnd = (id: string, anchorCabinetId: string, x: number) => ({
+    id,
+    kind: "right",
+    anchorCabinetId,
+    availability: "available",
+    frameId: "wall",
+    positionM: { x, y: 0, z: 0 },
+  });
+  const lowerRight = rowEnd("lower-right", "lower-c", 1.9);
+  const upperRight = rowEnd("upper-right", "side-c", 1.35);
+  type Choose = (options: readonly CabinetPlacementOption[]) => CabinetPlacementOption | null;
+
+  const startAdd = async (f: ReturnType<typeof fixture>, chooseAddPlacement: Choose) => {
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        prepareSelection={() => selection}
+        chooseAddPlacement={chooseAddPlacement}
+        selectedProductId={null}
+        createClient={f.createClient}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.mouseDown(add);
+  };
+
+  it("opens the draft at the option the host picks among those the scene offers for the cabinet", async () => {
+    const f = fixture();
+    f.client.getPlacementOptions.mockResolvedValue([lowerRight, upperRight]);
+    const choose = vi.fn<Choose>((options) => options.find(({ id }) => id === "upper-right") ?? null);
+    await startAdd(f, choose);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    // The options are read for the very selection the draft is opened with: an option is valid only for it.
+    expect(f.client.getPlacementOptions).toHaveBeenCalledExactlyOnceWith({
+      definitionId: selection.definitionId,
+      selection: selection.selection,
+      operation: "add",
+    });
+    expect(choose).toHaveBeenCalledExactlyOnceWith([lowerRight, upperRight]);
+    expect(f.client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "upper-right",
+    });
+  });
+
+  it("leaves the start to the scene when the host picks none", async () => {
+    const f = fixture();
+    await startAdd(f, () => null);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(f.client.beginAdd).toHaveBeenCalledExactlyOnceWith(selection.definitionId, selection.selection);
+  });
+
+  it("reads the options again once when the scene changed between the two reads", async () => {
+    const f = fixture();
+    f.client.getPlacementOptions
+      .mockResolvedValueOnce([{ ...upperRight, id: "stale" }])
+      .mockResolvedValueOnce([upperRight]);
+    f.client.beginAdd.mockRejectedValueOnce(new ConfiguratorError("STALE_OPTION"));
+    await startAdd(f, (options) => options[0] ?? null);
+
+    await screen.findByRole("button", { name: "Cancel" });
+    expect(f.client.getPlacementOptions).toHaveBeenCalledTimes(2);
+    expect(f.client.beginAdd).toHaveBeenLastCalledWith(selection.definitionId, selection.selection, {
+      kind: "option",
+      optionId: "upper-right",
+    });
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+describe("Drag to Place on an empty composition", () => {
+  const renderAdd = (f: ReturnType<typeof fixture>) => {
+    const addFirstCabinet = vi.fn(async () => undefined);
+    const before = vi.fn();
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={selection}
+        selectedProductId={null}
+        createClient={f.createClient}
+        addFirstCabinet={addFirstCabinet}
+        onBeforeCompositionChange={before}
+      />,
+    );
+    return { addFirstCabinet, before };
+  };
+  const pressAdd = async () => {
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+  };
+
+  it("places the first cabinet as the builder's + does, without a draft: the scene lays its countertop then", async () => {
+    const f = fixture();
+    f.client.getCabinetsState.mockResolvedValue({ cabinets: [], selectedCabinetId: "" });
+    const { addFirstCabinet, before } = renderAdd(f);
+
+    await pressAdd();
+
+    await waitFor(() => expect(addFirstCabinet).toHaveBeenCalledOnce());
+    expect(f.client.beginAdd).not.toHaveBeenCalled();
+    expect(f.client.getPlacementOptions).not.toHaveBeenCalled();
+    expect(before).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("opens a draft as before once the composition holds a cabinet", async () => {
+    const f = fixture();
+    const { addFirstCabinet } = renderAdd(f);
+
+    await pressAdd();
+
+    await screen.findByRole("button", { name: "Apply" });
+    expect(f.client.beginAdd).toHaveBeenCalledOnce();
+    expect(addFirstCabinet).not.toHaveBeenCalled();
+  });
+});
+
+describe("Drag & Drop collections", () => {
+  const profiles = Object.values(
+    import.meta.glob("/public/collections/*/product-profile.json", { eager: true, import: "default" }),
+  ).map((document) => {
+    const parsed = parseProductProfile(document);
+    if (!parsed.ok) throw new Error("a shipped profile failed validation");
+    return parsed.profile;
+  });
+
+  it("enables cabinet/countertop Drag & Drop where the profile says so: ULH and Urban Duplex only", () => {
+    expect(profiles.length).toBeGreaterThanOrEqual(8);
+    expect(
+      profiles
+        .filter(isDragDropEnabled)
+        .map(({ collectionId }) => collectionId)
+        .sort(),
+    ).toEqual(["urban-duplex", "urban-low-height"]);
+    expect(isDragDropEnabled(null)).toBe(false);
+  });
+});

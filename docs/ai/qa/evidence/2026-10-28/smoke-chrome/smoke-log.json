@@ -1,0 +1,117 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 4477,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 907,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals"
+    },
+    {
+      "step": 4,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 77,
+      "summary": "## Latest page snapshot uid=1_0 RootWebArea \"tagging-modules-tool\" url=\"https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot\" uid=1_1 navigation \"Configurator steps\" uid=1_2"
+    },
+    {
+      "step": 5,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 238,
+      "summary": "image 04-screenshot-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 6,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 18,
+      "summary": "## Console messages Showing 1-52 of 52 (Page 1 of 1). msgid=1 [log] [DividerUI][Debug] Divider UI debug buffer initialized [object Object] (2 args) msgid=2 [issue] Content Security Policy of your site blocks the use of `"
+    },
+    {
+      "step": 7,
+      "tool": "list_network_requests",
+      "status": "ok",
+      "ms": 4,
+      "summary": "## Network requests Showing 1-289 of 289 (Page 1 of 1). reqid=1 GET https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot [200] reqid=2 GET https://hasting-modular-phase-2-st"
+    },
+    {
+      "step": 8,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 613,
+      "summary": "Successfully navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/"
+    },
+    {
+      "step": 10,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 41,
+      "summary": "image 08-after-navigation-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 11,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 357,
+      "summary": "Successfully navigated back to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot. ## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Eleme"
+    },
+    {
+      "step": 13,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json {\"url\":\"https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot\",\"title\":\"tagging-modules-tool\",\"canvas\":true} ```"
+    },
+    {
+      "step": 14,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 10,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase-2/staging) [selected] 2: hasting-data-modular-review/Tricot/docs/TRICOT-..."
+    }
+  ]
+}

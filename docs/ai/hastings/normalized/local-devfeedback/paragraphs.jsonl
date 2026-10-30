@@ -1,0 +1,278 @@
+{"id": "P0001", "style": "", "text": "Modular Build Phase 2 – Feedback", "links": [], "images": [], "comments": ["0"], "heading": ""}
+{"id": "P0002", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0003", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0004", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0005", "style": "", "text": "Countertop Intraplayer Actions", "links": [], "images": [], "comments": ["1", "2", "3"], "heading": ""}
+{"id": "P0006", "style": "", "text": "Change ‘Thickness’ to ‘Resize’", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0007", "style": "", "text": "The ‘Length’ option should only display when a thick countertop is used (4”, 5-⅛” or 5-½”)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0008", "style": "", "text": "", "links": [], "images": ["media/image19.png"], "comments": [], "heading": ""}
+{"id": "P0009", "style": "", "text": "Length would display the handles on the end of the countertop", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0010", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0011", "style": "", "text": "Countertop Lengthening | Handles | Drag & Drop", "links": [], "images": [], "comments": ["4", "5", "6", "7"], "heading": ""}
+{"id": "P0012", "style": "", "text": "1. Allow the users to lengthen the top without lifting it off the cabinet, the basin should stay in place (positioned centered on the SB cab)", "links": [], "images": [], "comments": ["8"], "heading": ""}
+{"id": "P0013", "style": "", "text": "In this case, the user could only shorten the countertop from the Left side, not the Right side (b/c an SB cabinet is positioned there). The countertop cannot be indented or shorter than the SB cabinet width; it must completely cover the SB cab.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0014", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0015", "style": "", "text": "", "links": [], "images": ["media/image5.png"], "comments": [], "heading": ""}
+{"id": "P0016", "style": "", "text": "2. This can only be done with 4”, 5-⅛” or 5-½” thick tops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0017", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0018", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0019", "style": "", "text": "Image Ref", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0020", "style": "", "text": "", "links": [], "images": ["media/image37.png"], "comments": [], "heading": ""}
+{"id": "P0021", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0022", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0023", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0024", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0025", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0026", "style": "", "text": "Cabinet Builder | Adding a Cabinet via Drag & Drop", "links": [], "images": [], "comments": ["9", "10"], "heading": ""}
+{"id": "P0027", "style": "", "text": "When adding an SB cabinet w/ the Drag & Drop function, when ‘Apply is clicked, the wrong top is being applied. It is displaying a countertop that matches the cabinet. It should be an integrated basin. See the recording.", "links": ["https://drive.google.com/drive/folders/17TNH6dCt6VJ2EerQSgQU_OYMAWEMwNvq"], "images": [], "comments": [], "heading": ""}
+{"id": "P0028", "style": "", "text": "I checked the cabinet SKU from the Summary View page it is correct", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0029", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0030", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0031", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0032", "style": "", "text": "Cabinet Builder Max Cabinet Limit", "links": [], "images": [], "comments": ["11", "12", "13"], "heading": ""}
+{"id": "P0033", "style": "", "text": "The configurator is summing the dimensions of all cabinets in the scene but doesn't account for the conceptual layout. See the dual-level composition below.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0034", "style": "", "text": "It is blocking any new cabinets from being added", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0035", "style": "", "text": "", "links": [], "images": ["media/image14.png"], "comments": [], "heading": ""}
+{"id": "P0036", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0037", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0038", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0039", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0040", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0041", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0042", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0043", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0044", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0045", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0046", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0047", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0048", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0049", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0050", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0051", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0052", "style": "", "text": "Cabinet Builder – Countertop Protruding", "links": [], "images": [], "comments": ["14", "15", "16"], "heading": ""}
+{"id": "P0053", "style": "", "text": "The countertop is not mirroring the cabinet depth", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0054", "style": "", "text": "", "links": [], "images": ["media/image35.png"], "comments": [], "heading": ""}
+{"id": "P0055", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0056", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0057", "style": "", "text": "Countertop 19.7” is slightly short", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0058", "style": "", "text": "", "links": [], "images": ["media/image32.png"], "comments": [], "heading": ""}
+{"id": "P0059", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0060", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0061", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0062", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0063", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0064", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0065", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0066", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0067", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0068", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0069", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0070", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0071", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0072", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0073", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0074", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0075", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0076", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0077", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0078", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0079", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0080", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0081", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0082", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0083", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0084", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0085", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0086", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0087", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0088", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0089", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0090", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0091", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0092", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0093", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0094", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0095", "style": "", "text": "Custom Countertop Tooltip", "links": [], "images": [], "comments": ["17", "18", "19", "20", "21"], "heading": ""}
+{"id": "P0096", "style": "", "text": "I think we can hide the tooltip overlay, or can we display this for a few seconds, then have it fade away", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0097", "style": "", "text": "", "links": [], "images": ["media/image18.png"], "comments": [], "heading": ""}
+{"id": "P0098", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0099", "style": "", "text": "", "links": [], "images": ["media/image27.png"], "comments": [], "heading": ""}
+{"id": "P0100", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0101", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0102", "style": "", "text": "Custom Countertop | Basin Positioning", "links": [], "images": [], "comments": ["22"], "heading": ""}
+{"id": "P0103", "style": "", "text": "I’d like to let users move the basin Left to Right. This would need to take into account the composition, spacing, cabinet types, etc.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0104", "style": "", "text": "", "links": [], "images": ["media/image3.png"], "comments": [], "heading": ""}
+{"id": "P0105", "style": "", "text": "In this case, a calculation would need to be performed to see if there is enough space on the right, based on the lower cabinet position", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0106", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0107", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0108", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0109", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0110", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0111", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0112", "style": "", "text": "Drag & Drop | Single Cabinet | Thin Countertops", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0113", "style": "", "text": "When Drag & Drop is activated, and a thin countertop is used with a single cabinet design, can we either:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0114", "style": "", "text": "1) Move the countertop with the cabinet or", "links": [], "images": [], "comments": ["23"], "heading": ""}
+{"id": "P0115", "style": "", "text": "2) Remove the error message displayed, b/c thin countertops cannot be positioned remotely", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0116", "style": "", "text": "See recording", "links": ["https://drive.google.com/drive/folders/1t6XJD34vd-kRF4SSSWPeL805Ti8P_vXf"], "images": [], "comments": [], "heading": ""}
+{"id": "P0117", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0118", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0119", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0120", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0121", "style": "", "text": "Drag & Drop | Thick Countertop Placement | Cabinet Type Auto Change", "links": [], "images": [], "comments": ["24", "25", "26"], "heading": ""}
+{"id": "P0122", "style": "", "text": "When a user remotely positions or offsets a thick countertop so that the integrated basin (or vessel hole cutout) is no longer situated within an SB cabinet, I’d like to automatically change that SB cabinet to an SC cabinet. See the graphic below and the screen recording.", "links": ["https://drive.google.com/drive/folders/1XySdrzMq8U8vkoWgyrfwoXMdMpso79sl"], "images": [], "comments": [], "heading": ""}
+{"id": "P0123", "style": "", "text": "See rule here", "links": ["https://docs.google.com/document/d/1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp/edit#bookmark=id.4sebigjp7dqm"], "images": [], "comments": [], "heading": ""}
+{"id": "P0124", "style": "", "text": "", "links": [], "images": ["media/image24.png"], "comments": [], "heading": ""}
+{"id": "P0125", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0126", "style": "", "text": "", "links": [], "images": ["media/image12.png"], "comments": [], "heading": ""}
+{"id": "P0127", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0128", "style": "", "text": "", "links": [], "images": ["media/image16.png"], "comments": [], "heading": ""}
+{"id": "P0129", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0130", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0131", "style": "", "text": "Countertop Thickness compatibility", "links": [], "images": [], "comments": ["27", "28", "29", "30", "31", "32"], "heading": ""}
+{"id": "P0132", "style": "", "text": "4” thick should not be an option for this configuration setup. 4” thick is only available when the integrated basin is positioned w/in a SB cab. See rule here.", "links": ["https://docs.google.com/document/d/1u5PEFi9srCP8Rnbgj-mZQkkZcLDcLPmp/edit#bookmark=id.xzq13gyq8rhr"], "images": [], "comments": [], "heading": ""}
+{"id": "P0133", "style": "", "text": "", "links": [], "images": ["media/image2.png"], "comments": [], "heading": ""}
+{"id": "P0134", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0135", "style": "", "text": "", "links": [], "images": ["media/image29.png"], "comments": [], "heading": ""}
+{"id": "P0136", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0137", "style": "", "text": "Adding SB Cab to Offset Countertop Concept", "links": [], "images": [], "comments": ["33", "34"], "heading": ""}
+{"id": "P0138", "style": "", "text": "Please see the screen recording.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0139", "style": "", "text": "The SB cabinet should not be blocked where I'm trying to place it.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0140", "style": "", "text": "See the recording", "links": ["https://drive.google.com/drive/folders/1Csz3jFtv43U1YIBs23_6NwqvGkw3t3Zm"], "images": [], "comments": [], "heading": ""}
+{"id": "P0141", "style": "", "text": "", "links": [], "images": ["media/image11.png"], "comments": [], "heading": ""}
+{"id": "P0142", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0143", "style": "", "text": "………", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0144", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0145", "style": "", "text": "Drag & Drop Movement Blocked", "links": [], "images": [], "comments": ["35", "36", "37"], "heading": ""}
+{"id": "P0146", "style": "", "text": "Please see the D&D movement below. This is producing an error message. The placement is an approved location", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0147", "style": "", "text": "", "links": [], "images": ["media/image21.png"], "comments": [], "heading": ""}
+{"id": "P0148", "style": "", "text": "New Image 10/27/26", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0149", "style": "", "text": "", "links": [], "images": ["media/image15.png"], "comments": [], "heading": ""}
+{"id": "P0150", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0151", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0152", "style": "", "text": "Drag & Drop | Separating Two Sink Base Cabinets", "links": [], "images": [], "comments": ["38", "39"], "heading": ""}
+{"id": "P0153", "style": "", "text": "For the specific use case below, when separating two SB cabinets, the cabinet type should remain an SB, and the countertop finish and style should remain as is. Essentially, they would be remote tandem vanities", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0154", "style": "", "text": "", "links": [], "images": ["media/image26.png"], "comments": [], "heading": ""}
+{"id": "P0155", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0156", "style": "", "text": "Also, this placement should be allowed b/c the countertop will move with the cabinet. The gap can be narrow too.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0157", "style": "", "text": "", "links": [], "images": ["media/image36.png"], "comments": [], "heading": ""}
+{"id": "P0158", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0159", "style": "", "text": "Please see the recording", "links": ["https://drive.google.com/drive/folders/1u3bbyQHF_TkbxIxR5-2UdmL2_KCUgGDw"], "images": [], "comments": [], "heading": ""}
+{"id": "P0160", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0161", "style": "", "text": "This also applies if adding an SB to the scene in a remote placement via Drag & Drop like below", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0162", "style": "", "text": "", "links": [], "images": ["media/image22.png"], "comments": [], "heading": ""}
+{"id": "P0163", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0164", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0165", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0166", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0167", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0168", "style": "", "text": "Cabinet Builder SB Placement", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0169", "style": "", "text": "SB cabinets must be on a single row/plane. The placements crossed off below should not have ‘+’ buttons", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0170", "style": "", "text": "", "links": [], "images": ["media/image31.png"], "comments": [], "heading": ""}
+{"id": "P0171", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0172", "style": "", "text": "New Image - when clicking D&D", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0173", "style": "", "text": "", "links": [], "images": ["media/image28.png"], "comments": [], "heading": ""}
+{"id": "P0174", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0175", "style": "", "text": "Drag & Drop Functionality Issue | Non-Cabinet Builder Steps", "links": [], "images": [], "comments": ["40"], "heading": ""}
+{"id": "P0176", "style": "", "text": "The D&D functionality is operating differently when utilized in the non-cabinet builder step (e.g. use in the cabinet color step, etc)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0177", "style": "", "text": "See the screen recording showing a few different D&D movement/placement patterns", "links": ["https://drive.google.com/drive/folders/1AlfZ68RZIB0MVW0MtY3Ut3557uhYsXOe"], "images": [], "comments": [], "heading": ""}
+{"id": "P0178", "style": "", "text": "D&D should operate the same across all steps", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0179", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0180", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0181", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0182", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0183", "style": "", "text": "Countertop Intraplayer Action → Reposition → ‘Standard Function", "links": [], "images": [], "comments": ["41", "42"], "heading": ""}
+{"id": "P0184", "style": "", "text": "Sometimes this action doesn't work, and it doesn't place the integrated basin properly. See the before and after below.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0185", "style": "", "text": "See the recording", "links": ["https://drive.google.com/drive/folders/1FF06jlGpKA5agKq8RuBZtEjfAGP5BkAZ"], "images": [], "comments": [], "heading": ""}
+{"id": "P0186", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0187", "style": "", "text": "Before", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0188", "style": "", "text": "", "links": [], "images": ["media/image1.png"], "comments": [], "heading": ""}
+{"id": "P0189", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0190", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0191", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0192", "style": "", "text": "After clicking ‘Standard’", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0193", "style": "", "text": "", "links": [], "images": ["media/image30.png"], "comments": [], "heading": ""}
+{"id": "P0194", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0195", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0196", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0197", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0198", "style": "", "text": "Cabinet Builder | Adding OS Cab", "links": [], "images": [], "comments": ["43"], "heading": ""}
+{"id": "P0199", "style": "", "text": "There should be a ‘+’ button in the middle of the cabinet too. See below.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0200", "style": "", "text": "", "links": [], "images": ["media/image20.png"], "comments": [], "heading": ""}
+{"id": "P0201", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0202", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0203", "style": "", "text": "Drag & Drop SC Issue", "links": [], "images": [], "comments": ["44"], "heading": ""}
+{"id": "P0204", "style": "", "text": "When repositioning the lower SC in the image below, then selecting Apply causes the issues below:", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0205", "style": "", "text": "1. The moved cabinet changed its height", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0206", "style": "", "text": "2. The SC cabinet to the right shortened in width.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0207", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0208", "style": "", "text": "See the recording", "links": ["https://drive.google.com/drive/folders/1_VFNNCiwdjbE0XWS6N-rdvwTYNDExlfv"], "images": [], "comments": [], "heading": ""}
+{"id": "P0209", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0210", "style": "", "text": "D&D Movement", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0211", "style": "", "text": "", "links": [], "images": ["media/image34.png"], "comments": [], "heading": ""}
+{"id": "P0212", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0213", "style": "", "text": "After clicking Apply", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0214", "style": "", "text": "", "links": [], "images": ["media/image8.png"], "comments": [], "heading": ""}
+{"id": "P0215", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0216", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0217", "style": "", "text": "Drag & Drop | Multi-Level | End Positioning Guidance", "links": [], "images": [], "comments": ["45"], "heading": ""}
+{"id": "P0218", "style": "", "text": "When placing a cabinet via D&D can we enable the end-point guide that makes it easy to align the cabinet with the end of the cabinet above (or below).", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0219", "style": "", "text": "We have this functionality available in certain instances but not in this specific use case.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0220", "style": "", "text": "", "links": [], "images": ["media/image10.png"], "comments": [], "heading": ""}
+{"id": "P0221", "style": "", "text": "See the recording", "links": ["https://drive.google.com/drive/folders/1uzrhfHwlVCW0qrMfiZoU9JEHyK2OnNq5"], "images": [], "comments": [], "heading": ""}
+{"id": "P0222", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0223", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0224", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0225", "style": "", "text": "Drag & Drop Issue | Middle Cabinet Movement", "links": [], "images": [], "comments": ["46"], "heading": ""}
+{"id": "P0226", "style": "", "text": "Running into an unexpected movement pattern when moving a cabinet that is sandwiched between two other cabinets.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0227", "style": "", "text": "In this case, the OS cabinet should stay in place, not move/collapse to the left and overlap/cut through the SC cabinet that was moved down.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0228", "style": "", "text": "See the recording", "links": ["https://drive.google.com/drive/folders/1wLtzK0f08Ck-YMcTm8rIivkpOt5vmIPz"], "images": [], "comments": [], "heading": ""}
+{"id": "P0229", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0230", "style": "", "text": "Before Moving", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0231", "style": "", "text": "", "links": [], "images": ["media/image17.png"], "comments": [], "heading": ""}
+{"id": "P0232", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0233", "style": "", "text": "After Moving", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0234", "style": "", "text": "", "links": [], "images": ["media/image4.png"], "comments": [], "heading": ""}
+{"id": "P0235", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0236", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0237", "style": "", "text": "Pre-Built Models | Model Heights", "links": [], "images": [], "comments": ["47"], "heading": ""}
+{"id": "P0238", "style": "", "text": "All pre-built models in the modular experience are 15” high, but many of these Pre-Built models are the slimmer 11” height. Please mirror the dimensions of models in the 2D Pre-Render Experience.", "links": ["https://www.hastingsbathcollection.com/products/vanities/urban-low-height?UI_Model=24%25201DW_24"], "images": [], "comments": [], "heading": ""}
+{"id": "P0239", "style": "", "text": "You’ll notice that when I select a slimmer 11” height model, the pre-built selection does not remain selected; it reverts to the taller 15” height. See the recording.", "links": ["https://drive.google.com/drive/folders/1tYzvIUa3s1ejNUTJ7XlRUtXURzU187AX"], "images": [], "comments": [], "heading": ""}
+{"id": "P0240", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0241", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0242", "style": "", "text": "Countertop D&D Visualization", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0243", "style": "", "text": "When entering the countertop D&D mode, can we add a carousel with pagination? See here in Figma", "links": ["https://www.figma.com/design/sqOtHXjE9whf3xWM2ojjQT/Hastings-Module-Configurator?node-id=3317-726#1983911952"], "images": [], "comments": [], "heading": ""}
+{"id": "P0244", "style": "", "text": "", "links": [], "images": ["media/image13.png"], "comments": [], "heading": ""}
+{"id": "P0245", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0246", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0247", "style": "", "text": "Cabinet Builder - Placement Options", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0248", "style": "", "text": "The ‘+’ button option should display in the center as well for SB, SC and OS cabinet types", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0249", "style": "", "text": "", "links": [], "images": ["media/image6.png"], "comments": [], "heading": ""}
+{"id": "P0250", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0251", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0252", "style": "", "text": "Countertop D&D - Double Basin Counter", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0253", "style": "", "text": "When remotely positioning the countertop, the cabinet types should change to an SC cabinet", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0254", "style": "", "text": "", "links": [], "images": ["media/image7.png"], "comments": [], "heading": ""}
+{"id": "P0255", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0256", "style": "", "text": "", "links": [], "images": ["media/image38.png"], "comments": [], "heading": ""}
+{"id": "P0257", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0258", "style": "", "text": "", "links": [], "images": ["media/image25.png"], "comments": [], "heading": ""}
+{"id": "P0259", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0260", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0261", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0262", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0263", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0264", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0265", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0266", "style": "", "text": "Single SB Cabinet D&D Movement", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0267", "style": "", "text": "I left a comment earlier stating that when a single SB cabinet is in the scene, the countertop should move with the cabinet. I’d like to clarify this further: the action described above should occur when a thin top is used, because it doesn’t support remote or offset cabinet placement/compositions.", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0268", "style": "", "text": "In the recording they whole configuration moves as one unit.", "links": ["https://drive.google.com/drive/folders/1JvFpY9Ks34NuNMMXjpxpCyIPiqrRqx6l"], "images": [], "comments": [], "heading": ""}
+{"id": "P0269", "style": "", "text": "However, when a thick countertop is used, there should be two movement classification patterns", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0270", "style": "", "text": "5.1 or 5.5” thick tops - the SB cabinet should be allowed to move freely", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0271", "style": "", "text": "1) If the SB cabinet remains in contact with the countertop, the cabinet would remain an SB, and the integrated basin or vessel hole cutout would reposition itself to where the SB cabinet is located", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0272", "style": "", "text": "", "links": [], "images": ["media/image33.png"], "comments": [], "heading": ""}
+{"id": "P0273", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0274", "style": "", "text": "2) If the SB cabinet is moved remotely, it would change to an SC cabinet, and the integrated basin or vessel hole cutout would remain in place (the countertop always needs one)", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0275", "style": "", "text": "", "links": [], "images": ["media/image23.png"], "comments": [], "heading": ""}
+{"id": "P0276", "style": "", "text": "", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0277", "style": "", "text": "4” thick tops - SB can only move laterally (4” tops cannot be offset or remote), and the integrated basin or vessel hole cutout would reposition itself to where the SB cabinet is located", "links": [], "images": [], "comments": [], "heading": ""}
+{"id": "P0278", "style": "", "text": "", "links": [], "images": ["media/image9.png"], "comments": [], "heading": ""}

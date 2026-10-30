@@ -41,6 +41,9 @@ const normalizeToken = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "");
 
+// "Select Countertop Color" is the group name in the Mako configurator (9).
+const COUNTERTOP_COLOR_PROXY_NAMES = new Set(["Countertop Color", "Select Countertop Color"]);
+
 const COUNTERTOP_MATERIAL_TOKENS_BY_SKU: Record<string, string[]> = {
   FX: ["fx", "fenix", "hplfenix"],
   GLSG: ["glass", "glassgl"],
@@ -177,7 +180,7 @@ export const buildCountertopColorSkuCandidates = (
   if (!availableOptions?.length) return result;
 
   availableOptions
-    .filter((group) => group.proxyName === "Countertop Color")
+    .filter((group) => COUNTERTOP_COLOR_PROXY_NAMES.has(group.proxyName))
     .forEach((group) => {
       group.options.forEach((option) => {
         option.variants.forEach((variant) => {

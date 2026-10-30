@@ -1,0 +1,173 @@
+{
+ "description": "Tricot vessel Delete reproduction via frontend menu (selection via scene setSelected), read-only guarded.",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Vessel Sink Style\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Vessel Sink Style\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "30-expand-vss.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "31-vss-snapshot.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Iris\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Iris\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "32-pick-iris.txt",
+   "optional": false
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => (document.body.innerText.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/)||[''])[0]"
+   },
+   "save": "33-price-iris.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "34-after-iris-snapshot.txt"
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "35-iris.png"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  const w = document.querySelector('iframe').contentWindow;\n  const app = w.pc.Application.getApplication();\n  const st = w.ConfiguratorAPI.getSelectTool();\n  const sinks = [];\n  app.root.forEach((e) => { if (/sink_?point$/i.test(e.name) && e.enabled) sinks.push(e); });\n  if (!sinks.length) return { err: 'no sink point' };\n  const ren = []; sinks[0].forEach((e) => { if (e.enabled && e.render?.enabled) ren.push(e); });\n  const pick = ren[0] || sinks[0];\n  st.setSelected([pick]);\n  await new Promise((r) => setTimeout(r, 800));\n  const info = JSON.parse(JSON.stringify(w.ConfiguratorAPI.getSelectionInfo() || []));\n  const pid = (Array.isArray(info) ? info[0] : info)?.productId;\n  const cfg = pid ? await w.ConfiguratorAPI.getConfig(pid) : null;\n  const pickCfg = (c) => c && Object.fromEntries(Object.entries(c.config ?? c).filter(([k]) => /sink|vessel|countertop/i.test(k)));\n  return { sinkPoints: sinks.map((s) => s.name), picked: pick.name, info, productId: pid, config: pickCfg(cfg) };\n}\n"
+   },
+   "save": "40-select-vessel.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { window.__qaVesselPid = null; return true; }"
+   },
+   "save": "41-reset.txt",
+   "optional": false
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  const w = document.querySelector('iframe').contentWindow;\n  const app = w.pc.Application.getApplication();\n  const sinks = []; app.root.forEach((e) => { if (/sink_?point$/i.test(e.name)) sinks.push({ name: e.name, enabled: e.enabled, children: e.children.map((c) => c.name + (c.enabled ? '' : '(off)')).slice(0, 6) }); });\n  const info = JSON.parse(JSON.stringify(w.ConfiguratorAPI.getSelectionInfo() || []));\n  const pid = (window.__qaVesselPid || null);\n  const cfg = pid ? await w.ConfiguratorAPI.getConfig(pid) : null;\n  const c = cfg && (cfg.config ?? cfg);\n  const menu = [...document.querySelectorAll('button,[role=menuitem],li')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left < innerWidth * 0.62; }).map((e) => (e.innerText || '').trim()).filter((t) => /^(Style|Color|Delete)$/.test(t));\n  const logs = (window.__configuratorApiLogs || []).slice(-6).map((l) => JSON.stringify(l).slice(0, 300));\n  return { sinks, selection: info, config: c && Object.fromEntries(Object.entries(c).filter(([k]) => /sink|vessel|countertop/i.test(k))), menu, price: (document.body.innerText.match(/Total List Price\\s*\\$[\\d,.]+/) || [''])[0], apiLogs: logs, apiLoggerInstalled: !!window.__configuratorApiLoggerInstalled };\n}\n"
+   },
+   "save": "42-state-before.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "43-menu-open.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 50,
+    "types": [
+     "warn",
+     "error"
+    ]
+   },
+   "save": "44-console-before.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Delete\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Delete\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "45-click-delete.txt",
+   "optional": false
+  },
+  {
+   "sleep": 6000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\n  const w = document.querySelector('iframe').contentWindow;\n  const app = w.pc.Application.getApplication();\n  const sinks = []; app.root.forEach((e) => { if (/sink_?point$/i.test(e.name)) sinks.push({ name: e.name, enabled: e.enabled, children: e.children.map((c) => c.name + (c.enabled ? '' : '(off)')).slice(0, 6) }); });\n  const info = JSON.parse(JSON.stringify(w.ConfiguratorAPI.getSelectionInfo() || []));\n  const pid = window.__qaVesselPid;\n  const cfg = pid ? await w.ConfiguratorAPI.getConfig(pid) : null;\n  const c = cfg && (cfg.config ?? cfg);\n  const menu = [...document.querySelectorAll('button,[role=menuitem],li')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left < innerWidth * 0.62; }).map((e) => (e.innerText || '').trim()).filter((t) => /^(Style|Color|Delete)$/.test(t));\n  const logs = (window.__configuratorApiLogs || []).slice(-6).map((l) => JSON.stringify(l).slice(0, 300));\n  return { sinks, selection: info, config: c && Object.fromEntries(Object.entries(c).filter(([k]) => /sink|vessel|countertop/i.test(k))), menu, price: (document.body.innerText.match(/Total List Price\\s*\\$[\\d,.]+/) || [''])[0], apiLogs: logs, apiLoggerInstalled: !!window.__configuratorApiLoggerInstalled };\n}\n"
+   },
+   "save": "46-state-after.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "47-after-delete.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 80,
+    "types": [
+     "warn",
+     "error"
+    ]
+   },
+   "save": "48-console-after.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 400
+   },
+   "save": "49-network.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+   },
+   "save": "50-guard.txt",
+   "optional": false
+  }
+ ]
+}

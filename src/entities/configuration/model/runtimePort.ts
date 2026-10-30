@@ -1,0 +1,358 @@
+import type { RuntimeBindingFailureReason, RuntimeFlow } from "@/entities/collection";
+
+import type {
+  Correction,
+  DrawerDerived,
+  DrawerName,
+  DrawerOrganizersRead,
+  DrawerOrganizersV1,
+} from "./drawerOrganizers";
+import type { AttributeValue, CabinetDimensions, StableCabinetKey, ValueTarget } from "./types";
+
+/**
+ * runtimePort — the one boundary between C and the PlayCanvas scene.
+ *
+ * Ownership (CONTRACTS §2): I. This file is types only; the implementation lives in
+ * features/playCanvasAdapter. C hands over an agreed set of semantic changes and gets
+ * back one result whose status says exactly what happened, so C never reads the iframe
+ * and never guesses success from a wrapper's return value.
+ */
+
+/** One agreed change, in C's terms. C's PlannedChange fits as is. */
+export type RuntimeChange = {
+  attributeId: string;
+  target: ValueTarget;
+  value: AttributeValue;
+  /**
+   * The change is for the cabinet it names alone, although the value is bound to every product:
+   * the binding must allow it (`perProduct`).
+   */
+  onlyThisCabinet?: boolean;
+};
+
+/** What the adapter needs to address the scene. Supplied by C with each set. */
+export type RuntimeContext = {
+  collectionId: string;
+  /** Some attributes reach different products in prebuilt and custom. */
+  flow: RuntimeFlow;
+  /** C addresses cabinets by stable key; the scene knows only runtime ids. */
+  resolveRuntimeId: (cabinetId: StableCabinetKey) => string | null;
+  /** Runtime ids of every placed cabinet, for bindings that target all cabinets. */
+  cabinetRuntimeIds: readonly string[];
+};
+
+/** A change the collection has no scene translation for. Nothing was sent for it. */
+export type UnsupportedRuntimeChange<T extends RuntimeChange = RuntimeChange> = {
+  change: T;
+  reason: RuntimeBindingFailureReason;
+  detail?: string;
+};
+
+export type RuntimeFailureCode =
+  /** The change addresses a cabinet the scene has no runtime id for. */
+  | "unknown-target"
+  /** The scene answered, but the addressed product was not updated. */
+  | "product-not-found"
+  /** The scene refused the command. */
+  | "scene-rejected"
+  /** The command threw inside the scene or the bridge. */
+  | "scene-error"
+  /** The scene stopped being ready in the middle of a set. */
+  | "not-ready"
+  /** An earlier command of the set failed, so this one was not sent. */
+  | "not-attempted";
+
+export type FailedRuntimeChange<T extends RuntimeChange = RuntimeChange> = {
+  change: T;
+  code: RuntimeFailureCode;
+  message: string;
+};
+
+/**
+ * Outcome of one set. Each status is distinct, so readiness, success and failure are
+ * never inferred from each other:
+ * - applied: every change reached the scene;
+ * - not-ready / unsupported: nothing was sent;
+ * - failed: a command failed before anything reached the scene, which is untouched;
+ * - partial: the scene changed before a command failed. `applied` lists the changes
+ *   that fully went through and may be empty, e.g. when a towel bar was cleared but the
+ *   new side failed. The runtime API is not atomic, so this is reported, not hidden.
+ */
+export type RuntimeApplyResult<T extends RuntimeChange = RuntimeChange> =
+  | { status: "applied"; applied: T[] }
+  | { status: "not-ready" }
+  | { status: "unsupported"; unsupported: UnsupportedRuntimeChange<T>[] }
+  | { status: "failed"; failed: FailedRuntimeChange<T>[] }
+  | { status: "partial"; applied: T[]; failed: FailedRuntimeChange<T>[] };
+
+export type ConfigurationRuntimePort = {
+  /** Whether the scene can take commands now. */
+  isReady(): boolean;
+  apply<T extends RuntimeChange>(changes: readonly T[], context: RuntimeContext): Promise<RuntimeApplyResult<T>>;
+};
+
+/** The actual size of one product, keyed by the id the scene knows. */
+export type SceneCabinetState = {
+  runtimeId: string;
+  dimensions: CabinetDimensions;
+  /**
+   * The product's `DrawerOrganizers` key as the scene holds it. Present only when the config has the
+   * key (Ph2 organizer products); undefined means the reader did not see it, never "no organizers".
+   */
+  organizers?: DrawerOrganizersRead;
+};
+
+/**
+ * What the scene actually holds (I04):
+ * - ready: `order` is the composition order of every product the scene has; `cabinets` has
+ *   one entry per requested product the scene has, never a size borrowed from another one;
+ * - not-ready: nothing could be read, so C keeps what it recorded before.
+ */
+export type SceneStateResult =
+  | { status: "ready"; order: string[]; cabinets: SceneCabinetState[] }
+  | { status: "not-ready" };
+
+/**
+ * Reads the actual result of the scene. The scene fires no events of its own for sizes or
+ * order, so C reads after the actions that change them; I never writes Redux.
+ */
+export type ConfigurationSceneReader = {
+  read(runtimeIds: readonly string[]): Promise<SceneStateResult>;
+};
+
+/** One product to rebuild, as saved: its old id, its type and its full config. */
+export type SceneRestoreProduct = {
+  /** The id the product had when it was saved; the result maps it to the new runtime id. */
+  sourceId: string;
+  productType: string;
+  /** Null when the saved payload has no config for the product. */
+  config: Record<string, unknown> | null;
+};
+
+/**
+ * Where every product of a composition stands, as the scene itself wrote it down: rows, the
+ * countertop's position and length, what the top carries. Only the adapter reads `document`.
+ */
+export type SceneLayout = {
+  version: 1;
+  /** The scene's own document, kept as it was exported. */
+  document: Record<string, unknown>;
+  /** The runtime id each cabinet had when the document was exported, by its key in the document. */
+  cabinetIds: Record<string, string>;
+};
+
+/** The composition to rebuild, in composition order. */
+export type SceneRestoreRequest = {
+  products: readonly SceneRestoreProduct[];
+  /**
+   * The layout the products stood in. With it the scene puts them back where they were; without
+   * it, or when the scene cannot use it, the products are placed in one row, in request order.
+   */
+  layout?: SceneLayout;
+};
+
+export type SceneRestoreIssueCode =
+  | "empty-composition"
+  | "duplicate-source"
+  | "invalid-config"
+  | "unknown-product-type"
+  | "bindings-unavailable"
+  /** A value shared by the placed products has no scene translation. */
+  | "unknown-value"
+  /** The scene offers no free place of that kind there, or the cabinet does not fit it or its rules. */
+  | "placement-unavailable";
+
+/** A reason found before the scene is touched; any issue keeps the scene as it is. */
+export type SceneRestoreIssue = {
+  code: SceneRestoreIssueCode;
+  sourceId?: string;
+  message: string;
+};
+
+export type SceneRestoreMatch = {
+  sourceId: string;
+  runtimeId: string;
+};
+
+export type SceneRestoreFailure = {
+  sourceId: string;
+  code: "not-created" | "config-rejected" | "order-mismatch" | "scene-error";
+  message: string;
+};
+
+/**
+ * Outcome of rebuilding the scene (I05):
+ * - not-ready / rejected: nothing was removed, the scene is untouched;
+ * - restored: every product was created and configured in order;
+ * - partial: the scene was cleared and only part of the composition came back. `matches`
+ *   lists what exists now, so C can record it and treat the state as inconsistent.
+ */
+export type SceneRestoreResult =
+  | { status: "not-ready" }
+  | { status: "rejected"; issues: SceneRestoreIssue[] }
+  | { status: "restored"; matches: SceneRestoreMatch[]; scene: SceneStateResult }
+  | { status: "partial"; matches: SceneRestoreMatch[]; failed: SceneRestoreFailure[]; scene: SceneStateResult };
+
+/**
+ * Rebuilds a composition. C decides the collection and checks the payload first; the
+ * restorer checks what only the runtime knows before its first destructive call.
+ */
+export type ConfigurationSceneRestorer = {
+  preflight(request: SceneRestoreRequest): SceneRestoreIssue[];
+  restore(request: SceneRestoreRequest): Promise<SceneRestoreResult>;
+};
+
+/** A product to place: its type as the collection names it, and its own config. */
+export type SceneCompositionProduct = {
+  productType: string;
+  config: Record<string, unknown>;
+};
+
+/**
+ * A place the scene offers by a placed cabinet, in a collection whose rows hold columns (Urban
+ * Duplex): a row end at the level the cabinet's height takes (`left`, `right`), or the free place
+ * of its column, over a cabinet that stands alone (`top`) or under one that hangs alone (`bottom`).
+ */
+export type ScenePlacementSlot = "left" | "right" | "top" | "bottom";
+
+/**
+ * Where one product goes: after the last one, next to a placed one, or at a place the scene
+ * offers by a placed one (`slot`). Beside no product (`anchorRuntimeId` null) is the first one of
+ * an empty composition, as the scene's "+" of an empty scene places it.
+ */
+export type SceneCompositionPlacement =
+  | { kind: "end" }
+  | { kind: "beside"; anchorRuntimeId: string | null; side: "left" | "right" }
+  | { kind: "slot"; anchorRuntimeId: string; slot: ScenePlacementSlot };
+
+/** A product as the scene places it: its scene type, and its config in the scene's keys. */
+export type SceneProductDraft = {
+  sceneType: string;
+  config: Record<string, unknown>;
+};
+
+/**
+ * Outcome of a change of the composition (C06):
+ * - applied: the scene holds the new composition; `placed` lists the products it created, in
+ *   composition order; `scene` is what the scene reads afterwards;
+ * - not-ready / rejected: nothing was sent, the scene is untouched;
+ * - failed: the first call failed before the scene changed;
+ * - partial: the scene changed, but not all the way. `placed` lists what exists now.
+ */
+export type SceneCompositionResult =
+  | { status: "applied"; placed: string[]; scene: SceneStateResult }
+  | { status: "not-ready" }
+  | { status: "rejected"; issues: SceneRestoreIssue[] }
+  /** `sceneCode`: the scene's own refusal code, e.g. "UF_HEIGHT_RUN_VIOLATION"; the scene is unchanged. */
+  | { status: "failed"; message: string; sceneCode?: string }
+  | { status: "partial"; placed: string[]; message: string; scene: SceneStateResult };
+
+export type SceneCompositionReplaceRequest = {
+  /** The new composition, in order. */
+  products: readonly SceneCompositionProduct[];
+  /** Configuration values every product is placed with, under its own config. */
+  shared?: Readonly<Record<string, AttributeValue>>;
+  flow: RuntimeFlow;
+};
+
+/**
+ * Places, removes and reorders products. C decides what the composition becomes; the port
+ * checks what only the runtime knows (a scene type per product type, a translation per shared
+ * value) before its first call, and reports what the scene actually did.
+ */
+export type ConfigurationCompositionPort = {
+  isReady(): boolean;
+  /**
+   * The product as `add` would place it, without a scene call: for a placement the scene's own
+   * tools start (Drag & Drop). Null when the collection has no scene type for it or no bindings.
+   */
+  toSceneProduct(product: SceneCompositionProduct): SceneProductDraft | null;
+  /** Replaces the whole composition. */
+  replace(request: SceneCompositionReplaceRequest): Promise<SceneCompositionResult>;
+  /** Places one product. */
+  add(product: SceneCompositionProduct, placement: SceneCompositionPlacement): Promise<SceneCompositionResult>;
+  remove(runtimeIds: readonly string[]): Promise<SceneCompositionResult>;
+  swap(runtimeIdA: string, runtimeIdB: string): Promise<SceneCompositionResult>;
+  /** Removes every product. The composition add-ons (side panels, towel bar) stay as they are. */
+  clear(): Promise<SceneCompositionResult>;
+};
+
+/** One side panel type on one side of the composition. "None" removes the panel. */
+export type SidePanelPlacement = {
+  panel: string;
+  side: "left" | "right" | "both";
+};
+
+export type SidePanelApplyResult =
+  | { status: "applied" }
+  | { status: "not-ready" }
+  | { status: "failed"; message: string }
+  | { status: "partial"; message: string };
+
+/**
+ * The side panels of the composition. The scene takes a panel type together with its side, so
+ * a panel is one placement rather than one value of a binding. A single cabinet is both edges.
+ */
+export type ConfigurationSidePanelPort = {
+  apply(placements: readonly SidePanelPlacement[], cabinetCount?: number): Promise<SidePanelApplyResult>;
+};
+
+export type DividerClearResult =
+  | { status: "applied"; cleared: number }
+  | { status: "not-ready" }
+  | { status: "failed"; message: string }
+  | { status: "partial"; cleared: number; message: string };
+
+/**
+ * The dividers of the placed products. Dividers reach the scene as drawer zone objects built
+ * by the divider adapter, not as a bound value, so clearing them is an operation of its own
+ * rather than a value translation (`DividersOption` is an unbound binding).
+ */
+export type ConfigurationDividerPort = {
+  /** Removes every placed divider of these products. */
+  clear(runtimeIds: readonly string[]): Promise<DividerClearResult>;
+};
+
+/** One Ph2 drawer organizer command, addressed by the id the scene knows. */
+export type OrganizerPortCommand =
+  | { kind: "addColumn"; runtimeId: string; drawer: DrawerName; slot: number; style?: string }
+  | { kind: "removeColumn"; runtimeId: string; drawer: DrawerName; slot: number }
+  | { kind: "setColumnLayout"; runtimeId: string; drawer: DrawerName; slot: number; positions: readonly number[] }
+  | { kind: "setStyle"; runtimeId: string; drawer: DrawerName; style: string }
+  /** Every set of these products, one product after another. */
+  | { kind: "clear"; runtimeIds: readonly string[] }
+  /**
+   * The whole stored key of one product, as a history move puts it back (step B): the scene normalizes
+   * it and answers like for any other command; null stores "no organizers".
+   */
+  | { kind: "setState"; runtimeId: string; state: DrawerOrganizersV1 | null };
+
+/** What the scene now holds for one product the command reached. */
+export type OrganizerProductState = {
+  runtimeId: string;
+  entry: DrawerOrganizersRead;
+  drawers?: Record<DrawerName, DrawerDerived>;
+};
+
+/**
+ * Outcome of one organizer command:
+ * - applied / partial / noop: the scene answered; `products` is what it holds now. `partial`: it took
+ *   the command with a correction, or a multi-product clear stopped after a product had changed;
+ * - rejected: 3D refused the command (`code` from the contract); nothing changed;
+ * - not-ready: nothing was sent (no scene, or a build without `organizers`);
+ * - failed: the call threw before an answer; nothing is known to have changed.
+ */
+export type OrganizerApplyResult =
+  | { status: "applied" | "partial" | "noop"; products: OrganizerProductState[]; corrections: Correction[] }
+  | { status: "rejected"; code: string; message: string }
+  | { status: "not-ready" }
+  | { status: "failed"; message: string };
+
+/**
+ * The Ph2 drawer organizers of the placed products. The scene owns the stored key and every rule; C
+ * sends a command and records what the scene answers (`configuration.organizersByCabinet`).
+ */
+export type ConfigurationOrganizerPort = {
+  isReady(): boolean;
+  apply(command: OrganizerPortCommand): Promise<OrganizerApplyResult>;
+};

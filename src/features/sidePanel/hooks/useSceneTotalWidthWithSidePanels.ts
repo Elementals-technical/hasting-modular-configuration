@@ -1,3 +1,5 @@
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
 import { calcTotalCountertopWidthCm } from "@/entities/countertop/lib/calcCountertopWidth";
@@ -9,8 +11,9 @@ export const useSceneTotalWidthWithSidePanels = (
   fallbackWidth: number | null = null,
 ): number | null => {
   const cabinetSum = useSceneTotalWidth(productIds, fallbackWidth);
+  const profile = useAppSelector(getActiveProductProfile);
   const left = useAppSelector(getSidePanelLeftStatus);
   const right = useAppSelector(getSidePanelRightStatus);
   if (cabinetSum === null) return null;
-  return calcTotalCountertopWidthCm(cabinetSum, left, right);
+  return calcTotalCountertopWidthCm(cabinetSum, left, right, getSidePanelWidthCm(profile));
 };

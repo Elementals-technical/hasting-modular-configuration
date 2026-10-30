@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"err":"NO OPEN DRAWER PILL","buttons":["Add divider column (left)","Add divider column (right)","Close Drawer","","","","","","","","","Side Panels","Drawer Dividers","None","Customize","Back to Countertop & Basin","Next: Faucet Details"]}
+```

@@ -1,0 +1,22 @@
+{
+ "description": "Read the active-collection error object from React state (read-only).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(\\d+): [^\\n]*\\(https://hasting-modular-phase-2-staging-ar3wz"
+   }
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: find the active-collection error object in React state (fiber walk from the error card).\n  const h1 = [...document.querySelectorAll('h1')].find((e) => /Collection unavailable/.test(e.innerText));\n  if (!h1) return { error: null, note: 'no error screen' };\n  const key = Object.keys(h1).find((k) => k.startsWith('__reactFiber$'));\n  let fiber = h1[key];\n  const seen = [];\n  const found = [];\n  const scan = (v, depth, path) => {\n    if (!v || typeof v !== 'object' || depth > 5 || seen.includes(v)) return;\n    seen.push(v);\n    if (v.status === 'error' && v.error) found.push({ path, error: JSON.parse(JSON.stringify(v.error, (k, x) => (typeof x === 'function' ? undefined : x))) });\n    for (const [k, x] of Object.entries(v)) if (!k.startsWith('_') && k !== 'children') scan(x, depth + 1, path + '.' + k);\n  };\n  for (let i = 0; fiber && i < 60 && !found.length; i++, fiber = fiber.return) {\n    let hook = fiber.memoizedState;\n    for (let j = 0; hook && j < 40; j++, hook = hook.next) scan(hook.memoizedState, 0, `fiber${i}.hook${j}`);\n    scan(fiber.memoizedProps, 0, `fiber${i}.props`);\n  }\n  return found.length ? JSON.stringify(found[0]).slice(0, 4000) : { error: 'not found in state' };\n}\n"
+   },
+   "save": "20-collection-error.txt",
+   "optional": false
+  }
+ ]
+}

@@ -100,4 +100,4 @@ export type PlacementRejectionReason =
 
 export type PlacementDecision =
   | { ok: true; command: DividerPlaceCommand }
-  | { ok: false; reason: PlacementRejectionReason; message: string };
+  | { ok: false; reason: PlacementRejectionReason; reasonCode: string; message: string };

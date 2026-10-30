@@ -1,9 +1,9 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
 import { close, toggle } from "@/features/sidebar/model/store/slice";
+import { useCollectionNavigation, withPreservedCollectionId } from "@/features/collectionCustomization";
 
-import { CUSTOM_STEPS, PREBUILT_STEPS } from "@/shared/config/steps";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import { ArrowRight } from "@/shared/assets/images/svg/ArrowRight.tsx";
 import { closeDrawerInteraction } from "@/utils/functions/playcanvas/dividers";
@@ -12,12 +12,10 @@ import { getIsOpenSidebar } from "@/features/sidebar/model/store/selectors";
 
 import s from "./SideNavigation.module.scss";
 
-type SideNavigationProps = {
-  flow?: "prebuilt" | "custom";
-};
-
-export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
-  const steps = flow === "custom" ? CUSTOM_STEPS : PREBUILT_STEPS;
+export const SideNavigation = () => {
+  const navigation = useCollectionNavigation();
+  const steps = navigation?.steps ?? [];
+  const location = useLocation();
 
   const dispatch = useAppDispatch();
   const isSidebarOpen = useAppSelector(getIsOpenSidebar);
@@ -46,14 +44,14 @@ export const SideNavigation = ({ flow = "prebuilt" }: SideNavigationProps) => {
         }}
       >
         <ArrowRight width="25" height="25" stroke={"#333"} />
-        <div className={s.mode}>{flow === "custom" ? "Custom" : "Pre-Built"}</div>
+        <div className={s.mode}>{navigation?.flowId === "custom" ? "Custom" : "Pre-Built"}</div>
       </div>
 
       <ul className={s.navList}>
         {steps.map((step) => (
-          <li key={step.id}>
+          <li key={step.stepId}>
             <NavLink
-              to={step.path}
+              to={withPreservedCollectionId(step.path, location.search)}
               className={({ isActive }) => `${s.navItem} ${isActive ? s.active : ""}`.trim()}
               onClick={() => {
                 closeDrawerInteraction();

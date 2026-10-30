@@ -1,14 +1,24 @@
+import { createSelector } from "@reduxjs/toolkit";
+
 import type { RootState } from "@/app/store";
+import { resolveCabinetTypeOfRuntimeId } from "@/entities/collection";
+import { getActiveProductProfile, getActiveRuntimeBindings } from "@/entities/configuration";
+import { resolveHeightsByHandle, resolvePlacedDrawerHeights } from "@/features/configurator-rule-core/cabinetBuilder";
+import { findCabinetRule, seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
+import type { PricingGap, PricingLine } from "@/shared/lib/pricing/types";
+import { cabinetTypesAtLimit } from "../../lib/cabinetTypeLimits";
+import { derivePriceStatus, type PriceStatus, type SkuPriceEntry } from "./priceStore";
+import { selectPlacedSeriesHeights } from "./seriesCabinets";
 
 export const getActiveCabinetType = (state: RootState) => state.rootStateUI.product.activeCabinetType;
 
 export const getCabinetCatalog = (state: RootState) => state.rootStateUI.product.cabinetCatalog;
 
+/** The rule of the active cabinet type, of the series the cabinet being configured is of. */
 export const getActiveCabinetRule = (state: RootState) => {
-  const activeCode = state.rootStateUI.product.activeCabinetType;
-  if (!activeCode) return null;
+  const { activeCabinetType, cabinetCatalog, selectedProductConfig } = state.rootStateUI.product;
 
-  return state.rootStateUI.product.cabinetCatalog.typeCabinetRules.find((rule) => rule.code === activeCode) ?? null;
+  return findCabinetRule(cabinetCatalog, activeCabinetType, seriesOfConfig(selectedProductConfig));
 };
 
 export const getDimensionOptions = (state: RootState) => state.rootStateUI.product.dimensionOptions;
@@ -25,6 +35,51 @@ export const getSelectedProducts = (state: RootState) => state.rootStateUI.produ
 export const getDrawerProduct = (state: RootState) => state.rootStateUI.product.activeDrawerProduct;
 
 export const getSelectedProductConfig = (state: RootState) => state.rootStateUI.product.selectedProductConfig;
+
+const NO_HEIGHT_CHOICES: number[] = [];
+
+/**
+ * Heights the user may choose between: those the chosen handle takes, when the handles of the
+ * active cabinet type take several (Urban Low Height: upper groove 38/28 cm, push-to-open
+ * 35/25 cm), or those the chosen drawers come in (Urban Duplex: one drawer at 53, 38 or 28 cm).
+ * The heights of another handle come with that handle. Empty when there is nothing to choose:
+ * one height, or a type whose heights neither a handle nor the drawers decide.
+ *
+ * The cabinets of a composition share a height, so one that another series supplies leaves only
+ * the heights it comes in itself: an Urban Standard Height cabinet keeps Urban Duplex at 53 cm.
+ * For the same reason an Urban Low Height open shelf, which has no handle, offers the heights the
+ * handle gives the placed cabinets, and an Urban Duplex shelf, which has no drawers, those the
+ * drawers of the placed cabinets come in (one drawer: 53, 38 or 28 cm; two drawers: none to choose).
+ */
+export const getHeightChoices = createSelector(
+  [
+    getDimensionOptions,
+    getActiveCabinetRule,
+    getCabinetCatalog,
+    getSelectedProducts,
+    (state: RootState) => state.rootStateUI.product.placedCabinetStyles,
+    selectPlacedSeriesHeights,
+  ],
+  (options, rule, catalog, placedProductIds, placedCabinetStyles, seriesHeights): number[] => {
+    const decidesHeights = (heights: Record<string, number[]> | undefined) => Object.keys(heights ?? {}).length > 0;
+    const heightsByHandle = resolveHeightsByHandle(catalog, rule, placedProductIds);
+    const placedDrawerHeights =
+      rule && rule.drawers.length === 0 && !decidesHeights(heightsByHandle)
+        ? resolvePlacedDrawerHeights(catalog, placedProductIds, placedCabinetStyles)
+        : null;
+    if (!decidesHeights(heightsByHandle) && !decidesHeights(rule?.heightsByDrawers) && placedDrawerHeights === null)
+      return NO_HEIGHT_CHOICES;
+
+    // The rules leave enabled only the heights of the handle and drawers in use.
+    const choices = options.height
+      .filter((option) => !option.disabled)
+      .map((option) => Number(option.value))
+      .filter((height) => placedDrawerHeights === null || placedDrawerHeights.includes(height))
+      .filter((height) => seriesHeights === null || seriesHeights.includes(height));
+
+    return choices.length > 1 ? choices : NO_HEIGHT_CHOICES;
+  },
+);
 
 export const getCabinetColor = (state: RootState) => state.rootStateUI.product.productOptions.CabinetColor;
 
@@ -61,6 +116,55 @@ export const getDrawerPanelFluting = (state: RootState) => state.rootStateUI.pro
 
 export const getGrainDirection = (state: RootState) => state.rootStateUI.product.productOptions.GrainDirection;
 
+/**
+ * Complete config used when the cabinet builder creates a product. The raw style config
+ * may lag behind dimension and material controls, so their dedicated state is authoritative.
+ */
+export const getCabinetBuilderProductConfig = createSelector(
+  [
+    getSelectedProductConfig,
+    getSelectedDimensions,
+    getCabinetColor,
+    getActiveCountertopColor,
+    getHandleGrooveColor,
+    getDrawerPanelFluting,
+    getGrainDirection,
+    getActiveCountertopThickness,
+  ],
+  (
+    selectedProductConfig,
+    selectedDimensions,
+    cabinetColor,
+    countertopColor,
+    handleGrooveColor,
+    drawerPanelFluting,
+    grainDirection,
+    countertopThickness,
+  ) => {
+    if (
+      selectedDimensions.width === null ||
+      selectedDimensions.height === null ||
+      selectedDimensions.depth === null
+    ) {
+      return null;
+    }
+
+    return {
+      ...selectedProductConfig,
+      Width: selectedDimensions.width,
+      Height: selectedDimensions.height,
+      Depth: selectedDimensions.depth,
+      CabinetColor: cabinetColor,
+      CountertopColor: countertopColor,
+      HandleGrooveColor: handleGrooveColor,
+      DrawerPanelFluting: drawerPanelFluting,
+      GrainDirection: grainDirection,
+      // The countertop's, which every cabinet holds: a sink base mounts its basin by it.
+      ...(countertopThickness ? { Thickness: countertopThickness } : {}),
+    };
+  },
+);
+
 export const getBookMatching = (state: RootState) => state.rootStateUI.product.productOptions.BookMatching;
 
 export const getCountertopStyle = (state: RootState) => state.rootStateUI.product.productOptions.CountertopStyle;
@@ -80,24 +184,17 @@ export const getPlacedDividers = (state: RootState) => state.rootStateUI.product
 
 export const getPlacedCabinetStyles = (state: RootState) => state.rootStateUI.product.placedCabinetStyles;
 
-export const getSinkBaseCount = (state: RootState) =>
-  state.rootStateUI.product.productIds.filter((id) => id.startsWith("Sink-Base-")).length;
-
-export const getSideShelfCount = (state: RootState) =>
-  state.rootStateUI.product.productIds.filter((id) => id.startsWith("Side-Shelf-")).length;
-
-/** Returns which drawer group currently dominates the scene.
- *  "single" = at least one 1DW or 1DWID placed (no 2DW)
- *  "double" = at least one 2DW placed
- *  null     = nothing placed yet (or all OS/OSS)
+/**
+ * The cabinet types the vanity already holds as many of as it takes, each with why another one cannot
+ * be added: the builder's cards, its "+" and the player's Duplicate read it. The scene names a product
+ * after its own scene type (`Sink-Base-…` in Urban, `Class-sink-cabinet-…` in Class), so the type is
+ * read through the collection's runtime bindings rather than from a prefix of the id.
  */
-export const getDominantDrawerGroup = (state: RootState): "single" | "double" | null => {
-  const styles = Object.values(state.rootStateUI.product.placedCabinetStyles);
-  if (styles.length === 0) return null;
-  if (styles.some((v) => v === "2")) return "double";
-  if (styles.some((v) => v === "1" || v === "1+inner")) return "single";
-  return null;
-};
+export const selectCabinetTypesAtLimit = createSelector(
+  [(state: RootState) => state.rootStateUI.product.productIds, getActiveProductProfile, getActiveRuntimeBindings],
+  (productIds, profile, bindings) =>
+    cabinetTypesAtLimit(productIds.map((id) => resolveCabinetTypeOfRuntimeId(profile, bindings, id))),
+);
 
 export const getTowelBarOption = (state: RootState) => state.rootStateUI.product.productOptions.TowelBarOption;
 
@@ -114,6 +211,19 @@ export const getPriceTotal = (state: RootState) => state.rootStateUI.priceStore.
 export const getActiveSkus = (state: RootState) => state.rootStateUI.priceStore.activeSkus;
 
 export const getPriceLoading = (state: RootState) => state.rootStateUI.priceStore.isLoading;
+
+const NO_PRICING_LINES: PricingLine[] = [];
+const NO_PRICE_ENTRIES: Record<string, SkuPriceEntry> = {};
+const NO_PRICING_GAPS: PricingGap[] = [];
+
+export const getPricingLines = (state: RootState) => state.rootStateUI.priceStore.lines ?? NO_PRICING_LINES;
+
+export const getPriceEntries = (state: RootState) => state.rootStateUI.priceStore.entries ?? NO_PRICE_ENTRIES;
+
+export const getPriceStatus = (state: RootState): PriceStatus => derivePriceStatus(state.rootStateUI.priceStore);
+
+/** Why an incomplete total is incomplete beyond a missing price: the unconfirmed parts of the order (D04). */
+export const getPricingGaps = (state: RootState) => state.rootStateUI.priceStore.gaps ?? NO_PRICING_GAPS;
 
 // For attention popup in the prebuilt path.
 export const getHasPrebuiltSelections = (state: RootState) => {

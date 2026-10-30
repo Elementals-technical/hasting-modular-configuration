@@ -1,12 +1,4 @@
-import {
-  cabinetTypeSkuMap,
-  dividerSkuMap,
-  drawerSkuMap,
-  handleSkuMap,
-  patternSkuMap,
-  sidePanelSkuMap,
-  towelBarSkuMap,
-} from "./cabinetSkuMaps";
+import type { SkuProfile } from "./skuProfile";
 // import { cmToInches } from "./cmToInches";
 
 export type CabinetSkuInput = {
@@ -24,45 +16,46 @@ export type CabinetSkuInput = {
   cabinetMaterialSku: string | null;
 };
 
-const FALLBACK = "X";
 const CATEGORY = "VAN";
-const SERIES = "URSTD";
 
-const resolve = (map: Record<string, string>, value: string | null): string => {
-  if (!value) return FALLBACK;
+export function buildCabinetSku(profile: SkuProfile, input: CabinetSkuInput): string {
+  const { cabinetMappings } = profile;
+  const { fallback } = profile.series;
 
-  return map[value] ?? FALLBACK;
-};
+  const resolve = (map: Record<string, string>, value: string | null): string => {
+    if (!value) return fallback;
 
-export function buildCabinetSku(input: CabinetSkuInput): string {
+    return map[value] ?? fallback;
+  };
+
   // Config block: CabinetType/CabinetStyle/HandleStyle/DrawerPanelFluting
-  const type = resolve(cabinetTypeSkuMap, input.cabinetType);
-  const drawers = resolve(drawerSkuMap, input.drawers);
-  const handle = resolve(handleSkuMap, input.handle);
-  const pattern = resolve(patternSkuMap, input.pattern);
+  const type = resolve(cabinetMappings.cabinetType, input.cabinetType);
+  const drawers = resolve(cabinetMappings.drawer, input.drawers);
+  const handle = resolve(cabinetMappings.handle, input.handle);
+  const pattern = resolve(cabinetMappings.pattern, input.pattern);
 
   const configBlock = [type, drawers, handle, pattern].join("/");
 
   // Dimensions: cm
   // TODO: uncomment cmToInches when backend switches to inches
-  // const w = input.width != null ? `${cmToInches(input.width)}W` : `${FALLBACK}W`;
-  // const h = input.height != null ? `${cmToInches(input.height)}H` : `${FALLBACK}H`;
-  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${FALLBACK}D`;
-  const w = input.width != null ? `${input.width}W` : `${FALLBACK}W`;
-  const h = input.height != null ? `${input.height}H` : `${FALLBACK}H`;
-  const d = input.depth != null ? `${input.depth}D` : `${FALLBACK}D`;
+  // const w = input.width != null ? `${cmToInches(input.width)}W` : `${fallback}W`;
+  // const h = input.height != null ? `${cmToInches(input.height)}H` : `${fallback}H`;
+  // const d = input.depth != null ? `${cmToInches(input.depth)}D` : `${fallback}D`;
+  const w = input.width != null ? `${input.width}W` : `${fallback}W`;
+  const h = input.height != null ? `${input.height}H` : `${fallback}H`;
+  const d = input.depth != null ? `${input.depth}D` : `${fallback}D`;
 
   // Product elements
-  const sidePanel = resolve(sidePanelSkuMap, input.sidePanel);
-  const divider = resolve(dividerSkuMap, input.divider);
-  const towelBar = resolve(towelBarSkuMap, input.towelBar);
+  const sidePanel = resolve(cabinetMappings.sidePanel, input.sidePanel);
+  const divider = resolve(cabinetMappings.divider, input.divider);
+  const towelBar = resolve(cabinetMappings.towelBar, input.towelBar);
 
-  const elements = [sidePanel, divider, towelBar].filter((v) => v !== FALLBACK);
+  const elements = [sidePanel, divider, towelBar].filter((v) => v !== fallback);
   const elementsSuffix = elements.length ? `-${elements.join("-")}` : "";
 
   // Material block: CAB-{MaterialSKU} (color code will be added later)
   const cabMaterial = input.cabinetMaterialSku?.trim() || null;
   const cabBlock = cabMaterial ? `-CAB-${cabMaterial}` : "";
 
-  return `${CATEGORY}-${SERIES}-${configBlock}-${w}-${h}-${d}${elementsSuffix}${cabBlock}`;
+  return `${CATEGORY}-${profile.series.cabinet}-${configBlock}-${w}-${h}-${d}${elementsSuffix}${cabBlock}`;
 }

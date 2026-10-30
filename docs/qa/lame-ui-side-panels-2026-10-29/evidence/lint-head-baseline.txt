@@ -1,0 +1,21 @@
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+
+<workspace>/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx
+  1050:65  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1051:5   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free                      @typescript-eslint/ban-ts-comment
+  1053:70  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1059:42  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1131:51  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1220:40  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1647:16  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1665:26  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1672:18  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1694:18  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1753:95  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  1757:22  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  2808:57  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  2896:61  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  2988:63  error    Unexpected any. Specify a different type                                                                                                 @typescript-eslint/no-explicit-any
+  3023:6   warning  React Hook useCallback has missing dependencies: 'isTopViewActive' and 'selectTool'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 16 problems (15 errors, 1 warning)

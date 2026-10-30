@@ -171,15 +171,18 @@ const occupiedSlot = (occupiedType: DividerType): DividerSlot => ({
 // ── Harness ─────────────────────────────────────────────────────────────────────
 
 const mockOptions = [
-  { id: 5000, title: "Option A", isShortDesc: false },
-  { id: 5001, title: "Option B", isShortDesc: false },
-  { id: 5002, title: "Option C", isShortDesc: false },
+  { id: 5000, name: "A", title: "Option A", isShortDesc: false },
+  { id: 5001, name: "B", title: "Option B", isShortDesc: false },
+  { id: 5002, name: "C", title: "Option C", isShortDesc: false },
 ];
+
+/** The page's undo step: it runs the place or the remove it wraps. */
+const runStepInPlace = <R,>(change: () => Promise<R>) => change();
 
 const mountController = async (
   mock: MockAdapter,
   store: TestStore,
-  saveSnapshot: () => Promise<void> = async () => {},
+  runStep: <R>(change: () => Promise<R>) => Promise<R> = runStepInPlace,
 ) => {
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>;
 
@@ -189,7 +192,7 @@ const mountController = async (
         isPlayCanvasReady: true,
         dividerSelection: "Customize",
         optionsSource: mockOptions,
-        saveSnapshot,
+        runStep,
         fallbackCabinetId: CONTEXT.cabinetId,
         adapter: mock.adapter,
       }),

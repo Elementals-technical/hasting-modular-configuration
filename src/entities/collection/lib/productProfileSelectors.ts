@@ -1,0 +1,267 @@
+import { interpolateMessage, type MessageParams } from "@/shared/lib/reasonText";
+import type { PriceTierOverride } from "@/shared/constants/priceFilters";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import type {
+  OptionCapabilities,
+  ProductProfile,
+  ProfileAttribute,
+  ProfileOption,
+  ProfileRuleData,
+} from "../model/productProfile";
+
+/**
+ * Pure readers over a validated ProductProfile.
+ * Consumers use these instead of local constants, so adding an option is a data change.
+ */
+
+export const selectAttribute = (profile: ProductProfile | null, attributeId: string): ProfileAttribute | null =>
+  profile?.attributes.find((attribute) => attribute.attributeId === attributeId) ?? null;
+
+const CONFIGURATOR_SOURCE_PREFIX = "configurator:";
+
+/** A configurator source: the group an attribute's options come from, and the one option of it when it has several. */
+export type ConfiguratorSource = { group: string; option?: string };
+
+/**
+ * Reads `configurator:<group>[/<option>]`: "configurator:Select Cabinet Colors/Base Panel" is the Base Panel option
+ * of that group. The first "/" ends the group name. Null for a source that is not a configurator group.
+ */
+export const parseConfiguratorSource = (source: string | null | undefined): ConfiguratorSource | null => {
+  if (!source?.startsWith(CONFIGURATOR_SOURCE_PREFIX)) return null;
+  const reference = source.slice(CONFIGURATOR_SOURCE_PREFIX.length);
+  const separator = reference.indexOf("/");
+  const group = separator === -1 ? reference : reference.slice(0, separator);
+  const option = separator === -1 ? "" : reference.slice(separator + 1);
+  if (!group) return null;
+  return option ? { group, option } : { group };
+};
+
+/** The configurator section an attribute's options come from ("configurator:Cabinet Color" -> "Cabinet Color"). */
+export const selectConfiguratorSection = (profile: ProductProfile | null, attributeId: string): string | null =>
+  parseConfiguratorSource(selectAttribute(profile, attributeId)?.optionsSource)?.group ?? null;
+
+/**
+ * The configurator group an attribute's options come from, narrowed to the option its source names
+ * ("configurator:Select Cabinet Colors/Base Panel"). Undefined without a source, a configurator, the group or the option.
+ */
+export const selectConfiguratorGroup = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  configurator: { groups: readonly ConfiguratorAvailableOption[] } | null | undefined,
+): ConfiguratorAvailableOption | undefined => {
+  const source = parseConfiguratorSource(selectAttribute(profile, attributeId)?.optionsSource);
+  const group = source ? configurator?.groups.find(({ proxyName }) => proxyName === source.group) : undefined;
+  if (!group || !source?.option) return group;
+  const options = group.options.filter(({ name }) => name === source.option);
+  return options.length > 0 ? { ...group, options } : undefined;
+};
+
+/** Catalog of an attribute in profile order. Empty when the collection does not declare it. */
+export const selectOptions = (profile: ProductProfile | null, attributeId: string): ProfileOption[] =>
+  selectAttribute(profile, attributeId)?.options ?? [];
+
+export const selectOptionValues = (profile: ProductProfile | null, attributeId: string): string[] =>
+  selectOptions(profile, attributeId).map((option) => option.value);
+
+export const selectOption = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  value: string | null | undefined,
+): ProfileOption | null => {
+  if (!value) return null;
+  return selectOptions(profile, attributeId).find((option) => option.value === value) ?? null;
+};
+
+/** Membership check against the active catalog. An unknown string never becomes an allowed option. */
+export const isKnownOption = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  value: string | null | undefined,
+): boolean => selectOption(profile, attributeId, value) !== null;
+
+/**
+ * Capability lookup. Replaces name whitelists such as URBAN_HANDLES:
+ * an option that declares the capability gets the behaviour regardless of its id.
+ */
+export const hasCapability = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  value: string | null | undefined,
+  capability: keyof OptionCapabilities,
+): boolean => selectOption(profile, attributeId, value)?.capabilities?.[capability] === true;
+
+/** Options whose capability flag matches `expected`, in catalog order. */
+/**
+ * The basins of one kind, integrated or vessel, in catalog order. The attribute's noneValue
+ * (the vessel cutout without a basin) is a scene token, not a basin, so it is left out.
+ */
+export const selectBasinOptions = (
+  profile: ProductProfile | null,
+  category: "integrated" | "vessel",
+): ProfileOption[] => {
+  const noneValue = selectAttribute(profile, "sinkType")?.noneValue;
+  return selectOptions(profile, "sinkType").filter(
+    (option) => option.category === category && option.value !== noneValue,
+  );
+};
+
+export const selectOptionsByCapability = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  capability: keyof OptionCapabilities,
+  expected: boolean,
+): ProfileOption[] =>
+  selectOptions(profile, attributeId).filter((option) => (option.capabilities?.[capability] === true) === expected);
+
+/**
+ * Resolves a legacy runtime/table spelling to the canonical option value.
+ * Returns null when the value belongs to no option of this attribute.
+ */
+export const normalizeOptionValue = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  raw: unknown,
+): string | null => {
+  if (typeof raw !== "string") return null;
+
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const options = selectOptions(profile, attributeId);
+
+  const direct = options.find((option) => option.value === trimmed);
+  if (direct) return direct.value;
+
+  const aliased = options.find((option) => option.aliases?.some((alias) => alias === trimmed));
+  return aliased?.value ?? null;
+};
+
+/**
+ * Whether a basin value is a vessel sink: an option of the vessel category other than the
+ * attribute's noneValue, the cutout without a basin. Read from the profile, so a collection's own
+ * vessels (Iris) count as the Urban ones (Vessel_Blade11) do.
+ */
+export const isVesselBasin = (profile: ProductProfile | null, value: string | null | undefined): boolean => {
+  const option = normalizeOptionValue(profile, "sinkType", value);
+  return (
+    option !== null &&
+    option !== selectAttribute(profile, "sinkType")?.noneValue &&
+    selectOption(profile, "sinkType", option)?.category === "vessel"
+  );
+};
+
+/**
+ * The spelling legacy state stores for a canonical option value: its first alias
+ * (Drawers "1" -> "1D"). The value itself when the option declares no alias.
+ */
+export const selectLegacySpelling = (profile: ProductProfile | null, attributeId: string, value: string): string =>
+  selectOption(profile, attributeId, value)?.aliases?.[0] ?? value;
+
+export const selectInitialValue = (profile: ProductProfile | null, attributeId: string): string =>
+  selectAttribute(profile, attributeId)?.initialValue ?? "";
+
+/** The collection's starting value (`profile.defaults`); "" when it declares none, never another collection's. */
+export const selectDefaultValue = (profile: ProductProfile | null, attributeId: string): string =>
+  profile?.defaults[attributeId] ?? "";
+
+/**
+ * Value substituted while nothing is selected but a concrete value is needed for computation.
+ * Deliberately separate from `initialValue`: USH starts Handle empty yet computes heights as topcut.
+ */
+export const selectEffectiveFallback = (profile: ProductProfile | null, attributeId: string): string | null =>
+  selectAttribute(profile, attributeId)?.effectiveFallbackValue ?? null;
+
+export const selectResetValue = (profile: ProductProfile | null, attributeId: string): string | null =>
+  selectAttribute(profile, attributeId)?.resetValue ?? null;
+
+export type { MessageParams };
+
+/**
+ * Reason text for a stable reason code. B owns display and translation; this is the legacy fallback.
+ * The placeholders are filled the same way wherever a code is resolved (`shared/lib/reasonText`).
+ */
+export const selectMessage = (profile: ProductProfile | null, reasonCode: string, params?: MessageParams): string =>
+  interpolateMessage(profile?.messages[reasonCode] ?? reasonCode, params);
+
+/**
+ * The collection's text for a reason code, or the legacy English text while a collection
+ * declares none. A page passes the wording it used to hardcode, so a collection without the
+ * message reads as before instead of showing the bare code (DEV-08).
+ */
+export const selectMessageOr = (
+  profile: ProductProfile | null,
+  reasonCode: string,
+  fallback: string,
+  params?: MessageParams,
+): string => {
+  const text = selectMessage(profile, reasonCode, params);
+  return text === reasonCode ? fallback : text;
+};
+
+/**
+ * Parameters of one rule. `undefined` when the collection does not declare the section:
+ * the rule then treats the feature as not offered, never as USH.
+ */
+/**
+ * The collection's grouping of material filters, in the shape `groupMaterialsHierarchically`
+ * takes. Undefined when the collection declares none, so the caller's default applies.
+ */
+export const selectMaterialHierarchy = (profile: ProductProfile | null) =>
+  profile?.ruleData.materialNormalization?.displayHierarchy?.map(({ value, label, children, aliases }) => ({
+    value,
+    label,
+    childValues: children,
+    aliases,
+  }));
+
+/**
+ * The collection's own price tiers for one field, in the shape the price filters take: its tiers
+ * for every colour field, with the field's own over them. Undefined when the collection declares
+ * none for the field, so the shared table applies.
+ */
+export const selectPriceTierOverride = (
+  profile: ProductProfile | null,
+  attributeId: string,
+): PriceTierOverride | undefined => {
+  const tiers = profile?.ruleData.priceTiers;
+  const bySku = { ...tiers?.bySku, ...tiers?.byAttribute?.[attributeId] };
+  return Object.keys(bySku).length > 0 ? { bySku } : undefined;
+};
+
+export const selectRuleData = <K extends keyof ProfileRuleData>(
+  profile: ProductProfile | null,
+  section: K,
+): ProfileRuleData[K] | undefined => profile?.ruleData[section];
+
+/** Whether the collection offers cabinet and countertop Drag & Drop (`ruleData.dragDrop`). */
+export const isDragDropEnabled = (profile: ProductProfile | null | undefined): boolean =>
+  selectRuleData(profile ?? null, "dragDrop")?.enabled === true;
+
+/**
+ * Whether a drawer style may not be placed with the cabinets already placed.
+ *
+ * Styles of different `drawerStyleGroups` cannot be mixed. When the placed cabinets already
+ * span several groups, the group listed last decides (USH: one two-drawer cabinet makes the
+ * composition two-drawer). A collection without groups has no such restriction.
+ */
+export const isDrawerStyleMixingRestricted = (
+  profile: ProductProfile | null,
+  placedValues: readonly string[],
+  candidate: string,
+): boolean => {
+  const groups = profile?.ruleData.drawerStyleGroups;
+  if (!groups?.length) return false;
+
+  const groupOf = (value: string): number => {
+    const canonical = normalizeOptionValue(profile, "Drawers", value) ?? value;
+    return groups.findIndex((group) => group.includes(canonical));
+  };
+
+  const candidateGroup = groupOf(candidate);
+  if (candidateGroup === -1) return false;
+
+  const placedGroups = placedValues.map(groupOf).filter((group) => group !== -1);
+  if (placedGroups.length === 0) return false;
+
+  return candidateGroup !== Math.max(...placedGroups);
+};

@@ -1,0 +1,10 @@
+---
+description: Cursor entry point for the tagging-modules-tool agent rules, which live in ai/AGENTS.md
+alwaysApply: true
+---
+
+# Agent rules
+
+The always-on rules for this repository — source of truth, evidence, scope, invariants, files not edited by hand, safety, commands, definition of done and where to read more — live in `ai/AGENTS.md`. Read it before changing anything and follow it. Edit the rules there, not here.
+
+@ai/AGENTS.md

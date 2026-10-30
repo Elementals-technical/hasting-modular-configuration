@@ -1,6 +1,8 @@
 import { priceStoreReducer } from "@/entities/product/model/store/priceStore";
 import { productReducer } from "@/entities/product/model/store/slice";
+import { configurationReducer } from "@/entities/configuration/model/store/slice";
 import { historyReducer } from "@/entities/history/model/store/slice";
+import { drawerOrganizersUiReducer } from "@/features/drawerOrganizers/model/store/slice";
 import { sidebarReducer } from "@/features/sidebar/model/store/slice";
 import { swatchOrderReducer } from "@/features/swatchOrder";
 import { baseApi } from "@/shared";
@@ -10,8 +12,10 @@ const rootReducerUI = combineReducers({
   sidebar: sidebarReducer,
   swatchOrder: swatchOrderReducer,
   product: productReducer,
+  configuration: configurationReducer,
   priceStore: priceStoreReducer,
   history: historyReducer,
+  drawerOrganizersUi: drawerOrganizersUiReducer,
 });
 
 export const rootReducer = combineReducers({

@@ -8,6 +8,7 @@ import s from "./ProductOptionsGrid.module.scss";
 import { getActiveCabinetType, getCabinetColor, getSinkType } from "../../model/store/selectors";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
 import { LoaderBlock } from "@/shared/ui/LoaderBlock/LoaderBlock";
+import type { MessageParams } from "@/shared/lib/reasonText";
 
 export type ProductOptionMetadata = {
   colors?: string[];
@@ -20,6 +21,9 @@ export type ProductOptionMetadata = {
   sku?: string;
   lightBorder?: boolean;
   configValue?: string;
+  /** From the cabinet type's own rule row, for a cabinetType variant's card styling. */
+  hasSink?: boolean;
+  isOpen?: boolean;
 };
 
 export type ProductOptionData = {
@@ -28,7 +32,13 @@ export type ProductOptionData = {
   name?: string;
   desc?: string;
   isAvailable?: boolean;
+  /** Available, but choosing it asks first: drawn restricted, with its reason as the hint. */
+  isRestricted?: boolean;
+  /** Text a rule resolved itself; used while it names no reason code. */
   disabledReason?: string;
+  /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+  disabledReasonCode?: string;
+  disabledReasonParams?: MessageParams;
   disabledBadgeLabel?: string;
   disabledActionLabel?: string;
   onDisabledAction?: () => void | Promise<void>;
@@ -108,9 +118,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
     const handleSetActive = setActiveCabinet ? () => setActiveCabinet(String(playcanvasValue), i.name) : undefined;
 
     const isMaterial =
-      (i.metadata?.materials?.length ?? 0) > 0 ||
-      (i.metadata?.colors?.length ?? 0) > 0 ||
-      !!i.metadata?.hex;
+      (i.metadata?.materials?.length ?? 0) > 0 || (i.metadata?.colors?.length ?? 0) > 0 || !!i.metadata?.hex;
 
     return (
       <ProductOptionItem
@@ -118,8 +126,11 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
         id={i.id}
         title={i.title}
         desc={groupByDesc ? undefined : i.desc}
-        isAvailable={i.isAvailable}
+        isAvailable={isLoading ? false : i.isAvailable}
+        isRestricted={i.isRestricted}
         disabledReason={i.disabledReason}
+        disabledReasonCode={i.disabledReasonCode}
+        disabledReasonParams={i.disabledReasonParams}
         disabledBadgeLabel={i.disabledBadgeLabel}
         disabledActionLabel={i.disabledActionLabel}
         onDisabledAction={i.onDisabledAction}
@@ -138,11 +149,11 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
   };
 
   return (
-    <div className={s.optionsContainer}>
+    <div className={s.optionsContainer} aria-busy={isLoading || undefined}>
       {isLoading && <LoaderBlock />}
 
       {groupByDesc ? (
-        <div className={s.groupedOptions}>
+        <div>
           {groupedOptions.map((group) => (
             <section key={group.label} className={s.groupSection}>
               <div className={s.groupTitle}>{group.label}</div>
@@ -153,7 +164,7 @@ export const ProductOptionsGrid: React.FC<ProductOptionsGridI> = ({
           ))}
         </div>
       ) : (
-        <div className={clsx(s.flatOptions, s.optionsGrid, variant === "cabinetType" && s.optionsGridCabinetType)}>
+        <div className={clsx(s.optionsGrid, variant === "cabinetType" && s.optionsGridCabinetType)}>
           {data.map(renderOptionItem)}
         </div>
       )}

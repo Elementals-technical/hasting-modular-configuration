@@ -3,7 +3,6 @@ import { countertopMaterialSkuMap, countertopStyleSkuMap } from "@/shared/lib/sk
 import { COUNTERTOP_THICKNESS_OPTIONS } from "./thicknessOptions";
 
 const COUNTERTOP_CATEGORY = "CT";
-const COUNTERTOP_PRODUCT_PREFIX = "UR";
 
 const SIZE_TOKEN_PATTERN = /^(\d+(?:\.\d+)?|\.\d+)([WHD])$/i;
 
@@ -40,14 +39,19 @@ const hasNumericSizeToken = (token: string, unit: "W" | "H" | "D") => {
   return Number.isFinite(parsed);
 };
 
-export const isCountertopTopDynamicCandidate = (sku: string, widthCm: number | null | undefined) => {
+/** `countertopPrefix` is the SKU profile series prefix of the active collection (USH: "UR"). */
+export const isCountertopTopDynamicCandidate = (
+  sku: string,
+  widthCm: number | null | undefined,
+  countertopPrefix: string,
+) => {
   if (widthCm == null || !Number.isFinite(widthCm) || widthCm <= 0) return false;
 
   const [category, product, style, widthToken, heightToken, depthToken, tailMaterialToken, colorToken] = sku.trim().split("-");
   if (category !== COUNTERTOP_CATEGORY) return false;
-  if (!product?.startsWith(COUNTERTOP_PRODUCT_PREFIX)) return false;
+  if (!countertopPrefix || !product?.startsWith(countertopPrefix)) return false;
 
-  const materialSku = product.slice(COUNTERTOP_PRODUCT_PREFIX.length);
+  const materialSku = product.slice(countertopPrefix.length);
   if (!COUNTERTOP_MATERIAL_SKUS.has(materialSku)) return false;
   if (!COUNTERTOP_TOP_STYLE_TOKENS.has(style)) return false;
   if (!hasNumericSizeToken(widthToken ?? "", "W")) return false;

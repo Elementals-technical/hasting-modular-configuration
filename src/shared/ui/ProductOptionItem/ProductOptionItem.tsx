@@ -8,6 +8,10 @@ import type { ProductOptionMetadata } from "@/entities/product/ui/ProductOptions
 
 import s from "./ProductOptionItem.module.scss";
 import type { addProductConfigI } from "@/utils/functions/playcanvas/addProduct";
+import { useReasonText, type MessageParams } from "@/shared/lib/reasonText";
+
+/** Shown when an option is unavailable and its rule named no reason. */
+const UNAVAILABLE_OPTION_REASON_CODE = "ui.optionUnavailable";
 
 const THREEKIT_PREVIEW_BASE_URL = "https://preview.threekit.com";
 
@@ -26,7 +30,13 @@ interface ProductOptionItemI {
   title: string;
   desc?: string | undefined;
   isAvailable?: boolean;
+  /** Available, but choosing it asks first: drawn restricted, its reason shown as the hint. */
+  isRestricted?: boolean;
+  /** Text a caller resolved itself; used while its rule has no reason code. */
   disabledReason?: string;
+  /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+  disabledReasonCode?: string;
+  disabledReasonParams?: MessageParams;
   disabledBadgeLabel?: string;
   disabledActionLabel?: string;
   onDisabledAction?: () => void | Promise<void>;
@@ -47,7 +57,10 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   title,
   desc,
   isAvailable,
+  isRestricted = false,
   disabledReason,
+  disabledReasonCode,
+  disabledReasonParams,
   disabledBadgeLabel,
   disabledActionLabel,
   onDisabledAction,
@@ -62,7 +75,13 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   onPreview,
   variant,
 }) => {
+  const reasonText = useReasonText();
   const available = isAvailable ?? true; // undefined as available
+  const unavailableText = reasonText({
+    code: disabledReasonCode ?? UNAVAILABLE_OPTION_REASON_CODE,
+    params: disabledReasonParams,
+    text: disabledReason,
+  });
   const productName = name ?? title;
   const hasImage = !!metadata?.image;
   const hasHexColor = !!metadata?.hex;
@@ -72,89 +91,91 @@ export const ProductOptionItem: React.FC<ProductOptionItemI> = ({
   const imageSrc = hasImage ? buildImageSrc(metadata?.image) : title !== "None" ? color_img : none_img;
   const isCabinetTypeVariant = variant === "cabinetType";
   const isAccessoryVariant = variant === "accessory";
-  const isSinkBaseCabinetType = isCabinetTypeVariant && productName === "Sink-Base";
-  const isSideCabinetType =
-    isCabinetTypeVariant && (productName === "Sink-Cabinet" || productName === "Side-Cabinet");
+  const isSinkBaseCabinetType = isCabinetTypeVariant && metadata?.hasSink === true;
+  const isSideCabinetType = isCabinetTypeVariant && metadata?.hasSink === false && metadata?.isOpen === false;
 
   const optionContent = (
     <div
-      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${isCabinetTypeVariant ? s.cabinetTypeItem : ""} ${isAccessoryVariant ? s.accessoryItem : ""} ${isSinkBaseCabinetType ? s.sinkBaseCabinetTypeItem : ""} ${isSideCabinetType ? s.sideCabinetTypeItem : ""} ${!available ? s.disabledOption : ""}`}
-      onClick={() => {
-        if (!available) return;
-        onClick?.(productName, config, metadata);
-        setActive?.(id);
-      }}
+      className={`${s.productOption} ${isActive ? s.activeItem : ""} ${isMaterial ? s.materialOption : ""} ${isCabinetTypeVariant ? s.cabinetTypeItem : ""} ${isAccessoryVariant ? s.accessoryItem : ""} ${isSinkBaseCabinetType ? s.sinkBaseCabinetTypeItem : ""} ${isSideCabinetType ? s.sideCabinetTypeItem : ""} ${!available ? s.disabledOption : ""} ${available && isRestricted ? s.restrictedOption : ""}`}
     >
-      <div className={s.imageContainer}>
-        <div
-          className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""} ${needsLightBorder ? s.lightBorder : ""}`}
-        >
-          {hasImage ? (
-            <img src={imageSrc} alt="color image" />
-          ) : hasHexColor ? (
-            <div className={s.colorSwatch} style={{ backgroundColor: metadata?.hex }} />
-          ) : (
-            <img src={imageSrc} alt="color image" />
-          )}
-        </div>
-
-        {onPreview && (
-          <button
-            className={s.expandBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              onPreview(title, metadata);
-            }}
+      <button
+        type="button"
+        className={s.selectButton}
+        aria-label={title}
+        aria-pressed={isActive}
+        aria-disabled={!available || undefined}
+        onClick={() => {
+          if (!available) return;
+          onClick?.(productName, config, metadata);
+          setActive?.(id);
+        }}
+      >
+        <span className={s.imageContainer}>
+          <span
+            className={`${s.image} ${hasVisual ? s.withVisual : ""} ${!available ? s.imageDisabled : ""} ${needsLightBorder ? s.lightBorder : ""}`}
           >
-            <ExpandIcon />
-          </button>
-        )}
-      </div>
+            {hasImage ? (
+              <img src={imageSrc} alt="" />
+            ) : hasHexColor ? (
+              <span className={s.colorSwatch} style={{ backgroundColor: metadata?.hex }} />
+            ) : (
+              <img src={imageSrc} alt="" />
+            )}
+          </span>
+        </span>
 
-      {available ? (
-        <div className={`${s.title} ${s.titleHint}`}>
-          {title}
+        {available ? (
+          <span className={`${s.title} ${s.titleHint}`}>
+            {title}
 
-          {isShortDesc && (
-            <Hint
-              className={s.optionHint_descr}
-              placement="right"
-              content={"Hint with dimensions & short description "}
-            >
-              <span className={s.descIcon}>
-                <HintOptionIcon />
-              </span>
-            </Hint>
-          )}
-        </div>
-      ) : (
-        <>
-          <div className={s.disabledTitleRow}>
-            <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
+            {isShortDesc && (
+              <Hint
+                className={s.optionHint_descr}
+                placement="right"
+                content={"Hint with dimensions & short description "}
+              >
+                <span className={s.descIcon}>
+                  <HintOptionIcon />
+                </span>
+              </Hint>
+            )}
+          </span>
+        ) : (
+          <span className={s.disabledTitleRow}>
+            <span className={`${s.title} ${s.titleDisabled}`}>{title}</span>
             {disabledBadgeLabel && <span className={s.disabledBadge}>{disabledBadgeLabel}</span>}
-          </div>
-          {disabledActionLabel && onDisabledAction && (
-            <button
-              type="button"
-              className={s.disabledAction}
-              onClick={(e) => {
-                e.stopPropagation();
-                void onDisabledAction();
-              }}
-            >
-              {disabledActionLabel}
-            </button>
-          )}
-        </>
-      )}
+          </span>
+        )}
 
-      <div className={s.desc}>{desc}</div>
+        <span className={s.desc}>{desc}</span>
+      </button>
+      {onPreview && (
+        <button
+          type="button"
+          className={s.expandBtn}
+          aria-label={`Preview ${title}`}
+          onClick={() => onPreview(title, metadata)}
+        >
+          <ExpandIcon />
+        </button>
+      )}
+      {!available && disabledActionLabel && onDisabledAction && (
+        <button
+          type="button"
+          className={s.disabledAction}
+          onClick={() => {
+            void onDisabledAction();
+          }}
+        >
+          {disabledActionLabel}
+        </button>
+      )}
     </div>
   );
 
-  if (!available) {
+  if (!available || isRestricted) {
     return (
-      <Hint className={s.optionHint} content={disabledReason ?? "Not available for selected configuration"}>
+      <Hint className={s.optionHint} content={unavailableText}>
         {optionContent}
       </Hint>
     );

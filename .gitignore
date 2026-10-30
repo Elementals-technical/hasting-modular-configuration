@@ -6,6 +6,8 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+skills/
+
 # Build outputs
 dist/
 server-dist/
@@ -98,8 +100,41 @@ temp/
 
 docs/*
 !docs/
+!docs/INDEX.md
+!docs/ecosystem-map.md
 !docs/parent-configurator-integration.md
 !docs/side-panel-logic.md
 !docs/side-panel-reasons-refactor.md
+!docs/cabinet-drag-and-drop-ui.md
+!docs/countertop-position-ui.md
+!docs/drawer-organizers-ui.md
+!docs/collection-data-migration-status-v1.md
+!docs/collection-data-migration-status-v2.md
+# Developer C reports: residue, acceptance, handoffs and collection profiles.
+!docs/dev-residue-report.md
+!docs/c12-state-acceptance.md
+!docs/b06-profile-options-handoff.md
+!docs/class-profile.md
+!docs/mako-profile.md
+!docs/urban-low-height-profile.md
+!docs/urban-freestanding-short-cabinet.md
+!docs/product-profile-migration.md
+!docs/runtime-bindings-migration.md
+# Maintained product integration guides used by the project skills.
+!docs/products/
+!docs/products/*.md
 
 iphone-safari-debugging
+
+.mcp.json
+
+# Playwright (npm run e2e)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Personal AI layer (AGENTS.local.md, local-* skills, docs/ai): visible in git status, not for commit without team agreement
+!.agents/skills/
+!.claude/skills/
+!docs/ai/

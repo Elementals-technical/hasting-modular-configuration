@@ -1,0 +1,275 @@
+import { describe, expect, it } from "vitest";
+
+import ushRuntimeBindingsDocument from "../../../../../../public/collections/urban-standard-height/runtime-bindings.json";
+
+import { parseRuntimeBindings } from "../parseRuntimeBindings";
+
+const withBinding = (binding: unknown) => ({
+  schemaVersion: 1,
+  collectionId: "test",
+  productTypes: {},
+  bindings: [binding],
+});
+
+const codesOf = (input: unknown) => {
+  const result = parseRuntimeBindings(input);
+  return result.ok ? [] : result.diagnostics.map(({ code, dataPath }) => [code, dataPath]);
+};
+
+describe("parseRuntimeBindings", () => {
+  it("accepts the USH document and keeps its entries in order", () => {
+    const result = parseRuntimeBindings(ushRuntimeBindingsDocument);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(result.bindings.collectionId).toBe("urban-standard-height");
+    expect(result.bindings.productTypes["Side-Cabinet"]).toBe("Sink-Cabinet");
+    expect(result.bindings.bindings[0]?.attributeId).toBe("Handle");
+    expect(result.bindings.bindings.find(({ attributeId }) => attributeId === "Drawers")).toMatchObject({
+      status: "bound",
+      values: { kind: "map", patches: { "2": { Drawers: "2D" } } },
+    });
+  });
+
+  it("rejects a document that is not a bindings table", () => {
+    expect(codesOf(null)).toEqual([["bindings.invalid_root", ""]]);
+    expect(codesOf({ schemaVersion: 1, collectionId: "test", productTypes: {} })).toEqual([
+      ["bindings.missing_field", "/bindings"],
+    ]);
+    expect(codesOf({ collectionId: "", productTypes: {}, bindings: [] })).toEqual([
+      ["bindings.missing_field", "/schemaVersion"],
+      ["bindings.missing_field", "/collectionId"],
+    ]);
+  });
+
+  it("requires a runtime product type for every listed cabinet type", () => {
+    expect(codesOf({ schemaVersion: 1, collectionId: "test", bindings: [] })).toEqual([
+      ["bindings.missing_field", "/productTypes"],
+    ]);
+    expect(
+      codesOf({ schemaVersion: 1, collectionId: "test", productTypes: { "Side-Cabinet": "" }, bindings: [] }),
+    ).toEqual([["bindings.invalid_field_type", "/productTypes/Side-Cabinet"]]);
+  });
+
+  it("reads a cabinet type the scene cannot place yet, with the reason it cannot", () => {
+    const table = { schemaVersion: 1, collectionId: "test", productTypes: {}, bindings: [] };
+
+    expect(
+      parseRuntimeBindings({ ...table, unplacedProductTypes: { "Open-Side-Shelf": "no scene product" } }),
+    ).toMatchObject({ ok: true, bindings: { unplacedProductTypes: { "Open-Side-Shelf": "no scene product" } } });
+    expect(codesOf({ ...table, unplacedProductTypes: { "Open-Side-Shelf": "" } })).toEqual([
+      ["bindings.invalid_field_type", "/unplacedProductTypes/Open-Side-Shelf"],
+    ]);
+    expect(codesOf({ ...table, unplacedProductTypes: [] })).toEqual([
+      ["bindings.missing_field", "/unplacedProductTypes"],
+    ]);
+  });
+
+  it("requires a reason for an unbound entry", () => {
+    expect(codesOf(withBinding({ attributeId: "SidePanels", status: "unbound" }))).toEqual([
+      ["bindings.missing_field", "/bindings/0/reason"],
+    ]);
+  });
+
+  it("reads a state-only entry and requires its reason too", () => {
+    const result = parseRuntimeBindings(
+      withBinding({ attributeId: "LedOption", status: "state-only", reason: "no LED key in the scene" }),
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      bindings: { bindings: [{ attributeId: "LedOption", status: "state-only", reason: "no LED key in the scene" }] },
+    });
+    expect(codesOf(withBinding({ attributeId: "LedOption", status: "state-only" }))).toEqual([
+      ["bindings.missing_field", "/bindings/0/reason"],
+    ]);
+  });
+
+  it("rejects an unknown status, target or values kind", () => {
+    expect(codesOf(withBinding({ attributeId: "A", status: "maybe" }))).toEqual([
+      ["binding.invalid_status", "/bindings/0/status"],
+    ]);
+    expect(
+      codesOf(withBinding({ attributeId: "A", status: "bound", target: { kind: "scene" }, values: { kind: "copy" } })),
+    ).toEqual([
+      ["binding.invalid_target", "/bindings/0/target/kind"],
+      ["binding.invalid_values", "/bindings/0/values/kind"],
+    ]);
+    expect(
+      codesOf(
+        withBinding({
+          attributeId: "A",
+          status: "bound",
+          target: { kind: "productType" },
+          values: { kind: "identity", sceneKey: "A" },
+        }),
+      ),
+    ).toEqual([["binding.invalid_target", "/bindings/0/target/productType"]]);
+  });
+
+  it("reads a target that differs by flow and reports each broken flow", () => {
+    const byFlow = (target: unknown) =>
+      withBinding({
+        attributeId: "GrainDirection",
+        status: "bound",
+        target,
+        values: { kind: "identity", sceneKey: "GrainDirection" },
+      });
+
+    const result = parseRuntimeBindings(
+      byFlow({ kind: "byFlow", prebuilt: { kind: "all" }, custom: { kind: "cabinets" } }),
+    );
+    expect(result.ok && result.bindings.bindings[0]).toMatchObject({
+      target: { kind: "byFlow", prebuilt: { kind: "all" }, custom: { kind: "cabinets" } },
+    });
+
+    expect(codesOf(byFlow({ kind: "byFlow", prebuilt: { kind: "everywhere" } }))).toEqual([
+      ["binding.invalid_target", "/bindings/0/target/prebuilt/kind"],
+      ["binding.invalid_target", "/bindings/0/target/custom"],
+    ]);
+  });
+
+  it("points at a renamed value the scene cannot receive", () => {
+    expect(
+      codesOf(
+        withBinding({
+          attributeId: "CountertopColor",
+          status: "bound",
+          target: { kind: "all" },
+          values: { kind: "identity", sceneKey: "CountertopColor", overrides: { "Bianco Gloss TAN": ["TAL"] } },
+        }),
+      ),
+    ).toEqual([["binding.invalid_values", "/bindings/0/values/overrides/Bianco Gloss TAN"]]);
+  });
+
+  it("reads the phase and the step sent before the value", () => {
+    const towelBar = {
+      attributeId: "TowelBarOption",
+      status: "bound",
+      target: { kind: "all" },
+      values: { kind: "map", patches: { Left: { TowelBar: "TowelBar40_R", TowelBarSide: "left" } } },
+      order: 70,
+      resetBefore: { TowelBar: "None", TowelBarSide: "both" },
+    };
+
+    const result = parseRuntimeBindings(withBinding(towelBar));
+    expect(result.ok && result.bindings.bindings[0]).toMatchObject({
+      order: 70,
+      resetBefore: { TowelBar: "None", TowelBarSide: "both" },
+    });
+
+    expect(codesOf(withBinding({ ...towelBar, order: "first", resetBefore: { TowelBar: null } }))).toEqual([
+      ["bindings.invalid_field_type", "/bindings/0/order"],
+      ["binding.invalid_values", "/bindings/0/resetBefore/TowelBar"],
+    ]);
+  });
+
+  it("points at the exact scene value that cannot be sent", () => {
+    expect(
+      codesOf(
+        withBinding({
+          attributeId: "Drawers",
+          status: "bound",
+          target: { kind: "product" },
+          values: { kind: "map", patches: { "1": { Drawers: "1D" }, "2": { Drawers: { nested: true } } } },
+        }),
+      ),
+    ).toEqual([["binding.invalid_values", "/bindings/0/values/patches/2/Drawers"]]);
+
+    expect(
+      codesOf(
+        withBinding({
+          attributeId: "Drawers",
+          status: "bound",
+          target: { kind: "product" },
+          values: { kind: "map", patches: {} },
+        }),
+      ),
+    ).toEqual([["binding.invalid_values", "/bindings/0/values/patches"]]);
+  });
+
+  it("reads the other places a value goes to and that a product placed later takes it", () => {
+    const result = parseRuntimeBindings(
+      withBinding({
+        attributeId: "LateralPanelColor",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "identity", sceneKey: "CabinetColorLateral" },
+        also: [
+          { target: { kind: "all" }, sceneKey: "HandleGrooveColor" },
+          { target: { kind: "productType", productType: "UD-open-shelves-side" }, sceneKey: "CabinetColor" },
+        ],
+        placedWithNewProducts: true,
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.bindings.bindings[0]).toMatchObject({
+      also: [
+        { target: { kind: "all" }, sceneKey: "HandleGrooveColor" },
+        { target: { kind: "productType", productType: "UD-open-shelves-side" }, sceneKey: "CabinetColor" },
+      ],
+      placedWithNewProducts: true,
+    });
+  });
+
+  it("leaves both out of an entry that does not name them", () => {
+    const result = parseRuntimeBindings(
+      withBinding({
+        attributeId: "Height",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "identity", sceneKey: "Height" },
+      }),
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.bindings.bindings[0]).not.toHaveProperty("also");
+    expect(result.bindings.bindings[0]).not.toHaveProperty("placedWithNewProducts");
+  });
+
+  it("points at a broken extra delivery", () => {
+    const entry = (extra: Record<string, unknown>, values: unknown = { kind: "identity", sceneKey: "A" }) =>
+      withBinding({ attributeId: "A", status: "bound", target: { kind: "all" }, values, ...extra });
+
+    expect(codesOf(entry({ also: [] }))).toEqual([["bindings.invalid_field_type", "/bindings/0/also"]]);
+    expect(codesOf(entry({ also: [{ target: { kind: "all" } }] }))).toEqual([
+      ["binding.invalid_values", "/bindings/0/also/0/sceneKey"],
+    ]);
+    expect(codesOf(entry({ also: [{ target: { kind: "byFlow" }, sceneKey: "B" }] }))).toEqual([
+      ["binding.invalid_target", "/bindings/0/also/0/target/kind"],
+    ]);
+    // The same value is sent again, which a value map has no single one of.
+    expect(
+      codesOf(entry({ also: [{ target: { kind: "all" }, sceneKey: "B" }] }, { kind: "map", patches: { x: { A: 1 } } })),
+    ).toEqual([["binding.invalid_values", "/bindings/0/also"]]);
+    expect(codesOf(entry({ placedWithNewProducts: "yes" }))).toEqual([
+      ["bindings.invalid_field_type", "/bindings/0/placedWithNewProducts"],
+    ]);
+  });
+
+  it("reads a value the scene keeps per product, and rejects one that is not a yes or a no", () => {
+    const entry = (extra: Record<string, unknown>) =>
+      withBinding({
+        attributeId: "LateralPanelSide",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "map", patches: { L: { HandleSide: "Left" }, R: { HandleSide: "Right" } } },
+        ...extra,
+      });
+
+    const perProduct = parseRuntimeBindings(entry({ perProduct: true }));
+    expect(perProduct.ok && perProduct.bindings.bindings[0]).toMatchObject({ perProduct: true });
+
+    // Left out, and a "no", read the same: the value goes to every product.
+    for (const extra of [{}, { perProduct: false }]) {
+      const result = parseRuntimeBindings(entry(extra));
+      expect(result.ok && result.bindings.bindings[0]).not.toHaveProperty("perProduct");
+    }
+
+    expect(codesOf(entry({ perProduct: "yes" }))).toEqual([["bindings.invalid_field_type", "/bindings/0/perProduct"]]);
+  });
+});

@@ -3,6 +3,7 @@ import { useStore } from "react-redux";
 
 import type { RootState } from "@/app/store";
 import { replacePlacedDividersForDrawer } from "@/entities/product/model/store/slice";
+import { getActiveProductProfile } from "@/entities/configuration";
 import { getSelectedDividerType } from "@/entities/product/model/store/selectors";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
 import {
@@ -36,10 +37,10 @@ export type UseDividerControllerOptions<T extends DividerOptionBase> = {
   isPlayCanvasReady: boolean;
   /** Current Dividers accordion selection; the controller is active only for "Customize". */
   dividerSelection: string;
-  /** UI mock options (dividersMockData) used to derive grid options with availability. */
+  /** DividersStyle options of the active collection, used to derive grid options with availability. */
   optionsSource: readonly T[];
-  /** History snapshot saver — called before every place/remove. Read freshly (may be unstable). */
-  saveSnapshot: () => Promise<void> | void;
+  /** Runs a place or a remove as one undo step (the page's history step). Read freshly (may be unstable). */
+  runStep: <R>(change: () => Promise<R>) => Promise<R>;
   /** Page-level cabinet id used to match resize-restore targets (e.g. selectedSceneProduct). */
   fallbackCabinetId?: string | null;
   /** Whether the drawer CTA should be restored after a resize (Dividers accordion open). */
@@ -105,7 +106,7 @@ export function useDividerController<T extends DividerOptionBase>(
     isPlayCanvasReady,
     dividerSelection,
     optionsSource,
-    saveSnapshot,
+    runStep,
     fallbackCabinetId = null,
     shouldRestoreDrawerButtons = false,
   } = options;
@@ -117,6 +118,7 @@ export function useDividerController<T extends DividerOptionBase>(
 
   const dispatch = useAppDispatch();
   const selectedType = useAppSelector(getSelectedDividerType);
+  const profile = useAppSelector(getActiveProductProfile);
   // Store handle from the Provider (not a module import) — the dispatcher reads the
   // freshest selectedType at click time, and tests can supply a minimal store.
   const reduxStore = useStore();
@@ -138,7 +140,7 @@ export function useDividerController<T extends DividerOptionBase>(
     state,
     dividerSelection,
     isPlayCanvasReady,
-    saveSnapshot,
+    runStep,
     fallbackCabinetId,
     shouldRestoreDrawerButtons,
   });
@@ -146,7 +148,7 @@ export function useDividerController<T extends DividerOptionBase>(
     state,
     dividerSelection,
     isPlayCanvasReady,
-    saveSnapshot,
+    runStep,
     fallbackCabinetId,
     shouldRestoreDrawerButtons,
   };
@@ -267,7 +269,7 @@ export function useDividerController<T extends DividerOptionBase>(
         availability && sameContext(availability.context, context) ? availability.types : null;
 
       if (currentType && matchedTypes && !matchedTypes.includes(currentType)) {
-        showWarning(buildUnavailableDividerWarning(currentType, matchedTypes));
+        showWarning(buildUnavailableDividerWarning(currentType, matchedTypes, profile));
         warnDividerUiDebug("Controller.Overlay", "Skip showSlots: selected type unavailable", {
           traceId,
           cabinetId: context.cabinetId,
@@ -286,7 +288,7 @@ export function useDividerController<T extends DividerOptionBase>(
       });
       void adapter.execute({ kind: "showSlots", context, selectedType: currentType, traceId });
     },
-    [adapter, readSelectedType, showWarning],
+    [adapter, profile, readSelectedType, showWarning],
   );
 
   /** STABLE slot-click dispatcher — fresh state via store.getState() + latestRef. */
@@ -330,13 +332,14 @@ export function useDividerController<T extends DividerOptionBase>(
         busyRef.current = true;
         setStatus("busy");
         try {
-          await latest.saveSnapshot();
-          const removed = await adapter.execute({ kind: "remove", slot, traceId });
-          await runSettle(context, traceId);
-          recordDividerUiDebug("Controller.OccupiedSlot", "Remove occupied divider completed", {
-            traceId,
-            removed,
-            slot: summarizeSlot(slot),
+          await latest.runStep(async () => {
+            const removed = await adapter.execute({ kind: "remove", slot, traceId });
+            await runSettle(context, traceId);
+            recordDividerUiDebug("Controller.OccupiedSlot", "Remove occupied divider completed", {
+              traceId,
+              removed,
+              slot: summarizeSlot(slot),
+            });
           });
         } finally {
           busyRef.current = false;
@@ -350,7 +353,7 @@ export function useDividerController<T extends DividerOptionBase>(
       const enrichedSlot =
         slot.availableTypes.length > 0 ? slot : { ...slot, availableTypes: adapter.fetchSlotTypes(slot) };
 
-      const decision = validatePlacement(readSelectedType(), enrichedSlot, traceId);
+      const decision = validatePlacement(readSelectedType(), enrichedSlot, traceId, profile);
 
       recordDividerUiDebug("Controller.AddSlot", "Resolved add slot decision", {
         traceId,
@@ -381,41 +384,42 @@ export function useDividerController<T extends DividerOptionBase>(
       setStatus("busy");
       clearWarning();
       try {
-        await latest.saveSnapshot();
-        recordDividerUiDebug("Controller.AddSlot", "Place divider request prepared", {
-          traceId,
-          cabinetId: context.cabinetId,
-          drawerType: context.drawerType,
-          zone: enrichedSlot.zone,
-          key: enrichedSlot.key,
-          zoneIndex: enrichedSlot.zoneIndex,
-          placementType: enrichedSlot.placementType,
-          selectedType: decision.command.type,
-        });
-        const placed = await adapter.execute(decision.command);
-        if (!placed) {
-          warnDividerUiDebug("Controller.AddSlot", "Runtime rejected the placement", {
+        await latest.runStep(async () => {
+          recordDividerUiDebug("Controller.AddSlot", "Place divider request prepared", {
             traceId,
-            slot: summarizeSlot(enrichedSlot),
+            cabinetId: context.cabinetId,
+            drawerType: context.drawerType,
+            zone: enrichedSlot.zone,
+            key: enrichedSlot.key,
+            zoneIndex: enrichedSlot.zoneIndex,
+            placementType: enrichedSlot.placementType,
             selectedType: decision.command.type,
           });
-        }
-        await runSettle(context, traceId);
-        recordDividerUiDebug("Controller.AddSlot", "Add slot flow completed", {
-          traceId,
-          placed,
-          cabinetId: context.cabinetId,
-          drawerType: context.drawerType,
-          zone: enrichedSlot.zone,
-          key: enrichedSlot.key,
-          selectedType: decision.command.type,
+          const placed = await adapter.execute(decision.command);
+          if (!placed) {
+            warnDividerUiDebug("Controller.AddSlot", "Runtime rejected the placement", {
+              traceId,
+              slot: summarizeSlot(enrichedSlot),
+              selectedType: decision.command.type,
+            });
+          }
+          await runSettle(context, traceId);
+          recordDividerUiDebug("Controller.AddSlot", "Add slot flow completed", {
+            traceId,
+            placed,
+            cabinetId: context.cabinetId,
+            drawerType: context.drawerType,
+            zone: enrichedSlot.zone,
+            key: enrichedSlot.key,
+            selectedType: decision.command.type,
+          });
         });
       } finally {
         busyRef.current = false;
         setStatus("ready");
       }
     },
-    [adapter, clearWarning, readSelectedType, runSettle, setStatus, showWarning],
+    [adapter, clearWarning, profile, readSelectedType, runSettle, setStatus, showWarning],
   );
 
   /** STABLE active-context handler (select / after-select / exit / resize-restore). */
@@ -656,7 +660,7 @@ export function useDividerController<T extends DividerOptionBase>(
     const traceId = createDividerUiTraceId("controller-selected-type");
 
     if (matchedAvailability && !matchedAvailability.types.includes(selectedType)) {
-      const message = buildUnavailableDividerWarning(selectedType, matchedAvailability.types);
+      const message = buildUnavailableDividerWarning(selectedType, matchedAvailability.types, profile);
       showWarning(message);
       warnDividerUiDebug("Controller.SelectedType", "Selected divider type unavailable for active drawer", {
         traceId,
@@ -693,6 +697,7 @@ export function useDividerController<T extends DividerOptionBase>(
     matchedAvailability,
     state.activeContext,
     adapter,
+    profile,
     showWarning,
   ]);
 
@@ -715,8 +720,8 @@ export function useDividerController<T extends DividerOptionBase>(
   }, [adapter, refreshAvailability, showSlotsGuarded]);
 
   const derivedOptions = useMemo(
-    () => deriveDividerOptions(optionsSource, matchedAvailability),
-    [optionsSource, matchedAvailability],
+    () => deriveDividerOptions(optionsSource, matchedAvailability, profile),
+    [optionsSource, matchedAvailability, profile],
   );
 
   return {

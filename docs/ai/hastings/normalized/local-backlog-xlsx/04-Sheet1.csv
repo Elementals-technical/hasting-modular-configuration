@@ -1,0 +1,51 @@
+row,A,B,C,D,E,F,G,H
+1,№,Раунд,Тип,Задача,Ссылка,Оценка (ч),Oleg,ALO
+2,2.0,Round 8,Logic,Обновить зависимости для каунтертопа: при смене ширины кабинета добавить нотификации,https://take.ms/pWqMT,3–4,,
+3,6.0,Round 7,Logic,При добавлении продукта без поддержки сайд-панелей — убирать панель только с одной стороны,https://take.ms/OiTnHn,1–2,,1.0
+4,8.0,Round 8,Logic,Дополнительная логика для Inner Drawer Dividers,https://take.ms/88eQZ,4,,
+5,15.0,Round 8,Logic,Обновить цены и калькуляцию для сайд-панелей,https://take.ms/YdXGI,2–3,,
+6,На тесте,,,,,,,
+7,3.0,Round 8,Logic,"Сделать, чтобы материал Tekormud был доступен только для ширины 50.5",https://take.ms/fKcMG,3–4,1.0,
+8,9.0,—,Logic,Обновить Generate Quote PDF (vivid3d),—,4–8,1.0,
+9,11.0,Round 8,Logic,Добавить к SKU сайд-панелей цветовой код ручек (handles),https://take.ms/qktDa,1.5–2,1.0,
+10,4.0,Round 7,Logic,Проверить переприменение сайд-панелей при их удалении через меню на сцене,https://take.ms/TW1D5,1–2,,1.0
+11,5.0,Round 7,Logic,При смене конфигурации с 2DW на 1DW: обновить сайд-панели по зависимостям,https://take.ms/ylIOh,1–2,,1.0
+12,16.0,Round 8,Logic,После множества изменений опции каунтертопа становятся недоступны,https://take.ms/UPvF4,3–3.5,,1.0
+13,10.0,Round 8,Logic,Добавить SKU details tooltip,https://take.ms/Pug6x,1–1.5,1.0,
+14,12.0,Round 8,Logic,Удаление сайд-панелей/ручек через Interplayer-меню в пребилде,https://take.ms/yYJCz,2–3,,1.0
+15,14.0,Round 8,Logic,Добавить кнопку Summary view,https://take.ms/JOzAV,0.5,1.0,
+16,7.0,Round 8,Logic,Для Bookmatching добавить калькуляцию SKU на каждый ящик,https://take.ms/jOcLz,2–3,1.0,
+17,13.0,Round 7,Logic,При смене типа ручек кабинет OSS нужно удалить и показать модальное окно,https://take.ms/rWF52,2–3,1.0,
+18,17.0,Round 8,Logic,Изменить текст тултипа для недоступного материала и скрыть 46 см для Glass MT,https://take.ms/7XxwF,2–3,1.0,
+19,1.0,Round 8,UI,"Убрать SKU в описании на Summary, перевести ширину в дюймы и убрать картинку кабинета",https://take.ms/v6ezk,0.5–1,1.0,
+20,21.0,Round 8,Update,Заменить картинку для Sink base на меньшую,https://take.ms/ZQE1H,0.5,1.0,
+21,19.0,Round 8,Update,Отключить блокировку цветов при клике на каунтертоп/OSS продукт,https://take.ms/e25ev,1–1.5,,1.0
+22,25.0,Round 8,Update,При undo/redo не обновляются towel bar,https://take.ms/AHpXH,1,,1.0
+23,20.0,Round 8,Update,Vessel нужно красить отдельно от countertop,https://take.ms/5uJLL,1–1.5,,1.0
+24,22.0,Round 8,Update,Убрать Interplayer меню на самари странице,https://take.ms/AaBEu,0.5,1.0,
+25,23.0,Round 8,Update,Добавить в меню Interplayer на пребилде дополнительные пункты,https://take.ms/vTRcO,0.5,1.0,
+26,26.0,Round 8,Update,Сделать Full mode свочесов большего размера,https://take.ms/qR5wC,0.5,1.0,
+27,27.0,Round 8,Update,При переходе на Color/Countertop style открывать аккордеоны,https://take.ms/wOJ8N,0.5,1.0,
+28,28.0,Round 8,Update,Обновить название Sink Cabinet → Side Cabinet,https://take.ms/lj2vp,0.5,1.0,
+29,29.0,Round 8,Update,Добавить модалку при смене Depth через сайдбар,https://take.ms/lbEGFQ,0.5–1,1.0,
+30,30.0,Round 8,Update,Добавить новую анимацию для модалки How to use,https://take.ms/AVaqe9,0.5,1.0,
+31,31.0,Round 8,Update,Qoute кнопку сделать больше и уменьшить Next кнопку,https://take.ms/BAa1g,0.5,1.0,
+32,18.0,Round 8,Update,Изменить фонт для кнопок дивайдера,https://take.ms/RbS0B,0.5,1.0,
+33,24.0,Round 8,Update,Обновить UI для Cabinets на Summary,https://take.ms/3df4E,1,1.0,
+34,34.0,,Update,для дефолтного HPL цвета включить Gain Direction,https://take.ms/4DyDx,1 - 1.5,1.0,
+35,32.0,,Update,поставить картинки для свочесов,https://take.ms/SZqc6,0.5 - 1,1.0,
+36,35.0,,Update,изменить  Materials Order в каунтертоп,https://take.ms/X6WwQ,0.5 - 1,1.0,
+41,33.0,,Update,изменить Total Dimension Font Style/Size,https://take.ms/dib27,"0,5-1",,
+42,36.0,,Update,Изменить дробные значения Thickness,https://take.ms/2VKsR,0.5,,
+43,37.0,,Update,убрать Faucet Hole Spacing секцию,https://take.ms/rb9bG,0.5,,
+45,38.0,,Update,При настроеном пребилд конфигурации - кнопка Create your Own должна сохранять конфигурацию,https://take.ms/7Nkvf,1 - 1.5,,
+46,39.0,,Update,неправильная цена каунтертопа кабинета с шириной 60см,https://take.ms/DTRUo,,,
+47,40.0,,Update,Если цвет ручек отличается от цены кабинета - берем цену материала дороже,https://take.ms/MAuq1,1.5 - 2.5,,
+48,41.0,,Update,При востановлении конфигурации - сайд панели ставлятся на 2 стороны,https://take.ms/e7OPw,1 - 2,,
+49,42.0,,Update,Добавить картинки для Ocritech материала и убрать тултип для рамера ⅜,https://take.ms/7JmJl,0.5 - 1,,
+50,43.0,,Update,Убрать 46 depth для integrated для tekormud материала,https://take.ms/mM5sP,0.5 - 1,,
+51,44.0,,Update,Убрать 46 depth при resize для всех материалов что 50.5 only,https://take.ms/BxuPw,0.5 - 1,,
+52,45.0,,Update,Сделать возможность копировать и выделять тултип information,https://take.ms/ieh50,1 - 1.5,,
+53,46.0,,Update,Добавить фильтрацию для Full view материалов,https://take.ms/cqu39,0.5 - 1.5,1.0,
+54,47.0,,Update,Interplayer меню для каунтертопа не должно перенаправлять на custom роут,https://take.ms/jxLPR,0.5- 1.5,,
+55,48.0,,Update,Вместо ску показать ui значения,https://take.ms/EzXty,0.5,,

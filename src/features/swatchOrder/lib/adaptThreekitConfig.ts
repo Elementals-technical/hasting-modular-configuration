@@ -3,7 +3,6 @@ import type {
   IMapUIData,
   IMaterialMetadata,
   IProductElementOption,
-  IThreekitConfiguration,
 } from "../model/types";
 import {
   getCountertopMaterialTokensBySku,
@@ -20,6 +19,9 @@ import {
   isHiddenConfiguratorDisplayValue,
 } from "@/entities/configurator/lib/getConfiguratorVariantOverrides";
 import { isVisibleConfiguratorVariant } from "@/entities/configurator/lib/isVisibleConfiguratorVariant";
+import { getConfiguratorProductElement } from "@/entities/configurator/lib/configuratorGroupKind";
+import type { ProductProfile } from "@/entities/collection";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 import {
   appendSyntesiCountertopOptions,
   type CountertopMatrixRule,
@@ -53,6 +55,8 @@ const COUNTERTOP_PRODUCT_ELEMENT = "Countertop Color";
 
 type AdaptThreekitConfigOptions = {
   countertopRules?: CountertopMatrixRule[];
+  /** Active collection profile; its Syntesi data decides the rule-backed Syntesi swatches. */
+  profile: ProductProfile | null;
 };
 
 const inferCountertopMaterial = ({
@@ -174,6 +178,7 @@ const appendCountertopRuleBackedSwatches = (
   productElementOptions: IProductElementOption[],
   allMaterialValues: AttributeValue[],
   rules: CountertopMatrixRule[] | undefined,
+  profile: ProductProfile | null,
 ) => {
   if (!rules?.length) return;
 
@@ -181,7 +186,7 @@ const appendCountertopRuleBackedSwatches = (
   const sourceValues = countertopGroup?.valuesArray ?? [];
   const sourceOptions = sourceValues.map(toCountertopSourceOption);
   const sourceOptionIds = new Set(sourceOptions.map((option) => String(option.id)));
-  const nextOptions = appendSyntesiCountertopOptions(sourceOptions, rules);
+  const nextOptions = appendSyntesiCountertopOptions(sourceOptions, rules, profile);
   const syntheticValues = nextOptions
     .filter((option) => !sourceOptionIds.has(String(option.id)))
     .map(toCountertopAttributeValue);
@@ -203,26 +208,29 @@ const appendCountertopRuleBackedSwatches = (
 };
 
 export const adaptThreekitConfig = (
-  data: IThreekitConfiguration | null | undefined,
-  options: AdaptThreekitConfigOptions = {},
+  groups: readonly ConfiguratorAvailableOption[] | null | undefined,
+  options: AdaptThreekitConfigOptions,
 ): IMapUIData => {
-  if (!data?.availableOptions?.length) {
+  if (!groups?.length) {
     return { allMaterialValues: [], productElementOptions: [] };
   }
 
   const productElementOptions: IProductElementOption[] = [];
   const allMaterialValues: AttributeValue[] = [];
 
-  for (const group of data.availableOptions) {
+  for (const group of groups) {
     if (!group.enabled) continue;
     if (group.proxyType !== "material") continue;
 
-    const parentName = group.proxyName;
+    // Configurator 4's element name for every configurator ("Select Countertop Color" -> "Countertop Color").
+    const parentName = getConfiguratorProductElement(group.proxyName);
     const valuesArray: AttributeValue[] = [];
+    // A group whose options hold the same colours (Duplex: Base Panel, Lateral Panel) offers each once.
+    const seenValues = new Set<string>();
 
     for (const option of group.options ?? []) {
       for (const variant of option.variants ?? []) {
-        if (!isVisibleConfiguratorVariant({ proxyName: parentName, variant })) continue;
+        if (!isVisibleConfiguratorVariant(variant)) continue;
 
         const outer = (variant.metadata ?? {}) as Record<string, unknown>;
         const nested = (
@@ -230,7 +238,7 @@ export const adaptThreekitConfig = (
             ? outer.metadata
             : {}
         ) as Record<string, unknown>;
-        const overrides = getConfiguratorVariantOverrides({ proxyName: parentName, variant });
+        const overrides = getConfiguratorVariantOverrides({ proxyName: group.proxyName, variant });
 
         const label = pickString(
           outer.label,
@@ -244,6 +252,8 @@ export const adaptThreekitConfig = (
 
         const value = pickString(outer.value, nested.value, overrides.value, variant.name) ?? label;
         if (isHiddenConfiguratorDisplayValue(label) || isHiddenConfiguratorDisplayValue(value)) continue;
+        if (seenValues.has(value)) continue;
+        seenValues.add(value);
 
         const explicitMaterial = pickString(nested.Material, outer.Material);
         const material =
@@ -259,15 +269,11 @@ export const adaptThreekitConfig = (
           overrides.image ??
           pickString(nested.image, outer.image, outer.Image, nested.Image) ??
           (typeof variant.image === "string" ? variant.image : undefined);
-        const image =
-          parentName === COUNTERTOP_PRODUCT_ELEMENT
-            ? rawImage ?? resolveCountertopFallbackTexture(variant.name)
-            : rawImage;
         const rawHex = pickString(nested.hex, outer.hex, nested.Hex, outer.Hex);
-        const hex =
-          parentName === COUNTERTOP_PRODUCT_ELEMENT
-            ? rawHex ?? resolveCountertopFallbackHex(variant.name)
-            : rawHex;
+        // A colour the configurator leaves without a picture and a hex is pictured by its colour code,
+        // whatever the group, as on the colour steps (`buildConfiguratorOptions`).
+        const image = rawImage ?? resolveCountertopFallbackTexture(variant.name, rawHex);
+        const hex = rawHex ?? resolveCountertopFallbackHex(variant.name);
         const rawColor = trimOrUndefined(pickString(nested.Color, outer.Color));
         const rawLook = trimOrUndefined(pickString(nested.Look, outer.Look));
         const rawCodeColor = trimOrUndefined(
@@ -340,6 +346,7 @@ export const adaptThreekitConfig = (
     productElementOptions,
     allMaterialValues,
     options.countertopRules,
+    options.profile,
   );
 
   allMaterialValues.sort((a, b) =>

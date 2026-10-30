@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+"clicked: Next: Summary <BUTTON>"
+```
+Page navigated to https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/summary?collectionId=urban-standard-height.

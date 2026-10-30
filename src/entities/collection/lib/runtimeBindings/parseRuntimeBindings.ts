@@ -1,0 +1,417 @@
+import type {
+  AlsoDelivery,
+  FlowTargets,
+  IdentityValues,
+  MappedValues,
+  RuntimeBinding,
+  RuntimeBindingSet,
+  RuntimeTarget,
+  ScenePatch,
+  SceneValue,
+} from "../../model/runtimeBindings";
+
+/**
+ * Reads a collection's runtime-bindings.json into a typed table.
+ *
+ * Checks the format only; whether the table agrees with the profile is
+ * validateRuntimeBindings. `dataPath` points at the exact place in the document, so A
+ * can surface it while loading without re-deriving the location.
+ */
+
+export type RuntimeBindingsDiagnosticCode =
+  | "bindings.invalid_root"
+  | "bindings.missing_field"
+  | "bindings.invalid_field_type"
+  | "binding.invalid_status"
+  | "binding.invalid_target"
+  | "binding.invalid_values";
+
+export type RuntimeBindingsDiagnostic = {
+  code: RuntimeBindingsDiagnosticCode;
+  dataPath: string;
+  message: string;
+};
+
+export type ParseRuntimeBindingsResult =
+  | { ok: true; bindings: RuntimeBindingSet }
+  | { ok: false; diagnostics: RuntimeBindingsDiagnostic[] };
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0;
+
+const isSceneValue = (value: unknown): value is SceneValue =>
+  typeof value === "string" || (typeof value === "number" && Number.isFinite(value));
+
+type Collector = {
+  diagnostics: RuntimeBindingsDiagnostic[];
+  add: (code: RuntimeBindingsDiagnosticCode, dataPath: string, message: string) => void;
+};
+
+const createCollector = (): Collector => {
+  const diagnostics: RuntimeBindingsDiagnostic[] = [];
+
+  return {
+    diagnostics,
+    add: (code, dataPath, message) => {
+      diagnostics.push({ code, dataPath, message });
+    },
+  };
+};
+
+const parseTarget = (raw: unknown, path: string, collect: Collector): RuntimeTarget | null => {
+  if (!isRecord(raw)) {
+    collect.add("binding.invalid_target", path, "target must be an object");
+    return null;
+  }
+
+  if (raw.kind === "product" || raw.kind === "cabinets" || raw.kind === "all") {
+    return { kind: raw.kind };
+  }
+
+  if (raw.kind === "productType") {
+    if (!isNonEmptyString(raw.productType)) {
+      collect.add("binding.invalid_target", `${path}/productType`, "productType target needs a productType");
+      return null;
+    }
+
+    return { kind: "productType", productType: raw.productType };
+  }
+
+  collect.add(
+    "binding.invalid_target",
+    `${path}/kind`,
+    'target kind must be "product", "cabinets", "all" or "productType"',
+  );
+  return null;
+};
+
+const parseTargetSpec = (raw: unknown, path: string, collect: Collector): RuntimeTarget | FlowTargets | null => {
+  if (!isRecord(raw) || raw.kind !== "byFlow") return parseTarget(raw, path, collect);
+
+  // Both parsed before returning, so a table reports every broken flow at once.
+  const prebuilt = parseTarget(raw.prebuilt, `${path}/prebuilt`, collect);
+  const custom = parseTarget(raw.custom, `${path}/custom`, collect);
+
+  return prebuilt && custom ? { kind: "byFlow", prebuilt, custom } : null;
+};
+
+const parsePatch = (raw: unknown, path: string, collect: Collector): ScenePatch | null => {
+  if (!isRecord(raw) || Object.keys(raw).length === 0) {
+    collect.add("binding.invalid_values", path, "patch must be a non-empty object");
+    return null;
+  }
+
+  const patch: ScenePatch = {};
+  let valid = true;
+
+  for (const [sceneKey, value] of Object.entries(raw)) {
+    if (!isSceneValue(value)) {
+      collect.add("binding.invalid_values", `${path}/${sceneKey}`, "scene value must be a string or a number");
+      valid = false;
+      continue;
+    }
+
+    patch[sceneKey] = value;
+  }
+
+  return valid ? patch : null;
+};
+
+const parseOverrides = (raw: unknown, path: string, collect: Collector): Record<string, SceneValue> | null => {
+  if (!isRecord(raw)) {
+    collect.add("binding.invalid_values", path, "overrides must be an object");
+    return null;
+  }
+
+  const overrides: Record<string, SceneValue> = {};
+  let valid = true;
+
+  for (const [value, sceneValue] of Object.entries(raw)) {
+    if (!isSceneValue(sceneValue)) {
+      collect.add("binding.invalid_values", `${path}/${value}`, "scene value must be a string or a number");
+      valid = false;
+      continue;
+    }
+
+    overrides[value] = sceneValue;
+  }
+
+  return valid ? overrides : null;
+};
+
+const parseValues = (raw: unknown, path: string, collect: Collector): IdentityValues | MappedValues | null => {
+  if (!isRecord(raw)) {
+    collect.add("binding.invalid_values", path, "values must be an object");
+    return null;
+  }
+
+  if (raw.kind === "identity") {
+    if (!isNonEmptyString(raw.sceneKey)) {
+      collect.add("binding.invalid_values", `${path}/sceneKey`, "identity values need a sceneKey");
+      return null;
+    }
+
+    if (raw.emptyValue !== undefined && !isSceneValue(raw.emptyValue)) {
+      collect.add("binding.invalid_values", `${path}/emptyValue`, "emptyValue must be a string or a number");
+      return null;
+    }
+
+    const overrides =
+      raw.overrides === undefined ? undefined : parseOverrides(raw.overrides, `${path}/overrides`, collect);
+    if (overrides === null) return null;
+
+    return {
+      kind: "identity",
+      sceneKey: raw.sceneKey,
+      ...(raw.emptyValue !== undefined ? { emptyValue: raw.emptyValue } : {}),
+      ...(overrides ? { overrides } : {}),
+    };
+  }
+
+  if (raw.kind === "map") {
+    if (!isRecord(raw.patches) || Object.keys(raw.patches).length === 0) {
+      collect.add("binding.invalid_values", `${path}/patches`, "map values need a non-empty patches object");
+      return null;
+    }
+
+    const patches: Record<string, ScenePatch> = {};
+    let valid = true;
+
+    for (const [value, rawPatch] of Object.entries(raw.patches)) {
+      const patch = parsePatch(rawPatch, `${path}/patches/${value}`, collect);
+
+      if (!patch) {
+        valid = false;
+        continue;
+      }
+
+      patches[value] = patch;
+    }
+
+    const unboundValues: Record<string, string> = {};
+    if (raw.unboundValues !== undefined) {
+      if (!isRecord(raw.unboundValues)) {
+        collect.add("binding.invalid_values", `${path}/unboundValues`, "unboundValues must map values to reasons");
+        valid = false;
+      } else {
+        for (const [value, reason] of Object.entries(raw.unboundValues)) {
+          if (!isNonEmptyString(reason) || Object.hasOwn(patches, value)) {
+            collect.add(
+              "binding.invalid_values",
+              `${path}/unboundValues/${value}`,
+              "A pending value needs a reason and cannot also have a patch",
+            );
+            valid = false;
+          } else unboundValues[value] = reason;
+        }
+      }
+    }
+    return valid ? { kind: "map", patches, ...(raw.unboundValues !== undefined ? { unboundValues } : {}) } : null;
+  }
+
+  collect.add("binding.invalid_values", `${path}/kind`, 'values kind must be "identity" or "map"');
+  return null;
+};
+
+/** A table keyed by cabinet type: `productTypes` (scene product) or `unplacedProductTypes` (reason). */
+const parseCabinetTypeTable = (
+  raw: unknown,
+  field: "productTypes" | "unplacedProductTypes",
+  valueName: string,
+  collect: Collector,
+): Record<string, string> | null => {
+  if (!isRecord(raw)) {
+    collect.add("bindings.missing_field", `/${field}`, `${field} must be an object`);
+    return null;
+  }
+
+  const table: Record<string, string> = {};
+  let valid = true;
+
+  for (const [cabinetType, value] of Object.entries(raw)) {
+    if (!isNonEmptyString(value)) {
+      collect.add("bindings.invalid_field_type", `/${field}/${cabinetType}`, `${valueName} must be a string`);
+      valid = false;
+      continue;
+    }
+
+    table[cabinetType] = value;
+  }
+
+  return valid ? table : null;
+};
+
+/** `also`: the other places an identity value goes to. Undefined when the entry has none. */
+const parseAlso = (
+  raw: unknown,
+  values: IdentityValues | MappedValues | null,
+  path: string,
+  collect: Collector,
+): AlsoDelivery[] | undefined | null => {
+  if (raw === undefined) return undefined;
+
+  if (!Array.isArray(raw) || raw.length === 0) {
+    collect.add("bindings.invalid_field_type", path, "also must be a non-empty array");
+    return null;
+  }
+
+  if (values && values.kind !== "identity") {
+    collect.add("binding.invalid_values", path, "also needs identity values: the same value is sent again");
+    return null;
+  }
+
+  const also: AlsoDelivery[] = [];
+  let valid = true;
+
+  raw.forEach((entry, index) => {
+    const entryPath = `${path}/${index}`;
+    const target = parseTarget(isRecord(entry) ? entry.target : undefined, `${entryPath}/target`, collect);
+
+    if (!isRecord(entry) || !isNonEmptyString(entry.sceneKey)) {
+      collect.add("binding.invalid_values", `${entryPath}/sceneKey`, "an also entry needs a sceneKey");
+      valid = false;
+      return;
+    }
+
+    if (!target) {
+      valid = false;
+      return;
+    }
+
+    also.push({ target, sceneKey: entry.sceneKey });
+  });
+
+  return valid ? also : null;
+};
+
+const parseBinding = (raw: unknown, path: string, collect: Collector): RuntimeBinding | null => {
+  if (!isRecord(raw)) {
+    collect.add("bindings.invalid_field_type", path, "binding must be an object");
+    return null;
+  }
+
+  if (!isNonEmptyString(raw.attributeId)) {
+    collect.add("bindings.missing_field", `${path}/attributeId`, "attributeId is required");
+    return null;
+  }
+
+  if (raw.status === "unbound" || raw.status === "state-only") {
+    if (!isNonEmptyString(raw.reason)) {
+      collect.add("bindings.missing_field", `${path}/reason`, `a ${raw.status} entry must say why`);
+      return null;
+    }
+
+    return { attributeId: raw.attributeId, status: raw.status, reason: raw.reason };
+  }
+
+  if (raw.status !== "bound") {
+    collect.add("binding.invalid_status", `${path}/status`, 'status must be "bound", "unbound" or "state-only"');
+    return null;
+  }
+
+  // All parsed before returning, so one entry reports every problem it has.
+  const target = parseTargetSpec(raw.target, `${path}/target`, collect);
+  const values = parseValues(raw.values, `${path}/values`, collect);
+
+  const orderValid = raw.order === undefined || (typeof raw.order === "number" && Number.isFinite(raw.order));
+  if (!orderValid) {
+    collect.add("bindings.invalid_field_type", `${path}/order`, "order must be a number");
+  }
+
+  const resetBefore =
+    raw.resetBefore === undefined ? undefined : parsePatch(raw.resetBefore, `${path}/resetBefore`, collect);
+
+  const also = parseAlso(raw.also, values, `${path}/also`, collect);
+
+  const placedValid = raw.placedWithNewProducts === undefined || typeof raw.placedWithNewProducts === "boolean";
+  if (!placedValid) {
+    collect.add(
+      "bindings.invalid_field_type",
+      `${path}/placedWithNewProducts`,
+      "placedWithNewProducts must be a boolean",
+    );
+  }
+
+  const perProductValid = raw.perProduct === undefined || typeof raw.perProduct === "boolean";
+  if (!perProductValid) {
+    collect.add("bindings.invalid_field_type", `${path}/perProduct`, "perProduct must be a boolean");
+  }
+
+  if (!target || !values || !orderValid || resetBefore === null || also === null || !placedValid || !perProductValid)
+    return null;
+
+  return {
+    attributeId: raw.attributeId,
+    status: "bound",
+    target,
+    values,
+    ...(also ? { also } : {}),
+    ...(raw.placedWithNewProducts === true ? { placedWithNewProducts: true } : {}),
+    ...(raw.perProduct === true ? { perProduct: true } : {}),
+    ...(typeof raw.order === "number" ? { order: raw.order } : {}),
+    ...(resetBefore ? { resetBefore } : {}),
+    ...(isNonEmptyString(raw.note) ? { note: raw.note } : {}),
+  };
+};
+
+export const parseRuntimeBindings = (input: unknown): ParseRuntimeBindingsResult => {
+  const collect = createCollector();
+
+  if (!isRecord(input)) {
+    collect.add("bindings.invalid_root", "", "runtime bindings must be an object");
+    return { ok: false, diagnostics: collect.diagnostics };
+  }
+
+  const { schemaVersion, collectionId } = input;
+  if (input.strictProductConfig !== undefined && typeof input.strictProductConfig !== "boolean") {
+    collect.add("bindings.invalid_field_type", "/strictProductConfig", "strictProductConfig must be a boolean");
+  }
+
+  if (typeof schemaVersion !== "number") {
+    collect.add("bindings.missing_field", "/schemaVersion", "schemaVersion must be a number");
+  }
+
+  if (!isNonEmptyString(collectionId)) {
+    collect.add("bindings.missing_field", "/collectionId", "collectionId is required");
+  }
+
+  const productTypes = parseCabinetTypeTable(input.productTypes, "productTypes", "product type", collect);
+  const unplacedProductTypes =
+    input.unplacedProductTypes === undefined
+      ? undefined
+      : parseCabinetTypeTable(input.unplacedProductTypes, "unplacedProductTypes", "reason", collect);
+
+  if (!Array.isArray(input.bindings)) {
+    collect.add("bindings.missing_field", "/bindings", "bindings must be an array");
+    return { ok: false, diagnostics: collect.diagnostics };
+  }
+
+  const bindings = input.bindings.flatMap((entry, index) => {
+    const binding = parseBinding(entry, `/bindings/${index}`, collect);
+    return binding ? [binding] : [];
+  });
+
+  if (
+    typeof schemaVersion !== "number" ||
+    !isNonEmptyString(collectionId) ||
+    !productTypes ||
+    unplacedProductTypes === null ||
+    collect.diagnostics.length > 0
+  ) {
+    return { ok: false, diagnostics: collect.diagnostics };
+  }
+
+  return {
+    ok: true,
+    bindings: {
+      schemaVersion,
+      collectionId,
+      ...(typeof input.strictProductConfig === "boolean" ? { strictProductConfig: input.strictProductConfig } : {}),
+      productTypes,
+      ...(unplacedProductTypes ? { unplacedProductTypes } : {}),
+      bindings,
+    },
+  };
+};

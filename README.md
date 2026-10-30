@@ -2,7 +2,27 @@
 
 ## Project docs
 
+- [Documentation map](docs/INDEX.md)
 - [Parent configurator integration](docs/parent-configurator-integration.md)
+
+## Skills for AI agents (`skills/`)
+
+`skills/<name>/SKILL.md` (+ `agents/openai.yaml` for Codex, `references/` for deep context). Dev-only; not part of the build. Claude Code picks them up through the `.claude/skills/<name>` symlinks when run from the repo root.
+
+- `hastings-ush`, `hastings-ulh`, `hastings-class`, `hastings-mako` — per-collection skills (see `docs/products/`).
+- `hasting-side-panels` — side panels in UI and 3D with the UI↔3D contract (`references/contract.md`, `ui.md`, `playcanvas*.md`, `rules-by-collection.md`).
+- `hasting-countertop` — countertop: Position / Drag & Drop, thickness-driven modes, `moveSink/liftSink/landSink`, pricing, and the 3D side split into base / positioning / validation / dnd / testing.
+
+The last two are routers: they pick a scope (`ui` / `playcanvas` / `both`) first and load only that layer. The same files live in the PlayCanvas repo (`src/skills/`) and in the claude.ai project "Hasting Modular - PlayCanvas Rules"; the repo copy is canonical — update it in the same PR as the code.
+
+## Google Analytics
+
+- `VITE_ANALYTICS_ENABLED=false` — disables GA initialization. Keep this value for Phase 2 staging and production during development.
+- `VITE_ANALYTICS_ENABLED=true` — enables GA initialization when `VITE_GA_ID` is also set. A missing flag or any value other than `true` keeps initialization disabled.
+
+Set the flag in `.env` or the hosting platform's build environment. Hosting variables override `.env`. Rebuild and redeploy after changing it; for local development, restart the dev server.
+
+The flag controls only GA initialization in this app. Event forwarding to the iframe parent and the parent site's own analytics remain unchanged.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

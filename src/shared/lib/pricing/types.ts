@@ -1,0 +1,132 @@
+import type { RootState } from "@/app/store";
+import type { PricingGapGroup, ProductProfile, RuntimeBindingSet } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import type { CabinetDimensions, CabinetEntry, ScopedValue, StableCabinetKey } from "@/entities/configuration";
+import type { DrawerOrganizersRead } from "@/entities/configuration/model/drawerOrganizers";
+import type { CountertopMatrixRule } from "@/features/configurator-rule-core/countertop/types";
+import type { CabinetCoverSize } from "@/shared/lib/cabinetCoverRuntime";
+import type { NormalizedProductConfigSnapshot } from "@/shared/lib/normalizeProductConfigSnapshot";
+import type { CountertopColorSkuCandidatesByValue, SkuBuilders } from "@/shared/lib/sku";
+
+type ProductState = RootState["rootStateUI"]["product"];
+type ProductOptions = ProductState["productOptions"];
+
+export type PricingLineGroup =
+  | "cabinet"
+  | "openShelf"
+  | "sideShelf"
+  | "countertop"
+  | "basin"
+  | "faucetHoles"
+  | "holeCut"
+  | "vessel"
+  | "towelBar"
+  | "sidePanel"
+  | "divider"
+  | "bookMatching"
+  /** The legs a composition stands on (collections priced from their SKU profile). */
+  | "legs"
+  /** The cap at the foot of each leg, in a colour of its own (Lame). */
+  | "legCap"
+  /** Brackets of a thick countertop (collections priced from their SKU profile). */
+  | "bracket"
+  /** The thin cover on the cabinet tops under a lifted countertop (Urban Low Height). */
+  | "cabinetCover"
+  /** The undertop under the whole composition, priced per cm of its width (Lame). */
+  | "undertop";
+
+/** One line of the order: what is priced and how many pieces of it. */
+export type PricingLine = {
+  /** Stable within a configuration, so a summary item finds the line it shows. */
+  id: string;
+  group: PricingLineGroup;
+  sku: string;
+  /** Pieces ordered. Identical price requests are merged; pieces never are. */
+  quantity: number;
+  /** Product the line belongs to (runtime id), when it belongs to one. */
+  sourceId?: string;
+  /** Actual countertop width the top line is priced for. */
+  widthCm?: number;
+  /**
+   * The finish the line is ordered in where Summary cannot read it from one attribute: a Lower slab's
+   * (`cabinetCover`), which the scene paints, as the Upper's palette names its colour and the SKU names its
+   * material; an own side panel's, its cabinet colour and the material the SKU profile names for it.
+   */
+  finish?: { color: string; materialSku: string };
+};
+
+/**
+ * A part of the order the collection has not confirmed (D04): no SKU, no quantity rule or no
+ * input for it. `blocksTotal` keeps the total incomplete while the order uses that part.
+ */
+export type PricingGap = {
+  group: PricingGapGroup | "input";
+  blocksTotal: boolean;
+  owner: string;
+  reason: string;
+};
+
+export type ColorSkuMaps = {
+  cabinetColorSkuByName: Map<string, string>;
+  handleGrooveColorSkuByName: Map<string, string>;
+  countertopColorSkuCandidatesByValue: CountertopColorSkuCandidatesByValue;
+};
+
+/** Everything the order lines are built from: A's collection data, C's state and the scene configs. */
+export type PricingInput = {
+  skuBuilders: SkuBuilders;
+  activeProfile: ProductProfile | null;
+  /** The scene types of the collection, which name the placed products (a Mako sink base is a Mako-sink-cabinet). */
+  runtimeBindings?: RuntimeBindingSet | null;
+  colorSkuMaps: ColorSkuMaps;
+  /** The loaded configurator, for a collection whose colours name their material through it. */
+  configurator?: ConfiguratorGroupCatalog | null;
+  countertopRules: CountertopMatrixRule[];
+  cabinetCatalog: ProductState["cabinetCatalog"];
+
+  shouldUsePresets: boolean;
+  productIds: readonly string[];
+  /** Product ids in the scene's composition order. */
+  orderedProductIds: readonly string[];
+  productsPresets: ProductState["productsPresets"];
+  sceneConfigs: readonly NormalizedProductConfigSnapshot[];
+  /** The countertop's sink while it hosts one (after `cabinets.liftSink`): its basin replaces the global one. */
+  hostedSink?: { sinkType: string | null; vesselColor: string | null } | null;
+  /** The cover slabs the scene lays on the cabinet tops while the countertop is lifted; null when it is not. */
+  cabinetCovers?: readonly CabinetCoverSize[] | null;
+  cabinetEntries: readonly CabinetEntry[];
+  dimensionsByCabinet: Readonly<Record<StableCabinetKey, CabinetDimensions>>;
+  /** What the scene holds for each product's Ph2 organizers (read-model); a collection with organizers prices them. */
+  organizersByCabinet?: Readonly<Record<StableCabinetKey, DrawerOrganizersRead>>;
+  /** Applied runtime countertop length. Overrides only the priced top, never cabinet or basin geometry. */
+  committedCountertopLengthCm?: number;
+  /** Lengths of the tandem tops (sink bases set apart under a thin top): one more countertop line each. */
+  tandemCountertopLengthsCm?: readonly number[];
+  /** C's values by attribute and address; a collection priced from its SKU profile reads them. */
+  configurationValues: Readonly<Record<string, readonly ScopedValue[]>>;
+  activeCabinetType: ProductState["activeCabinetType"];
+  selectedDimensions: ProductState["selectedDimensions"];
+  selectedProductConfig: ProductState["selectedProductConfig"];
+  placedDividers: ProductState["placedDividers"];
+  placedCabinetStyles: ProductState["placedCabinetStyles"];
+
+  cabinetColor: ProductOptions["CabinetColor"];
+  cabinetColorSku: ProductOptions["CabinetColorSku"];
+  handleGrooveColor: ProductOptions["HandleGrooveColor"];
+  handleGrooveColorSku: ProductOptions["HandleGrooveColorSku"];
+  countertopColor: ProductOptions["CountertopColor"];
+  countertopColorSku: ProductOptions["CountertopColorSku"];
+  vesselColor: ProductOptions["VesselColor"];
+  countertopThickness: ProductOptions["Thickness"];
+  countertopStyle: ProductOptions["CountertopStyle"];
+  sinkType: ProductOptions["sinkType"];
+  drawerPanelFluting: ProductOptions["DrawerPanelFluting"];
+  grainDirection: ProductOptions["GrainDirection"];
+  bookMatching: ProductOptions["BookMatching"];
+  towelBarOption: ProductOptions["TowelBarOption"];
+  towelBarColor: ProductOptions["TowelBarColor"];
+  faucetHolesAmount: ProductOptions["FaucetHolesAmount"];
+  sidePanelsOption: ProductOptions["SidePanels"];
+  sidePanelLeft: ProductOptions["SidePanelLeft"];
+  sidePanelRight: ProductOptions["SidePanelRight"];
+};

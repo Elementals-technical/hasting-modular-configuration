@@ -4,12 +4,18 @@ type SidebarState = {
   isOpen: boolean;
   activeStep: string | null;
   isOpenStyleSidebar: boolean;
+  /**
+   * The style sidebar shows the scene's "+" buttons for the cabinet being added and a width fits the
+   * countertop's own row: the player offers Drag to Place beside them.
+   */
+  placementButtonsVisible: boolean;
 };
 
 const initialState: SidebarState = {
   isOpen: false,
   activeStep: null,
   isOpenStyleSidebar: false,
+  placementButtonsVisible: false,
 };
 
 const sidebarSlice = createSlice({
@@ -41,8 +47,12 @@ const sidebarSlice = createSlice({
         state.isOpen = false;
       }
     },
+    setPlacementButtonsVisible(state, action: PayloadAction<boolean>) {
+      state.placementButtonsVisible = action.payload;
+    },
   },
 });
 
-export const { open, close, toggle, setActiveStep, reset, setOpenStyleSidebar } = sidebarSlice.actions;
+export const { open, close, toggle, setActiveStep, reset, setOpenStyleSidebar, setPlacementButtonsVisible } =
+  sidebarSlice.actions;
 export const sidebarReducer = sidebarSlice.reducer;

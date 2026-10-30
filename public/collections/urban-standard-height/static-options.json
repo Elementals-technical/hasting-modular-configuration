@@ -1,0 +1,7 @@
+{
+  "countertopThicknesses": ["0.4", "0.5", "2.4", "4", "5.125"],
+  "faucetHoleCounts": [0, 1, 2, 3],
+  "cabinetTypes": ["Sink-Base", "Sink-Cabinet", "Open-Shelf", "Side-Shelf"],
+  "drawerConfigurations": ["1D", "2D", "1DWID"],
+  "handles": ["handle_pto", "handle_urban_topcut", "handle_urban_botcut"]
+}

@@ -3,11 +3,12 @@ import { useParams } from "react-router-dom";
 import img_desc from "@/shared/assets/images/png/descr_image.png";
 
 import s from "./ModelDetailsPage.module.scss";
-import { productMockData } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
+import { useCollectionPresets } from "@/entities/collection";
 
 export const ModelDetailsPage = () => {
   const { modelId } = useParams<{ modelId: string }>();
-  const selectedModel = productMockData.find(({ id }) => id === Number(modelId));
+  const presets = useCollectionPresets();
+  const selectedModel = presets.find(({ id }) => id === Number(modelId));
 
   const presetProducts = selectedModel?.presetProducts ?? [];
   const detailsImage = selectedModel?.img ?? img_desc;

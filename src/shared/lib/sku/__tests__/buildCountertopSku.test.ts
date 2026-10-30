@@ -7,6 +7,7 @@ import {
   type CountertopSkuInput,
 } from "../buildCountertopSku";
 import { basinSkuMap, countertopMaterialSkuMap, countertopStyleSkuMap } from "../countertopSkuMaps";
+import { ushSkuProfile } from "./ushSkuProfileFixture";
 
 const baseInput: CountertopSkuInput = {
   style: "integrated",
@@ -19,7 +20,7 @@ const baseInput: CountertopSkuInput = {
   countertopColorCode: "FF",
 };
 
-const buildSku = (overrides: Partial<CountertopSkuInput> = {}) => buildCountertopSku({ ...baseInput, ...overrides });
+const buildSku = (overrides: Partial<CountertopSkuInput> = {}) => buildCountertopSku(ushSkuProfile, { ...baseInput, ...overrides });
 
 const parseTopSku = (sku: string) => {
   const [category, product, style, width, height, depth, material, color] = sku.split("-");
@@ -228,6 +229,6 @@ describe("buildCountertopSku", () => {
 
   it("builds SKU lines through the summary-safe guard when required data is complete", () => {
     expect(canBuildCountertopSku(baseInput)).toBe(true);
-    expect(buildCountertopSkuIfComplete(baseInput)).toEqual(["CT-URSSTKR-INTG-75.2W-.5H-19.9D-SSTKR-FF"]);
+    expect(buildCountertopSkuIfComplete(ushSkuProfile, baseInput)).toEqual(["CT-URSSTKR-INTG-75.2W-.5H-19.9D-SSTKR-FF"]);
   });
 });

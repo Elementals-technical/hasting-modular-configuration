@@ -2,6 +2,7 @@
   cursor: pointer;
 
   .title {
+    display: block;
     color: #282828;
     font-family: Poppins;
     font-size: 12px;
@@ -78,6 +79,25 @@
       cursor: pointer;
     }
   }
+}
+
+.selectButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: inherit;
+}
+
+.selectButton:focus-visible,
+.link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .titleDisabled {

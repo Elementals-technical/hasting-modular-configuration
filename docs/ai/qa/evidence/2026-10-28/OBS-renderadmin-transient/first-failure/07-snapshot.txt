@@ -1,0 +1,8 @@
+## Latest page snapshot
+uid=1_0 RootWebArea "tagging-modules-tool" url="https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-standard-height"
+  uid=1_1 alert atomic live="assertive" relevant="additions text"
+    uid=1_2 heading "Collection unavailable" level="1"
+    uid=1_3 "The collection data could not be loaded. Please try again."
+    uid=1_4 "Collection: "
+    uid=1_5 "urban-standard-height"
+    uid=1_6 button "Retry"

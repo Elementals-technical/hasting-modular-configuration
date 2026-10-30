@@ -1,0 +1,38 @@
+# Як розширювати модуль
+
+> Рецепти описують місця змін, а не готові контракти майбутніх фіч. `rail`, блокуюча колізія і поворот підтверджені власником як roadmap, але їхні точні правила, пороги та UX — ⚠ припущення. Нічого з наведеного тут ще не реалізовано. Поточна валідація точного набору ключів вимагає синхронних змін у всіх указаних шарах. [spec/define.mjs:43](../spec/define.mjs#L43), [core/contracts/validators.mjs:9](../core/contracts/validators.mjs#L9)
+
+## Нова корекція motion: `rail`
+
+⚠ Приклад «стоп на краю сегмента й перескок після порога» — лише кандидат політики; одиниці порога, вибір сегмента і взаємодія зі snap/Alt потребують рішення власника.
+
+Чекліст файлів:
+
+1. `spec/define.mjs`: прийняти й нормалізувати ключ rail у `motion`, не пропускаючи невідомі поля. [spec/define.mjs:89](../spec/define.mjs#L89)
+2. `runtime/world.mjs`: перенести нормалізований rail у core config та facade `setMotion`/`getState`; вирішити, чи дозволена зміна в активному жесті. [runtime/world.mjs:165](../runtime/world.mjs#L165), [runtime/world.mjs:425](../runtime/world.mjs#L425), [runtime/world.mjs:455](../runtime/world.mjs#L455)
+3. `core/contracts/validators.mjs`, `runtime/lifecycle.mjs`: додати exact keys, перевірку DTO, patch merge і policyRevision. [core/contracts/validators.mjs:16](../core/contracts/validators.mjs#L16), [runtime/lifecycle.mjs:103](../runtime/lifecycle.mjs#L103)
+4. `core/motion/planner.mjs` і, за потреби, окремий `core/motion/rail.mjs`: узгодити порядок корекцій із freeze → snap → grid → bounds та структуру `corrections`. [core/motion/planner.mjs:274](../core/motion/planner.mjs#L274)
+5. `runtime/instance-motion.mjs`, `runtime/gesture.mjs`, `playcanvas/input.mjs`: протягнути pointer/проєкційний контекст, latch/anchor rebase і policy staleness, якщо rail цього потребує. [runtime/instance-motion.mjs:168](../runtime/instance-motion.mjs#L168), [runtime/gesture.mjs:146](../runtime/gesture.mjs#L146), [playcanvas/input.mjs:545](../playcanvas/input.mjs#L545)
+6. `tests/characterization.test.mjs` і `examples/`: перевірити край, поріг перескоку, Alt, snap/grid/bounds; лише після узгодження політики змінювати поточні очікування. [tests/characterization.test.mjs](../tests/characterization.test.mjs), [examples/free-field.mjs](../examples/free-field.mjs)
+
+## Collision mode `block`
+
+Поточний валідатор відкидає все, крім `observe`, а observation робиться після pose apply; отже, просте перейменування mode не блокує рух. [core/contracts/validators.mjs:233](../core/contracts/validators.mjs#L233), [runtime/instance-motion.mjs:203](../runtime/instance-motion.mjs#L203)
+
+Чекліст: `spec/define.mjs` (новий публічний ключ/mode та дефолт) → `runtime/world.mjs` (передача в config/handle) → `core/contracts/validators.mjs` (exact keys і mode) → `runtime/lifecycle.mjs` (patch/revision) → `core/collision/observation.mjs` та `core/collision/aabb.mjs` (прогнозований вердикт для candidate pose) → `runtime/instance-motion.mjs` і `runtime/pose-driver.mjs` (перевірка до write, відхилення/частковий рух, report) → `playcanvas/scene-measure.mjs` (поточні world AABB/проксі) → тести/приклади. [spec/define.mjs:214](../spec/define.mjs#L214), [runtime/world.mjs:177](../runtime/world.mjs#L177), [runtime/lifecycle.mjs:103](../runtime/lifecycle.mjs#L103), [core/collision/observation.mjs:97](../core/collision/observation.mjs#L97), [runtime/instance-motion.mjs:203](../runtime/instance-motion.mjs#L203), [playcanvas/scene-measure.mjs:115](../playcanvas/scene-measure.mjs#L115) ⚠ Потрібно затвердити поведінку при неповній/`pending` геометрії: fail-closed не визначає автоматично, чи блокувати рух.
+
+## Нова стратегія collision proxy
+
+Чекліст: `core/collision/proxies.mjs` (диспетчер, перевірка примітивів, семантичні ролі та діагностика) → `spec/compile.mjs` (profile resolver/компіляція) → `playcanvas/scene-measure.mjs` (перетворення локальних proxy у world AABB або нове представлення) → `core/collision/aabb.mjs`/`observation.mjs` (якщо геометрія вже не AABB) → `tests/characterization.test.mjs` і чинні collision-тести (valid, missing, ambiguous, rotated). [core/collision/proxies.mjs:9](../core/collision/proxies.mjs#L9), [core/collision/proxies.mjs:328](../core/collision/proxies.mjs#L328), [spec/compile.mjs:174](../spec/compile.mjs#L174), [playcanvas/scene-measure.mjs:338](../playcanvas/scene-measure.mjs#L338), [core/collision/aabb.mjs:146](../core/collision/aabb.mjs#L146) Якщо змінюються `profile` keys, також `core/contracts/validators.mjs` і `runtime/lifecycle.mjs`. [core/contracts/validators.mjs:34](../core/contracts/validators.mjs#L34), [runtime/lifecycle.mjs:103](../runtime/lifecycle.mjs#L103)
+
+## Новий extractor snap-фіч
+
+Чекліст: `spec/extractors.mjs` (функція, `key`/`geometry`, `perBody` для групових) → `spec/compile.mjs` (якщо потрібний новий тип geometry або залежності виміру) → `core/snapping/candidates.mjs` і `resolver.mjs` (якщо новий тип/операція; role pairing та пороги) → `spec/define.mjs` (якщо змінюється DSL `features`/`rules`) → `runtime/world.mjs` (якщо потрібні нові stamps) → тести/приклад. Для extractor, що повертає лише наявні axis/point descriptors, core/DSL змінювати не потрібно. [spec/extractors.mjs:4](../spec/extractors.mjs#L4), [spec/compile.mjs:99](../spec/compile.mjs#L99), [core/snapping/candidates.mjs:47](../core/snapping/candidates.mjs#L47), [core/snapping/resolver.mjs:88](../core/snapping/resolver.mjs#L88), [spec/define.mjs:118](../spec/define.mjs#L118)
+
+## Драйвер пози з поворотом
+
+Поточний `PosePort` читає/пише лише `offsetM` і `pivotWorldM`; PlayCanvas driver зсуває позиції. [runtime/pose-driver.mjs:22](../runtime/pose-driver.mjs#L22), [playcanvas/entity-group-pose.mjs:24](../playcanvas/entity-group-pose.mjs#L24) Якщо поворот стає частиною публічного стану, чекліст: `spec/define.mjs` (DSL) → `core/contracts/validators.mjs`, `core/motion/frame.mjs`, `core/motion/planner.mjs` (DTO/одиниці/план) → `runtime/world.mjs`, `runtime/pose-driver.mjs`, `runtime/reports.mjs`, `runtime/lifecycle.mjs`, `runtime/gesture.mjs` (config, revision, report, stale/barrier) → `spec/compile.mjs`, `core/snapping/*`, `core/collision/*` (оновлення фіч і proxy після повороту) → `playcanvas/entity-group-pose.mjs`, `scene-measure.mjs`, `projection.mjs`, `input.mjs` (transform, вимір, жест) → тести/приклад. [core/contracts/validators.mjs:9](../core/contracts/validators.mjs#L9), [runtime/reports.mjs:39](../runtime/reports.mjs#L39), [spec/compile.mjs:16](../spec/compile.mjs#L16), [playcanvas/projection.mjs:282](../playcanvas/projection.mjs#L282) ⚠ Неясно, чи поворот має бути третьою координатою plan, окремою командою чи лише внутрішнім driver effect; оберіть контракт до редагування.
+
+## Адаптер іншого рушія
+
+Реалізуйте новий каталог адаптера (за зразком `playcanvas/`), не імпортуючи його в `core/`/`spec/`: `scene.bodies`, `measure.bounds`/`proxies`, `engine.createPoseDriver`, за потреби `describeBinding`, `attach` для pointer router та `renderGuides`; `createSpatialWorld` залишається engine-free. Додайте незалежний entry point, tests і приклад. [runtime/world.mjs:1](../runtime/world.mjs#L1), [runtime/world.mjs:89](../runtime/world.mjs#L89), [playcanvas/world.mjs:39](../playcanvas/world.mjs#L39), [tests/adapters/demo-engine.mjs](../tests/adapters/demo-engine.mjs) Для pointer-input перевірте begin/update/end/cancel, Alt, projection revision і ownership; для pose — read/write/rebase/suspend/destroy; для виміру — невимірювані об'єкти та інвалідацію кешу. [playcanvas/input.mjs:299](../playcanvas/input.mjs#L299), [playcanvas/projection.mjs:131](../playcanvas/projection.mjs#L131), [playcanvas/entity-group-pose.mjs:16](../playcanvas/entity-group-pose.mjs#L16), [runtime/world.mjs:105](../runtime/world.mjs#L105)

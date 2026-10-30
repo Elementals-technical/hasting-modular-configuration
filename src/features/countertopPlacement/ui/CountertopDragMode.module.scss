@@ -1,0 +1,286 @@
+$accent: #ac5331;
+$ink: #282828;
+$clear: #39d080;
+$colliding: #e5484d;
+
+%pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+// Fallback without the countertop overlay: pills in the top-right, like the cabinet toolbar.
+.toolbar {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 26;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.toolbarButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.primaryPill {
+  @extend %pill;
+  border: 1px solid $accent;
+  background: $accent;
+  color: #fff;
+}
+
+.secondaryPill {
+  @extend %pill;
+  border: 1px solid $ink;
+  background: #fff;
+  color: $ink;
+}
+
+.message {
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #a02e20;
+  font-size: 12px;
+  line-height: 16px;
+  box-shadow: 0 1px 4px #0002;
+}
+
+// Overlay: anchors come from PlayCanvas in iframe px; this layer covers the iframe exactly.
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ghost {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+
+  polygon {
+    fill: rgba(57, 208, 128, 0.18);
+    stroke: #39d080;
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+}
+
+.colliding .ghost polygon {
+  fill: rgba(229, 72, 77, 0.18);
+  stroke: #e5484d;
+}
+
+.moveMarker {
+  position: absolute;
+  display: block;
+  line-height: 0;
+  color: $clear;
+  transform: translate(-50%, -50%);
+}
+
+.colliding .moveMarker {
+  color: $colliding;
+}
+
+.chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 999px;
+  background: $clear;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+button.chip {
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+.colliding .chip,
+.colliding .handle {
+  background: $colliding;
+}
+
+// Hint under the top; `.lengthHintFaded` fades it out for the rest of the session.
+.lengthHint {
+  position: absolute;
+  color: $ink;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.lengthHintFaded {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.4s ease,
+    visibility 0s linear 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lengthHintFaded {
+    transition: none;
+  }
+}
+
+.handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: $clear;
+  box-shadow: 0 1px 3px #0004;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+  touch-action: none;
+  pointer-events: auto;
+}
+
+.applyChip {
+  position: absolute;
+  transform: translateX(-100%);
+  padding: 3px 12px;
+  border: none;
+  border-radius: 999px;
+  background: $accent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.discardChip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid $ink;
+  border-radius: 50%;
+  background: #fff;
+  color: $ink;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+// Non-blocking validation warning (COUNTERTOP_COLLISION): amber instead of the red error text.
+.warning {
+  background: #fff7e0;
+  color: #8a5a00;
+}
+
+.reason {
+  position: absolute;
+  transform: translateX(-100%);
+  max-width: 260px;
+  white-space: normal;
+}
+
+
+@media (max-width: 1024px) {
+  .toolbarButtons,
+  .chip,
+  .discardChip {
+    --icon-stroke-width: 1;
+  }
+
+  .toolbar {
+    top: 74px;
+    right: 16px;
+  }
+}
+
+// Movement-mode notice (absolute; positioned by the host).
+.modeNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 320px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 4px #0002;
+}
+
+.modeNoticeText {
+  margin: 0;
+  color: $ink;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.modeNoticeClose {
+  border: none;
+  background: none;
+  padding: 0;
+  color: $ink;
+  font-size: 16px;
+  line-height: 16px;
+  cursor: pointer;
+}

@@ -1,27 +1,38 @@
-import { Link } from "react-router-dom";
+import { Link, type To } from "react-router-dom";
 
 import { ArrowTopRight } from "@/shared/assets/images/svg/ArrowTopRight";
 import none_img from "../../assets/images/png/img_png.png";
 import { Hint } from "../Hint/Hint";
 
 import s from "./ProductStyleItem.module.scss";
+import { useReasonText, type MessageParams } from "@/shared/lib/reasonText";
+
+/** Shown when a style is unavailable and its rule named no reason. */
+const UNAVAILABLE_OPTION_REASON_CODE = "ui.optionUnavailable";
+/** The collection does not allow this style next to the cabinets already placed. */
+const MIXING_RESTRICTED_REASON_CODE = "drawers.mixingRestricted";
 
 interface ProductStyleItemI {
-  id: number;
+  /** The option value this card stands for; it is the card's identity. */
+  value: string;
   title: string;
   imageSrc?: string;
-  detailsTo?: string;
+  detailsTo?: To;
   handleOpenStyleSidebar: () => void;
   isActive?: boolean;
-  onSelectStyle?: (id: number) => void;
+  onSelectStyle?: (value: string) => void;
   isAvailable?: boolean;
+  /** Text a caller resolved itself; used while its rule has no reason code. */
   disabledReason?: string;
+  /** Stable reason code; the interface resolves it (`shared/lib/reasonText`). */
+  disabledReasonCode?: string;
+  disabledReasonParams?: MessageParams;
   isMixingRestricted?: boolean;
-  onMixingRestrictedSelect?: (id: number) => void;
+  onMixingRestrictedSelect?: (value: string) => void;
 }
 
 export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
-  id,
+  value,
   title,
   imageSrc,
   detailsTo = "#",
@@ -30,18 +41,22 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
   onSelectStyle,
   isAvailable = true,
   disabledReason,
+  disabledReasonCode,
+  disabledReasonParams,
   isMixingRestricted = false,
   onMixingRestrictedSelect,
 }) => {
+  const reasonText = useReasonText();
+
   const handleClick = () => {
+    if (!isAvailable) return;
+
     if (isMixingRestricted) {
-      onMixingRestrictedSelect?.(id);
+      onMixingRestrictedSelect?.(value);
       return;
     }
 
-    if (!isAvailable) return;
-
-    onSelectStyle?.(id);
+    onSelectStyle?.(value);
     handleOpenStyleSidebar();
   };
 
@@ -55,29 +70,36 @@ export const ProductStyleItem: React.FC<ProductStyleItemI> = ({
     .join(" ");
 
   const hintContent = !isAvailable
-    ? disabledReason ?? "Not available for selected configuration"
+    ? reasonText({
+        code: disabledReasonCode ?? UNAVAILABLE_OPTION_REASON_CODE,
+        params: disabledReasonParams,
+        text: disabledReason,
+      })
     : isMixingRestricted
-      ? "Cannot mix 1 Drawer and 2 Drawer cabinet styles in one vanity configuration."
+      ? reasonText({ code: MIXING_RESTRICTED_REASON_CODE })
       : null;
 
   const card = (
-    <div className={itemClass} onClick={handleClick}>
-      <div className={s.image}>
-        <img src={imageSrc ?? none_img} alt="image" />
-      </div>
-      {!isAvailable || isMixingRestricted ? (
-        <div className={`${s.title} ${s.titleDisabled}`}>{title}</div>
-      ) : (
-        <div className={s.title}>{title}</div>
-      )}
-
-      <Link
-        className={s.link}
-        to={detailsTo}
-        onClick={(event) => {
-          event.stopPropagation();
-        }}
+    <div className={itemClass}>
+      <button
+        type="button"
+        className={s.selectButton}
+        aria-label={title}
+        aria-pressed={isActive}
+        aria-disabled={!isAvailable || undefined}
+        onClick={handleClick}
       >
+        <span className={s.image}>
+          <img src={imageSrc ?? none_img} alt="" />
+        </span>
+        {!isAvailable || isMixingRestricted ? (
+          <span className={`${s.title} ${s.titleDisabled}`}>{title}</span>
+        ) : (
+          <span className={s.title}>{title}</span>
+        )}
+      </button>
+
+      <Link className={s.link} to={detailsTo}>
         <span>Product Details</span>
         <span className={s.linkIcon}>
           <ArrowTopRight color={"#ad5534"} />

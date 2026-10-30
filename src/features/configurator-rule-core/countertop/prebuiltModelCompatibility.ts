@@ -1,8 +1,11 @@
+import type { ProductProfile } from "@/entities/collection";
+import { selectMessageOr } from "@/entities/collection";
 import type { PresetProduct } from "@/entities/product/types";
 
 import { resolveCountertopCabinetCompositionConstraint } from "./compositionConstraints";
 import {
   materialMatchesRule,
+  selectMaterialAliasTable,
   matchesDepthForStyle,
   normalizeBasinKey,
   normalizeBasinToken,
@@ -20,6 +23,8 @@ type PrebuiltPresetDimensions = {
   cabinetCount: number;
 };
 
+export const REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL = "countertop.materialNotAvailableForModel";
+
 export type PrebuiltModelCountertopCompatibilityInput = {
   rules: CountertopMatrixRule[];
   presetProducts: PresetProduct[];
@@ -27,11 +32,14 @@ export type PrebuiltModelCountertopCompatibilityInput = {
   activeCountertopStyle?: string | null;
   activeBasinStyle?: string | null;
   activeThickness?: string | null;
+  profile: ProductProfile | null;
 };
 
 export type PrebuiltModelCountertopCompatibilityResult = {
   isCompatible: boolean;
   reason?: string;
+  /** Stable code of `reason`; the text comes from the collection's `messages`. */
+  reasonCode?: string;
 };
 
 const normalizeProductName = (value?: string | null): string => value?.toLowerCase().replace(/[^a-z0-9]+/g, "") ?? "";
@@ -142,6 +150,7 @@ const isMaterialCompatible = ({
   activeBasinStyle,
   activeThickness,
   dimensions,
+  profile,
 }: {
   rules: CountertopMatrixRule[];
   activeMaterialTokens: string[];
@@ -149,22 +158,26 @@ const isMaterialCompatible = ({
   activeBasinStyle?: string | null;
   activeThickness?: string | null;
   dimensions: PrebuiltPresetDimensions;
+  profile: ProductProfile | null;
 }): boolean => {
   if (!activeMaterialTokens.length) return true;
 
   const compositionConstraint = resolveCountertopCabinetCompositionConstraint({
     materialTokens: activeMaterialTokens,
     cabinetCount: dimensions.cabinetCount,
+    profile,
   });
   if (!compositionConstraint.isWithinCabinetLimit) return false;
 
   const widthRuleStyle = resolveCountertopWidthRuleStyle({
     activeCountertopStyle,
     activeBasinStyle,
+    profile,
   });
 
+  const aliasTable = selectMaterialAliasTable(profile);
   const materialMatchingRules = rules.filter((rule) =>
-    activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material)),
+    activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable)),
   );
   const applicableRules = materialMatchingRules.filter((rule) =>
     matchesDepthForStyle(rule, dimensions.sinkBaseDepth, widthRuleStyle),
@@ -191,6 +204,7 @@ const isMaterialCompatible = ({
         style: widthRuleStyle,
         context: context === "sb" ? "sink-base" : "generic",
         activeBasinStyle,
+        profile,
       }),
     );
 
@@ -207,6 +221,7 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
   activeCountertopStyle,
   activeBasinStyle,
   activeThickness,
+  profile,
 }: PrebuiltModelCountertopCompatibilityInput): PrebuiltModelCountertopCompatibilityResult => {
   if (!rules.length || !presetProducts.length) return { isCompatible: true };
   if (!activeMaterialTokens.length && !activeCountertopStyle) return { isCompatible: true };
@@ -219,11 +234,17 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
     activeBasinStyle,
     activeThickness,
     dimensions,
+    profile,
   });
   if (!materialCompatible) {
     return {
       isCompatible: false,
-      reason: "The selected countertop material/finish is not available for this model.",
+      reasonCode: REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
+      reason: selectMessageOr(
+        profile,
+        REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
+        "The selected countertop material/finish is not available for this model.",
+      ),
     };
   }
 
@@ -237,12 +258,14 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
     activeCountertopStyle,
     activeBasinStyle: activeBasinStyle ?? null,
     activeThickness: activeThickness ?? null,
+    profile,
   });
 
   const styleKey = resolveStyleKey(activeCountertopStyle);
   if (styleKey && !ruleState.styleAvailability[styleKey].isAvailable) {
     return {
       isCompatible: false,
+      reasonCode: ruleState.styleAvailability[styleKey].reasonCode,
       reason: ruleState.styleAvailability[styleKey].disabledReason,
     };
   }

@@ -1,0 +1,154 @@
+{
+ "description": "Local: lame colour sections' Price tiers by the GB block of Material Pricing Tiers (counts per tier, grid). Read-only, guarded. Reuses the agent's own localhost tab (no new tab).",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "[\\s\\S]*\\n(\\d+): [^\\n]*\\(http://localhost:5173/[^\\n]*collectionId=(?:mako|lame|class)\\)"
+   }
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "url",
+    "url": "http://localhost:5173/prebuilt/model?collectionId=lame",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n\n// QA harness (agent tab only): simulates the proposed loader fix — collection JSON fetched with cache:'no-cache'\n// (forces revalidation, so a heuristically-fresh stale copy is not used). Combine with write-guard.js.\n(() => {\n  if (window.__qaCollectionsNoCache) return;\n  window.__qaCollectionsNoCache = true;\n  const prev = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    if (url && url.includes('/collections/')) return prev(input, { ...init, cache: 'no-cache' });\n    return prev(input, init);\n  };\n})();\n"
+   },
+   "save": "01-nav.txt"
+  },
+  {
+   "sleep": 25000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Skip\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Skip\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "02-skip.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "03-next-color.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  return { scope: panel || trig.closest('h3,[role=heading]')?.parentElement };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button[class*=selectButton]')].map((b) => txt(b.getAttribute('aria-label')));\n  const groups = [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\n  return { count: names.length, groups, swatches: names.sort() };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX' };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  const o = pick ? opts.find((x) => label(x) === pick) : null;\n  if (!o) { lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); } return { offered }; }\n  (o.querySelector('button') || o).click(); await wait(900);\n  return { offered };\n};\nconst distribution = async (title) => {\n  const s = await section(title); if (s.err || !s.scope) return { section: title, err: s.err || 'NO SCOPE' };\n  const all = swatches(s.scope);\n  const { offered, err } = await price(s.scope, null); if (err) return { section: title, err, total: all.count };\n  const byTier = {};\n  for (const tier of offered.filter((t) => t !== 'Show all')) {\n    await price(s.scope, tier);\n    const { count, groups, swatches: names } = swatches(s.scope);\n    byTier[tier] = { count, groups, swatches: names };\n  }\n  await price(s.scope, 'Show all');\n  const ranked = Object.values(byTier).reduce((n, t) => n + t.count, 0);\n  return { section: title, total: all.count, totalGroups: all.groups, offered, ranked, byTier };\n};\nconst pickOption = async (title, label) => {\n  const s = await section(title); if (s.err || !s.scope) return { err: s.err || 'NO SCOPE' };\n  const b = s.scope.querySelector(`button[aria-label=\"${label}\"]`); if (!b) return { err: 'NO OPTION ' + label };\n  b.scrollIntoView({ block: 'center' }); b.click(); await wait(4000); return 'picked ' + label;\n};\nreturn await distribution(\"Cabinet Color\");}"
+   },
+   "save": "10-cabinet-color.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  return { scope: panel || trig.closest('h3,[role=heading]')?.parentElement };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button[class*=selectButton]')].map((b) => txt(b.getAttribute('aria-label')));\n  const groups = [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\n  return { count: names.length, groups, swatches: names.sort() };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX' };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  const o = pick ? opts.find((x) => label(x) === pick) : null;\n  if (!o) { lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); } return { offered }; }\n  (o.querySelector('button') || o).click(); await wait(900);\n  return { offered };\n};\nconst distribution = async (title) => {\n  const s = await section(title); if (s.err || !s.scope) return { section: title, err: s.err || 'NO SCOPE' };\n  const all = swatches(s.scope);\n  const { offered, err } = await price(s.scope, null); if (err) return { section: title, err, total: all.count };\n  const byTier = {};\n  for (const tier of offered.filter((t) => t !== 'Show all')) {\n    await price(s.scope, tier);\n    const { count, groups, swatches: names } = swatches(s.scope);\n    byTier[tier] = { count, groups, swatches: names };\n  }\n  await price(s.scope, 'Show all');\n  const ranked = Object.values(byTier).reduce((n, t) => n + t.count, 0);\n  return { section: title, total: all.count, totalGroups: all.groups, offered, ranked, byTier };\n};\nconst pickOption = async (title, label) => {\n  const s = await section(title); if (s.err || !s.scope) return { err: s.err || 'NO SCOPE' };\n  const b = s.scope.querySelector(`button[aria-label=\"${label}\"]`); if (!b) return { err: 'NO OPTION ' + label };\n  b.scrollIntoView({ block: 'center' }); b.click(); await wait(4000); return 'picked ' + label;\n};\nreturn await distribution(\"Handle Color\");}"
+   },
+   "save": "11-handle-color.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  return { scope: panel || trig.closest('h3,[role=heading]')?.parentElement };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button[class*=selectButton]')].map((b) => txt(b.getAttribute('aria-label')));\n  const groups = [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\n  return { count: names.length, groups, swatches: names.sort() };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX' };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  const o = pick ? opts.find((x) => label(x) === pick) : null;\n  if (!o) { lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); } return { offered }; }\n  (o.querySelector('button') || o).click(); await wait(900);\n  return { offered };\n};\nconst distribution = async (title) => {\n  const s = await section(title); if (s.err || !s.scope) return { section: title, err: s.err || 'NO SCOPE' };\n  const all = swatches(s.scope);\n  const { offered, err } = await price(s.scope, null); if (err) return { section: title, err, total: all.count };\n  const byTier = {};\n  for (const tier of offered.filter((t) => t !== 'Show all')) {\n    await price(s.scope, tier);\n    const { count, groups, swatches: names } = swatches(s.scope);\n    byTier[tier] = { count, groups, swatches: names };\n  }\n  await price(s.scope, 'Show all');\n  const ranked = Object.values(byTier).reduce((n, t) => n + t.count, 0);\n  return { section: title, total: all.count, totalGroups: all.groups, offered, ranked, byTier };\n};\nconst pickOption = async (title, label) => {\n  const s = await section(title); if (s.err || !s.scope) return { err: s.err || 'NO SCOPE' };\n  const b = s.scope.querySelector(`button[aria-label=\"${label}\"]`); if (!b) return { err: 'NO OPTION ' + label };\n  b.scrollIntoView({ block: 'center' }); b.click(); await wait(4000); return 'picked ' + label;\n};\nreturn await distribution(\"Leg Cap Color\");}"
+   },
+   "save": "12-leg-cap-color.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  return { scope: panel || trig.closest('h3,[role=heading]')?.parentElement };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button[class*=selectButton]')].map((b) => txt(b.getAttribute('aria-label')));\n  const groups = [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\n  return { count: names.length, groups, swatches: names.sort() };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX' };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  const o = pick ? opts.find((x) => label(x) === pick) : null;\n  if (!o) { lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); } return { offered }; }\n  (o.querySelector('button') || o).click(); await wait(900);\n  return { offered };\n};\nconst distribution = async (title) => {\n  const s = await section(title); if (s.err || !s.scope) return { section: title, err: s.err || 'NO SCOPE' };\n  const all = swatches(s.scope);\n  const { offered, err } = await price(s.scope, null); if (err) return { section: title, err, total: all.count };\n  const byTier = {};\n  for (const tier of offered.filter((t) => t !== 'Show all')) {\n    await price(s.scope, tier);\n    const { count, groups, swatches: names } = swatches(s.scope);\n    byTier[tier] = { count, groups, swatches: names };\n  }\n  await price(s.scope, 'Show all');\n  const ranked = Object.values(byTier).reduce((n, t) => n + t.count, 0);\n  return { section: title, total: all.count, totalGroups: all.groups, offered, ranked, byTier };\n};\nconst pickOption = async (title, label) => {\n  const s = await section(title); if (s.err || !s.scope) return { err: s.err || 'NO SCOPE' };\n  const b = s.scope.querySelector(`button[aria-label=\"${label}\"]`); if (!b) return { err: 'NO OPTION ' + label };\n  b.scrollIntoView({ block: 'center' }); b.click(); await wait(4000); return 'picked ' + label;\n};\nreturn await distribution(\"Undertop Color\");}"
+   },
+   "save": "13-undertop-color.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "format": "jpeg",
+    "quality": 70
+   },
+   "save": "19-color-step.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "20-next-countertop.txt",
+   "optional": false
+  },
+  {
+   "sleep": 6000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  return { scope: panel || trig.closest('h3,[role=heading]')?.parentElement };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button[class*=selectButton]')].map((b) => txt(b.getAttribute('aria-label')));\n  const groups = [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\n  return { count: names.length, groups, swatches: names.sort() };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX' };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  const o = pick ? opts.find((x) => label(x) === pick) : null;\n  if (!o) { lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); } return { offered }; }\n  (o.querySelector('button') || o).click(); await wait(900);\n  return { offered };\n};\nconst distribution = async (title) => {\n  const s = await section(title); if (s.err || !s.scope) return { section: title, err: s.err || 'NO SCOPE' };\n  const all = swatches(s.scope);\n  const { offered, err } = await price(s.scope, null); if (err) return { section: title, err, total: all.count };\n  const byTier = {};\n  for (const tier of offered.filter((t) => t !== 'Show all')) {\n    await price(s.scope, tier);\n    const { count, groups, swatches: names } = swatches(s.scope);\n    byTier[tier] = { count, groups, swatches: names };\n  }\n  await price(s.scope, 'Show all');\n  const ranked = Object.values(byTier).reduce((n, t) => n + t.count, 0);\n  return { section: title, total: all.count, totalGroups: all.groups, offered, ranked, byTier };\n};\nconst pickOption = async (title, label) => {\n  const s = await section(title); if (s.err || !s.scope) return { err: s.err || 'NO SCOPE' };\n  const b = s.scope.querySelector(`button[aria-label=\"${label}\"]`); if (!b) return { err: 'NO OPTION ' + label };\n  b.scrollIntoView({ block: 'center' }); b.click(); await wait(4000); return 'picked ' + label;\n};\nreturn await distribution('Countertop Color');}"
+   },
+   "save": "21-countertop-color.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "async () => {\nconst txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\nconst wait = (ms) => new Promise((r) => setTimeout(r, ms));\nconst section = async (title) => {\n  const trig = [...document.querySelectorAll('button')].find((b) => txt(b.innerText) === title && b.hasAttribute('aria-expanded'));\n  if (!trig) return { err: 'NO TRIGGER ' + title };\n  if (trig.getAttribute('aria-expanded') !== 'true') { trig.scrollIntoView({ block: 'center' }); trig.click(); await wait(800); }\n  const panel = document.getElementById(trig.getAttribute('aria-controls') || '');\n  return { scope: panel || trig.closest('h3,[role=heading]')?.parentElement };\n};\nconst swatches = (scope) => {\n  const names = [...scope.querySelectorAll('button[class*=selectButton]')].map((b) => txt(b.getAttribute('aria-label')));\n  const groups = [...scope.querySelectorAll('[class*=groupTitle]')].map((e) => txt(e.innerText));\n  return { count: names.length, groups, swatches: names.sort() };\n};\nconst price = async (scope, pick) => {\n  const btn = [...scope.querySelectorAll('button[aria-haspopup=listbox]')]\n    .find((b) => /^(Price|Standard \\$|Classic \\$\\$|Specialty \\$\\$\\$|Exclusive \\$\\$\\$\\$|Show all)$/.test(txt(b.innerText)));\n  if (!btn) return { err: 'NO PRICE BUTTON' };\n  btn.click(); await wait(600);\n  const lb = [...document.querySelectorAll('[role=listbox][aria-label=Price]')].pop();\n  if (!lb) return { err: 'NO LISTBOX' };\n  const opts = [...lb.querySelectorAll('[role=option]')];\n  const label = (o) => txt(o.querySelector('span')?.innerText || o.innerText);\n  const offered = opts.map(label);\n  const o = pick ? opts.find((x) => label(x) === pick) : null;\n  if (!o) { lb.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await wait(300);\n    if (document.querySelector('[role=listbox][aria-label=Price]')) { btn.click(); await wait(300); } return { offered }; }\n  (o.querySelector('button') || o).click(); await wait(900);\n  return { offered };\n};\nconst distribution = async (title) => {\n  const s = await section(title); if (s.err || !s.scope) return { section: title, err: s.err || 'NO SCOPE' };\n  const all = swatches(s.scope);\n  const { offered, err } = await price(s.scope, null); if (err) return { section: title, err, total: all.count };\n  const byTier = {};\n  for (const tier of offered.filter((t) => t !== 'Show all')) {\n    await price(s.scope, tier);\n    const { count, groups, swatches: names } = swatches(s.scope);\n    byTier[tier] = { count, groups, swatches: names };\n  }\n  await price(s.scope, 'Show all');\n  const ranked = Object.values(byTier).reduce((n, t) => n + t.count, 0);\n  return { section: title, total: all.count, totalGroups: all.groups, offered, ranked, byTier };\n};\nconst pickOption = async (title, label) => {\n  const s = await section(title); if (s.err || !s.scope) return { err: s.err || 'NO SCOPE' };\n  const b = s.scope.querySelector(`button[aria-label=\"${label}\"]`); if (!b) return { err: 'NO OPTION ' + label };\n  b.scrollIntoView({ block: 'center' }); b.click(); await wait(4000); return 'picked ' + label;\n};\nconst s = await section('Vessel Color'); return s.err ? { note: 'Vessel Color not shown on the default top', err: s.err } : 'shown';}"
+   },
+   "save": "30-vessel-color-shown.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}",
+    "format": "jpeg",
+    "quality": 70
+   },
+   "save": "39-countertop-step.png",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+   },
+   "save": "40-guard.txt",
+   "optional": false
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 300,
+    "types": [
+     "error",
+     "warn"
+    ]
+   },
+   "save": "41-console.txt"
+  }
+ ]
+}

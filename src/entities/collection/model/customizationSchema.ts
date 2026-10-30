@@ -1,0 +1,347 @@
+import type { AttributeValue } from "@/entities/configuration";
+import type { MessageParams } from "@/shared/lib/reasonText";
+import type { OptionState } from "@/features/configurator-rule-core/cabinetBuilder";
+
+export const CUSTOMIZATION_FLOW_IDS = ["prebuilt", "custom"] as const;
+
+export type CustomizationFlowId = (typeof CUSTOMIZATION_FLOW_IDS)[number];
+
+export const CUSTOMIZATION_SCREEN_IDS = [
+  "prebuilt-cabinet",
+  "custom-cabinet-colors",
+  "countertop",
+  "accessories",
+  "custom-summary",
+] as const;
+
+export type CustomizationScreenId = (typeof CUSTOMIZATION_SCREEN_IDS)[number];
+
+/**
+ * Items of the menu the 3D player opens on a cabinet, a countertop or a vessel. The code shows an
+ * item where the collection's data supports it; `playerMenu.hidden` hides one the product does not
+ * want for the collection.
+ */
+export const PLAYER_MENU_ITEM_IDS = [
+  "resize",
+  "reposition",
+  "color",
+  "add",
+  "cabinet-style",
+  "handle-style",
+  "accessories",
+  "duplicate",
+  "open",
+  "delete",
+  "countertop-color",
+  "countertop-thickness",
+  "countertop-length",
+  "countertop-style",
+  "basin-style",
+  "countertop-position",
+  "vessel-style",
+  "vessel-color",
+] as const;
+
+export type PlayerMenuItemId = (typeof PLAYER_MENU_ITEM_IDS)[number];
+
+/** Sizes of a placed cabinet the Resize item of the player menu can change. */
+export const PLAYER_MENU_RESIZE_IDS = ["Width", "Depth", "Height"] as const;
+
+export type PlayerMenuResizeId = (typeof PLAYER_MENU_RESIZE_IDS)[number];
+
+/**
+ * A cabinet value offered for one cabinet alone: its attribute id, or the id with what the
+ * cabinet must hold to be offered it. `when` is read as an `OptionImageVariant`'s, against the
+ * cabinet's own values: Urban Duplex offers the side of the lateral panel to its own cabinets,
+ * not to the ones Urban Standard Height and Urban Low Height supply, which have no panel.
+ * `label` names the selector; without it, the label of a section that shows the value alone,
+ * else the id. Urban Duplex names it so, as no step shows the side of the panel.
+ */
+export type PerCabinetAttribute = string | { attributeId: string; label?: string; when: Record<string, string> };
+
+export const perCabinetAttributeId = (entry: PerCabinetAttribute): string =>
+  typeof entry === "string" ? entry : entry.attributeId;
+
+export const perCabinetAttributeLabel = (entry: PerCabinetAttribute): string | undefined =>
+  typeof entry === "string" ? undefined : entry.label;
+
+/** The collection's choices for the menu of the 3D player; every field is optional. */
+export type CustomizationPlayerMenu = {
+  hidden?: PlayerMenuItemId[];
+  /** The sizes Resize offers, in this order. Without it: Width and Depth. */
+  resize?: PlayerMenuResizeId[];
+  /**
+   * Cabinet values the menu of a placed cabinet changes for that cabinet alone, each a submenu of
+   * its options (Urban Duplex: the side of the lateral panel). Each must be bound `perProduct`.
+   */
+  attributes?: PerCabinetAttribute[];
+};
+
+/**
+ * Selectors of the style sidebar the cabinet builder opens for the cabinet being added: its sizes
+ * and its handle.
+ */
+export const STYLE_SIDEBAR_FIELD_IDS = ["Width", "Depth", "Height", "Handle"] as const;
+
+export type StyleSidebarFieldId = (typeof STYLE_SIDEBAR_FIELD_IDS)[number];
+
+/** The collection's choices for the style sidebar; every field is optional. */
+export type CustomizationStyleSidebar = {
+  /** The selectors the sidebar shows, in this order. Without it: Width, Depth and Handle. */
+  fields?: StyleSidebarFieldId[];
+  /**
+   * Cabinet values the sidebar offers after its own selectors: for the cabinet selected in the
+   * scene, changed for it alone, else for the cabinet being added. Each must be bound `perProduct`.
+   */
+  attributes?: PerCabinetAttribute[];
+};
+
+/**
+ * One model of a drawer style that differs from the others by height alone (Urban Low Height: the
+ * 1 Drawer at 38 or 35 cm, the Slim at 28 or 25 cm). The card stands at the first of its `heights`
+ * the rules allow the cabinet being added, so a handle that changes the heights moves it with them.
+ * `label` follows the drawers label on the card ("1 Drawer Slim"); without it the card keeps that label.
+ */
+export type CabinetHeightStyle = {
+  id: string;
+  label?: string;
+  /** In cm; each belongs to one model. */
+  heights: number[];
+};
+
+/** The collection's choices for the cabinet style cards of the builder; every field is optional. */
+export type CustomizationCabinetStyle = {
+  /**
+   * The models of a drawer style whose heights the handle decides (`heightsByHandle`), a card each
+   * in this order. The card of the composition's height adds a cabinet; another one switches every
+   * cabinet to its height after asking. Without it a drawer style has one card.
+   */
+  heightStyles?: CabinetHeightStyle[];
+};
+
+export type CustomizationFlowStepRef = {
+  stepId: string;
+  path: string;
+  screen?: CustomizationScreenId;
+};
+
+export type CustomizationFlow = {
+  entryStepId: string;
+  steps: CustomizationFlowStepRef[];
+};
+
+export type CustomizationScreenKind = "preset-picker" | "cabinet-builder" | "fields" | "summary";
+
+export type CustomizationStepDefinition = {
+  label: string;
+  kind: CustomizationScreenKind;
+  headerPrefix?: string | null;
+  sectionIds?: string[];
+  /** false removes the step from navigation and routes; absent means enabled. */
+  enabled?: boolean;
+};
+
+/**
+ * How a field is shown: text chips, a grid of options with their pictures, a checkbox, or the
+ * colour grid of a material (pictures or colour, material filters, full mode and swatch order),
+ * as the Urban colour screens show a colour.
+ */
+export type CustomizationFieldControl = "swatches" | "options-grid" | "checkbox" | "colors";
+
+export type CustomizationFieldDefinition = {
+  attributeId: string;
+  control: CustomizationFieldControl;
+  optionsRef?: string;
+  availabilityRef?: string;
+  /** Text under the control, keyed by the selected option value. */
+  hints?: Record<string, string>;
+  /**
+   * An On / Off switch above the control, under its `label`: On sets the attribute's profile
+   * `defaultValue`, Off its `resetValue` (Mako legs: their starting colour / none).
+   */
+  toggle?: { label: string };
+  /**
+   * `firstAllowed`: while the value shown is none of the enabled options, the field takes the one its
+   * rules prefer, else the first enabled one, as the Urban Standard Height countertop step keeps its
+   * thickness, basin and vessel colour.
+   */
+  autoSelect?: "firstAllowed";
+  /**
+   * The field's tab in a section that shows one field at a time (`fieldTabs`): its text and,
+   * beside it, a picture of the collection (Urban Duplex: Base Panel, Lateral Panel).
+   */
+  tab?: { label: string; icon?: string };
+};
+
+export type CustomizationSectionDefinition = {
+  label: string;
+  defaultOpen?: boolean;
+  fields: CustomizationFieldDefinition[];
+  /**
+   * The section shows one of its fields at a time, chosen on tabs each field names in `tab`;
+   * `label` is the line above them ("Select Panel, Then Color"). Without it the fields are stacked.
+   */
+  fieldTabs?: { label?: string };
+  /** false drops the section from its step, without clearing the values of its fields. */
+  enabled?: boolean;
+  /**
+   * Label of the basin section while the countertop style is vessel, where the section lists
+   * vessel sinks rather than integrated basins. A collection that names the two the same, or
+   * offers no vessel, declares only `label`.
+   */
+  labelWhenVessel?: string;
+};
+
+/**
+ * Pictures of the options a collection declares, by attribute and option value.
+ *
+ * Keyed by attributeId rather than by field: a collection that shows the same attribute in two
+ * sections (USH repeats every countertop section for the custom flow) declares the pictures once.
+ *
+ * A value is a safe relative path inside the collection folder or an absolute HTTPS URL, as
+ * `presets.img` is; the loader replaces it with the resolved URL before the schema reaches a
+ * consumer, so a page reads an absolute URL here.
+ */
+export type CustomizationOptionImages = Record<string, Record<string, string>>;
+
+/**
+ * A picture that stands in for the option's own one while other attributes hold given values.
+ *
+ * `optionImages` has one picture per option value, which is all a collection needs while the card
+ * always looks the same. A cabinet card does not: Urban shows the groove of the handle its forced
+ * height stands for, Mako shows legs once a leg colour is chosen. A row names such a case in the
+ * collection's own vocabulary, so no attribute id or option value has to be known by the code.
+ *
+ * `value` is the option value of the card. Every entry of `when` must equal the current value of
+ * that attribute; an empty string matches an attribute that is not set, which is how "no legs
+ * chosen yet" is written without a wildcard.
+ *
+ * `image` is a safe relative path inside the collection folder or an absolute HTTPS URL, as
+ * `optionImages` is; the loader replaces it with the resolved URL before a consumer reads it.
+ */
+export type OptionImageVariant = {
+  value: string;
+  when: Record<string, string>;
+  image: string;
+};
+
+/**
+ * Variant pictures by attributeId. The rows of one attribute are read in the declared order and
+ * the first match wins, so a row with fewer conditions belongs after the ones it would shadow.
+ */
+export type OptionImageVariants = Record<string, OptionImageVariant[]>;
+
+export type CustomizationSchema = {
+  collectionId: string;
+  flows: Record<CustomizationFlowId, CustomizationFlow>;
+  steps: Record<string, CustomizationStepDefinition>;
+  sections: Record<string, CustomizationSectionDefinition>;
+  optionImages?: CustomizationOptionImages;
+  optionImageVariants?: OptionImageVariants;
+  /** Countertop editing settings of the collection; every field is optional. */
+  countertop?: CustomizationCountertopSettings;
+  /** Menu of the 3D player: items the collection hides although its data supports them. */
+  playerMenu?: CustomizationPlayerMenu;
+  /** Style sidebar of the cabinet builder: the selectors the collection shows. */
+  styleSidebar?: CustomizationStyleSidebar;
+  /** Drawer organizers (Ph2): wording of the panel and the preset cards; absent = the defaults of the code. */
+  drawerOrganizers?: CustomizationDrawerOrganizers;
+  /** Cabinet style cards of the cabinet builder: the models a drawer style comes in by height. */
+  cabinetStyle?: CustomizationCabinetStyle;
+};
+
+/**
+ * `lengthLimitsIn`: the length range (inches) the countertop Drag & Drop mode allows. Without it
+ * the UI uses one 60 cm cabinet (60 / 2.54 ≈ 23.6 in, i.e. 0.6 m) to 120 in.
+ * `lengthPresetsIn`: the length presets (inches) offered on the length chip; the UI keeps only those
+ * inside the effective limits (±0.05 in). Without it the UI offers 23.6 (one 60 cm cabinet), 48, 60, 72,
+ * 84, 96 and 120 in.
+ */
+export type CustomizationCountertopSettings = {
+  lengthLimitsIn?: { min: number; max: number };
+  lengthPresetsIn?: number[];
+};
+
+/**
+ * Wording and layout of the drawer organizer panel. The positions of the presets are not here: the
+ * code owns them (features/drawerOrganizers/model/presets.ts), this block only overrides their labels.
+ * `mobileLayout`: M1 grows the 3D window while a column is selected, M2 is a tray under it.
+ */
+export type CustomizationDrawerOrganizers = {
+  panelTitle?: string;
+  customizeLabel?: string;
+  /** Label of a preset card, by preset id. */
+  presets?: Record<string, { label?: string }>;
+  mobileLayout?: "M1" | "M2";
+};
+
+/** Properties of a configurator colour the colour grid filters and prices by. */
+export type FieldOptionTraits = {
+  sku?: string;
+  materials?: string[];
+  colors?: string[];
+  looks?: string[];
+  hex?: string;
+};
+
+export type FieldOptionState = OptionState<string> & {
+  /** Values the option's reason code names; the interface fills them into its text. */
+  reasonParams?: MessageParams;
+  image?: string;
+  /** Group the option is shown under, e.g. the material of a colour. */
+  desc?: string;
+  traits?: FieldOptionTraits;
+  /** Offered, but it changes more than the field: drawn restricted, it asks first and `reason` says why. */
+  restricted?: boolean;
+};
+
+/** The On / Off switch of a field that declares `toggle`, and the values each side sets. */
+export type FieldToggleState = {
+  /** The text above the switch, as ui.json declares it. */
+  label: string;
+  on: boolean;
+  onValue: string;
+  offValue: string;
+};
+
+export type FieldRuntimeState = {
+  attributeId: string;
+  value: AttributeValue;
+  options: FieldOptionState[];
+  toggle?: FieldToggleState;
+  visible: boolean;
+  enabled: boolean;
+  disabledReason?: string;
+  /** Stable code of `disabledReason`; the interface resolves it to text. */
+  reasonCode?: string;
+  /** Values `reasonCode`'s text names; without them the interface shows its placeholders. */
+  reasonParams?: MessageParams;
+  /** The hint ui.json declares for the current value. */
+  hint?: string;
+  /** The enabled option `autoSelect` takes before the first one, e.g. the default finish of a vessel. */
+  preferredValue?: string;
+  loading?: boolean;
+  error?: string;
+};
+
+export type CustomizationSchemaDiagnosticCode =
+  | "invalid-schema"
+  | "missing-entry-step"
+  | "unknown-step-id"
+  | "duplicate-route"
+  | "unsupported-kind"
+  | "unsupported-screen"
+  | "unknown-section-id"
+  | "unsupported-control"
+  | "unknown-menu-item"
+  | "unknown-sidebar-field";
+
+export type CustomizationSchemaDiagnostic = {
+  code: CustomizationSchemaDiagnosticCode;
+  dataPath: string;
+  message: string;
+};
+
+export type ValidateCustomizationSchemaResult =
+  | { ok: true; schema: CustomizationSchema }
+  | { ok: false; diagnostics: CustomizationSchemaDiagnostic[] };

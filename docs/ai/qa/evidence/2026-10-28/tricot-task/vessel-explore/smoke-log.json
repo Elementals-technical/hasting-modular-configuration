@@ -1,0 +1,89 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 17,
+      "summary": "## Pages 1: Elementals-technical/hasting-modular-configurat... (https://github.com/Elementals-technical/hasting-modular-configuration/tree/phase2/ui-fixes) 2: hasting-data-modular-review/Tricot/docs/TRICOT-... (https://g"
+    },
+    {
+      "step": 2,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 229,
+      "summary": "Script ran on page and returned: ```json \"clicked: Countertop Style <BUTTON>\" ```"
+    },
+    {
+      "step": 4,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 17,
+      "summary": "## Latest page snapshot uid=1_0 RootWebArea \"tagging-modules-tool\" url=\"https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/countertop?collectionId=tricot\" uid=1_1 navigation \"Configurator steps\" ui"
+    },
+    {
+      "step": 5,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json \"clicked: Vessel <BUTTON>\" ```"
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 213,
+      "summary": "Script ran on page and returned: ```json \"Total List Price\\n$5,122.00\" ```"
+    },
+    {
+      "step": 8,
+      "tool": "take_snapshot",
+      "status": "ok",
+      "ms": 17,
+      "summary": "## Latest page snapshot uid=1_0 RootWebArea \"tagging-modules-tool\" url=\"https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/countertop?collectionId=tricot\" uid=1_1 navigation \"Configurator steps\" ui"
+    },
+    {
+      "step": 9,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 238,
+      "summary": "image 25-after-vessel-1.png; Took a screenshot of the current page's viewport."
+    }
+  ]
+}

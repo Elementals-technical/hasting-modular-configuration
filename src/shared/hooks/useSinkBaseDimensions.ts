@@ -14,32 +14,16 @@ const toFiniteNumber = (value: unknown): number | null => {
   return null;
 };
 
-const containsSinkBase = (value: unknown, visited = new Set<unknown>()): boolean => {
-  if (!value || visited.has(value)) return false;
-
-  if (typeof value === "string") {
-    const normalized = value.toLowerCase().replace(/[^a-z0-9]+/g, "");
-    return normalized.includes("sinkbase");
-  }
-
-  if (typeof value !== "object") return false;
-  visited.add(value);
-
-  if (Array.isArray(value)) {
-    return value.some((entry) => containsSinkBase(entry, visited));
-  }
-
-  return Object.values(value as Record<string, unknown>).some((entry) =>
-    containsSinkBase(entry, visited),
-  );
-};
-
 /**
  * Returns { width, depth } of the largest Sink Base cabinet on the scene.
  * When multiple SB cabinets exist, picks the one with the greatest width.
  * Returns { width: null, depth: null } when no SB is present.
+ * `isSinkBase` tells a Sink Base by its runtime id, which only the collection's bindings can read.
  */
-export function useSinkBaseDimensions(selectedProducts: string[]): SinkBaseDimensions {
+export function useSinkBaseDimensions(
+  selectedProducts: string[],
+  isSinkBase: (runtimeId: string) => boolean,
+): SinkBaseDimensions {
   const [dims, setDims] = useState<SinkBaseDimensions>({ width: null, depth: null });
 
   useEffect(() => {
@@ -57,8 +41,8 @@ export function useSinkBaseDimensions(selectedProducts: string[]): SinkBaseDimen
       let bestWidth: number | null = null;
       let bestDepth: number | null = null;
 
-      configs.forEach((config) => {
-        if (!config || !containsSinkBase(config)) return;
+      configs.forEach((config, index) => {
+        if (!config || !isSinkBase(orderedIds[index])) return;
 
         const w = toFiniteNumber((config as Record<string, unknown>).Width);
         const d = toFiniteNumber((config as Record<string, unknown>).Depth);
@@ -84,7 +68,7 @@ export function useSinkBaseDimensions(selectedProducts: string[]): SinkBaseDimen
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [selectedProducts]);
+  }, [isSinkBase, selectedProducts]);
 
   return dims;
 }

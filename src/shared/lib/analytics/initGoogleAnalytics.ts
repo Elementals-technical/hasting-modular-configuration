@@ -18,7 +18,7 @@ const appendAnalyticsScript = (id: string, src: string) => {
 const getEnvValue = (value: string | undefined) => value?.trim() ?? "";
 
 export const initGoogleAnalytics = () => {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || import.meta.env.VITE_ANALYTICS_ENABLED !== "true") return;
 
   const analyticsWindow = window as AnalyticsWindow;
   const gaId = getEnvValue(import.meta.env.VITE_GA_ID);

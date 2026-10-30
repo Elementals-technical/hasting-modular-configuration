@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "lame",
+  "status": "partial",
+  "sources": [
+    "Lame Vanities - SKUs + Pricing.xlsx (hasting-data-modular-review, analysis/products-data): SKU Structure - Product Model, SKU Curation, CabinetPricing, CountertopPricing, Basin StylePricing; countertops, basins and accessories refer to the Class workbook",
+    "Class Vanities - SKUs + Pricing: Countertop, Basin Style and Accessories pricing",
+    "Countertop | Basin Styles Rules Logic - GB",
+    "SKU_Vessels_V2 (table 542) rows 28-30 for the series and sizes of Iris, Frame and Plaza"
+  ],
+  "cabinet": {
+    "series": "LAMEV",
+    "requireCompleteInput": true,
+    "configBlock": [
+      { "attributeId": "CabinetType", "codes": { "Sink-Base": "SB", "Sink-Cabinet": "SC" } },
+      { "attributeId": "Drawers", "codes": { "1": "1DW", "2": "2DW" } },
+      { "attributeId": "Handle", "codes": { "G58": "G58" } },
+      {
+        "attributeId": "CabinetPattern",
+        "codes": { "Galles": "GAL", "Gessato": "GES", "Oxford": "OXF", "Piquet": "PIQ", "Plisse": "PLIS" }
+      }
+    ],
+    "elements": [
+      { "code": "CAB", "attributeId": "CabinetColor" },
+      { "code": "HDL", "attributeId": "HandleColor" }
+    ]
+  },
+  "colors": {
+    "materialByCategory": {
+      "Lacquered MT": "LACM",
+      "Lacquered GL": "LACG",
+      "Metal": "MTL"
+    },
+    "codeByValue": { "Gold": "GLD", "Silver": "SLV" }
+  },
+  "countertop": {
+    "series": "GB",
+    "styles": { "integrated": "INTG", "vessel": "VES" },
+    "depthIn": "20.7",
+    "materialByColorCategory": {
+      "Solid Surface": "SSTL",
+      "HPL": "HPL",
+      "Porcelain": "POR",
+      "Glass MT": "GLSM",
+      "Glass GL": "GLSG"
+    },
+    "materialByBasin": {},
+    "thicknessByMaterial": {
+      "SSTL": ".5",
+      "SSTM": ".5",
+      "SSTEX": ".5",
+      "POR": ".8",
+      "GLSG": ".5",
+      "GLSM": ".5",
+      "HPL": ".5"
+    },
+    "thicknessCodes": { "0.5": ".5", "0.75": ".8" }
+  },
+  "undertop": {
+    "attributeId": "UndertopColor",
+    "fallbackColorAttributeId": "HandleColor",
+    "code": "UDTP",
+    "heightIn": ".7",
+    "depthIn": "20.5"
+  },
+  "sidePanel": {
+    "baseSku": "VAN-LAMEV-SP",
+    "variants": [
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Galles"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/GAL-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Gessato"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/GES-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Oxford"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/OXF-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Piquet"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/PIQ-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "1",
+          "CabinetPattern": "Plisse"
+        },
+        "baseSku": "VAN-LAMEV-SP/1DW/PLIS-2.0W-10.2H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Galles"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/GAL-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Gessato"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/GES-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Oxford"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/OXF-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Piquet"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/PIQ-2.0W-20.5H-20.5D"
+      },
+      {
+        "when": {
+          "Drawers": "2",
+          "CabinetPattern": "Plisse"
+        },
+        "baseSku": "VAN-LAMEV-SP/2DW/PLIS-2.0W-20.5H-20.5D"
+      }
+    ],
+    "status": "confirmed",
+    "selection": {
+      "attributeId": "SidePanels",
+      "enabledValues": ["NoG"]
+    },
+    "quantitySource": "activeSides",
+    "countertopWidthOffsetCm": 5,
+    "colorAttributeId": "CabinetColor",
+    "elementCode": "CAB"
+  },
+  "dividers": {
+    "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D",
+    "Oak": "VAN-GBDIV-OAK-3.8W-2.6H-16.9D"
+  },
+  "legs": {
+    "quantity": 2,
+    "byDrawers": { "1": "1DW-22.6H", "2": "2DW-12.4H" },
+    "cap": { "code": "LEGCAP", "fallbackColorAttributeId": "HandleColor" }
+  },
+  "vessels": {
+    "Iris": { "series": "IRIS", "widthIn": "16.5", "heightIn": "4.3", "depthIn": "16.5" },
+    "Frame": { "series": "FRM", "widthIn": "19.7", "heightIn": "4.3", "depthIn": "13.8" },
+    "Plaza": { "series": "PLZ", "widthIn": "23.6", "heightIn": "4.7", "depthIn": "18.9" }
+  },
+  "gaps": [
+    {
+      "group": "vessel",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Iris, Frame and Plaza are priced from their SKUs (table 542), but the Lame documents give no vessel finishes; the palettes are the ones Mako prices (LAME-TOP-01).",
+      "appliesWhen": { "attributeId": "sinkType", "values": ["Iris", "Frame", "Plaza"] }
+    },
+    {
+      "group": "solidSurfaceGroup",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "A Solid Surface colour does not say whether it is Technolite, Technomood or Texturizzato (GEN-MAT-01). It is priced as SSTL, which costs the same per cm as SSTM and SSTEX, unless the basin decides the material.",
+      "appliesWhen": { "attributeId": "CountertopColor", "categories": ["Solid Surface"] }
+    },
+    {
+      "group": "divider",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Organizers are the Class ones (docx P0281) and are priced once per drawer that has a divider style; whether $170 / $150 is the price of one organizer is not confirmed.",
+      "appliesWhen": { "attributeId": "DividersStyle" }
+    },
+    {
+      "group": "legs",
+      "blocksTotal": false,
+      "owner": "product",
+      "reason": "Two legs per composition, the pair the scene places, each at the workbook price as Mako's team prices one leg (LAME-ACC-03). They take the cabinet finish as the CAB element (LAME-ACC-01), vessel tops the integrated heights, which cost the same (LAME-ACC-02), and the $0 cap is spelled with its colour (LAME-ACC-05).",
+      "appliesWhen": { "attributeId": "LegColor" }
+    }
+  ]
+}

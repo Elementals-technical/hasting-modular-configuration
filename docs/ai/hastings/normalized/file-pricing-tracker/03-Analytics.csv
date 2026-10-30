@@ -1,0 +1,16 @@
+row,A,B,C,D,E,F,G,H,I
+1,АНАЛІТИКА ПО КАТЕГОРІЯХ,,,,,,,,
+3,Category,Всього,Зроблено і протестовано нами локально,На тестуванні в клієнта,Готово і підтверджено клієнтом,В роботі,Не зроблено,Очікування,% зроблено
+4,Vanities,0,0,0,0,0,0,0,-
+5,Storage,25,1,23,0,0,1,0,0%
+6,Countertops,6,0,6,0,0,0,0,0%
+7,Basins,7,0,7,0,0,0,0,0%
+8,Vessels,33,0,33,0,0,0,0,0%
+9,Pedestals & Consoles,24,1,23,0,0,0,0,0%
+10,Tubs,5,0,5,0,0,0,0,0%
+11,Toilets,3,0,3,0,0,0,0,0%
+12,Mirrors,18,1,17,0,0,0,0,0%
+13,Lady,13,0,13,0,0,0,0,0%
+14,Bathroom Accessories,10,0,10,0,0,0,0,0%
+15,ВСЬОГО,144,3,140,0,0,1,0,0%
+16,Status-key,,Integrated - Test Local,In Client Testing,Live in Production,In Progress,Not Integrated,On Hold,

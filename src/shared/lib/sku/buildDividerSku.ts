@@ -1,3 +1,4 @@
+import type { SkuProfile } from "./skuProfile";
 import { toSkuDepth } from "./toSkuDepth";
 
 export type DividerSkuInput = {
@@ -8,9 +9,8 @@ export type DividerSkuInput = {
 };
 
 const CATEGORY = "VAN";
-const SERIES = "URDIV";
 
-/** Divider option → pricing code for the URDIV SKU */
+/** Divider option → pricing code for the divider SKU */
 const dividerPricingMap: Record<string, string> = {
   "Option A": "A",
   "Option B": "B",
@@ -46,7 +46,7 @@ const formatDimensionToken = (value: number): string => {
  *
  * Example: VAN-URDIV-A-5.3W-2.4H-15D
  */
-export function buildDividerSku(input: DividerSkuInput): string | null {
+export function buildDividerSku(profile: SkuProfile, input: DividerSkuInput): string | null {
   if (!input.dividerStyle || input.dividerStyle === "None") return null;
 
   const code = dividerPricingMap[input.dividerStyle];
@@ -60,5 +60,5 @@ export function buildDividerSku(input: DividerSkuInput): string | null {
   const h = `${formatDimensionToken(dimensions.height)}H`;
   const d = `${formatDimensionToken(depth)}D`;
 
-  return `${CATEGORY}-${SERIES}-${code}-${w}-${h}-${d}`;
+  return `${CATEGORY}-${profile.series.divider}-${code}-${w}-${h}-${d}`;
 }

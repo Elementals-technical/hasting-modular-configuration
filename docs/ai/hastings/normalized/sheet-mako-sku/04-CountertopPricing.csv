@@ -1,0 +1,11 @@
+row,A,B,C,D,E,F,G,H,I
+2,Countertops,,,,,,,,SKU Structure
+3,,Material,group_material_1,TopThickness,Price_EU,Price_US/cm,3.084709788,,
+4,SS Technolite,SSTL,,0.5,4.25,13.1100166,,,Same as Class Vanities - Countertop:Pricing
+5,,,,,,,,,"- There is one difference, Mako is only available in thin countertops"
+6,SS Technomood,SSTM,,0.5,4.25,13.1100166,,,
+8,SS Texturizzato,SSTEX,,0.5,4.25,13.1100166,,,
+11,Porcelain,POR,,0.8,9.56,29.48982557,,,
+13,Glass Gloss,GLSG,,0.5,6.36,19.61875425,,,
+14,Glass Matte,GLSM,,0.5,8.11,25.01699638,,,
+15,HPL,HPL,,0.5,4.96,15.30016055,,,

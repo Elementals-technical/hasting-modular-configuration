@@ -23,21 +23,3 @@ export type ProductSkuPriceResponse = {
   metadata: Record<string, unknown>;
   parsed: Record<string, unknown>;
 };
-
-export type SkuResolveResponse = {
-  price: number;
-  resolver: string;
-  error: string | null;
-  metadata: Record<string, unknown>;
-  parsed: Record<string, unknown>;
-};
-
-export type SkuSearchRow = {
-  sku: string;
-  prices: Record<string, number>;
-};
-
-export type SkuSearchResponse = {
-  rows: SkuSearchRow[];
-  error: string | null;
-};

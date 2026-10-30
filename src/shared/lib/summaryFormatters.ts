@@ -1,6 +1,8 @@
-import { cmToInches, drawerSkuMap, toSkuDepth } from "@/shared/lib/sku";
+import { cmToInches, toSkuDepth, type SkuProfile } from "@/shared/lib/sku";
 
-const CM_SKU_PREFIXES = ["VAN-URSTD-", "VAN-URTWLBR-", "VAN-URSP-"];
+/** Series whose SKUs carry centimetres, which the summary shows in inches. */
+const cmSkuPrefixes = ({ series }: SkuProfile): string[] =>
+  [series.cabinet, series.towelBar, series.sidePanel].map((token) => `VAN-${token}-`);
 
 const formatInches = (cm: number): string => {
   const inches = Math.round((cm / 2.54) * 10) / 10;
@@ -9,8 +11,8 @@ const formatInches = (cm: number): string => {
   return str.startsWith("0.") ? str.slice(1) : str;
 };
 
-export const convertSkuToInchesForSummary = (sku: string): string => {
-  if (!CM_SKU_PREFIXES.some((prefix) => sku.startsWith(prefix))) return sku;
+export const convertSkuToInchesForSummary = (sku: string, profile: SkuProfile | null): string => {
+  if (!profile || !cmSkuPrefixes(profile).some((prefix) => sku.startsWith(prefix))) return sku;
   return sku.replace(/-(\d+(?:\.\d+)?)(W|H|D)(?=-|$)/g, (_, value, unit) => {
     return `-${formatInches(parseFloat(value))}${unit}`;
   });
@@ -23,7 +25,8 @@ export const formatCabinetDrawersForSummary = (drawers: unknown): string => {
   if (normalized === "1D" || normalized === "1DW") return "1-Drawer";
   if (normalized === "2D" || normalized === "2DW") return "2-Drawer";
   if (normalized === "1DWID") return "1DWID";
-  return drawerSkuMap[normalized] ?? normalized;
+  // Every drawers value the SKU mappings know is spelled out above.
+  return normalized;
 };
 
 export const formatCabinetTitleForSummary = (name: string | null | undefined): string => {

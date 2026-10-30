@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import {
   getActiveCountertopThickness,
@@ -26,6 +27,7 @@ export const useMaxCountertopLength = (): number | null => {
   const thickness = useAppSelector(getActiveCountertopThickness);
   const basinStyle = useAppSelector(getSinkType);
   const dimensions = useAppSelector(getSelectedDimensions);
+  const profile = useAppSelector(getActiveProductProfile);
 
   return useMemo(
     () => {
@@ -39,8 +41,9 @@ export const useMaxCountertopLength = (): number | null => {
         depth: dimensions.depth ?? null,
         thickness: thickness ?? null,
         activeBasinStyle: basinStyle ?? null,
+        profile,
       });
     },
-    [rules, sku, style, dimensions.depth, thickness, basinStyle],
+    [rules, sku, style, dimensions.depth, thickness, basinStyle, profile],
   );
 };

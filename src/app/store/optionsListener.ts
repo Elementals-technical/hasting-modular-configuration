@@ -1,114 +1,34 @@
-import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
+import { createListenerMiddleware } from "@reduxjs/toolkit";
 
 import type { RootState } from "./index";
-import {
-  addProductId,
-  insertProductIdRelative,
-  removeProductId,
-  resetProducts,
-  restoreProductState,
-  setPlacedCabinetStyle,
-  setBookMatching,
-  setCabinetColorFinish,
-  setCabinetColorMaterial,
-  setDrawerPanelFluting,
-  setGrainDirection,
-  setActiveCabinetType,
-  setSelectedProductConfig,
-  switchAllCabinetsDrawerStyle,
-} from "@/entities/product/model/store/slice";
-import {
-  getBookMatching,
-  getDrawerPanelFluting,
-  getGrainDirection,
-  getSelectedProducts,
-} from "@/entities/product/model/store/selectors";
-import {
-  selectBookMatchingState,
-  selectFlutingState,
-  selectGrainDirectionState,
-} from "@/entities/product/model/store/derivedSelectors";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { setupSidePanelListener } from "@/features/sidePanel";
+import {
+  resolveCabinetSyncActions,
+  resolveRestoreStatusReset,
+} from "@/features/configurationCommands/lib/compositionListeners";
+import { setupSceneStateListener } from "@/features/configurationCommands/lib/sceneStateSync";
+import { createSceneReader } from "@/features/playCanvasAdapter/lib/createSceneReader";
 
 export const optionsListenerMiddleware = createListenerMiddleware();
 
+// Stable cabinet keys follow the placed products.
 optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setCabinetColorMaterial, setCabinetColorFinish),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const grainState = selectGrainDirectionState(state);
-    const currentGrain = getGrainDirection(state);
-    const selectedProducts = getSelectedProducts(state);
+  predicate: (_, current, previous) =>
+    (current as RootState).rootStateUI.product.productIds !== (previous as RootState).rootStateUI.product.productIds,
+  effect: (_, listenerApi) => {
+    const previous = listenerApi.getOriginalState() as RootState;
+    const current = listenerApi.getState() as RootState;
+    const actions = resolveCabinetSyncActions(previous, current);
 
-    if (!grainState.available && currentGrain) {
-      listenerApi.dispatch(setGrainDirection(""));
-      listenerApi.dispatch(setBookMatching(""));
-      const ids = selectedProducts.length ? selectedProducts : {};
-      await setConfigBatch(ids, { GrainDirection: "" });
-    }
+    actions.forEach((action) => listenerApi.dispatch(action));
+
+    const restoreReset = resolveRestoreStatusReset(previous, current);
+    if (restoreReset) listenerApi.dispatch(restoreReset);
   },
 });
 
-optionsListenerMiddleware.startListening({
-  actionCreator: setGrainDirection,
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const bookState = selectBookMatchingState(state);
-    const currentBook = getBookMatching(state);
-
-    if (!bookState.enabled && currentBook) {
-      listenerApi.dispatch(setBookMatching(""));
-    }
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(
-    addProductId,
-    insertProductIdRelative,
-    removeProductId,
-    resetProducts,
-    restoreProductState,
-    setPlacedCabinetStyle,
-    switchAllCabinetsDrawerStyle,
-  ),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const bookState = selectBookMatchingState(state);
-    const currentBook = getBookMatching(state);
-
-    if (!bookState.enabled && currentBook) {
-      listenerApi.dispatch(setBookMatching(""));
-    }
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  actionCreator: setActiveCabinetType,
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const flutingState = selectFlutingState(state);
-    const currentFluting = getDrawerPanelFluting(state);
-
-    if (!flutingState.available && currentFluting) {
-      listenerApi.dispatch(setDrawerPanelFluting(""));
-    }
-  },
-});
-
-optionsListenerMiddleware.startListening({
-  matcher: isAnyOf(setCabinetColorMaterial, setSelectedProductConfig),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    const flutingState = selectFlutingState(state);
-    const currentFluting = getDrawerPanelFluting(state);
-
-    if (!flutingState.available && currentFluting) {
-      listenerApi.dispatch(setDrawerPanelFluting(""));
-    }
-  },
-});
+// The actual order and per-cabinet sizes are read back from the scene after they change.
+setupSceneStateListener(optionsListenerMiddleware.startListening, { reader: createSceneReader() });
 
 // Side panel availability listener — delegated to SP module.
 setupSidePanelListener(optionsListenerMiddleware.startListening);

@@ -1,0 +1,337 @@
+import { isStateOnlyResolution, resolveProductConfig, resolveRuntimeBinding } from "@/entities/collection";
+import type { RuntimeBindingSet, ScenePatch } from "@/entities/collection";
+import type {
+  ConfigurationCompositionPort,
+  ConfigurationSceneReader,
+  SceneCompositionProduct,
+  SceneCompositionReplaceRequest,
+  SceneCompositionResult,
+  SceneProductDraft,
+  SceneRestoreIssue,
+} from "@/entities/configuration";
+import {
+  addSceneProduct,
+  clearSceneProducts,
+  insertSceneProduct,
+  isSceneReady,
+  presetSceneProducts,
+  removeSceneProduct,
+  setSceneProductConfig,
+  swapSceneProducts,
+} from "@/utils/functions/playcanvas/sceneBridge";
+import type {
+  SceneAddProductResult,
+  SceneOperationResult,
+  ScenePresetProduct,
+  ScenePresetResult,
+} from "@/utils/functions/playcanvas/sceneBridge";
+
+import { placeInSceneSlot, type SceneSlotPlacer } from "./sceneSlotPlacement";
+import { createSceneReader } from "./createSceneReader";
+import { findProductConfigBindingErrors } from "@/entities/collection/lib/runtimeBindings/resolveProductConfig";
+import { resolveSceneProductType } from "./createSceneRestorer";
+
+/**
+ * Places, removes and reorders products for C's composition commands (C06, I).
+ *
+ * 1. Everything the runtime can know without the scene is checked first: a scene type for every
+ *    product type and a translation for every shared value. Any issue, or a scene that is not
+ *    ready, leaves the scene untouched. A pending (unbound) shared value is placed without, as a
+ *    product's own is. Each product's own config is translated as it is placed
+ *    (resolveProductConfig).
+ * 2. One scene operation per step, through the typed bridge and its queue, so the steps and the
+ *    remaining direct calls run strictly in sequence.
+ * 3. Once the scene changed, a failure is "partial", never "failed": C must know it changed.
+ * 4. The scene is read afterwards, so C records the order the scene actually holds.
+ */
+
+/** The scene side of the port. Tests pass a fake; the app uses sceneBridge. */
+export type SceneCompositionBridge = {
+  isReady(): boolean;
+  clear(): Promise<SceneOperationResult>;
+  presetProducts(products: readonly ScenePresetProduct[], globalConfig?: ScenePatch): Promise<ScenePresetResult>;
+  addProduct(productType: string, config: Record<string, unknown>): Promise<SceneAddProductResult>;
+  insertProduct(
+    productType: string,
+    anchorRuntimeId: string | null,
+    side: "left" | "right",
+    config?: Record<string, unknown>,
+  ): Promise<SceneAddProductResult>;
+  setProductConfig(runtimeId: string, config: Record<string, unknown>): Promise<SceneOperationResult>;
+  removeProduct(runtimeId: string): Promise<SceneOperationResult>;
+  swapProducts(runtimeIdA: string, runtimeIdB: string): Promise<SceneOperationResult>;
+};
+
+export type CompositionPortDeps = {
+  /** Bindings of the active collection: their product types and value translations. */
+  getBindings: () => RuntimeBindingSet | null;
+  scene?: SceneCompositionBridge;
+  reader?: ConfigurationSceneReader;
+  /**
+   * Places a cabinet at a place the scene offers; tests pass a stand-in. Not wrapped in the batch
+   * queue: each of its scene calls already waits there, and would wait behind the wrap for good.
+   */
+  placeInSlot?: SceneSlotPlacer;
+};
+
+const defaultScene: SceneCompositionBridge = {
+  isReady: isSceneReady,
+  clear: clearSceneProducts,
+  presetProducts: presetSceneProducts,
+  addProduct: addSceneProduct,
+  insertProduct: insertSceneProduct,
+  setProductConfig: setSceneProductConfig,
+  removeProduct: removeSceneProduct,
+  swapProducts: swapSceneProducts,
+};
+
+const failureMessage = (result: { status: string; message?: string }, fallback: string): string =>
+  result.status === "failed" && result.message ? result.message : fallback;
+
+const unknownTypeIssue = (productType: string): SceneRestoreIssue => ({
+  code: "unknown-product-type",
+  message: `The collection has no scene type for "${productType}".`,
+});
+
+export const createCompositionPort = ({
+  getBindings,
+  scene = defaultScene,
+  reader = createSceneReader(),
+  placeInSlot = placeInSceneSlot,
+}: CompositionPortDeps): ConfigurationCompositionPort => {
+  /**
+   * The product as the scene places it: its scene type, and its config translated for that scene
+   * and naming that type. A Mako handle, for one, reaches the Mako cabinet as HandleStyle.
+   */
+  const toSceneProduct = (
+    bindings: RuntimeBindingSet,
+    { productType, config }: SceneCompositionProduct,
+  ): SceneProductDraft | null => {
+    const sceneType = resolveSceneProductType(bindings, productType);
+    if (!sceneType) return null;
+
+    return {
+      sceneType,
+      config: {
+        ...resolveProductConfig(bindings, config, undefined, sceneType),
+        ProductType: sceneType,
+        productType: sceneType,
+      },
+    };
+  };
+
+  /** What the scene holds after a change: its order, and the sizes of the given products. */
+  const readAfter = (placed: string[]) => reader.read(placed);
+
+  const replace = async ({
+    products,
+    shared = {},
+    flow,
+  }: SceneCompositionReplaceRequest): Promise<SceneCompositionResult> => {
+    if (!scene.isReady()) return { status: "not-ready" };
+
+    const bindings = getBindings();
+    if (!bindings) {
+      return {
+        status: "rejected",
+        issues: [{ code: "bindings-unavailable", message: "Runtime bindings of the collection are not loaded." }],
+      };
+    }
+
+    const issues: SceneRestoreIssue[] = [];
+    if (products.length === 0) issues.push({ code: "empty-composition", message: "The composition has no products." });
+
+    const presetProducts: ScenePresetProduct[] = products.flatMap((product) => {
+      const errors = findProductConfigBindingErrors(bindings, product.config, flow);
+      if (errors.length) {
+        issues.push(...errors.map((message) => ({ code: "unknown-value" as const, message })));
+        return [];
+      }
+      const placed = toSceneProduct(bindings, product);
+      if (!placed) {
+        issues.push(unknownTypeIssue(product.productType));
+        return [];
+      }
+      return [{ ...placed.config, name: placed.sceneType }];
+    });
+
+    const globalConfig: ScenePatch = {};
+    for (const [attributeId, value] of Object.entries(shared)) {
+      const resolution = resolveRuntimeBinding(bindings, attributeId, value, flow);
+
+      if (!resolution.ok && resolution.reason === "unbound") continue;
+      if (!resolution.ok) {
+        issues.push({ code: "unknown-value", message: `No scene translation for ${attributeId} "${String(value)}".` });
+        continue;
+      }
+
+      if (isStateOnlyResolution(resolution)) continue;
+
+      Object.assign(globalConfig, resolution.patch);
+      // The value under its other keys; one for a single product type goes with that product's own config.
+      for (const delivery of resolution.also ?? []) {
+        if (delivery.target.kind !== "productType") Object.assign(globalConfig, delivery.patch);
+      }
+    }
+
+    if (issues.length > 0) return { status: "rejected", issues };
+
+    const result = await scene.presetProducts(
+      presetProducts,
+      Object.keys(globalConfig).length > 0 ? globalConfig : undefined,
+    );
+    if (result.status === "not-ready") return { status: "not-ready" };
+
+    // The scene clears the composition before placing, so a failure has already changed it.
+    if (result.status === "failed") {
+      return { status: "partial", placed: [], message: result.message, scene: await readAfter([]) };
+    }
+
+    // The preset API does not promise the created ids; the scene's own order is the fallback,
+    // used only when it holds exactly one id per product.
+    let placed = result.runtimeIds;
+    if (placed.length !== products.length) {
+      const state = await readAfter([]);
+      placed = state.status === "ready" && state.order.length === products.length ? [...state.order] : [];
+    }
+
+    if (placed.length !== products.length) {
+      return {
+        status: "partial",
+        placed,
+        message: `The scene placed ${placed.length} of ${products.length} products.`,
+        scene: await readAfter(placed),
+      };
+    }
+
+    return { status: "applied", placed, scene: await readAfter(placed) };
+  };
+
+  const add: ConfigurationCompositionPort["add"] = async (product, placement) => {
+    if (!scene.isReady()) return { status: "not-ready" };
+
+    const bindings = getBindings();
+    if (bindings) {
+      const errors = findProductConfigBindingErrors(bindings, product.config);
+      if (errors.length)
+        return { status: "rejected", issues: errors.map((message) => ({ code: "unknown-value" as const, message })) };
+    }
+    const placed = bindings ? toSceneProduct(bindings, product) : null;
+    if (!placed) {
+      return {
+        status: "rejected",
+        issues: [
+          bindings
+            ? unknownTypeIssue(product.productType)
+            : { code: "bindings-unavailable", message: "Runtime bindings of the collection are not loaded." },
+        ],
+      };
+    }
+
+    if (placement.kind === "end") {
+      const created = await scene.addProduct(placed.sceneType, placed.config);
+      if (created.status === "not-ready") return { status: "not-ready" };
+      if (created.status === "failed")
+        return { status: "failed", message: created.message, sceneCode: created.sceneCode };
+
+      return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
+    }
+
+    if (placement.kind === "slot") {
+      const created = await placeInSlot({
+        sceneType: placed.sceneType,
+        config: placed.config,
+        anchorRuntimeId: placement.anchorRuntimeId,
+        slot: placement.slot,
+      });
+      if (created.status !== "applied") return created;
+
+      return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
+    }
+
+    // The config goes with the insert: the scene lays the product out once, at its real size.
+    // A second width change would make a new row head "grow left" and shift the row.
+    const created = await scene.insertProduct(
+      placed.sceneType,
+      placement.anchorRuntimeId,
+      placement.side,
+      placed.config,
+    );
+    if (created.status === "not-ready") return { status: "not-ready" };
+    if (created.status === "failed")
+      return { status: "failed", message: created.message, sceneCode: created.sceneCode };
+
+    if (created.configApplied) {
+      return { status: "applied", placed: [created.runtimeId], scene: await readAfter([created.runtimeId]) };
+    }
+
+    // Fallback: the scene placed the product with its defaults; its own config follows.
+    const configured = await scene.setProductConfig(created.runtimeId, placed.config);
+    const sceneState = await readAfter([created.runtimeId]);
+
+    return configured.status === "applied"
+      ? { status: "applied", placed: [created.runtimeId], scene: sceneState }
+      : {
+          status: "partial",
+          placed: [created.runtimeId],
+          message: failureMessage(configured, "The scene stopped being ready."),
+          scene: sceneState,
+        };
+  };
+
+  const remove: ConfigurationCompositionPort["remove"] = async (runtimeIds) => {
+    if (!scene.isReady()) return { status: "not-ready" };
+
+    let removed = 0;
+
+    for (const runtimeId of runtimeIds) {
+      const result = await scene.removeProduct(runtimeId);
+
+      if (result.status !== "applied") {
+        if (removed === 0) {
+          return result.status === "not-ready"
+            ? { status: "not-ready" }
+            : { status: "failed", message: result.message };
+        }
+
+        return {
+          status: "partial",
+          placed: [],
+          message: failureMessage(result, "The scene stopped being ready."),
+          scene: await readAfter([]),
+        };
+      }
+
+      removed += 1;
+    }
+
+    return { status: "applied", placed: [], scene: await readAfter([]) };
+  };
+
+  const swap: ConfigurationCompositionPort["swap"] = async (runtimeIdA, runtimeIdB) => {
+    if (!scene.isReady()) return { status: "not-ready" };
+
+    const result = await scene.swapProducts(runtimeIdA, runtimeIdB);
+    if (result.status === "not-ready") return { status: "not-ready" };
+    if (result.status === "failed") return { status: "failed", message: result.message, sceneCode: result.sceneCode };
+
+    return { status: "applied", placed: [], scene: await readAfter([]) };
+  };
+
+  const clear: ConfigurationCompositionPort["clear"] = async () => {
+    if (!scene.isReady()) return { status: "not-ready" };
+
+    const result = await scene.clear();
+    if (result.status === "not-ready") return { status: "not-ready" };
+    if (result.status === "failed") return { status: "failed", message: result.message };
+
+    return { status: "applied", placed: [], scene: await readAfter([]) };
+  };
+
+  const describe: ConfigurationCompositionPort["toSceneProduct"] = (product) => {
+    const bindings = getBindings();
+    return bindings ? toSceneProduct(bindings, product) : null;
+  };
+
+  return { isReady: () => scene.isReady(), toSceneProduct: describe, replace, add, remove, swap, clear };
+};

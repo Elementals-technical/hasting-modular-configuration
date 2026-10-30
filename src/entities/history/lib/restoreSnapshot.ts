@@ -1,15 +1,25 @@
-import type { AppDispatch } from "@/app/store";
+import type { AppDispatch, RootState } from "@/app/store";
+import type {
+  AttributeValue,
+  ConfigurationSceneRestorer,
+  SceneRestoreRequest,
+  SceneRestoreResult,
+} from "@/entities/configuration";
+import type { RuntimeBindingSet } from "@/entities/collection";
+import { getActiveCollectionId, getCabinetEntries } from "@/entities/configuration/model/store/selectors";
+import {
+  dropValuesForCabinet,
+  markRuntimeOutOfSync,
+  recordSceneState,
+  requestSceneStateSync,
+  restoreCabinets,
+  restoreConfigurationFragment,
+} from "@/entities/configuration/model/store/slice";
 import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { restoreProductState } from "@/entities/product/model/store/slice";
-import { removeAllProducts } from "@/utils/functions/playcanvas/removeAllProducts";
-import { addProduct } from "@/utils/functions/playcanvas/addProduct";
-import { setConfig } from "@/utils/functions/playcanvas/setConfig";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 import { restoreSidePanelState } from "@/features/sidePanel";
-import {
-  resolveRuntimeProductType,
-  withRuntimeProductType,
-} from "@/entities/product/lib/resolveRuntimeProductType";
+import { createSceneRestorer } from "@/features/playCanvasAdapter/lib/createSceneRestorer";
+import { resolveRuntimeProductType, withRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 
 function mapConfigToDrawerValue(value: unknown): string | null {
@@ -23,37 +33,134 @@ function mapConfigToDrawerValue(value: unknown): string | null {
   return null;
 }
 
-export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDispatch): Promise<void> {
-  await removeAllProducts();
+export type RestoreSnapshotDeps = {
+  dispatch: AppDispatch;
+  getState: () => RootState;
+  /** Runtime bindings of the active collection, for the default restorer's preflight. */
+  getBindings: () => RuntimeBindingSet | null;
+  /** Tests pass a stand-in; the app rebuilds the scene through the PlayCanvas adapter. */
+  restorer?: ConfigurationSceneRestorer;
+  /**
+   * Shows the snapshot's configuration values on the rebuilt products. The command service
+   * sends them through the runtime port (C06); the state already holds them, so they are
+   * not recorded again. Its outcome says whether the scene took them all.
+   */
+  replay: (values: Readonly<Record<string, AttributeValue>>) => Promise<{ status: "applied" | "partial" | "error" }>;
+};
 
-  const newProductIds: string[] = [];
-  const productIdMap: Record<string, string> = {};
+/** Configuration values a product's own config may not carry, so the scene is given them again. */
+const REPLAYED_OPTIONS = [
+  "CabinetColor",
+  "CountertopColor",
+  "HandleGrooveColor",
+  "sinkType",
+  "CountertopStyle",
+  "GrainDirection",
+  "DrawerPanelFluting",
+  "Thickness",
+  "TowelBarColor",
+  "VesselColor",
+] as const;
+
+/**
+ * The values to show on the rebuilt scene. An empty value is left out, as the products keep
+ * their own; the towel bar is always sent, since it is a scene add-on no product config carries.
+ */
+export const buildSnapshotReplayValues = (snapshot: SceneSnapshot): Record<string, AttributeValue> => {
+  const options = snapshot.productOptions;
+  const values: Record<string, AttributeValue> = {};
+
+  for (const attributeId of REPLAYED_OPTIONS) {
+    const value = options[attributeId];
+    if (typeof value === "string" && value) values[attributeId] = value;
+  }
+
+  values.TowelBarOption = options.TowelBarOption || "None";
+  return values;
+};
+
+/**
+ * The products of a snapshot in composition order, with the layout they stood in when the
+ * snapshot has one. A product without a config stays in, so preflight rejects it.
+ */
+export const buildSnapshotRestoreRequest = (snapshot: SceneSnapshot): SceneRestoreRequest => ({
+  products: snapshot.productIds.map((sourceId) => {
+    const config = snapshot.productConfigs[sourceId] ?? null;
+    return { sourceId, productType: resolveRuntimeProductType(sourceId, config ?? undefined), config };
+  }),
+  ...(snapshot.sceneLayout ? { layout: snapshot.sceneLayout } : {}),
+});
+
+/**
+ * Rebuilds the scene from a history snapshot and records what the scene actually holds.
+ *
+ * A snapshot the restorer rejects, or a scene that is not ready, changes nothing: neither the
+ * scene nor the state. The caller moves the history only when the scene was rebuilt.
+ */
+export async function restoreSnapshot(
+  snapshot: SceneSnapshot,
+  { dispatch, getState, getBindings, restorer = createSceneRestorer({ getBindings }), replay }: RestoreSnapshotDeps,
+): Promise<SceneRestoreResult> {
+  const savedCollection = snapshot.configuration?.collectionId;
+  if (savedCollection && savedCollection !== getActiveCollectionId(getState())) {
+    return {
+      status: "rejected",
+      issues: [{ code: "invalid-config", message: "The history snapshot belongs to another collection." }],
+    };
+  }
+  const result = await restorer.restore(buildSnapshotRestoreRequest(snapshot));
+  if (result.status === "not-ready" || result.status === "rejected") return result;
+
+  const newProductIds = result.matches.map(({ runtimeId }) => runtimeId);
+  const productIdMap = Object.fromEntries(result.matches.map(({ sourceId, runtimeId }) => [sourceId, runtimeId]));
+
+  // Give the rebuilt products their stable keys back before the product ids change, so the
+  // cabinet sync keeps the keys and the values addressed to them.
+  const stableKeys = result.matches.map(({ sourceId }) => snapshot.cabinetKeys?.[sourceId]);
+  if (newProductIds.length > 0 && stableKeys.every((key): key is string => typeof key === "string")) {
+    // Values of a cabinet the rebuilt composition does not contain must not outlive it.
+    const restoredKeys = new Set(stableKeys);
+    getCabinetEntries(getState())
+      .filter(({ stableKey }) => !restoredKeys.has(stableKey))
+      .forEach(({ stableKey }) => dispatch(dropValuesForCabinet(stableKey)));
+
+    dispatch(restoreCabinets({ stableKeys, runtimeIds: newProductIds }));
+  }
+
+  if (snapshot.configuration) {
+    const cabinets = getCabinetEntries(getState());
+    const keys = new Set(cabinets.map(({ stableKey }) => stableKey));
+    const values = Object.fromEntries(
+      Object.entries(snapshot.configuration.values).map(([id, entries]) => [
+        id,
+        entries.filter(({ target }) => {
+          if (target.scope === "cabinet" || target.scope === "drawer") return keys.has(target.cabinetId);
+          if (target.scope === "basin" && target.sinkBaseId) return keys.has(target.sinkBaseId);
+          return true;
+        }),
+      ]),
+    );
+    dispatch(restoreConfigurationFragment({ cabinets, values }));
+  }
+
   const restoredPlacedDividers: NonNullable<SceneSnapshot["placedDividers"]> = [];
   const restoredPlacedCabinetStyles: Record<string, string> = {};
   let restoredSelectedProductConfig: Record<string, unknown> | null = snapshot.selectedProductConfig ?? null;
 
-  for (const oldId of snapshot.productIds) {
-    const config = snapshot.productConfigs[oldId];
+  for (const { sourceId, runtimeId } of result.matches) {
+    const config = snapshot.productConfigs[sourceId];
     if (!config) continue;
 
-    const productType = resolveRuntimeProductType(oldId, config);
-    const productConfig = withRuntimeProductType(config, productType);
-    const newId = await addProduct(productType, productConfig);
+    const productConfig = withRuntimeProductType(config, resolveRuntimeProductType(sourceId, config));
+    restoredPlacedDividers.push(...collectPlacedDividersFromConfig(runtimeId, productConfig));
 
-    if (newId) {
-      await setConfig(newId, productConfig);
-      newProductIds.push(newId);
-      productIdMap[oldId] = newId;
-      restoredPlacedDividers.push(...collectPlacedDividersFromConfig(newId, productConfig));
+    if (!restoredSelectedProductConfig) {
+      restoredSelectedProductConfig = { ...productConfig };
+    }
 
-      if (!restoredSelectedProductConfig) {
-        restoredSelectedProductConfig = { ...productConfig };
-      }
-
-      const drawerRawValue = mapConfigToDrawerValue(productConfig.Drawers);
-      if (drawerRawValue) {
-        restoredPlacedCabinetStyles[newId] = drawerRawValue;
-      }
+    const drawerRawValue = mapConfigToDrawerValue(productConfig.Drawers);
+    if (drawerRawValue) {
+      restoredPlacedCabinetStyles[runtimeId] = drawerRawValue;
     }
   }
 
@@ -85,45 +192,39 @@ export async function restoreSnapshot(snapshot: SceneSnapshot, dispatch: AppDisp
     }),
   );
 
-  // Re-apply global options to PlayCanvas since per-product getConfig may not include all settings
-  const opts = snapshot.productOptions;
-  const batchConfig: Record<string, unknown> = {};
-  if (opts.CabinetColor) batchConfig.CabinetColor = opts.CabinetColor;
-  if (opts.CountertopColor) batchConfig.CountertopColor = opts.CountertopColor;
-  if (opts.HandleGrooveColor) batchConfig.HandleGrooveColor = opts.HandleGrooveColor;
-  if (opts.sinkType) batchConfig.sinkType = opts.sinkType;
-  if (opts.CountertopStyle) batchConfig.CountertopStyle = opts.CountertopStyle;
-  if (opts.GrainDirection) batchConfig.GrainDirection = opts.GrainDirection;
-  if (opts.DrawerPanelFluting) batchConfig.DrawerPanelFluting = opts.DrawerPanelFluting;
+  // Compatibility uses the rebuilt scene's actual sizes, not dimensions of the replaced scene.
+  if (result.scene.status === "ready") dispatch(recordSceneState(result.scene));
 
-  if (newProductIds.length && Object.keys(batchConfig).length) {
-    await setConfigBatch(newProductIds, batchConfig);
+  // Per-product configs may not carry every configuration value, so they are shown again.
+  const replayed = buildSnapshotReplayValues(snapshot);
+  const boundPanels = getBindings()?.bindings.some(
+    ({ attributeId, status }) => attributeId === "SidePanels" && status === "bound",
+  );
+  if (boundPanels) replayed.SidePanels = snapshot.productOptions.SidePanels;
+  const replayResult = await replay(replayed);
+
+  // Re-apply SidePanel state to PlayCanvas (per-side): the panels do not depend on the values above.
+  const { SidePanels, SidePanelLeft, SidePanelRight } = snapshot.productOptions;
+  if (!boundPanels)
+    await restoreSidePanelState(dispatch, SidePanels, SidePanelLeft, SidePanelRight, newProductIds.length);
+
+  if (replayResult.status === "error" || replayResult.status === "partial") {
+    // As after a partial command: the state and the scene may differ until the next reader pass.
+    dispatch(markRuntimeOutOfSync());
+    dispatch(requestSceneStateSync());
+    return {
+      ...result,
+      status: "partial",
+      failed: [
+        ...(result.status === "partial" ? result.failed : []),
+        ...result.matches.map(({ sourceId }) => ({
+          sourceId,
+          code: "config-rejected" as const,
+          message: "Configuration choices were not fully replayed.",
+        })),
+      ],
+    };
   }
 
-  if (opts.Thickness) {
-    await setConfigBatch({}, { Thickness: opts.Thickness });
-  }
-
-  // Re-apply TowelBar state to PlayCanvas.
-  // TowelBars are global scene addons (not per-product), synced via
-  // clear-then-add pattern (same as handleRemoveProducts/handleTowelBarChange).
-  const towelOption = opts.TowelBarOption;
-  await setConfigBatch({}, { TowelBar: "None", TowelBarSide: "both" });
-  if (towelOption && towelOption !== "None") {
-    await setConfigBatch({}, {
-      TowelBar: "TowelBar40_R",
-      TowelBarSide: towelOption.toLowerCase(),
-    });
-  }
-  if (opts.TowelBarColor) {
-    await setConfigBatch({}, { TowelBarColor: opts.TowelBarColor });
-  }
-
-  // Re-apply VesselColor to PlayCanvas (Sink-Base only).
-  if (opts.VesselColor) {
-    await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: opts.VesselColor });
-  }
-
-  // Re-apply SidePanel state to PlayCanvas (per-side).
-  await restoreSidePanelState(opts.SidePanels, opts.SidePanelLeft, opts.SidePanelRight, newProductIds.length);
+  return result;
 }

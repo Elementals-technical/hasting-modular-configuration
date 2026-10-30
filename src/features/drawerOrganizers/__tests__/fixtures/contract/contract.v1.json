@@ -1,0 +1,709 @@
+{
+  "fixture": "contract.v1",
+  "fixtureRevision": 2,
+  "contractVersion": 1,
+  "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+  "params": "collection class|mako|tricot|lame, role SB|SC, width cm, drawersMode 1D|2D|1+inner (Mako: Height 26 -> 1D, 52 -> 2D)",
+  "cases": [
+    {
+      "name": "sc120-example1",
+      "note": "OPUS-C §4.1 example 1: canonical input stays as is; one group per drawer, no HOLE.",
+      "params": { "collection": "class", "role": "SC", "width": 120, "drawersMode": "2D" },
+      "raw": {
+        "version": 1,
+        "Top": {
+          "style": "Metal",
+          "columns": [{ "slot": -1, "positions": [2] }, { "slot": 0, "positions": [] }, { "slot": 1, "positions": [2, 4] }]
+        },
+        "Bot": { "style": "Metal", "columns": [{ "slot": -5, "positions": [3] }, { "slot": -4, "positions": [3] }] }
+      },
+      "expected": {
+        "state": {
+          "version": 1,
+          "Top": {
+            "style": "Metal",
+            "columns": [{ "slot": -1, "positions": [2] }, { "slot": 0, "positions": [] }, { "slot": 1, "positions": [2, 4] }]
+          },
+          "Bot": { "style": "Metal", "columns": [{ "slot": -5, "positions": [3] }, { "slot": -4, "positions": [3] }] }
+        },
+        "diagnostics": [],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 5,
+            "capacity": 11,
+            "count": 3,
+            "lock": null,
+            "candidates": [
+              { "id": "Top:-2", "drawer": "Top", "slot": -2, "side": "left" },
+              { "id": "Top:+2", "drawer": "Top", "slot": 2, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 5,
+            "capacity": 11,
+            "count": 2,
+            "lock": null,
+            "candidates": [{ "id": "Bot:-3", "drawer": "Bot", "slot": -3, "side": "left" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "sb60-example2",
+      "note": "OPUS-C §4.1 example 2: SB Top has the zone -1..1, both free slots taken -> FULL; the zone between -2 and +2 is not a HOLE.",
+      "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+      "raw": {
+        "version": 1,
+        "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [3] }, { "slot": 2, "positions": [] }] },
+        "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [1, 4] }] }
+      },
+      "expected": {
+        "state": {
+          "version": 1,
+          "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [3] }, { "slot": 2, "positions": [] }] },
+          "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [1, 4] }] }
+        },
+        "diagnostics": [],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 2,
+            "count": 2,
+            "lock": { "fromSlot": -1, "toSlot": 1, "reason": "SINK_CUTOUT" },
+            "candidates": [],
+            "unavailable": "FULL"
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 1,
+            "lock": null,
+            "candidates": [
+              { "id": "Bot:-1", "drawer": "Bot", "slot": -1, "side": "left" },
+              { "id": "Bot:+1", "drawer": "Bot", "slot": 1, "side": "right" }
+            ],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "empty-sb60",
+      "note": "{version:1} without sets normalizes to absent; candidates next to the zone edge, or slot 0 without zone.",
+      "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+      "raw": { "version": 1 },
+      "expected": {
+        "state": null,
+        "diagnostics": [],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 2,
+            "count": 0,
+            "lock": { "fromSlot": -1, "toSlot": 1, "reason": "SINK_CUTOUT" },
+            "candidates": [
+              { "id": "Top:-2", "drawer": "Top", "slot": -2, "side": "left" },
+              { "id": "Top:+2", "drawer": "Top", "slot": 2, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "tricot-sb60-2d-bot-zone",
+      "note": "Sheet exception: Tricot SB Bot has the zone too (no cutter in v75 -> D2, unconfirmed by Ryan).",
+      "params": { "collection": "tricot", "role": "SB", "width": 60, "drawersMode": "2D" },
+      "confirmed": false,
+      "conflict": "D2",
+      "raw": {
+        "version": 1,
+        "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }, { "slot": 2, "positions": [2] }] }
+      },
+      "expected": {
+        "state": { "version": 1, "Bot": { "style": "Metal", "columns": [{ "slot": 2, "positions": [2] }] } },
+        "diagnostics": [{ "code": "IN_LOCKED_ZONE", "severity": "dropped", "drawer": "Bot", "slot": 0 }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 2,
+            "count": 0,
+            "lock": { "fromSlot": -1, "toSlot": 1, "reason": "SINK_CUTOUT" },
+            "candidates": [
+              { "id": "Top:-2", "drawer": "Top", "slot": -2, "side": "left" },
+              { "id": "Top:+2", "drawer": "Top", "slot": 2, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 2,
+            "count": 1,
+            "lock": { "fromSlot": -1, "toSlot": 1, "reason": "SINK_CUTOUT" },
+            "candidates": [{ "id": "Bot:-2", "drawer": "Bot", "slot": -2, "side": "left" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "width-120-to-60",
+      "note": "Width 120 -> 60 (m 5 -> 2): Bot columns -5 and -4 are out of range; the emptied Bot set is not written.",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "raw": {
+        "version": 1,
+        "Top": {
+          "style": "Metal",
+          "columns": [{ "slot": -1, "positions": [2] }, { "slot": 0, "positions": [] }, { "slot": 1, "positions": [2, 4] }]
+        },
+        "Bot": { "style": "Metal", "columns": [{ "slot": -5, "positions": [3] }, { "slot": -4, "positions": [3] }] }
+      },
+      "expected": {
+        "state": {
+          "version": 1,
+          "Top": {
+            "style": "Metal",
+            "columns": [{ "slot": -1, "positions": [2] }, { "slot": 0, "positions": [] }, { "slot": 1, "positions": [2, 4] }]
+          }
+        },
+        "diagnostics": [
+          { "code": "OUT_OF_RANGE", "severity": "dropped", "drawer": "Bot", "slot": -5 },
+          { "code": "OUT_OF_RANGE", "severity": "dropped", "drawer": "Bot", "slot": -4 }
+        ],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 3,
+            "lock": null,
+            "candidates": [
+              { "id": "Top:-2", "drawer": "Top", "slot": -2, "side": "left" },
+              { "id": "Top:+2", "drawer": "Top", "slot": 2, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "sc-to-sb",
+      "note": "Key carried from SC 60 into SB 60: every Top column is in the zone; Bot (no zone) keeps its column.",
+      "params": { "collection": "class", "role": "SB", "width": 60, "drawersMode": "2D" },
+      "raw": {
+        "version": 1,
+        "Top": {
+          "style": "Metal",
+          "columns": [{ "slot": -1, "positions": [2] }, { "slot": 0, "positions": [] }, { "slot": 1, "positions": [4] }]
+        },
+        "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [3] }] }
+      },
+      "expected": {
+        "state": { "version": 1, "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [3] }] } },
+        "diagnostics": [
+          { "code": "IN_LOCKED_ZONE", "severity": "dropped", "drawer": "Top", "slot": -1 },
+          { "code": "IN_LOCKED_ZONE", "severity": "dropped", "drawer": "Top", "slot": 0 },
+          { "code": "IN_LOCKED_ZONE", "severity": "dropped", "drawer": "Top", "slot": 1 }
+        ],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 2,
+            "count": 0,
+            "lock": { "fromSlot": -1, "toSlot": 1, "reason": "SINK_CUTOUT" },
+            "candidates": [
+              { "id": "Top:-2", "drawer": "Top", "slot": -2, "side": "left" },
+              { "id": "Top:+2", "drawer": "Top", "slot": 2, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 1,
+            "lock": null,
+            "candidates": [
+              { "id": "Bot:-1", "drawer": "Bot", "slot": -1, "side": "left" },
+              { "id": "Bot:+1", "drawer": "Bot", "slot": 1, "side": "right" }
+            ],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "class-2d-to-1d",
+      "note": "Class 1D keeps only Bot (single): the Top set is dropped as a whole.",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "1D" },
+      "raw": {
+        "version": 1,
+        "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2] }] },
+        "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }, { "slot": 1, "positions": [4] }] }
+      },
+      "expected": {
+        "state": {
+          "version": 1,
+          "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }, { "slot": 1, "positions": [4] }] }
+        },
+        "diagnostics": [{ "code": "DRAWER_ABSENT", "severity": "dropped", "drawer": "Top" }],
+        "derived": {
+          "Top": {
+            "exists": false,
+            "offered": false,
+            "role": null,
+            "profile": null,
+            "maxSlot": 0,
+            "capacity": 0,
+            "count": 0,
+            "lock": null,
+            "candidates": [],
+            "unavailable": "NO_DRAWER"
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "single",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 2,
+            "lock": null,
+            "candidates": [
+              { "id": "Bot:-1", "drawer": "Bot", "slot": -1, "side": "left" },
+              { "id": "Bot:+2", "drawer": "Bot", "slot": 2, "side": "right" }
+            ],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "mako-sb-52-to-26",
+      "note": "Mako SB Height 52 -> 26 (1D): the lowered Top is the single drawer and keeps the zone; Bot is dropped.",
+      "params": { "collection": "mako", "role": "SB", "width": 60, "drawersMode": "1D" },
+      "raw": {
+        "version": 1,
+        "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [2] }] },
+        "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [3] }] }
+      },
+      "expected": {
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [2] }] } },
+        "diagnostics": [{ "code": "DRAWER_ABSENT", "severity": "dropped", "drawer": "Bot" }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "single",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 2,
+            "count": 1,
+            "lock": { "fromSlot": -1, "toSlot": 1, "reason": "SINK_CUTOUT" },
+            "candidates": [{ "id": "Top:+2", "drawer": "Top", "slot": 2, "side": "right" }],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": false,
+            "offered": false,
+            "role": null,
+            "profile": null,
+            "maxSlot": 0,
+            "capacity": 0,
+            "count": 0,
+            "lock": null,
+            "candidates": [],
+            "unavailable": "NO_DRAWER"
+          }
+        }
+      }
+    },
+    {
+      "name": "unsupported-version",
+      "note": "Unknown data version: state null, nothing is written back; derived as for an empty state but no candidates.",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "raw": { "version": 2, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "expected": {
+        "state": null,
+        "diagnostics": [{ "code": "UNSUPPORTED_VERSION", "severity": "error" }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "positions-fixed",
+      "note": "[5,1,1,3]: duplicate 1 removed, sorted; nothing is cut (maxActive 5) -> [1,3,5].",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "raw": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [5, 1, 1, 3] }] } },
+      "expected": {
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [1, 3, 5] }] } },
+        "diagnostics": [{ "code": "POSITIONS_FIXED", "severity": "fixed", "drawer": "Top", "slot": 0 }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 1,
+            "lock": null,
+            "candidates": [
+              { "id": "Top:-1", "drawer": "Top", "slot": -1, "side": "left" },
+              { "id": "Top:+1", "drawer": "Top", "slot": 1, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "duplicate-slot",
+      "note": "Two columns on one slot: the first one stays.",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "raw": {
+        "version": 1,
+        "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2] }, { "slot": 0, "positions": [4] }] }
+      },
+      "expected": {
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2] }] } },
+        "diagnostics": [{ "code": "DUPLICATE_SLOT", "severity": "dropped", "drawer": "Top", "slot": 0 }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 1,
+            "lock": null,
+            "candidates": [
+              { "id": "Top:-1", "drawer": "Top", "slot": -1, "side": "left" },
+              { "id": "Top:+1", "drawer": "Top", "slot": 1, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "sb40-locked-full",
+      "note": "SB 40 (not sold, still normalized): 3 slots, all in the zone -> capacity 0, LOCKED_FULL.",
+      "params": { "collection": "class", "role": "SB", "width": 40, "drawersMode": "2D" },
+      "raw": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "expected": {
+        "state": null,
+        "diagnostics": [{ "code": "IN_LOCKED_ZONE", "severity": "dropped", "drawer": "Top", "slot": 0 }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 1,
+            "capacity": 0,
+            "count": 0,
+            "lock": { "fromSlot": -1, "toSlot": 1, "reason": "SINK_CUTOUT" },
+            "candidates": [],
+            "unavailable": "LOCKED_FULL"
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 1,
+            "capacity": 3,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "inner-not-offered",
+      "note": "Inner drawer of 1+inner is not offered (Q-K5): its set is dropped, no profile, no candidates.",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "1+inner" },
+      "raw": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "expected": {
+        "state": null,
+        "diagnostics": [{ "code": "NOT_OFFERED", "severity": "dropped", "drawer": "Top" }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": false,
+            "role": "inner",
+            "profile": null,
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [],
+            "unavailable": "NOT_OFFERED"
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "main",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "hole",
+      "note": "Two groups (-3,-2 and +2) with free slots between: HOLE is info, nothing dropped; candidates on both sides of each group.",
+      "params": { "collection": "class", "role": "SC", "width": 100, "drawersMode": "2D" },
+      "raw": {
+        "version": 1,
+        "Top": {
+          "style": "Metal",
+          "columns": [{ "slot": -3, "positions": [] }, { "slot": -2, "positions": [] }, { "slot": 2, "positions": [4] }]
+        }
+      },
+      "expected": {
+        "state": {
+          "version": 1,
+          "Top": {
+            "style": "Metal",
+            "columns": [{ "slot": -3, "positions": [] }, { "slot": -2, "positions": [] }, { "slot": 2, "positions": [4] }]
+          }
+        },
+        "diagnostics": [{ "code": "HOLE", "severity": "info", "drawer": "Top" }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 4,
+            "capacity": 9,
+            "count": 3,
+            "lock": null,
+            "candidates": [
+              { "id": "Top:-4", "drawer": "Top", "slot": -4, "side": "left" },
+              { "id": "Top:-1", "drawer": "Top", "slot": -1, "side": "left" },
+              { "id": "Top:+1", "drawer": "Top", "slot": 1, "side": "right" },
+              { "id": "Top:+3", "drawer": "Top", "slot": 3, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 4,
+            "capacity": 9,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "malformed-unknown-style",
+      "note": "slot \"1\" is not an integer (MALFORMED, no slot in the diagnostic); unknown style -> Metal.",
+      "params": { "collection": "class", "role": "SC", "width": 60, "drawersMode": "2D" },
+      "raw": {
+        "version": 1,
+        "Top": { "style": "Walnut", "columns": [{ "slot": "1", "positions": [] }, { "slot": 1, "positions": [2] }] }
+      },
+      "expected": {
+        "state": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 1, "positions": [2] }] } },
+        "diagnostics": [
+          { "code": "MALFORMED", "severity": "dropped", "drawer": "Top" },
+          { "code": "UNKNOWN_STYLE", "severity": "fixed", "drawer": "Top" }
+        ],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 1,
+            "lock": null,
+            "candidates": [
+              { "id": "Top:0", "drawer": "Top", "slot": 0, "side": "center" },
+              { "id": "Top:+2", "drawer": "Top", "slot": 2, "side": "right" }
+            ],
+            "unavailable": null
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": { "id": "ROW-MTL-43", "pitchM": 0.1, "positionCount": 5, "maxActive": 5, "codec": "cells-v1" },
+            "maxSlot": 2,
+            "capacity": 5,
+            "count": 0,
+            "lock": null,
+            "candidates": [{ "id": "Bot:0", "drawer": "Bot", "slot": 0, "side": "center" }],
+            "unavailable": null
+          }
+        }
+      }
+    },
+    {
+      "name": "unsupported-width",
+      "note": "Width 50 is not in {40,60,80,100,120}: every column dropped, capacity 0, no profile, maxSlot 0.",
+      "params": { "collection": "class", "role": "SC", "width": 50, "drawersMode": "2D" },
+      "raw": { "version": 1, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } },
+      "expected": {
+        "state": null,
+        "diagnostics": [{ "code": "UNSUPPORTED_WIDTH", "severity": "dropped", "drawer": "Top", "slot": 0 }],
+        "derived": {
+          "Top": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": null,
+            "maxSlot": 0,
+            "capacity": 0,
+            "count": 0,
+            "lock": null,
+            "candidates": [],
+            "unavailable": "UNSUPPORTED_WIDTH"
+          },
+          "Bot": {
+            "exists": true,
+            "offered": true,
+            "role": "outer",
+            "profile": null,
+            "maxSlot": 0,
+            "capacity": 0,
+            "count": 0,
+            "lock": null,
+            "candidates": [],
+            "unavailable": "UNSUPPORTED_WIDTH"
+          }
+        }
+      }
+    }
+  ]
+}

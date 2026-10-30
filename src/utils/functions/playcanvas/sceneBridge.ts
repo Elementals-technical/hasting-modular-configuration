@@ -1,0 +1,615 @@
+import { installConfiguratorApiLogger } from "./apiLogger";
+import { runInBatchQueue } from "./setConfigBatch";
+import { restoreSteppedSceneHeights, touchesSteppedHeight, withSteppedSceneHeight } from "./steppedSceneProducts";
+import { updateDimensionDataForProduct } from "./updateDimensionData";
+
+/**
+ * Typed bridge to ConfiguratorAPI.setConfigBatch for the runtime adapter.
+ *
+ * The legacy wrappers return null both when the scene is not ready and when a call
+ * fails, and setConfig drops the scene's own answer ("product not found" becomes
+ * success). This bridge keeps those cases apart. It is the only place in the adapter
+ * path that touches the iframe, and it reuses the legacy batch queue, so adapter
+ * commands and the remaining direct calls run strictly in sequence.
+ */
+
+/** Which products a command reaches. An empty selector reaches every product. */
+export type SceneSelector = {
+  productIds?: string[];
+  productType?: string;
+};
+
+/** Scene keys and their values; divider zones and saved product configs carry objects. */
+export type SceneConfigPatch = Record<string, unknown>;
+
+export type SceneCallFailureCode = "product-not-found" | "scene-rejected" | "scene-error";
+
+export type SceneCallResult =
+  /** `updatedIds` is null when the scene handled a composition-wide add-on (side panel, towel bar). */
+  | { status: "applied"; updatedIds: string[] | null }
+  | { status: "not-ready" }
+  | { status: "failed"; code: SceneCallFailureCode; message: string };
+
+type SceneBatchApi = (selector: SceneSelector, patch: SceneConfigPatch) => Promise<unknown>;
+
+// The PlayCanvas iframe is untyped; the narrowing stays in this file.
+type PlayCanvasHost = {
+  containerRef?: { current?: { contentWindow?: unknown } | null };
+  playCanvasReady?: boolean;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const getSceneBatchApi = (): SceneBatchApi | null => {
+  const host = window as unknown as PlayCanvasHost;
+  const contentWindow = host.containerRef?.current?.contentWindow;
+  if (!isRecord(contentWindow)) return null;
+
+  const api = contentWindow.ConfiguratorAPI;
+  if (!isRecord(api) || typeof api.setConfigBatch !== "function") return null;
+
+  return api.setConfigBatch as SceneBatchApi;
+};
+
+type SceneComposition = { getOrderProductIds?: () => unknown };
+type SceneCompositionManager = { getActiveComposition?: () => unknown };
+type SceneConfigApi = (productId: string) => unknown;
+
+const getConfiguratorApi = (): Record<string, unknown> | null => {
+  const host = window as unknown as PlayCanvasHost;
+  const contentWindow = host.containerRef?.current?.contentWindow;
+  if (!isRecord(contentWindow)) return null;
+
+  return isRecord(contentWindow.ConfiguratorAPI) ? contentWindow.ConfiguratorAPI : null;
+};
+
+/**
+ * Ready once PlayCanvasIntegration has bridged the iframe (playCanvasReady) and the
+ * batch API exists. The flag is reset when the iframe reloads.
+ */
+export const isSceneReady = (): boolean => {
+  const host = window as unknown as PlayCanvasHost;
+  return host.playCanvasReady === true && getSceneBatchApi() !== null;
+};
+
+const toStringArray = (value: unknown): string[] | null =>
+  Array.isArray(value) && value.every((entry) => typeof entry === "string") ? value : null;
+
+/**
+ * Turns the scene's answer into one status. Answers, from ConfiguratorAPI.setConfigBatch:
+ * - `[]`: no composition manager or no active composition, i.e. not ready;
+ * - `true`: a composition-wide add-on (side panel, towel bar) was set;
+ * - `{ updatedIds }`: products updated, which must include every product addressed.
+ */
+export const normalizeSceneBatchResult = (result: unknown, selector: SceneSelector): SceneCallResult => {
+  if (Array.isArray(result) && result.length === 0) {
+    return { status: "not-ready" };
+  }
+
+  if (result === true) {
+    return { status: "applied", updatedIds: null };
+  }
+
+  const updatedIds = isRecord(result) ? toStringArray(result.updatedIds) : null;
+
+  if (!updatedIds) {
+    return { status: "failed", code: "scene-rejected", message: "The scene did not confirm the update." };
+  }
+
+  const missing = (selector.productIds ?? []).filter((productId) => !updatedIds.includes(productId));
+
+  if (missing.length > 0) {
+    return {
+      status: "failed",
+      code: "product-not-found",
+      message: `The scene did not update ${missing.join(", ")}.`,
+    };
+  }
+
+  return { status: "applied", updatedIds };
+};
+
+/**
+ * Sends one patch through the shared batch queue. One patch per call on purpose: the
+ * scene returns early for SidePanel/TowelBar/TowelBarColor, so keys of two attributes
+ * merged into one call would be silently dropped.
+ */
+export const applySceneConfig = (selector: SceneSelector, patch: SceneConfigPatch): Promise<SceneCallResult> =>
+  runInBatchQueue(async (): Promise<SceneCallResult> => {
+    // Same order as the legacy wrapper: the logger wraps the API before it is read.
+    installConfiguratorApiLogger();
+
+    // Read at run time: the iframe may have reloaded while the command waited in the queue.
+    const api = getSceneBatchApi();
+    if (!api || !isSceneReady()) return { status: "not-ready" };
+
+    try {
+      const result = normalizeSceneBatchResult(await api(selector, patch), selector);
+
+      if (result.status === "applied") {
+        result.updatedIds?.forEach((productId) => updateDimensionDataForProduct(productId, patch));
+        // A product with a height of its own does not keep the composition's (steppedSceneProducts).
+        if (touchesSteppedHeight(patch) && result.updatedIds) {
+          await restoreSteppedSceneHeights(getConfiguratorApi(), result.updatedIds);
+        }
+      }
+
+      return result;
+    } catch (error) {
+      return {
+        status: "failed",
+        code: "scene-error",
+        message: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+export type SceneProductsRead =
+  | { status: "ready"; order: string[]; configs: Record<string, Record<string, unknown>> }
+  | { status: "not-ready" };
+
+/**
+ * Composition order as the scene holds it, or null without an active composition.
+ * Unlike getOrderedProductIds, a miss is never replaced with a fallback list.
+ */
+const readSceneOrder = (): string[] | null => {
+  const config = getConfiguratorApi()?.config;
+  const manager = isRecord(config) ? (config.compositionManager as SceneCompositionManager | undefined) : undefined;
+  if (!isRecord(manager) || typeof manager.getActiveComposition !== "function") return null;
+
+  const composition = manager.getActiveComposition() as SceneComposition | undefined;
+  if (!isRecord(composition) || typeof composition.getOrderProductIds !== "function") return null;
+
+  const orderMap = composition.getOrderProductIds();
+  if (!isRecord(orderMap)) return null;
+
+  const position = (productId: string) => {
+    const value = orderMap[productId];
+    return typeof value === "number" ? value : 0;
+  };
+
+  return Object.keys(orderMap).sort((a, b) => position(a) - position(b));
+};
+
+type SceneConfigSnapshot = { getAll: () => unknown };
+
+/**
+ * A product's config as values. getConfig may answer with a plain object or with a snapshot
+ * whose values sit behind `getAll()` (the scene's SnapshotProductAttribute); the scene's own
+ * code reads a config in either form.
+ */
+const toConfigValues = (config: unknown): Record<string, unknown> | null => {
+  if (!isRecord(config)) return null;
+  if (typeof config.getAll !== "function") return config;
+
+  const values = (config as SceneConfigSnapshot).getAll();
+  return isRecord(values) ? { ...values } : null;
+};
+
+/**
+ * Reads the order and the config of the given products. Queued like the commands, so it
+ * sees every batch sent before it. A product the scene has no config for is left out.
+ */
+export const readSceneProducts = (productIds: readonly string[]): Promise<SceneProductsRead> =>
+  runInBatchQueue(async (): Promise<SceneProductsRead> => {
+    const api = getConfiguratorApi();
+    const getConfig = api?.getConfig;
+    if (!isSceneReady() || typeof getConfig !== "function") return { status: "not-ready" };
+
+    const order = readSceneOrder();
+    if (!order) return { status: "not-ready" };
+
+    const configs: Record<string, Record<string, unknown>> = {};
+
+    for (const productId of productIds) {
+      try {
+        const config = toConfigValues(await (getConfig as SceneConfigApi)(productId));
+        if (config) configs[productId] = config;
+      } catch {
+        // A product the scene cannot answer for gets no size rather than another one's.
+      }
+    }
+
+    return { status: "ready", order, configs };
+  });
+
+type SceneRoot = { findByName?: (name: string) => unknown };
+type SceneEntity = { getPosition?: () => unknown };
+
+/** Where the scene shows a product, in metres: the centre along the wall and the bottom. */
+export type ScenePositionM = { x: number; y: number };
+
+/**
+ * Where the scene shows each product now, read from its entity: the place the layout gave it plus its
+ * `SpatialOffsetM`. A resize lays the row out again without rewriting the config's `positionX`/`positionY`,
+ * so the scene's own export reads the entity too. A product without an entity is left out.
+ */
+export const readScenePositionsM = (productIds: readonly string[]): Record<string, ScenePositionM> => {
+  const app = getConfiguratorApi()?.config;
+  const root = isRecord(app) ? (app.root as SceneRoot | undefined) : undefined;
+  if (!isRecord(root) || typeof root.findByName !== "function") return {};
+
+  const positions: Record<string, ScenePositionM> = {};
+
+  for (const productId of productIds) {
+    const entity = root.findByName(productId) as SceneEntity | null | undefined;
+    const position = isRecord(entity) && typeof entity.getPosition === "function" ? entity.getPosition() : null;
+    if (!isRecord(position)) continue;
+
+    const { x, y } = position;
+    if (typeof x === "number" && Number.isFinite(x) && typeof y === "number" && Number.isFinite(y)) {
+      positions[productId] = { x, y };
+    }
+  }
+
+  return positions;
+};
+
+/** How the scene lays the cabinets out: one row, several rows (ULH Multi-Level), or columns (UD). */
+export type SceneCabinetLayout = "single" | "rows" | "columns";
+
+/** A placed cabinet, with the support group the scene gave it and its width (null when unreadable). */
+export type SceneSupportCabinet = { id: string; supportGroupId: string; widthCm: number | null };
+
+export type SceneSupportGroups = {
+  layout: SceneCabinetLayout;
+  countertopGroupId: string;
+  cabinets: SceneSupportCabinet[];
+  /** Side panels the scene placed at the ends of a group ("group-edge" panels), counted by group. */
+  sidePanelsByGroup: Record<string, number>;
+};
+
+/** The scene's DEFAULT_COUNTERTOP_SUPPORT_GROUP_ID: a product without `SupportGroupId` belongs to it. */
+const SCENE_DEFAULT_SUPPORT_GROUP_ID = "group-1";
+
+type SceneLayoutManager = SceneCompositionManager & { preserveCabinetPositions?: unknown; freeLayoutPolicy?: unknown };
+type SceneProductsComposition = { getAllProducts?: () => unknown };
+
+const isThenable = (value: unknown): boolean => isRecord(value) && typeof value.then === "function";
+
+const supportGroupOf = (config: Record<string, unknown>): string =>
+  typeof config.SupportGroupId === "string" && config.SupportGroupId
+    ? config.SupportGroupId
+    : SCENE_DEFAULT_SUPPORT_GROUP_ID;
+
+const layoutOf = (manager: SceneLayoutManager): SceneCabinetLayout => {
+  if (isRecord(manager.freeLayoutPolicy) && manager.freeLayoutPolicy.columns === true) return "columns";
+  return manager.preserveCabinetPositions === true ? "rows" : "single";
+};
+
+/**
+ * The support groups of the placed cabinets, read synchronously as the scene holds them now. The scene
+ * measures the countertop's auto length over the cabinets of the countertop's `SupportGroupId` only: ULH
+ * gives every other row a group of its own and UD gives column bottoms `<group>~under`, and a "+" puts a
+ * new cabinet in the group of the cabinet it stands by. Null without a scene, an active composition or the
+ * countertop's config, or when the scene answers asynchronously.
+ */
+export const readSceneSupportGroups = (countertopId: string): SceneSupportGroups | null => {
+  const api = getConfiguratorApi();
+  const getConfig = api?.getConfig;
+  const app = api?.config;
+  const manager = isRecord(app) ? (app.compositionManager as SceneLayoutManager | undefined) : undefined;
+  if (typeof getConfig !== "function" || !isRecord(manager) || typeof manager.getActiveComposition !== "function") {
+    return null;
+  }
+
+  const order = readSceneOrder();
+  if (!order) return null;
+
+  let answeredAsync = false;
+  const readConfig = (productId: string): Record<string, unknown> | null => {
+    try {
+      const answer: unknown = (getConfig as SceneConfigApi)(productId);
+      if (isThenable(answer)) {
+        answeredAsync = true;
+        return null;
+      }
+      return toConfigValues(answer);
+    } catch {
+      return null;
+    }
+  };
+
+  const countertop = readConfig(countertopId);
+  if (answeredAsync || !countertop) return null;
+
+  const cabinets: SceneSupportCabinet[] = [];
+  for (const id of order) {
+    const config = readConfig(id);
+    if (answeredAsync) return null;
+    if (!config || (typeof config.category === "string" && config.category !== "cabinets")) continue;
+
+    const width = config.Width;
+    cabinets.push({
+      id,
+      supportGroupId: supportGroupOf(config),
+      widthCm: typeof width === "number" && Number.isFinite(width) ? width : null,
+    });
+  }
+
+  const composition = manager.getActiveComposition() as SceneProductsComposition | undefined;
+  const allProducts =
+    isRecord(composition) && typeof composition.getAllProducts === "function" ? composition.getAllProducts() : null;
+  const sidePanelsByGroup: Record<string, number> = {};
+  for (const id of isRecord(allProducts) ? Object.keys(allProducts) : []) {
+    const config = readConfig(id);
+    if (answeredAsync) return null;
+    if (config?.SidePanelLayout !== "group-edge") continue;
+
+    const groupId = supportGroupOf(config);
+    sidePanelsByGroup[groupId] = (sidePanelsByGroup[groupId] ?? 0) + 1;
+  }
+
+  return { layout: layoutOf(manager), countertopGroupId: supportGroupOf(countertop), cabinets, sidePanelsByGroup };
+};
+
+/**
+ * Answer of one scene operation used to rebuild a composition. `sceneCode`: the scene's own code of a
+ * refusal, e.g. "UF_HEIGHT_RUN_VIOLATION" (the change would split the block of tall UF cabinets).
+ */
+export type SceneOperationResult =
+  | { status: "applied" }
+  | { status: "not-ready" }
+  | { status: "failed"; code: SceneCallFailureCode; message: string; sceneCode?: string };
+
+export type SceneAddProductResult =
+  | {
+      status: "applied";
+      runtimeId: string;
+      /** Insert only: true when the scene created the product with the given config (before its first layout). */
+      configApplied?: boolean;
+    }
+  | { status: "not-ready" }
+  | { status: "failed"; code: SceneCallFailureCode; message: string; sceneCode?: string };
+
+export type ScenePresetProduct = {
+  name: string;
+  [key: string]: unknown;
+};
+
+export type ScenePresetResult =
+  | { status: "applied"; runtimeIds: string[] }
+  | { status: "not-ready" }
+  | { status: "failed"; code: SceneCallFailureCode; message: string };
+
+type SceneApiFunction = (...args: unknown[]) => unknown;
+
+const toSceneError = (error: unknown) => ({
+  status: "failed" as const,
+  code: "scene-error" as const,
+  message: error instanceof Error ? error.message : String(error),
+  // The scene throws its refusals with a code of their own, e.g. UF_HEIGHT_RUN_VIOLATION.
+  sceneCode: isRecord(error) && typeof error.code === "string" ? error.code : undefined,
+});
+
+/**
+ * Runs one ConfiguratorAPI method through the batch queue, read at run time because the
+ * iframe may have reloaded while the call waited. Null when the scene is not ready.
+ */
+const runSceneOperation = <T>(
+  method: string,
+  run: (call: (...args: unknown[]) => Promise<unknown>) => Promise<T>,
+): Promise<T | { status: "not-ready" }> =>
+  runInBatchQueue(async () => {
+    installConfiguratorApiLogger();
+
+    const api = getConfiguratorApi();
+    const fn = api?.[method];
+    if (!api || typeof fn !== "function" || !isSceneReady()) return { status: "not-ready" as const };
+
+    return run(async (...args) => (fn as SceneApiFunction).apply(api, args));
+  });
+
+/** Removes every product. Destructive: callers check their input before calling it. */
+export const clearSceneProducts = (): Promise<SceneOperationResult> =>
+  runSceneOperation("removeAllProduct", async (call): Promise<SceneOperationResult> => {
+    try {
+      await call();
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Appends a product on the right and returns its runtime id. */
+export const addSceneProduct = (productType: string, config: Record<string, unknown>): Promise<SceneAddProductResult> =>
+  runSceneOperation("addProduct", async (call): Promise<SceneAddProductResult> => {
+    try {
+      // A product with a height of its own is placed with it (steppedSceneProducts).
+      const runtimeId = await call(productType, withSteppedSceneHeight(config, productType));
+
+      if (typeof runtimeId !== "string" || !runtimeId) {
+        return { status: "failed", code: "scene-rejected", message: `The scene did not create ${productType}.` };
+      }
+
+      return { status: "applied", runtimeId };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/**
+ * Replaces the composition through the scene's native preset API. The scene clears the
+ * composition itself, then places the products in order, each with `globalConfig` under its
+ * own config.
+ *
+ * The scene does not promise the created ids: it may answer with them, with a shorter
+ * list, or with nothing at all. Only a thrown error means the products were not placed,
+ * so the ids are reported as far as they are known and the caller reads the scene when
+ * they are missing.
+ */
+export const presetSceneProducts = (
+  products: readonly ScenePresetProduct[],
+  globalConfig?: Record<string, unknown>,
+): Promise<ScenePresetResult> =>
+  runSceneOperation("presetProducts", async (call): Promise<ScenePresetResult> => {
+    try {
+      // A product with a height of its own is placed with it, whatever the shared config says.
+      const placed = products.map((product) => {
+        const merged = { ...globalConfig, ...product };
+        const stepped = withSteppedSceneHeight(merged, product.name);
+        return stepped === merged ? product : { ...product, Height: stepped.Height };
+      });
+      const result = await (globalConfig ? call(placed, globalConfig) : call(placed));
+      const runtimeIds = Array.isArray(result)
+        ? result.filter((entry): entry is string => typeof entry === "string")
+        : [];
+
+      return { status: "applied", runtimeIds };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Replaces a product's config. The scene answers false when the product does not exist. */
+export const setSceneProductConfig = (
+  runtimeId: string,
+  config: Record<string, unknown>,
+): Promise<SceneOperationResult> =>
+  runSceneOperation("setConfig", async (call): Promise<SceneOperationResult> => {
+    try {
+      const result = await call(runtimeId, config);
+
+      if (result === false || result === null) {
+        return { status: "failed", code: "product-not-found", message: `The scene has no product ${runtimeId}.` };
+      }
+
+      updateDimensionDataForProduct(runtimeId, config);
+      // A product with a height of its own does not keep another one (steppedSceneProducts).
+      if (touchesSteppedHeight(config)) await restoreSteppedSceneHeights(getConfiguratorApi(), [runtimeId]);
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/**
+ * Places a product next to a placed one (or first, without an anchor) and returns its runtime id.
+ * With a config, the scene creates the product with it (setProductByParams' initialConfig is merged
+ * before the first layout), so a row does not first lay out the registry default width.
+ */
+export const insertSceneProduct = (
+  productType: string,
+  anchorRuntimeId: string | null,
+  side: "left" | "right",
+  config?: Record<string, unknown>,
+): Promise<SceneAddProductResult> =>
+  runSceneOperation("setProductByParams", async (call): Promise<SceneAddProductResult> => {
+    try {
+      // A product with a height of its own is placed with it (steppedSceneProducts).
+      const placedConfig = config ? withSteppedSceneHeight(config, productType) : undefined;
+      const runtimeId = placedConfig
+        ? await call(productType, anchorRuntimeId, side, placedConfig)
+        : await call(productType, anchorRuntimeId, side);
+
+      if (typeof runtimeId !== "string" || !runtimeId) {
+        return { status: "failed", code: "scene-rejected", message: `The scene did not create ${productType}.` };
+      }
+
+      if (!placedConfig) return { status: "applied", runtimeId };
+
+      updateDimensionDataForProduct(runtimeId, placedConfig);
+      return { status: "applied", runtimeId, configApplied: true };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Removes one product. The scene answers null when it has no such product. */
+export const removeSceneProduct = (runtimeId: string): Promise<SceneOperationResult> =>
+  runSceneOperation("removeProduct", async (call): Promise<SceneOperationResult> => {
+    try {
+      const result = await call(runtimeId);
+
+      if (result === null) {
+        return { status: "failed", code: "product-not-found", message: `The scene has no product ${runtimeId}.` };
+      }
+
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/** Swaps the positions of two products in the composition. */
+export const swapSceneProducts = (runtimeIdA: string, runtimeIdB: string): Promise<SceneOperationResult> =>
+  runSceneOperation("swapProducts", async (call): Promise<SceneOperationResult> => {
+    try {
+      await call(runtimeIdA, runtimeIdB);
+      return { status: "applied" };
+    } catch (error) {
+      return toSceneError(error);
+    }
+  });
+
+/**
+ * The kinds of the scene's "+" buttons. A plain row has `left` and `right`; a row that holds
+ * columns (Urban Duplex) also has `left-top` and `right-top` (the hanging level of a row end), and
+ * `top` / `bottom` for the free place of a column.
+ */
+export type ScenePlusKind = "left" | "right" | "left-top" | "right-top" | "top" | "bottom";
+
+/**
+ * A "+" of a row that holds columns, as the scene describes it (`plus` of the click callback). The bridge
+ * describes a row-end "+" of a composition in rows the same way, without `rowId`, for the filter only.
+ */
+export type ScenePlus = {
+  id: string;
+  kind: ScenePlusKind;
+  /** The cabinet the "+" stands by: the end cabinet of a row end, the lone cabinet of a column. */
+  cabinetId: string;
+  rowId?: string;
+};
+
+/** A "+" as the scene's PlusButtonManager keeps it: a row-end one has no `plus`, only its side and cabinet. */
+type ScenePlusButton = { plus?: unknown; side?: unknown; parentEntity?: unknown };
+
+/** The "+" managers whose row-end "+" already go through the filter. */
+const rowEndPlusFiltered = new WeakSet<object>();
+
+/**
+ * The scene asks the filter only about a "+" that carries its place, so the row-end "+" of a composition in
+ * rows (Urban Low Height Multi-Level) were all shown, a Sink Base's by the lower level too (client, 22.10).
+ * Until the scene asks about them as well, the bridge does, naming each "+" as the scene names its own
+ * (`left:<cabinet>`). One row and columns keep the scene's answer.
+ */
+const filterRowEndPlus = (app: Record<string, unknown>) => {
+  const sceneManager = app.sceneManager;
+  const manager = isRecord(sceneManager) ? sceneManager.plusManager : null;
+  if (!isRecord(manager) || typeof manager._isPlusVisible !== "function" || rowEndPlusFiltered.has(manager)) return;
+
+  const isPlusVisible = (manager._isPlusVisible as (button: ScenePlusButton) => boolean).bind(manager);
+  const filteredIsPlusVisible = (button: ScenePlusButton): boolean => {
+    const filter = manager._plusFilter;
+    const entity = button.parentEntity;
+    const cabinetId = isRecord(entity) && typeof entity.name === "string" ? entity.name : null;
+    const kind = button.side === "left" || button.side === "right" ? button.side : null;
+    const compositionManager = app.compositionManager;
+    const inRows = isRecord(compositionManager) && layoutOf(compositionManager as SceneLayoutManager) === "rows";
+    if (button.plus || !cabinetId || !kind || typeof filter !== "function" || !inRows) return isPlusVisible(button);
+
+    return Boolean(filter({ id: `${kind}:${cabinetId}`, kind, cabinetId }));
+  };
+  // A manager that cannot take it keeps the scene's answer.
+  if (Reflect.set(manager, "_isPlusVisible", filteredIsPlusVisible)) rowEndPlusFiltered.add(manager);
+};
+
+/**
+ * Which "+" the scene shows; `null` shows them all. The scene filters the "+" that carry their place (the
+ * columns of Urban Duplex), the bridge the row-end "+" of a composition in rows (`filterRowEndPlus`); one row
+ * ignores the filter. False when the scene build has no filter.
+ */
+export const setScenePlusFilter = (filter: ((plus: ScenePlus) => boolean) | null): boolean => {
+  const api = getConfiguratorApi();
+  if (!api || typeof api.setPlusFilter !== "function") return false;
+
+  try {
+    if (filter && isRecord(api.config)) filterRowEndPlus(api.config);
+    api.setPlusFilter(filter);
+    return true;
+  } catch (error) {
+    console.error("[sceneBridge] setPlusFilter failed", error);
+    return false;
+  }
+};

@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   dividerTypeSetsEqual,
   dividerTypesEqual,
-  getDividerTypeFromOptionTitle,
   normalizeDividerType,
   normalizeDividerTypes,
   normalizeSlotInfo,
@@ -60,16 +59,6 @@ describe("dividerTypeSetsEqual", () => {
     expect(dividerTypeSetsEqual(new Set(["A"]), new Set(["A", "B"]))).toBe(false);
     expect(dividerTypeSetsEqual(null, new Set(["A"]))).toBe(false);
     expect(dividerTypeSetsEqual(null, null)).toBe(true);
-  });
-});
-
-describe("getDividerTypeFromOptionTitle", () => {
-  it("parses UI option labels", () => {
-    expect(getDividerTypeFromOptionTitle("Option A")).toBe("A");
-    expect(getDividerTypeFromOptionTitle(" Option B ")).toBe("B");
-    expect(getDividerTypeFromOptionTitle("Option C")).toBe("C");
-    expect(getDividerTypeFromOptionTitle("Option D")).toBeNull();
-    expect(getDividerTypeFromOptionTitle("")).toBeNull();
   });
 });
 

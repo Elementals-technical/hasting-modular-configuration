@@ -1,0 +1,827 @@
+{
+  "source": "Tricot Vanities - SKUs + Pricing.xlsx / CabinetPricing",
+  "cases": [
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/CAN-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B7"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/CAN-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B8"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/CAN-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B9"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/CAN-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B10"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/TWLL-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B12"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/TWLL-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B13"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/TWLL-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B14"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/TWLL-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B15"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/GES-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B17"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/GES-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B18"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/GES-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B19"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/GES-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B20"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/SAT-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B22"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/SAT-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B23"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/SAT-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B24"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/SAT-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B25"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/LOD-23.6W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3393,
+      "sourceCell": "C27"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/LOD-31.5W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3677,
+      "sourceCell": "C28"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/LOD-39.4W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3961,
+      "sourceCell": "C29"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/2DW/LOD-47.2W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 4260,
+      "sourceCell": "C30"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/CAN-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3584,
+      "sourceCell": "B32"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/CAN-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3945,
+      "sourceCell": "B33"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/CAN-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4325,
+      "sourceCell": "B34"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/CAN-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4720,
+      "sourceCell": "B35"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/TWLL-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3584,
+      "sourceCell": "B37"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/TWLL-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3945,
+      "sourceCell": "B38"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/TWLL-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4325,
+      "sourceCell": "B39"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/TWLL-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4720,
+      "sourceCell": "B40"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/GES-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3584,
+      "sourceCell": "B42"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/GES-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3945,
+      "sourceCell": "B43"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/GES-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4325,
+      "sourceCell": "B44"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/GES-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4720,
+      "sourceCell": "B45"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/SAT-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3584,
+      "sourceCell": "B47"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/SAT-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3945,
+      "sourceCell": "B48"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/SAT-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4325,
+      "sourceCell": "B49"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/SAT-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4720,
+      "sourceCell": "B50"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/LOD-23.6W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3045,
+      "sourceCell": "C52"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/LOD-31.5W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3313,
+      "sourceCell": "C53"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/LOD-39.4W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3581,
+      "sourceCell": "C54"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DW/LOD-47.2W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3865,
+      "sourceCell": "C55"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/CAN-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B57"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/CAN-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B58"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/CAN-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B59"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/CAN-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B60"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/TWLL-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B62"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/TWLL-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B63"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/TWLL-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B64"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/TWLL-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B65"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/GES-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B67"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/GES-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B68"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/GES-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B69"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/GES-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B70"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/SAT-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4171,
+      "sourceCell": "B72"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/SAT-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4556,
+      "sourceCell": "B73"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/SAT-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4976,
+      "sourceCell": "B74"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/SAT-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 5414,
+      "sourceCell": "B75"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/LOD-23.6W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3393,
+      "sourceCell": "C77"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/LOD-31.5W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3677,
+      "sourceCell": "C78"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/LOD-39.4W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3961,
+      "sourceCell": "C79"
+    },
+    {
+      "baseSku": "VAN-TRIC-SB/1DWID/LOD-47.2W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 4260,
+      "sourceCell": "C80"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/CAN-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B84"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/CAN-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B85"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/CAN-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B86"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/CAN-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B87"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/CAN-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B88"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/TWLL-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B90"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/TWLL-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B91"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/TWLL-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B92"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/TWLL-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B93"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/TWLL-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B94"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/GES-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B96"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/GES-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B97"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/GES-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B98"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/GES-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B99"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/GES-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B100"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/SAT-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B102"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/SAT-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B103"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/SAT-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B104"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/SAT-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B105"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/SAT-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B106"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/LOD-15.7W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 1943,
+      "sourceCell": "C108"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/LOD-23.6W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2230,
+      "sourceCell": "C109"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/LOD-31.5W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2514,
+      "sourceCell": "C110"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/LOD-39.4W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2798,
+      "sourceCell": "C111"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/2DW/LOD-47.2W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3097,
+      "sourceCell": "C112"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/CAN-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2014,
+      "sourceCell": "B114"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/CAN-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2378,
+      "sourceCell": "B115"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/CAN-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2739,
+      "sourceCell": "B116"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/CAN-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3119,
+      "sourceCell": "B117"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/CAN-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3513,
+      "sourceCell": "B118"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/TWLL-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2014,
+      "sourceCell": "B120"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/TWLL-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2378,
+      "sourceCell": "B121"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/TWLL-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2739,
+      "sourceCell": "B122"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/TWLL-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3119,
+      "sourceCell": "B123"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/TWLL-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3513,
+      "sourceCell": "B124"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/GES-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2014,
+      "sourceCell": "B126"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/GES-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2378,
+      "sourceCell": "B127"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/GES-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2739,
+      "sourceCell": "B128"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/GES-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3119,
+      "sourceCell": "B129"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/GES-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3513,
+      "sourceCell": "B130"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/SAT-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2014,
+      "sourceCell": "B132"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/SAT-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2378,
+      "sourceCell": "B133"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/SAT-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2739,
+      "sourceCell": "B134"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/SAT-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3119,
+      "sourceCell": "B135"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/SAT-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3513,
+      "sourceCell": "B136"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/LOD-15.7W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 1613,
+      "sourceCell": "C138"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/LOD-23.6W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 1882,
+      "sourceCell": "C139"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/LOD-31.5W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2150,
+      "sourceCell": "C140"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/LOD-39.4W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2418,
+      "sourceCell": "C141"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DW/LOD-47.2W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2702,
+      "sourceCell": "C142"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/CAN-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B144"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/CAN-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B145"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/CAN-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B146"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/CAN-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B147"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/CAN-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B148"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/TWLL-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B150"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/TWLL-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B151"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/TWLL-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B152"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/TWLL-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B153"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/TWLL-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B154"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/GES-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B156"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/GES-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B157"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/GES-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B158"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/GES-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B159"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/GES-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B160"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/SAT-15.7W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2579,
+      "sourceCell": "B162"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/SAT-23.6W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 2964,
+      "sourceCell": "B163"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/SAT-31.5W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3350,
+      "sourceCell": "B164"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/SAT-39.4W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 3770,
+      "sourceCell": "B165"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/SAT-47.2W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 4208,
+      "sourceCell": "B166"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/LOD-15.7W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 1943,
+      "sourceCell": "C168"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/LOD-23.6W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2230,
+      "sourceCell": "C169"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/LOD-31.5W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2514,
+      "sourceCell": "C170"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/LOD-39.4W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 2798,
+      "sourceCell": "C171"
+    },
+    {
+      "baseSku": "VAN-TRIC-SC/1DWID/LOD-47.2W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 3097,
+      "sourceCell": "C172"
+    },
+    {
+      "baseSku": "VAN-TRIC-SP-.8W-15.7H-20.5D",
+      "material": "WDV",
+      "price": 984,
+      "sourceCell": "B176"
+    },
+    {
+      "baseSku": "VAN-TRIC-SP-.8W-15.7H-20.5D",
+      "material": "LACM",
+      "price": 941,
+      "sourceCell": "C176"
+    }
+  ]
+}

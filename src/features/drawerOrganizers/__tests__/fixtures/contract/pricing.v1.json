@@ -1,0 +1,170 @@
+{
+  "fixture": "pricing.v1",
+  "fixtureRevision": 2,
+  "contractVersion": 1,
+  "note": "value = raw key from the scene, read through readDrawerOrganizers; gaps compare as a set on {group, blocksTotal}.",
+  "cases": [
+    {
+      "name": "two-drawers",
+      "note": "Class SC 60 2D: Top 2 columns + Bot 3 columns; for reference 5 x $170 = $850.",
+      "input": {
+        "policy": { "skuByStyle": { "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D" }, "billEmptyColumns": true },
+        "cabinets": [
+          {
+            "stableKey": "cab-1",
+            "value": {
+              "version": 1,
+              "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2] }, { "slot": 1, "positions": [4] }] },
+              "Bot": {
+                "style": "Metal",
+                "columns": [{ "slot": -1, "positions": [] }, { "slot": 0, "positions": [3] }, { "slot": 1, "positions": [2, 4] }]
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "lines": [
+          { "id": "divider:cab-1:Top", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 2 },
+          { "id": "divider:cab-1:Bot", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 3 }
+        ],
+        "gaps": []
+      }
+    },
+    {
+      "name": "sb60-two",
+      "note": "SB 60 Top with both free slots taken.",
+      "input": {
+        "policy": { "skuByStyle": { "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D" }, "billEmptyColumns": true },
+        "cabinets": [
+          {
+            "stableKey": "cab-1",
+            "value": {
+              "version": 1,
+              "Top": { "style": "Metal", "columns": [{ "slot": -2, "positions": [3] }, { "slot": 2, "positions": [] }] }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "lines": [{ "id": "divider:cab-1:Top", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 2 }],
+        "gaps": []
+      }
+    },
+    {
+      "name": "bill-empty-false",
+      "note": "billEmptyColumns false: Empty columns are not billed.",
+      "input": {
+        "policy": { "skuByStyle": { "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D" }, "billEmptyColumns": false },
+        "cabinets": [
+          {
+            "stableKey": "cab-1",
+            "value": {
+              "version": 1,
+              "Top": {
+                "style": "Metal",
+                "columns": [{ "slot": -1, "positions": [] }, { "slot": 0, "positions": [2] }, { "slot": 1, "positions": [] }]
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "lines": [{ "id": "divider:cab-1:Top", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 1 }],
+        "gaps": []
+      }
+    },
+    {
+      "name": "bill-empty-true",
+      "note": "billEmptyColumns true (Q-K2 default): every column is billed.",
+      "input": {
+        "policy": { "skuByStyle": { "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D" }, "billEmptyColumns": true },
+        "cabinets": [
+          {
+            "stableKey": "cab-1",
+            "value": {
+              "version": 1,
+              "Top": {
+                "style": "Metal",
+                "columns": [{ "slot": -1, "positions": [] }, { "slot": 0, "positions": [2] }, { "slot": 1, "positions": [] }]
+              }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "lines": [{ "id": "divider:cab-1:Top", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 3 }],
+        "gaps": []
+      }
+    },
+    {
+      "name": "tricot-no-sku",
+      "note": "Tricot sku-profile.dividers is {}: no line, a blocking gap (Q-N2).",
+      "input": {
+        "policy": { "skuByStyle": {}, "billEmptyColumns": true },
+        "cabinets": [
+          {
+            "stableKey": "cab-1",
+            "value": { "version": 1, "Bot": { "style": "Metal", "columns": [{ "slot": 2, "positions": [2] }] } }
+          }
+        ]
+      },
+      "expected": { "lines": [], "gaps": [{ "group": "divider", "blocksTotal": true }] }
+    },
+    {
+      "name": "unsupported-version",
+      "note": "Value of an unknown version: never priced as empty; a blocking gap.",
+      "input": {
+        "policy": { "skuByStyle": { "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D" }, "billEmptyColumns": true },
+        "cabinets": [
+          {
+            "stableKey": "cab-1",
+            "value": { "version": 2, "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [] }] } }
+          }
+        ]
+      },
+      "expected": { "lines": [], "gaps": [{ "group": "divider", "blocksTotal": true }] }
+    },
+    {
+      "name": "two-cabinets",
+      "note": "Lines follow the cabinets as given (cab-2 first), Top before Bot.",
+      "input": {
+        "policy": { "skuByStyle": { "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D" }, "billEmptyColumns": true },
+        "cabinets": [
+          {
+            "stableKey": "cab-2",
+            "value": {
+              "version": 1,
+              "Bot": { "style": "Metal", "columns": [{ "slot": -1, "positions": [] }, { "slot": 0, "positions": [] }] }
+            }
+          },
+          {
+            "stableKey": "cab-1",
+            "value": {
+              "version": 1,
+              "Top": { "style": "Metal", "columns": [{ "slot": 0, "positions": [3] }] },
+              "Bot": { "style": "Metal", "columns": [{ "slot": 0, "positions": [2, 4] }] }
+            }
+          }
+        ]
+      },
+      "expected": {
+        "lines": [
+          { "id": "divider:cab-2:Bot", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 2 },
+          { "id": "divider:cab-1:Top", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 1 },
+          { "id": "divider:cab-1:Bot", "group": "divider", "sku": "VAN-GBDIV-MTL-3.9W-2H-16.9D", "quantity": 1 }
+        ],
+        "gaps": []
+      }
+    },
+    {
+      "name": "empty",
+      "note": "No organizers: no lines, no gaps.",
+      "input": {
+        "policy": { "skuByStyle": { "Metal": "VAN-GBDIV-MTL-3.9W-2H-16.9D" }, "billEmptyColumns": true },
+        "cabinets": [{ "stableKey": "cab-1", "value": null }]
+      },
+      "expected": { "lines": [], "gaps": [] }
+    }
+  ]
+}

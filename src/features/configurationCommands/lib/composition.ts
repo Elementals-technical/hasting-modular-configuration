@@ -1,0 +1,646 @@
+import type { UnknownAction } from "@reduxjs/toolkit";
+
+import type { RootState } from "@/app/store";
+import { normalizeOptionValue, selectAttribute, selectDefaultValue } from "@/entities/collection";
+import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import {
+  getActiveProductProfile,
+  getActiveRuntimeBindings,
+  getCabinetEntries,
+  getValuesByAttributeId,
+  isSameTarget,
+  markRuntimeOutOfSync,
+  requestSceneStateSync,
+  resolveStableKey,
+} from "@/entities/configuration";
+import type {
+  AttributeValue,
+  ConfigurationCompositionPort,
+  ConfigurationRuntimePort,
+  ConfigurationSidePanelPort,
+  SceneCompositionPlacement,
+  SceneCompositionProduct,
+  SceneCompositionResult,
+  SceneProductDraft,
+  SceneStateResult,
+} from "@/entities/configuration";
+import { recordComposition } from "@/entities/product/model/store/slice";
+
+import { recordCarriedChanges, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
+import {
+  isOwnCabinetValue,
+  NOT_CARRIED_ATTRIBUTE_IDS,
+  selectBroadcastValues,
+  selectPlacedWithValues,
+} from "./compositionValues";
+import { recordValues, replayValues, type ReplayValues } from "./replayValues";
+import { toSceneValue } from "./sceneValue";
+import type { PlannedChange } from "../model/types";
+
+/**
+ * The composition commands (C06): placing a preset, adding, removing and moving a cabinet, and
+ * clearing the scene.
+ *
+ * Each goes to the scene once, through I's composition port, and records the composition the
+ * scene then holds in one write: the products in order and the drawer style of each new one.
+ * Stable keys, per-cabinet values and actual sizes follow that write through the existing
+ * listeners. A preset also records the cabinet values its products carry (`carriedValues`).
+ * A composition the scene did not take is not recorded; one it took only in part is
+ * recorded as it is and holds Save until the scene is read again.
+ */
+
+export type CompositionDeps = {
+  getState: () => RootState;
+  dispatch: (action: UnknownAction) => unknown;
+  runtime: ConfigurationRuntimePort;
+  composition: ConfigurationCompositionPort;
+  sidePanels: ConfigurationSidePanelPort;
+  flow: RuntimeFlow;
+  configurator?: ConfiguratorGroupCatalog | null;
+};
+
+export type CompositionErrorCode =
+  /** The scene cannot take commands yet; nothing was sent or recorded. */
+  | "runtime-not-ready"
+  /** The first scene call failed; the scene is unchanged. */
+  | "runtime-failed"
+  /** The runtime refused the composition before its first call (unknown product type or value). */
+  | "composition-rejected"
+  /** A product to remove or move is not in the composition. */
+  | "unknown-target";
+
+export type CompositionResult =
+  | { status: "applied"; productIds: string[]; placed: string[] }
+  | { status: "partial"; productIds: string[]; placed: string[]; message: string; needsSync: true }
+  /** `sceneCode`: the scene's own refusal code (e.g. "UF_HEIGHT_RUN_VIOLATION") for the interface to explain. */
+  | { status: "error"; code: CompositionErrorCode; message: string; sceneCode?: string };
+
+export type ApplyPresetRequest = {
+  /** The preset's products, in order. */
+  products: readonly SceneCompositionProduct[];
+  /** Configuration values every product is placed with. */
+  shared?: ReplayValues;
+  /** Values sent once the products are placed, for the parts placing does not reach. */
+  afterPlacement?: ReplayValues;
+  /** Values the configuration takes with the preset; the products already carry them. */
+  record?: ReplayValues;
+};
+
+export type AddCabinetRequest = {
+  product: SceneCompositionProduct;
+  placement: SceneCompositionPlacement;
+  /** Values sent once the cabinet is placed, e.g. the basin colour of a new sink base. */
+  afterPlacement?: ReplayValues;
+  /** Values the configuration takes with the cabinet; its config already carries them. */
+  record?: ReplayValues;
+};
+
+/**
+ * A cabinet the scene placed with its own tools (Drag & Drop, a sink moved to another cabinet):
+ * what it was placed as, so that its own values are recorded as `addCabinet` records them.
+ */
+export type PlacedCabinet = {
+  runtimeId: string;
+  /** Its type and own config as the configuration names them, e.g. the series of an Urban Duplex cabinet. */
+  product: SceneCompositionProduct;
+  /** The composition's values it joined with (`PreparedCabinet.inherited`). */
+  inherited: Readonly<Record<string, AttributeValue>>;
+};
+
+export type AdoptCompositionRequest = {
+  /** The products the scene holds, in composition order. */
+  runtimeIds: readonly string[];
+  /** Their configs, in the same order, for their drawer styles. */
+  products: readonly SceneCompositionProduct[];
+  /** Values the configuration takes with them. */
+  record?: ReplayValues;
+  /** Cabinets the scene placed with its own tools; the scene config names none of their own values. */
+  placed?: readonly PlacedCabinet[];
+};
+
+/**
+ * A cabinet prepared for the scene's own placement tools (Drag & Drop): what they are given, and
+ * what adopting the placed cabinet records at it.
+ */
+export type PreparedCabinet = {
+  /** The scene type and config, as `addCabinet` would place them. */
+  definitionId: string;
+  selection: Record<string, unknown>;
+  product: SceneCompositionProduct;
+  inherited: Readonly<Record<string, AttributeValue>>;
+};
+
+export type ClearCompositionRequest = {
+  /** Also take the side panels and the towel bar off, which the scene keeps otherwise. */
+  resetAddOns: boolean;
+};
+
+const productIdsOf = (state: RootState): string[] => state.rootStateUI.product.productIds;
+
+const drawerStyleOf = (profile: ProductProfile | null, config: Record<string, unknown>): string | null =>
+  normalizeOptionValue(profile, "Drawers", config.Drawers);
+
+const isAttributeValue = (value: unknown): value is AttributeValue =>
+  value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
+
+/**
+ * The products with each value their collection maps in its canonical option ("2D" -> "2"), as
+ * the port looks it up; every other value stays as the product carries it.
+ */
+const toSceneProducts = (
+  profile: ProductProfile | null,
+  bindings: RuntimeBindingSet | null,
+  products: readonly SceneCompositionProduct[],
+): SceneCompositionProduct[] =>
+  products.map(({ productType, config }) => ({
+    productType,
+    config: Object.fromEntries(
+      Object.entries(config).map(([attributeId, value]) => [
+        attributeId,
+        isAttributeValue(value) ? toSceneValue(profile, bindings, attributeId, value) : value,
+      ]),
+    ),
+  }));
+
+/** Drawer styles of the placed products; product `i` of the request became `placed[i]`. */
+const drawerStyles = (
+  profile: ProductProfile | null,
+  placed: readonly string[],
+  products: readonly SceneCompositionProduct[],
+): Record<string, string> =>
+  placed.length !== products.length
+    ? {}
+    : Object.fromEntries(
+        placed.flatMap((runtimeId, index) => {
+          const style = drawerStyleOf(profile, products[index].config);
+          return style ? [[runtimeId, style]] : [];
+        }),
+      );
+
+type CarriedValues = {
+  /** Values of a cabinet's own, e.g. a Mako handle colour: recorded at the cabinet that carries them. */
+  perCabinet: PlannedChange[];
+  /**
+   * Values the configuration keeps once for the whole composition, e.g. the handle, which the
+   * scene and the handle command also hold once. Only when every product that carries one agrees.
+   */
+  composition: ReplayValues;
+};
+
+/**
+ * The cabinet-scoped values the products carry. Product `i` of the request became `placed[i]`;
+ * read once the composition is recorded, when every placed product has its stable key.
+ */
+const carriedValues = (
+  state: RootState,
+  placed: readonly string[],
+  products: readonly SceneCompositionProduct[],
+): CarriedValues => {
+  const profile = getActiveProductProfile(state);
+  const cabinets = getCabinetEntries(state);
+  const isComplete = placed.length === products.length;
+  const perCabinet: PlannedChange[] = [];
+  const compositionValues = new Map<string, Set<AttributeValue>>();
+
+  products.forEach(({ config }, index) => {
+    const cabinetId = isComplete ? resolveStableKey(cabinets, placed[index]) : null;
+
+    Object.entries(config).forEach(([attributeId, raw]) => {
+      if (NOT_CARRIED_ATTRIBUTE_IDS.has(attributeId)) return;
+      if (selectAttribute(profile, attributeId)?.scope !== "cabinet") return;
+      if (!isAttributeValue(raw) || raw === null || raw === "") return;
+
+      const value = normalizeOptionValue(profile, attributeId, raw) ?? raw;
+
+      if (TYPED_COMMIT_ATTRIBUTE_IDS.includes(attributeId)) {
+        compositionValues.set(attributeId, (compositionValues.get(attributeId) ?? new Set()).add(value));
+        return;
+      }
+
+      if (!cabinetId) return;
+      perCabinet.push({ attributeId, target: { scope: "cabinet", cabinetId }, value, origin: "requested" });
+    });
+  });
+
+  const composition = Object.fromEntries(
+    [...compositionValues].flatMap(([attributeId, values]) =>
+      values.size === 1 ? [[attributeId, [...values][0]]] : [],
+    ),
+  );
+
+  return { perCabinet, composition };
+};
+
+/** Records each cabinet's own carried values; the composition's are returned to go with `record`. */
+const recordCarriedValues = (
+  deps: CompositionDeps,
+  placed: readonly string[],
+  products: readonly SceneCompositionProduct[],
+): ReplayValues => {
+  const { perCabinet, composition } = carriedValues(deps.getState(), placed, products);
+  recordCarriedChanges(perCabinet).forEach((action) => deps.dispatch(action));
+  return composition;
+};
+
+/** The product's config with the composition's values it does not carry itself. */
+const withInherited = (
+  config: Record<string, unknown>,
+  inherited: Readonly<Record<string, AttributeValue>>,
+): Record<string, unknown> => ({
+  ...config,
+  ...Object.fromEntries(
+    Object.entries(inherited).filter(([attributeId]) => {
+      const own = config[attributeId];
+      return own === undefined || own === null || own === "";
+    }),
+  ),
+});
+
+/**
+ * A cabinet as it joins the composition: with the values all its cabinets hold (without them the
+ * scene would place it with its own defaults, and it would stand out from the rest) and the
+ * configuration's own values the scene keeps per product, which go with the config unrecorded.
+ */
+const cabinetToPlace = (
+  state: RootState,
+  product: SceneCompositionProduct,
+): { sceneProduct: SceneCompositionProduct; inherited: Record<string, AttributeValue> } => {
+  const inherited = selectBroadcastValues(state);
+  const placedWith = selectPlacedWithValues(state);
+  const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [
+    { ...product, config: withInherited(product.config, { ...placedWith, ...inherited }) },
+  ]);
+  return { sceneProduct, inherited };
+};
+
+/**
+ * Keys a placed cabinet's scene config carries about where it stands, not what it is. A builder
+ * config copied from a placed cabinet carries them; the scene gives a new cabinet its own.
+ */
+const SCENE_PLACEMENT_KEYS: ReadonlySet<string> = new Set([
+  "SupportGroupId",
+  "SpatialOffsetM",
+  "positionX",
+  "positionY",
+  "positionZ",
+  "entityName",
+  "productId",
+]);
+
+/**
+ * Records the composition's values at a cabinet that joined it, once it has its stable key. A
+ * value the cabinet came with of its own (the side of its lateral panel, chosen for it alone) is
+ * recorded as it was placed, not as the composition holds it.
+ */
+const recordInherited = (
+  deps: CompositionDeps,
+  runtimeId: string,
+  inherited: Readonly<Record<string, AttributeValue>>,
+  config: Readonly<Record<string, unknown>>,
+): void => {
+  const state = deps.getState();
+  const cabinetId = resolveStableKey(getCabinetEntries(state), runtimeId);
+  if (!cabinetId) return;
+
+  const profile = getActiveProductProfile(state);
+  const placedWith = withInherited(config, inherited);
+  const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => {
+    const own = placedWith[attributeId];
+
+    return {
+      attributeId,
+      target: { scope: "cabinet", cabinetId },
+      value: isAttributeValue(own) ? (normalizeOptionValue(profile, attributeId, own) ?? own) : value,
+      origin: "requested",
+    };
+  });
+  recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
+};
+
+/**
+ * Records at a cabinet that joined the composition the values that are its own
+ * (`isOwnCabinetValue`): the series it was placed as, the collection's own where its config names
+ * none. The scene sent them to that product alone, so no other cabinet reads them.
+ *
+ * A cabinet that holds none yet (a shelf of a model, a cabinet placed before the state kept
+ * them) is recorded as the collection's own, so that it does not read the newcomer's.
+ */
+const recordOwnValues = (deps: CompositionDeps, runtimeId: string, config: Readonly<Record<string, unknown>>): void => {
+  const state = deps.getState();
+  const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
+  if (!profile || !bindings) return;
+
+  const cabinets = getCabinetEntries(state);
+  const recorded = getValuesByAttributeId(state);
+  const changes = profile.attributes.flatMap(({ attributeId }): PlannedChange[] => {
+    if (!isOwnCabinetValue(profile, bindings, attributeId)) return [];
+
+    return cabinets.flatMap((cabinet): PlannedChange[] => {
+      const target = { scope: "cabinet", cabinetId: cabinet.stableKey } as const;
+      const isNew = cabinet.runtimeId === runtimeId;
+      if (!isNew && recorded[attributeId]?.some((entry) => isSameTarget(entry.target, target))) return [];
+
+      const placedWith = isNew ? config[attributeId] : undefined;
+      const value =
+        isAttributeValue(placedWith) && placedWith !== null && placedWith !== ""
+          ? (normalizeOptionValue(profile, attributeId, placedWith) ?? placedWith)
+          : selectDefaultValue(profile, attributeId);
+
+      return value === "" ? [] : [{ attributeId, target, value, origin: "requested" }];
+    });
+  });
+  recordCarriedChanges(changes).forEach((action) => deps.dispatch(action));
+};
+
+/** The expected products in the order the scene reports, when it reports them all. */
+const inSceneOrder = (expected: readonly string[], scene: SceneStateResult): string[] => {
+  if (scene.status !== "ready") return [...expected];
+
+  const wanted = new Set(expected);
+  const ordered = scene.order.filter((runtimeId) => wanted.has(runtimeId));
+  return ordered.length === expected.length ? ordered : [...expected];
+};
+
+type SceneChange = Extract<SceneCompositionResult, { status: "applied" | "partial" }>;
+
+/** A change the scene took at least in part. */
+const isSceneChange = (result: SceneCompositionResult): result is SceneChange =>
+  result.status === "applied" || result.status === "partial";
+
+/** The error for a change the scene did not take; nothing was recorded for it. */
+const stoppedResult = (result: Exclude<SceneCompositionResult, SceneChange>): CompositionResult => {
+  switch (result.status) {
+    case "not-ready":
+      return { status: "error", code: "runtime-not-ready", message: "The scene is not ready yet." };
+
+    case "rejected":
+      return {
+        status: "error",
+        code: "composition-rejected",
+        message: result.issues.map(({ message }) => message).join(" "),
+      };
+
+    case "failed":
+      return { status: "error", code: "runtime-failed", message: result.message, sceneCode: result.sceneCode };
+  }
+};
+
+/** Records the composition the scene holds and reports what happened. */
+const recordResult = (
+  { dispatch }: CompositionDeps,
+  result: SceneChange,
+  productIds: string[],
+  placedCabinetStyles: Record<string, string>,
+): CompositionResult => {
+  dispatch(recordComposition({ productIds, placedCabinetStyles }));
+
+  if (result.status === "partial") {
+    dispatch(markRuntimeOutOfSync());
+    dispatch(requestSceneStateSync());
+    return { status: "partial", productIds, placed: result.placed, message: result.message, needsSync: true };
+  }
+
+  return { status: "applied", productIds, placed: result.placed };
+};
+
+/**
+ * Records the values that come with the composition, then sends the values placing does not
+ * reach. A value the scene refused holds Save like a partial change.
+ */
+const settleValues = async (
+  deps: CompositionDeps,
+  recorded: CompositionResult,
+  { afterPlacement, record }: { afterPlacement?: ReplayValues; record?: ReplayValues },
+): Promise<CompositionResult> => {
+  if (recorded.status === "error") return recorded;
+
+  // Values the products already carry are only recorded; no scene call is made for them.
+  if (record) recordValues(record, deps);
+
+  if (!afterPlacement || recorded.status !== "applied") return recorded;
+
+  const replayed = await replayValues({ send: afterPlacement, record: false }, deps);
+  if (replayed.status === "applied") return recorded;
+
+  deps.dispatch(markRuntimeOutOfSync());
+  return {
+    status: "partial",
+    productIds: recorded.productIds,
+    placed: recorded.placed,
+    message: replayed.status === "error" ? replayed.message : "The scene took only part of the values.",
+    needsSync: true,
+  };
+};
+
+export const applyPreset = async (
+  { products, shared = {}, afterPlacement, record }: ApplyPresetRequest,
+  deps: CompositionDeps,
+): Promise<CompositionResult> => {
+  const state = deps.getState();
+  const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
+  const sceneShared = Object.fromEntries(
+    Object.entries(shared).map(([attributeId, value]) => [
+      attributeId,
+      toSceneValue(profile, bindings, attributeId, value),
+    ]),
+  );
+
+  // A colour the configuration holds goes on the model too, as the price already reads it:
+  // the model's own colours stand only while nothing was chosen.
+  const chosen = selectPlacedWithValues(state, { chosenOnly: true });
+  const placedProducts =
+    Object.keys(chosen).length > 0
+      ? products.map((product) => ({ ...product, config: { ...product.config, ...chosen } }))
+      : products;
+
+  const result = await deps.composition.replace({
+    products: toSceneProducts(profile, bindings, placedProducts),
+    shared: sceneShared,
+    flow: deps.flow,
+  });
+  if (!isSceneChange(result)) return stoppedResult(result);
+
+  const recorded = recordResult(
+    deps,
+    result,
+    inSceneOrder(result.placed, result.scene),
+    drawerStyles(profile, result.placed, products),
+  );
+  // A value the caller records is its own choice; it wins over the one the products carry.
+  const carried = recordCarriedValues(deps, result.placed, products);
+  const values = Object.keys(carried).length > 0 ? { ...carried, ...record } : record;
+
+  return settleValues(deps, recorded, { afterPlacement, record: values });
+};
+
+export const addCabinet = async (
+  { product, placement, afterPlacement, record }: AddCabinetRequest,
+  deps: CompositionDeps,
+): Promise<CompositionResult> => {
+  const { sceneProduct, inherited } = cabinetToPlace(deps.getState(), product);
+  const result = await deps.composition.add(sceneProduct, placement);
+  if (!isSceneChange(result)) return stoppedResult(result);
+
+  const [runtimeId] = result.placed;
+  const current = productIdsOf(deps.getState()).filter((id) => id !== runtimeId);
+  const anchor =
+    placement.kind === "end" || placement.anchorRuntimeId === null ? -1 : current.indexOf(placement.anchorRuntimeId);
+  // Where the scene does not report its order: beside the anchor, a column's top before its bottom.
+  const before =
+    placement.kind === "beside"
+      ? placement.side === "left"
+      : placement.kind === "slot" && (placement.slot === "left" || placement.slot === "top");
+  const at = anchor === -1 ? current.length : before ? anchor : anchor + 1;
+  const expected = runtimeId ? [...current.slice(0, at), runtimeId, ...current.slice(at)] : current;
+  const style = runtimeId ? drawerStyleOf(getActiveProductProfile(deps.getState()), product.config) : null;
+
+  const recorded = recordResult(
+    deps,
+    result,
+    inSceneOrder(expected, result.scene),
+    runtimeId && style ? { [runtimeId]: style } : {},
+  );
+  if (runtimeId) {
+    recordInherited(deps, runtimeId, inherited, product.config);
+    recordOwnValues(deps, runtimeId, product.config);
+  }
+
+  return settleValues(deps, recorded, { afterPlacement, record });
+};
+
+export const removeCabinets = async (
+  runtimeIds: readonly string[],
+  deps: CompositionDeps,
+): Promise<CompositionResult> => {
+  const current = productIdsOf(deps.getState());
+  const unknown = runtimeIds.filter((runtimeId) => !current.includes(runtimeId));
+
+  if (runtimeIds.length === 0 || unknown.length > 0) {
+    return { status: "error", code: "unknown-target", message: `Not in the composition: ${unknown.join(", ")}.` };
+  }
+
+  const result = await deps.composition.remove(runtimeIds);
+  if (!isSceneChange(result)) return stoppedResult(result);
+
+  const placedNow = productIdsOf(deps.getState());
+  const { scene } = result;
+  // A partial removal stopped at a product the scene kept; what is left is what the scene reads.
+  const remaining =
+    result.status === "applied"
+      ? placedNow.filter((runtimeId) => !runtimeIds.includes(runtimeId))
+      : scene.status === "ready"
+        ? placedNow.filter((runtimeId) => scene.order.includes(runtimeId))
+        : placedNow;
+
+  return recordResult(deps, result, inSceneOrder(remaining, result.scene), {});
+};
+
+export const swapCabinets = async (
+  runtimeIdA: string,
+  runtimeIdB: string,
+  deps: CompositionDeps,
+): Promise<CompositionResult> => {
+  const current = productIdsOf(deps.getState());
+
+  if (runtimeIdA === runtimeIdB || !current.includes(runtimeIdA) || !current.includes(runtimeIdB)) {
+    return { status: "error", code: "unknown-target", message: `Cannot swap ${runtimeIdA} and ${runtimeIdB}.` };
+  }
+
+  const result = await deps.composition.swap(runtimeIdA, runtimeIdB);
+  if (!isSceneChange(result)) return stoppedResult(result);
+
+  const swapped = productIdsOf(deps.getState()).map((runtimeId) =>
+    runtimeId === runtimeIdA ? runtimeIdB : runtimeId === runtimeIdB ? runtimeIdA : runtimeId,
+  );
+
+  return recordResult(deps, result, inSceneOrder(swapped, result.scene), {});
+};
+
+export const clearComposition = async (
+  { resetAddOns }: ClearCompositionRequest,
+  deps: CompositionDeps,
+): Promise<CompositionResult> => {
+  if (!deps.composition.isReady()) {
+    return { status: "error", code: "runtime-not-ready", message: "The scene is not ready yet." };
+  }
+
+  // The scene keeps its add-ons when the products go, and would put them back on the next ones.
+  if (resetAddOns) {
+    const towelBar = await replayValues({ send: { TowelBarOption: "None" }, record: false }, deps);
+    const sidePanels = await deps.sidePanels.apply([{ panel: "None", side: "both" }]);
+
+    if (towelBar.status !== "applied" || sidePanels.status !== "applied") {
+      console.warn("[clearComposition] The add-ons were not all taken off", { towelBar, sidePanels });
+    }
+  }
+
+  const result = await deps.composition.clear();
+  if (!isSceneChange(result)) return stoppedResult(result);
+
+  return recordResult(deps, result, [], {});
+};
+
+/**
+ * Records a composition the scene already holds, e.g. products a restore placed or products that
+ * stayed when Prebuilt opened Custom. Nothing is sent to the scene.
+ */
+export const adoptComposition = async (
+  { runtimeIds, products, record, placed: placedCabinets = [] }: AdoptCompositionRequest,
+  deps: CompositionDeps,
+): Promise<CompositionResult> => {
+  const profile = getActiveProductProfile(deps.getState());
+  const placed = [...runtimeIds];
+  const scene: SceneStateResult = { status: "ready", order: placed, cabinets: [] };
+  const recorded = recordResult(
+    deps,
+    { status: "applied", placed, scene },
+    placed,
+    drawerStyles(profile, placed, products),
+  );
+  // Only each cabinet's own values: a restore adopts saved scene configs, whose shared values are
+  // scene tokens the configuration records from its own saved state.
+  recordCarriedValues(deps, placed, products);
+  // A cabinet the scene's own tools placed is recorded as `addCabinet` records the one it places.
+  for (const cabinet of placedCabinets) {
+    if (!placed.includes(cabinet.runtimeId)) continue;
+    recordInherited(deps, cabinet.runtimeId, cabinet.inherited, cabinet.product.config);
+    recordOwnValues(deps, cabinet.runtimeId, cabinet.product.config);
+  }
+
+  return settleValues(deps, recorded, { record });
+};
+
+/**
+ * A cabinet for the scene's own placement tools, translated as `addCabinet` translates the one it
+ * places; nothing is sent to the scene. Null when the collection has no scene type for it.
+ */
+export const prepareCabinet = (
+  product: SceneCompositionProduct,
+  deps: Pick<CompositionDeps, "getState" | "composition">,
+): PreparedCabinet | null => {
+  const own: SceneCompositionProduct = {
+    productType: product.productType,
+    config: Object.fromEntries(Object.entries(product.config).filter(([key]) => !SCENE_PLACEMENT_KEYS.has(key))),
+  };
+  const { sceneProduct, inherited } = cabinetToPlace(deps.getState(), own);
+  const draft = deps.composition.toSceneProduct(sceneProduct);
+
+  return draft ? { definitionId: draft.sceneType, selection: draft.config, product: own, inherited } : null;
+};
+
+/**
+ * A product as a preset brings it, in the scene's names and values: translated as `applyPreset`
+ * translates its products, without the composition's values. Null when the collection has no
+ * scene type for it.
+ */
+export const toPresetSceneProduct = (
+  product: SceneCompositionProduct,
+  deps: Pick<CompositionDeps, "getState" | "composition">,
+): SceneProductDraft | null => {
+  const state = deps.getState();
+  const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [product]);
+  return deps.composition.toSceneProduct(sceneProduct);
+};

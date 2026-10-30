@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"total":"$8,361.00","block":"Your Configuration\nCabinet\nSink Base\nTricot Height cabinet: Sink Base unit, 1 Drawer, Unknown handle, 23.6\" W, 15.7\" H, 20.5\" D - Cabinet Color: WDV | Rovere Oro 932, Handle Color: Lacquered Matt | Agata 407 MT\n1 | 23.6W-15.7H-20.5D\nUnknown\nCabinet\nWDV | Rovere Oro 932\n$3,584.00\nCabinet Options\nCabinet Pattern\nSatin\nCountertop\nCountertop\nCountertop - Style: Integrated, 23.6\" W, Thickness: 0.5\", Depth: 20.5\", Material: HPL, Color: BIANCO KOS 250\n0.5\"\nCountertop\nHPL | BIANCO KOS 250\n$1,063.00\nCountertop Style\nIntegrated\nBasin\nBasin - Style: VA024\nVA024\n$3,714.00\nAccessories\nFaucet\nFaucet Holes\n0\n$0.00\nSwatches\nAutofill My Swatches\n\nLet us fill your swatch cart with your selected finishes\n\nSwatches list\nFree\nOrder Swatches\n"}
+```

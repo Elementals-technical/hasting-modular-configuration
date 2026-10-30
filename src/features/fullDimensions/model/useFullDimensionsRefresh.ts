@@ -1,6 +1,9 @@
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useEffect, useRef } from "react";
 
 import { useAppSelector } from "@/shared/hooks/store/redux";
+import { getDimensionsByCabinet } from "@/entities/configuration";
 import {
   getSelectedProducts,
   getSelectedDimensions,
@@ -8,6 +11,7 @@ import {
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
   getActiveCountertopThickness,
+  getCompositionVersion,
 } from "@/entities/product/model/store/selectors";
 import { getIsHistoryRestoring } from "@/entities/history/model/store/selectors";
 import {
@@ -28,7 +32,11 @@ export function useFullDimensionsRefresh(
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
   const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
   const sidePanelRight = useAppSelector(getSidePanelRightStatus);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
+  // A move, a swap or one cabinet's new size changes the overall box without changing the ids.
+  const compositionVersion = useAppSelector(getCompositionVersion);
+  const dimensionsByCabinet = useAppSelector(getDimensionsByCabinet);
   const productIdsKey = productIds.join("|");
 
   const generationRef = useRef(0);
@@ -44,7 +52,11 @@ export function useFullDimensionsRefresh(
     const timer = setTimeout(async () => {
       const gen = ++generationRef.current;
 
-      const didShow = await computeAndShowFullDimensions({ countertopThickness, unit });
+      const didShow = await computeAndShowFullDimensions({
+        countertopThickness,
+        unit,
+        panelWidthCm: getSidePanelWidthCm(activeProfile),
+      });
 
       if (gen !== generationRef.current) return;
 
@@ -58,6 +70,8 @@ export function useFullDimensionsRefresh(
     isEnabled,
     isRestoring,
     productIdsKey,
+    compositionVersion,
+    dimensionsByCabinet,
     selectedDimensions.width,
     selectedDimensions.height,
     selectedDimensions.depth,
@@ -65,6 +79,7 @@ export function useFullDimensionsRefresh(
     sidePanelLeft,
     sidePanelRight,
     countertopThickness,
+    activeProfile,
     unit,
   ]);
 }

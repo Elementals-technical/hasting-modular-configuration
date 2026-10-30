@@ -1,7 +1,4 @@
-export const ChevronRight = () => {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M6 12L10 8L6 4" stroke="#282828" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-  );
-};
+import { ChevronRight as LucideChevronRight } from "lucide-react";
+import { AppIcon } from "@/shared/ui/AppIcon/AppIcon";
+
+export const ChevronRight = () => <AppIcon icon={LucideChevronRight} size={16} color="#282828" />;

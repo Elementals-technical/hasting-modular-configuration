@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"header":"","labels":["Summary View","Cabinet Type","Sink Base","Cabinet with a basin","Side Cabinet","Cabinet without a basin","Open Shelf","Side Shelf","Cabinet Style","Total List Price","Quote","Next: Color"],"controls":["[ ] Cabinet Type","[x] Sink Base","[ ] Side Cabinet","[ ] Open Shelf","[ ] (disabled) Side Shelf","[ ] (disabled) Switch to PTO handle here","[ ] Cabinet Style","[ ] Next: Color"]}
+```

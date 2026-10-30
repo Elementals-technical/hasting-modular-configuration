@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"section":"Cabinet Type","items":["*Sink Base","Side Cabinet"]},{"section":"Cabinet Style","items":[]},{"section":"Cabinet Style","items":["Next: Color"]}]
+```

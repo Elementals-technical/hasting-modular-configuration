@@ -1,4 +1,5 @@
-import type { Configurator } from "@/entities/configurator/api/types";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import { getConfiguratorGroupKind } from "@/entities/configurator/lib/configuratorGroupKind";
 
 import { normalizeMaterialToken } from "./parse";
 
@@ -19,16 +20,22 @@ const MATERIAL_SKU_BY_TOKEN: Record<string, string> = {
   tekorund: "SSTM",
 };
 
-const COUNTERTOP_PROXY_NAMES = new Set(["Countertop Color", "Vessels"]);
+// The countertop and vessel groups, whatever the configurator calls them ("Countertop Color" in 4,
+// "Select Countertop Color" in 9 and the collections' own).
+const isCountertopGroup = ({ proxyName }: ConfiguratorAvailableOption): boolean => {
+  const kind = getConfiguratorGroupKind(proxyName);
+  return kind === "countertop" || kind === "vessel";
+};
+
 
 export const findCountertopSkuByColorName = (
-  configurator: Configurator | undefined,
+  groups: readonly ConfiguratorAvailableOption[] | null | undefined,
   colorName: string,
 ): string => {
-  if (!configurator || !colorName) return "";
+  if (!groups || !colorName) return "";
 
-  for (const group of configurator.availableOptions) {
-    if (!COUNTERTOP_PROXY_NAMES.has(group.proxyName)) continue;
+  for (const group of groups) {
+    if (!isCountertopGroup(group)) continue;
 
     for (const option of group.options) {
       for (const variant of option.variants) {

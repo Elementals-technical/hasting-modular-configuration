@@ -1,0 +1,134 @@
+import { describe, expect, it } from "vitest";
+
+import classProfile from "../../../../public/collections/class/product-profile.json";
+import classUi from "../../../../public/collections/class/ui.json";
+import makoProfile from "../../../../public/collections/mako/product-profile.json";
+import makoUi from "../../../../public/collections/mako/ui.json";
+import urbanFreestandingProfile from "../../../../public/collections/urban-freestanding/product-profile.json";
+import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
+import urbanDuplexProfile from "../../../../public/collections/urban-duplex/product-profile.json";
+import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
+import urbanLowHeightProfile from "../../../../public/collections/urban-low-height/product-profile.json";
+import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
+import ushProfile from "../../../../public/collections/urban-standard-height/product-profile.json";
+import ushUi from "../../../../public/collections/urban-standard-height/ui.json";
+import { CUSTOMIZATION_FLOW_IDS, type CustomizationSchema } from "../model/customizationSchema";
+import { parseProductProfile } from "../lib/parseProductProfile";
+import { selectAttribute, selectOptionValues } from "../lib/productProfileSelectors";
+import { validateCustomizationSchema } from "../lib/customization/validateCustomizationSchema";
+
+/**
+ * Each collection describes its own UI in ui.json. This test keeps that description honest against the
+ * product profile: a field may only name an attribute the profile can supply options for.
+ * Validity of the documents themselves is covered by validateCustomizationSchema and the package tests.
+ */
+
+type CollectionDocuments = [collectionId: string, uiDocument: unknown, profileDocument: unknown];
+
+const ushDocuments: CollectionDocuments = ["urban-standard-height", ushUi, ushProfile];
+const urbanLowHeightDocuments: CollectionDocuments = ["urban-low-height", urbanLowHeightUi, urbanLowHeightProfile];
+const classDocuments: CollectionDocuments = ["class", classUi, classProfile];
+const makoDocuments: CollectionDocuments = ["mako", makoUi, makoProfile];
+const urbanFreestandingDocuments: CollectionDocuments = [
+  "urban-freestanding",
+  urbanFreestandingUi,
+  urbanFreestandingProfile,
+];
+const urbanDuplexDocuments: CollectionDocuments = ["urban-duplex", urbanDuplexUi, urbanDuplexProfile];
+const collections = [
+  ushDocuments,
+  urbanLowHeightDocuments,
+  classDocuments,
+  makoDocuments,
+  urbanFreestandingDocuments,
+  urbanDuplexDocuments,
+];
+
+const parseCollection = ([collectionId, uiDocument, profileDocument]: CollectionDocuments) => {
+  const validation = validateCustomizationSchema(uiDocument);
+  const parsed = parseProductProfile(profileDocument);
+  if (!validation.ok) throw new Error(`${collectionId} ui.json: ${JSON.stringify(validation.diagnostics)}`);
+  if (!parsed.ok) throw new Error(`${collectionId} product-profile.json: ${JSON.stringify(parsed.diagnostics)}`);
+  return { schema: validation.schema, profile: parsed.profile };
+};
+
+const fieldAttributeIds = (schema: CustomizationSchema) =>
+  Object.values(schema.sections).flatMap((section) => section.fields.map((field) => field.attributeId));
+
+describe.each(collections)("%s ui.json", (...documents) => {
+  const { schema, profile } = parseCollection(documents);
+
+  it("ends both flows on a summary step", () => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      const { steps } = schema.flows[flowId];
+      expect(steps.length).toBeGreaterThanOrEqual(2);
+      expect(schema.steps[steps[steps.length - 1].stepId]?.kind).toBe("summary");
+    }
+  });
+
+  it("names only attributes its profile declares, each with a source of options", () => {
+    for (const [sectionId, section] of Object.entries(schema.sections)) {
+      for (const { attributeId } of section.fields) {
+        const attribute = selectAttribute(profile, attributeId);
+        expect(attribute, `${sectionId}.${attributeId}`).not.toBeNull();
+        expect(
+          (attribute?.options?.length ?? 0) > 0 || Boolean(attribute?.optionsSource),
+          `${sectionId}.${attributeId} has no options`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("switches a field On and Off only between values its profile declares", () => {
+    for (const [sectionId, section] of Object.entries(schema.sections)) {
+      for (const { attributeId, toggle } of section.fields) {
+        if (!toggle) continue;
+        const attribute = selectAttribute(profile, attributeId);
+        expect(attribute?.defaultValue, `${sectionId}.${attributeId} has no value for On`).toBeDefined();
+        expect(attribute?.resetValue, `${sectionId}.${attributeId} has no value for Off`).toBeDefined();
+      }
+    }
+  });
+
+  it("gives the models of its cabinet style cards only heights its profile offers", () => {
+    const offered = selectOptionValues(profile, "Height").map(Number);
+
+    for (const { id, heights } of schema.cabinetStyle?.heightStyles ?? []) {
+      expect(
+        heights.filter((height) => !offered.includes(height)),
+        `cabinetStyle.heightStyles.${id}`,
+      ).toEqual([]);
+    }
+  });
+});
+
+describe("Class and Mako UI descriptions", () => {
+  it("show no handle field for Class and the Mako-only colour fields for Mako", () => {
+    const classFields = fieldAttributeIds(parseCollection(classDocuments).schema);
+    const makoFields = fieldAttributeIds(parseCollection(makoDocuments).schema);
+
+    expect(classFields).not.toContain("Handle");
+    expect(classFields).toEqual(expect.arrayContaining(["CabinetSideColor", "FrameColor"]));
+    expect(makoFields).toEqual(expect.arrayContaining(["HandleColor", "LegColor"]));
+  });
+});
+
+describe("Urban Duplex UI description", () => {
+  it("shows its two panel colours instead of a cabinet colour or a handle", () => {
+    const fields = fieldAttributeIds(parseCollection(urbanDuplexDocuments).schema);
+
+    expect(fields).toEqual(expect.arrayContaining(["BasePanelColor", "LateralPanelColor"]));
+    expect(fields).not.toContain("CabinetColor");
+    expect(fields).not.toContain("Handle");
+  });
+
+  // Client decision 27.10: the side is a cabinet's own, so no step turns every panel at once.
+  it("offers the side of the lateral panel in the style sidebar and the cabinet menu only, named there", () => {
+    const { schema } = parseCollection(urbanDuplexDocuments);
+    const side = { attributeId: "LateralPanelSide", label: "Lateral Panel", when: { Series: "URDPX" } };
+
+    expect(fieldAttributeIds(schema)).not.toContain("LateralPanelSide");
+    expect(schema?.styleSidebar?.attributes).toEqual([side]);
+    expect(schema?.playerMenu?.attributes).toEqual([side]);
+  });
+});

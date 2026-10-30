@@ -1,0 +1,23 @@
+.innerRow {
+  margin-inline: calc(-1 * var(--accordion-content-padding-x, 20px));
+  margin-bottom: 20px;
+
+  padding-top: var(--filter-row-padding-top, 0) !important;
+
+  div {
+    button {
+      min-width: auto !important;
+    }
+
+    &:nth-child(3) {
+      flex-grow: 1;
+    }
+  }
+}
+
+.lowerColors {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}

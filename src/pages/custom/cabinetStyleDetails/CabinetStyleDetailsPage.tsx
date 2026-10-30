@@ -1,23 +1,33 @@
 import { useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
+import type { RootState } from "@/app/store";
 import { ArrowLeft } from "@/shared/assets/images/svg/ArrowLeft";
 import { useAppSelector } from "@/shared/hooks/store/redux";
-import { resolveCabinetStyleImage } from "@/entities/product/lib/resolveCabinetImages";
+import { selectOptionImageContext } from "@/entities/product/model/store/derivedSelectors";
 import {
+  getCabinetCatalog,
   getCountertopColorSku,
   getCountertopStyle,
   getDimensionOptions,
   getSelectedDimensions,
   getSinkType,
 } from "@/entities/product/model/store/selectors";
+import { findCabinetRule, SERIES_ATTRIBUTE_ID } from "@/shared/config/configurator/typeCabinetCatalog";
 import {
   filterDepthValuesByCountertopRules,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import { ROUTES } from "@/shared";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
 
 import s from "./CabinetStyleDetailsPage.module.scss";
+import {
+  resolveOptionImage,
+  useCollectionNavigate,
+  useCollectionNavigation,
+  useOptionImageVariants,
+  useOptionImages,
+} from "@/features/collectionCustomization";
 
 const CHARACTERISTICS = [
   "Soft-close, ergonomic drawer system",
@@ -107,8 +117,20 @@ const styleToDescription = (style?: string | null) => {
 
 const cmToInches = (cm: number) => Number((cm / 2.54).toFixed(1));
 
+/** The widths of the cabinet `series` supplies of a type, in inches; null for the collection's own. */
+const selectSeriesWidthsText = (state: RootState, cabinetType: string | null, series: string | null): string | null => {
+  const rule = series ? findCabinetRule(getCabinetCatalog(state), cabinetType, series) : null;
+  if (!rule?.series) return null;
+
+  return [...rule.widths]
+    .sort((a, b) => a - b)
+    .map((width) => `${cmToInches(width)}"`)
+    .join(", ");
+};
+
 export const CabinetStyleDetailsPage = () => {
-  const navigate = useNavigate();
+  const navigate = useCollectionNavigate();
+  const cabinetBuilderStepPath = useCollectionNavigation("custom")?.currentStep?.path;
   const [params] = useSearchParams();
 
   const selectedDimensions = useAppSelector(getSelectedDimensions);
@@ -116,11 +138,16 @@ export const CabinetStyleDetailsPage = () => {
   const countertopStyle = useAppSelector(getCountertopStyle);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const sinkType = useAppSelector(getSinkType);
+  const activeProfile = useAppSelector(getActiveProductProfile);
+  const optionImages = useOptionImages();
+  const optionImageVariants = useOptionImageVariants();
+  const optionImageContext = useAppSelector(selectOptionImageContext);
   const countertopRules = useCountertopRules();
 
   const style = params.get("style");
   const cabinetType = params.get("cabinetType");
-  const imageFromQuery = params.get("image");
+  // The series whose cabinet the card stood for, where the collection offers those of several.
+  const series = params.get("series");
 
   const title = params.get("title")?.trim() || styleToLabel(style);
 
@@ -134,8 +161,21 @@ export const CabinetStyleDetailsPage = () => {
 
   const currentHeight = Number(params.get("height") ?? selectedDimensions.height ?? 56);
 
-  const previewImage =
-    imageFromQuery || resolveCabinetStyleImage(style ?? undefined, currentHeight, cabinetType ?? undefined, undefined);
+  // The same picture the grid showed, resolved from the collection again rather than carried in
+  // the URL: the type and the height the card was opened with come from the query, the rest of
+  // the configuration from the store.
+  const previewImage = resolveOptionImage({
+    optionImages,
+    variants: optionImageVariants,
+    attributeId: "Drawers",
+    value: style ?? "",
+    context: {
+      ...optionImageContext,
+      CabinetType: cabinetType ?? "",
+      Height: String(currentHeight),
+      ...(series ? { [SERIES_ATTRIBUTE_ID]: series } : {}),
+    },
+  });
 
   const widthsInches = useMemo(() => {
     const values = dimensionOptions.width
@@ -154,13 +194,14 @@ export const CabinetStyleDetailsPage = () => {
       rules: countertopRules,
       activeCountertopStyle: countertopStyle ?? null,
       activeBasinStyle: sinkType ?? null,
+      profile: activeProfile,
     })
       .map((option) => Number(option))
       .filter((value) => Number.isFinite(value));
 
     const uniqSorted = Array.from(new Set(values)).sort((a, b) => a - b);
     return uniqSorted.map(cmToInches);
-  }, [countertopColorSku, countertopRules, countertopStyle, dimensionOptions.depth, sinkType]);
+  }, [activeProfile, countertopColorSku, countertopRules, countertopStyle, dimensionOptions.depth, sinkType]);
 
   const cabinetLabel =
     cabinetType === "Sink-Base"
@@ -180,8 +221,12 @@ export const CabinetStyleDetailsPage = () => {
     styleDetails?.about ??
     `Designed for modern living, this ${styleToDescription(style)} ${cabinetLabel} brings together clean aesthetics, precision Italian craftsmanship, and smart, lifestyle-driven storage to stow your bathroom essentials in style.`;
 
+  // A cabinet another series supplies comes in the widths of that series.
+  const seriesWidthsText = useAppSelector((state) => selectSeriesWidthsText(state, cabinetType, series));
   const widthsText =
-    styleDetails?.widthsText ?? (widthsInches.length ? widthsInches.map((value) => `${value}"`).join(", ") : "N/A");
+    seriesWidthsText ??
+    styleDetails?.widthsText ??
+    (widthsInches.length ? widthsInches.map((value) => `${value}"`).join(", ") : "N/A");
   const filteredDepthsText = depthsInches.length ? depthsInches.map((value) => `${value}"`).join(" or ") : "N/A";
   const depthsText =
     sinkType === "Top_Ocritech_Oly55" ? filteredDepthsText : styleDetails?.depthsText ?? filteredDepthsText;
@@ -191,7 +236,7 @@ export const CabinetStyleDetailsPage = () => {
       <button
         type="button"
         className={s.backButton}
-        onClick={() => navigate(`${ROUTES.CUSTOM}/cabinet-builder?accordion=cabinet-style`)}
+        onClick={() => navigate(cabinetBuilderStepPath ? `${cabinetBuilderStepPath}?accordion=cabinet-style` : -1)}
       >
         <ArrowLeft width="18" height="18" />
         <span>{displayTitle}</span>

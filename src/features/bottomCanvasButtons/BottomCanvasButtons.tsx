@@ -1,5 +1,7 @@
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useCollectionNavigation } from "@/features/collectionCustomization";
 
 import { BaseButton } from "@/shared";
 import { ZoomInIcon } from "@/shared/assets/images/svg/ZoomInIcon";
@@ -8,9 +10,9 @@ import { ArIcon } from "@/shared/assets/images/svg/ArIcon";
 import { ShareIcon } from "@/shared/assets/images/svg/ShareIcon";
 import { UndoIcon } from "@/shared/assets/images/svg/UndoIcon";
 import { RedoIcon } from "@/shared/assets/images/svg/RedoIcon";
-import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
+import { useAppSelector } from "@/shared/hooks/store/redux";
 
-import { useCreateArConfigurationMutation, useSaveConfigurationMutation } from "@/entities";
+import { useCreateArConfigurationMutation } from "@/entities";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import {
@@ -20,13 +22,8 @@ import {
 import { useFullDimensionsRefresh } from "@/features/fullDimensions";
 import { ArPopup } from "@/shared/ui/Popups/ui/ArPopup/ArPopup";
 import { SharePopup } from "@/shared/ui/Popups/ui/sharePopup/SharePopup";
-import {
-  getHasSubmittedCart,
-  getIsAutofillEnabled,
-  getManualSelectedMaterials,
-  getSelectedMaterials,
-} from "@/features/swatchOrder";
-import { buildConfigurationMetadata, buildConfigurationShareUrl } from "@/features/saveConfiguration";
+
+import { getSaveFailureMessage, useSaveCurrentConfiguration } from "@/features/saveConfiguration";
 
 import { exportToAR } from "@/utils/functions/playcanvas/exportToAR";
 import { downloadSceneImage } from "@/utils/functions/playcanvas/captureScreenshot";
@@ -34,43 +31,11 @@ import { zoomIn, zoomOut } from "@/utils/functions/playcanvas/camera";
 import { hideDimensions } from "@/utils/functions/playcanvas/showDimensions";
 import { getDimensionTool } from "@/utils/functions/playcanvas/getDimensionTool";
 import {
-  getCanUndo,
-  getCanRedo,
-  getLastPastSnapshot,
-  getLastFutureSnapshot,
-} from "@/entities/history/model/store/selectors";
-import { undo, redo, setHistoryRestoring } from "@/entities/history/model/store/slice";
-import { captureSnapshot } from "@/entities/history/lib/captureSnapshot";
-import { restoreSnapshot } from "@/entities/history/lib/restoreSnapshot";
-import { store, type RootState } from "@/app/store";
-import { setOpenStyleSidebar } from "@/features/sidebar/model/store/slice";
-import { setIsDrawerOpen, setSelectedSceneProduct } from "@/entities/product/model/store/slice";
-import { captureOrbitCameraState, restoreOrbitCameraState } from "@/utils/functions/playcanvas/orbitCamera";
-import {
-  getActiveCountertopColor,
-  getCountertopColorSku,
   getActiveCountertopThickness,
-  getBookMatching,
-  getCabinetColor,
-  getCountertopStyle,
-  getDividersOption,
-  getDividersStyle,
-  getDrawerPanelFluting,
-  getFaucetHolesAmount,
-  getFaucetHolesSpacing,
-  getGrainDirection,
-  getHandleGrooveColor,
-  getLedOption,
-  getSidePanelsOption,
-  getSidePanelLeftStatus,
-  getSidePanelRightStatus,
-  getSinkType,
-  getTowelBarColor,
-  getTowelBarOption,
-  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 
 import s from "./BottomCanvasButtons.module.scss";
+import { useHistoryMove } from "./lib/useHistoryMove";
 import { DownloadImageIcon } from "@/shared/assets/images/svg/DownloadImageIcon";
 import { FullDimentionsIcon } from "@/shared/assets/images/svg/FullDimentionsIcon";
 
@@ -88,47 +53,14 @@ export const BottomCanvasButtons = () => {
   const [QRValue, setQRValue] = useState("");
   const [isArGenerating, setIsArGenerating] = useState(false);
 
-  const { pathname } = useLocation();
-
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
 
-  const dispatch = useAppDispatch();
-
-  const cabinetColor = useAppSelector(getCabinetColor);
-  // const cabinetCatalog = useAppSelector(getCabinetCatalog);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
-  const sinkType = useAppSelector(getSinkType);
-  const countertopColor = useAppSelector(getActiveCountertopColor);
-  const countertopColorSku = useAppSelector(getCountertopColorSku);
-  const vesselColor = useAppSelector(getVesselColor);
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
-  const drawerPanelFluting = useAppSelector(getDrawerPanelFluting);
-  const grainDirection = useAppSelector(getGrainDirection);
-  const bookMatching = useAppSelector(getBookMatching);
-  const countertopStyle = useAppSelector(getCountertopStyle);
-  const sidePanelsOption = useAppSelector(getSidePanelsOption);
-  const sidePanelLeft = useAppSelector(getSidePanelLeftStatus);
-  const sidePanelRight = useAppSelector(getSidePanelRightStatus);
-  const ledOption = useAppSelector(getLedOption);
-  const dividersOption = useAppSelector(getDividersOption);
-  const dividersStyle = useAppSelector(getDividersStyle);
-  const towelBarOption = useAppSelector(getTowelBarOption);
-  const towelBarColor = useAppSelector(getTowelBarColor);
-  const faucetHolesAmount = useAppSelector(getFaucetHolesAmount);
-  const faucetHolesSpacing = useAppSelector(getFaucetHolesSpacing);
-  const selectedMaterials = useAppSelector(getSelectedMaterials);
-  const manualSelectedMaterials = useAppSelector(getManualSelectedMaterials);
-  const isAutofillEnabled = useAppSelector(getIsAutofillEnabled);
-  const hasSubmittedCart = useAppSelector(getHasSubmittedCart);
+  const saveCurrentConfiguration = useSaveCurrentConfiguration();
 
-  const canUndo = useAppSelector(getCanUndo);
-  const canRedo = useAppSelector(getCanRedo);
-  const lastPastSnapshot = useAppSelector(getLastPastSnapshot);
-  const lastFutureSnapshot = useAppSelector(getLastFutureSnapshot);
-
-  // const saveSnapshot = useHistorySnapshot();
-  const [isRestoring, setIsRestoring] = useState(false);
+  const { moveHistory, isRestoring, canUndo, canRedo } = useHistoryMove();
 
   const deactivateFullDimensions = () => {
     hideDimensions();
@@ -148,7 +80,11 @@ export const BottomCanvasButtons = () => {
 
     setIsFullDimensionsMenuOpen(false);
 
-    const didShow = await computeAndShowFullDimensions({ countertopThickness, unit });
+    const didShow = await computeAndShowFullDimensions({
+      countertopThickness,
+      unit,
+      panelWidthCm: getSidePanelWidthCm(activeProfile),
+    });
     if (!didShow) {
       deactivateFullDimensions();
       return;
@@ -168,173 +104,25 @@ export const BottomCanvasButtons = () => {
     setIsFullDimensionsMenuOpen((prev) => !prev);
   };
 
-  const handleUndo = async () => {
-    if (!canUndo || !lastPastSnapshot || isRestoring) return;
-    setIsRestoring(true);
-    dispatch(setHistoryRestoring(true));
-    const cameraState = captureOrbitCameraState();
-    try {
-      const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
-      dispatch(undo(currentSnapshot));
-      dispatch(setOpenStyleSidebar(false));
-      dispatch(setIsDrawerOpen(false));
-      dispatch(setSelectedSceneProduct(""));
-      await restoreSnapshot(lastPastSnapshot, dispatch);
-      restoreOrbitCameraState(cameraState);
-    } catch (error) {
-      console.error("[History] Undo failed", error);
-    } finally {
-      dispatch(setHistoryRestoring(false));
-      setIsRestoring(false);
-    }
-  };
+  const isSummaryPage = useCollectionNavigation()?.isSummary ?? false;
 
-  const handleRedo = async () => {
-    if (!canRedo || !lastFutureSnapshot || isRestoring) return;
-    setIsRestoring(true);
-    dispatch(setHistoryRestoring(true));
-    const cameraState = captureOrbitCameraState();
-    try {
-      const currentSnapshot = await captureSnapshot(() => store.getState() as RootState);
-      dispatch(redo(currentSnapshot));
-      dispatch(setOpenStyleSidebar(false));
-      dispatch(setIsDrawerOpen(false));
-      dispatch(setSelectedSceneProduct(""));
-      await restoreSnapshot(lastFutureSnapshot, dispatch);
-      restoreOrbitCameraState(cameraState);
-    } catch (error) {
-      console.error("[History] Redo failed", error);
-    } finally {
-      dispatch(setHistoryRestoring(false));
-      setIsRestoring(false);
-    }
-  };
-
-  // const isCustomRoute = pathname.includes("/custom");
-  const isSummaryPage = pathname.includes("/summary");
-
-  const [saveConfiguration] = useSaveConfigurationMutation();
   const [createArConfiguration, { isLoading: isFetchingArConfig }] = useCreateArConfigurationMutation();
 
-  // const resetCustomBuilderScene = async () => {
-  //   await saveSnapshot();
-  //   removeAllProducts();
-  //   dispatch(resetProducts());
-
-  //   const defaultRule =
-  //     cabinetCatalog.typeCabinetRules.find((rule) => rule.code === "Sink-Base") ?? cabinetCatalog.typeCabinetRules[0];
-  //   if (!defaultRule) return;
-
-  //   const defaultProductName = defaultRule?.code ?? "Sink-Base";
-  //   const defaultProductConfig: addProductConfigI = {
-  //     Height: defaultRule?.heights[defaultRule.heights.length - 1] ?? 56,
-  //     Depth: defaultRule?.depths[0] ?? 46,
-  //     CabinetColor: "Ardesia DD GL",
-  //     Width: defaultRule?.widths[0] ?? 60,
-  //     sinkType: defaultRule?.hasSink ? "Top_HPLPrisma" : undefined,
-  //     CountertopColor: "Cacao Orinoco FF MT",
-  //     HandleGrooveColor: "Blu Pavone A6 MT",
-  //   };
-
-  //   dispatch(setActiveCabinetType(defaultRule.code));
-
-  //   const productId = await addProduct(defaultProductName, defaultProductConfig);
-
-  //   dispatch(setDrawerProduct(defaultProductName));
-  //   dispatch(setSelectedProductConfig(defaultProductConfig));
-  //   dispatch(
-  //     setSelectedDimensions({
-  //       width: defaultProductConfig.Width,
-  //       height: defaultProductConfig.Height,
-  //       depth: defaultProductConfig.Depth,
-  //     }),
-  //   );
-
-  //   if (defaultProductConfig.sinkType) {
-  //     dispatch(setActiveBasinStyle(defaultProductConfig.sinkType));
-  //   }
-
-  //   if (productId) {
-  //     dispatch(addProductId(productId));
-  //   }
-  // };
-
-  // const resetPrebuiltScene = async () => {
-  //   await saveSnapshot();
-  //   removeAllProducts();
-  //   dispatch(resetPrebuiltProducts());
-
-  //   try {
-  //     await addPreset(productMockData[0].presetProducts);
-
-  //     dispatch(addProductPreset(productMockData[0].presetProducts));
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   const handleSaveConfiguration = async () => {
-    const ids = getOrderedProductIds();
-
-    if (!ids.length) {
-      console.warn("[Configurations] No products to save");
-
-      setShareValue("No products to save");
-      setIsShareOpening(true);
-      return;
-    }
-
-    const configs = await Promise.all(ids.map((id) => getConfig(id)));
-    const configuration = ids.reduce<Record<string, unknown>>((acc, id, index) => {
-      acc[id] = configs[index];
-      return acc;
-    }, {});
-
-    const metadata = buildConfigurationMetadata({
-      path: pathname,
-      orderedProductIds: ids,
-      uiState: {
-        CabinetColor: cabinetColor,
-        HandleGrooveColor: handleGrooveColor,
-        sinkType,
-        CountertopColor: countertopColor,
-        CountertopColorSku: countertopColorSku,
-        VesselColor: vesselColor,
-        Thickness: countertopThickness,
-        DrawerPanelFluting: drawerPanelFluting,
-        GrainDirection: grainDirection,
-        BookMatching: bookMatching,
-        CountertopStyle: countertopStyle,
-        SidePanels: sidePanelsOption,
-        SidePanelLeft: sidePanelLeft,
-        SidePanelRight: sidePanelRight,
-        LedOption: ledOption,
-        DividersOption: dividersOption,
-        DividersStyle: dividersStyle,
-        TowelBarOption: towelBarOption,
-        TowelBarColor: towelBarColor,
-        FaucetHolesAmount: faucetHolesAmount,
-        FaucetHolesSpacing: faucetHolesSpacing,
-      },
-      swatchOrder: {
-        selectedMaterials,
-        manualSelectedMaterials,
-        isAutofillEnabled,
-        hasSubmittedCart,
-      },
-    });
-
     try {
-      const result = await saveConfiguration({ configuration, metadata }).unwrap();
+      const result = await saveCurrentConfiguration();
 
-      const configId = result?.id;
+      if (!result.ok) {
+        const message = getSaveFailureMessage(result.reason);
+        console.warn(`[Configurations] ${message}`);
 
-      if (configId !== undefined && configId !== null) {
-        const url = buildConfigurationShareUrl(configId);
-
-        setShareValue(url);
+        setShareValue(message);
         setIsShareOpening(true);
+        return;
       }
+
+      setShareValue(result.url);
+      setIsShareOpening(true);
     } catch (error) {
       console.error("[Configurations] Save failed", error);
     }
@@ -410,84 +198,6 @@ export const BottomCanvasButtons = () => {
     }
   };
 
-  // const handleRestoreConfiguration = async () => {
-  //   try {
-  //     const result = await restore(5).unwrap();
-
-  //     // Set default path in which the configuration will be restored.
-  //     const path = result?.metadata?.path;
-  //     if (typeof path === "string" && path.startsWith("/")) {
-  //       navigate(path);
-  //     }
-
-  //     const configuration = result?.configuration || {};
-  //     const presetProducts = buildPresetFromConfiguration(configuration);
-
-  //     console.log(":presetProducts", presetProducts);
-
-  //     dispatch(resetProducts());
-  //     removeAllProducts();
-
-  //     const createdIds = await addPreset(presetProducts);
-  //     dispatch(addProductPreset(presetProducts));
-
-  //     // @ts-ignore
-  //     const orderedIds = createdIds?.length ? createdIds : getOrderedProductIds();
-  //     orderedIds.forEach((id) => dispatch(addProductId(id)));
-
-  //     const groupByName = presetProducts.reduce<Record<string, PresetProduct[]>>((acc, item) => {
-  //       const key = item.name;
-  //       if (!acc[key]) acc[key] = [];
-  //       acc[key].push(item);
-  //       return acc;
-  //     }, {});
-
-  //     Object.entries(groupByName).forEach(([name, items]) => {
-  //       const [first] = items;
-  //       if (!first) return;
-
-  //       if (name.startsWith("Top_")) {
-  //         if (first.CountertopColor) {
-  //           setConfigBatch({ productType: name }, { CountertopColor: first.CountertopColor });
-  //         }
-  //         return;
-  //       }
-
-  //       const config: Record<string, unknown> = {};
-  //       if (first.CabinetColor) config.CabinetColor = first.CabinetColor;
-  //       if (first.HandleGrooveColor) config.HandleGrooveColor = first.HandleGrooveColor;
-  //       if (first.sinkType) config.sinkType = first.sinkType;
-  //       if (first.Drawers) config.Drawers = first.Drawers;
-
-  //       if (Object.keys(config).length) {
-  //         setConfigBatch({ productType: name }, config);
-  //       }
-  //     });
-
-  //     const [firstPreset] = presetProducts;
-  //     if (firstPreset?.name) {
-  //       dispatch(setDrawerProduct(firstPreset.name));
-  //     }
-
-  //     dispatch(setSelectedProductConfig(firstPreset ?? null));
-
-  //     const nextDimensions: Partial<{
-  //       width: number;
-  //       height: number;
-  //       depth: number;
-  //     }> = {};
-  //     if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
-  //     if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
-  //     if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
-
-  //     if (Object.keys(nextDimensions).length) {
-  //       dispatch(setSelectedDimensions(nextDimensions));
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
   return (
     <>
       <div className={s.bottomCanvasButtons}>
@@ -557,24 +267,11 @@ export const BottomCanvasButtons = () => {
               <DownloadImageIcon />
             </BaseButton>
 
-            {/* <BaseButton
-              variant="ghost"
-              onClick={() => {
-                if (isCustomRoute) {
-                  resetCustomBuilderScene();
-                } else {
-                  resetPrebuiltScene();
-                }
-              }}
-            >
-              <RotateIcon />
-            </BaseButton> */}
-
             <BaseButton
               variant="ghost"
               className={!canUndo || isRestoring ? s.disabledButton : undefined}
               disabled={!canUndo || isRestoring}
-              onClick={handleUndo}
+              onClick={() => void moveHistory("undo")}
             >
               <UndoIcon />
             </BaseButton>
@@ -583,7 +280,7 @@ export const BottomCanvasButtons = () => {
               variant="ghost"
               className={!canRedo || isRestoring ? s.disabledButton : undefined}
               disabled={!canRedo || isRestoring}
-              onClick={handleRedo}
+              onClick={() => void moveHistory("redo")}
             >
               <RedoIcon />
             </BaseButton>

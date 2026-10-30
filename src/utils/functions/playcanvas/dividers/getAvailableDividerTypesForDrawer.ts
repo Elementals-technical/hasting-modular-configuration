@@ -60,7 +60,6 @@ export const collectAvailableDividerTypesForDrawer = (zones: Record<string, unkn
 };
 
 // Moved to the pure domain model; re-exported here for backwards compatibility.
-export { getDividerTypeFromOptionTitle } from "@/features/dividers/model/normalize";
 
 export async function getAvailableDividerTypesForDrawer(
   cabinetId: string,

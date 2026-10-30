@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "collectionId": "urban-freestanding",
+  "productTypes": {
+    "Sink-Base": "UF-sink-cabinet",
+    "Sink-Cabinet": "UF-side-cabinet",
+    "Short-Cabinet": "UF-side-cabinet",
+    "Open-Shelf": "UF-open-shelves",
+    "Side-Shelf": "UF-open-shelves-side"
+  },
+  "bindings": [
+    {
+      "attributeId": "Handle",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Handle"
+      },
+      "order": 20,
+      "note": "RuleHandleCabinetUrbanFreestanding reads it for Central Groove only: CG on the 91 cabinet shows UF_HandleBotCut_Top and the taller bottom groove (NEW sheet D66); every other style follows Height (91 Upper Groove, 88 Push-to-Open, 56 / 53 the short cabinet). Sent so the scene config keeps the handle, which the player reads back for the selected cabinet."
+    },
+    {
+      "attributeId": "Height",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Height"
+      },
+      "order": 30,
+      "note": "Number in cm, plinth included: 91 for Upper and Central Groove, 88 for Push-to-Open (cabinet table), 56 / 53 for the short cabinet, and the open shelves at the height of the cabinets beside them. The UF rules lay out 53, 56, 88 and 91, for the drawer cabinets and the open shelves (RuleHeightUFOpenShelves, RuleHeightUFOpenShelvesSide) alike. Not translated: the player and the scene state reader take the height back from the scene config (I04), so a scene number would replace the catalog height in state and pricing."
+    },
+    {
+      "attributeId": "Width",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Width"
+      },
+      "order": 30,
+      "note": "Number in cm, set on one cabinet. RuleWidthCabinetUrbanFreestanding takes 25, 35, 40, 50, 60, 70, 80, 90, 100, 105 and 120, every width of the cabinet table; RuleWidthUFOpenShelves takes the same widths without 40, which covers the open shelf's 25, 35 and 50. The open side shelf has no width rule and stays 15 cm."
+    },
+    {
+      "attributeId": "Depth",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Depth"
+      },
+      "order": 30,
+      "note": "Number in cm, one depth for the composition. The UF depth rules of the drawer cabinets and the open shelves lay out 46 and 50, and the shared UF leg is drawn only while every UF product has the same depth. Not translated, for the reason given for Height."
+    },
+    {
+      "attributeId": "Drawers",
+      "status": "bound",
+      "target": {
+        "kind": "product"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "2": {
+            "Drawers": "2D"
+          },
+          "1": {
+            "Drawers": "1D"
+          }
+        }
+      },
+      "order": 10,
+      "note": "Two drawers (2DW) for the tall cabinets and one (1D) for the 1 Drawer Short Side Cabinet. The UF scene draws the drawers from Height without reading the key (UF_TopDrawer is hidden on a short cabinet); sent in the legacy spelling, as Urban Standard Height sends it, because history and saved configurations read the style from the scene config, and the scene bridge finds the short cabinet by it (buildSteppedSceneProducts)."
+    },
+    {
+      "attributeId": "CabinetColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CabinetColor"
+      },
+      "order": 50,
+      "note": "The PlayCanvas material name, as in Urban Standard Height. RuleMaterialsCabinetUrbanFreestanding paints the drawer cabinets, RuleMaterialsUFOpenShelves and RuleMaterialsUFOpenShelvesSide the open shelves, and the shared UF leg takes the color of the first UF product of the composition. \"None\" or \"\" paints nothing, so the template material stays."
+    },
+    {
+      "attributeId": "CountertopColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "CountertopColor",
+        "overrides": {
+          "Bianco Gloss TAN": "Bianco Gloss TAL",
+          "Bianco Matte TAP": "Bianco Matte TAM",
+          "Matte White": "Solid Surface Matte White",
+          "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte"
+        }
+      },
+      "order": 50,
+      "note": "The countertop is placed at composition level (global RuleChangeCountertopColor); the UF cabinets ignore the key. The overrides are Urban Standard Height's: Syntesi finishes reuse the Tekorlux scene materials (TAL/TAM, not TAN/TAP). Countertop table 591 has no Syntesi rows, so those finishes are not offered here. Two follow the scene's own names (export v63): the porcelain Sahara Noir Silky Matte has no TR8 in it, and the Solid Surface Matte White is \"Solid Surface Matte White\"; sent under the configurator names, neither is found and the top keeps its previous colour."
+    },
+    {
+      "attributeId": "Thickness",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "Thickness"
+      },
+      "order": 50,
+      "note": "Read by the countertop. Only 0.5 is offered; UF-sink-cabinet declares no basin offsets by thickness."
+    },
+    {
+      "attributeId": "sinkType",
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "UF-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "sinkType",
+        "emptyValue": "Vessel"
+      },
+      "order": 40,
+      "note": "The Urban Standard Height basin names, sent to every UF Sink Base. UF-sink-cabinet takes its basin sub-product from sinkType when it is placed but has no RuleChangeSinkType, so a later change stays in its config without swapping the basin until the scene adds the rule. \"Vessel\" is the scene placeholder for a vessel countertop without a basin."
+    },
+    {
+      "attributeId": "VesselColor",
+      "status": "bound",
+      "target": {
+        "kind": "productType",
+        "productType": "UF-sink-cabinet"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "VesselColor",
+        "overrides": {
+          "Acqua 419 GL": "Acqua 419 Lacquered GL",
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 GL": "Agata 407 Lacquered GL",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 GL": "Ambra 413 Lacquered GL",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 GL": "Antracite 400 Lacquered GL",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 GL": "Asparago 414 Lacquered GL",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 GL": "Creta 416 Lacquered GL",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fumo 401 GL": "Fumo 401 Lacquered GL",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "Grigio Argento 403 GL": "Grigio Argento 403 Lacquered GL",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 GL": "Latte 417 Lacquered GL",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 GL": "Metropoli 404 Lacquered GL",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 GL": "Moka 408 Lacquered GL",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 GL": "Nebbia 402 Lacquered GL",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 GL": "Nero 433 Lacquered GL",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 GL": "Ponente 418 Lacquered GL",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 GL": "Sabbia 405 Lacquered GL",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 GL": "Salvia 415 Lacquered GL",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 GL": "Seta 406 Lacquered GL",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 GL": "Turchese 410 Lacquered GL",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 GL": "Zafferano 412 Lacquered GL",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 GL": "Zaffiro 411 Lacquered GL",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 60,
+      "note": "\"\" clears the color, as in Urban Standard Height. The Master File lists no vessel sinks (excludedFromThisProfile.vesselSinks). Configurator 11 names its 40 lacquers as Tricot and Class do (\"Acqua 419 GL\"); the scene has them as \"Acqua 419 Lacquered GL\", so the overrides send that name, as Tricot's and Class's do. The ceramic, Tekorlux and Solid Surface colours are scene names already."
+    },
+    {
+      "attributeId": "CountertopStyle",
+      "status": "state-only",
+      "reason": "Integrated or vessel, as in Urban Standard Height. The scene export has no CountertopStyle key; recorded for the countertop rules only."
+    },
+    {
+      "attributeId": "DrawerPanelFluting",
+      "status": "bound",
+      "target": {
+        "kind": "byFlow",
+        "prebuilt": {
+          "kind": "all"
+        },
+        "custom": {
+          "kind": "cabinets"
+        }
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "DrawerPanelFluting",
+        "emptyValue": "None"
+      },
+      "order": 50,
+      "note": "RuleOverlayFluting puts the pattern's normal and AO maps on the five UF_Overlay_* over CabinetColor; RuleHandleCabinetUrbanFreestanding shows only the overlays of the current handle while a fluting is set, and None hides them. Prebuilt sends to every product, custom only to the placed cabinets, as Urban Standard Height; a cleared fluting (\"\") is sent as None. Only Lacquer Matte cabinets offer it (flutingRule)."
+    },
+    {
+      "attributeId": "HandleGrooveColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "HandleGrooveColor",
+        "emptyValue": "None",
+        "overrides": {
+          "Acqua 419 MT": "Acqua 419 Lacquered MT",
+          "Agata 407 MT": "Agata 407 Lacquered MT",
+          "Ambra 413 MT": "Ambra 413 Lacquered MT",
+          "Antracite 400 MT": "Antracite 400 Lacquered MT",
+          "Asparago 414 MT": "Asparago 414 Lacquered MT",
+          "Creta 416 MT": "Creta 416 Lacquered MT",
+          "Fumo 401 MT": "Fumo 401 Lacquered MT",
+          "Grigio Argento 403 MT": "Grigio Argento 403 Lacquered MT",
+          "Latte 417 MT": "Latte 417 Lacquered MT",
+          "Metropoli 404 MT": "Metropoli 404 Lacquered MT",
+          "Moka 408 MT": "Moka 408 Lacquered MT",
+          "Nebbia 402 MT": "Nebbia 402 Lacquered MT",
+          "Nero 433 MT": "Nero 433 Lacquered MT",
+          "Ponente 418 MT": "Ponente 418 Lacquered MT",
+          "Sabbia 405 MT": "Sabbia 405 Lacquered MT",
+          "Salvia 415 MT": "Salvia 415 Lacquered MT",
+          "Seta 406 MT": "Seta 406 Lacquered MT",
+          "Turchese 410 MT": "Turchese 410 Lacquered MT",
+          "Zafferano 412 MT": "Zafferano 412 Lacquered MT",
+          "Zaffiro 411 MT": "Zaffiro 411 Lacquered MT"
+        }
+      },
+      "order": 50,
+      "note": "Offered as in Urban Standard Height (excludedFromThisProfile.handleGrooveColor) and sent as it sends it: \"\" means cleared. RuleMaterialsHandleUrbanFreestanding paints the grooves of UF-sink-cabinet and UF-side-cabinet, in CabinetColor on \"None\". The open shelves have no groove: they keep the key, and no rule reads it. Configurator 11 also offers the 20 Tricot lacquers (\"Acqua 419 MT\"), which the scene names \"Acqua 419 Lacquered MT\": sent as they are, they are not found and the grooves and the side-panel inlays keep their previous colour; the overrides send the scene's names."
+    },
+    {
+      "attributeId": "FaucetHolesAmount",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "FaucetHolesSpacing",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no faucet holes key in the scene export."
+    },
+    {
+      "attributeId": "BookMatching",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no BookMatching key in the scene export."
+    },
+    {
+      "attributeId": "LedOption",
+      "status": "state-only",
+      "reason": "Never sent to the scene; no LED key in the scene export."
+    },
+    {
+      "attributeId": "CabinetType",
+      "status": "unbound",
+      "reason": "Chosen by placing a product (addProduct, setProductByParams, presetProducts), not by a config key. The UF scene products of each value are in productTypes. The Short-Cabinet is a UF-side-cabinet below 60 cm, as the scene draws it: a placed one reads back as Short-Cabinet by its one-drawer style (ruleData.steppedModules), any other as Sink-Cabinet."
+    },
+    {
+      "attributeId": "HandleGrooveColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CountertopColorSku",
+      "status": "unbound",
+      "reason": "Pricing input (D); never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorMaterial",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "CabinetColorFinish",
+      "status": "unbound",
+      "reason": "Metadata of the chosen cabinet color; never sent to the scene."
+    },
+    {
+      "attributeId": "GrainDirection",
+      "status": "unbound",
+      "reason": "Not a Freestanding option (excludedFromThisProfile.grainDirectionAndBookMatching); the UF scene products have no grain direction rule."
+    },
+    {
+      "attributeId": "TowelBarOption",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "map",
+        "patches": {
+          "None": {
+            "TowelBar": "None",
+            "TowelBarSide": "both"
+          },
+          "Left": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "left"
+          },
+          "Right": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "right"
+          },
+          "Both": {
+            "TowelBar": "TowelBar40_R",
+            "TowelBarSide": "both"
+          }
+        }
+      },
+      "order": 70,
+      "resetBefore": {
+        "TowelBar": "None",
+        "TowelBarSide": "both"
+      },
+      "note": "As in Urban Standard Height: the scene hangs the towel bar on the composition (setTowelBarType), cleared first so a side switch leaves no stale meshes."
+    },
+    {
+      "attributeId": "TowelBarColor",
+      "status": "bound",
+      "target": {
+        "kind": "all"
+      },
+      "values": {
+        "kind": "identity",
+        "sceneKey": "TowelBarColor"
+      },
+      "order": 80,
+      "note": "As in Urban Standard Height; \"\" clears the color."
+    },
+    {
+      "attributeId": "SidePanels",
+      "status": "unbound",
+      "reason": "The scene takes SidePanel together with SidePanelSide; the side comes from SidePanelLeft/SidePanelRight, so one value cannot make the patch, and sidePanels.ts builds it. The UF scene products declare no sidePanelSupport yet, so the scene stands its legacy panels beside them, which take the Urban Standard Height heights (50/53/56) only."
+    },
+    {
+      "attributeId": "SidePanelLeft",
+      "status": "unbound",
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side."
+    },
+    {
+      "attributeId": "SidePanelRight",
+      "status": "unbound",
+      "reason": "Per-side status (active/none/auto-removed), not a scene value; the scene gets the SidePanels groove with a side."
+    },
+    {
+      "attributeId": "DividersOption",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the UF drawers have no divider zones in the scene yet."
+    },
+    {
+      "attributeId": "DividersStyle",
+      "status": "unbound",
+      "reason": "Dividers reach the scene as TopDrawerDividers/BotDrawerDividers zone objects built by the divider adapter, not as a value; the UF drawers have no divider zones in the scene yet."
+    }
+  ]
+}

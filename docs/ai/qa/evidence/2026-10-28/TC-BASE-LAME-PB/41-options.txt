@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"header":"Select Faucet Details","labels":["Summary View","Faucet Holes","Total List Price","Quote","Next: Summary"],"controls":["[ ] Faucet Holes","[ ] 0","[ ] 1","[ ] 2","[ ] 3","[ ] Back to Countertop & Basin","[ ] Next: Summary"]}
+```

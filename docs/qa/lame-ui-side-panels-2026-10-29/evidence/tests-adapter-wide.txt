@@ -1,0 +1,44 @@
+
+ RUN  v4.1.8 <workspace>
+
+ ❯ src/features/playCanvasAdapter/__tests__/columnsCompactPreset.test.ts (10 tests | 1 failed) 42ms
+     × hangs the upper Sink Base over the lower Side Cabinet, shifted as the lower row is (#29) 19ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/playCanvasAdapter/__tests__/columnsCompactPreset.test.ts > Multi-Level models of Urban Duplex as columns > hangs the upper Sink Base over the lower Side Cabinet, shifted as the lower row is (#29)
+AssertionError: expected { format: 'urban-compact-v2', …(4) } to match object { format: 'urban-compact-v2', …(3) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -3,11 +3,11 @@
+    "format": "urban-compact-v2",
+    "shared": {
+      "CabinetColor": "Bianco Calce DA ST",
+      "CabinetColorLateral": "Pulpis Chiaro TKH",
+      "CountertopColor": "Pulpis Chiaro TKH",
+-     "Depth": 50,
++     "Depth": 50.5,
+      "HandleGrooveColor": "Pulpis Chiaro TKH",
+      "Height": 28,
+    },
+    "top": {
+      "CountertopColor": "Pulpis Chiaro TKH",
+
+ ❯ src/features/playCanvasAdapter/__tests__/columnsCompactPreset.test.ts:46:20
+     44|     const { preset, cabinets } = toColumnsCompactPreset(presetOf(29), …
+     45|
+     46|     expect(preset).toMatchObject({
+       |                    ^
+     47|       format: "urban-compact-v2",
+     48|       collection: "UD",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 44 passed (45)
+      Tests  1 failed | 549 passed | 1 expected fail | 3 todo (554)
+   Start at  19:36:51
+   Duration  63.61s (transform 33.91s, setup 0ms, import 89.35s, tests 3.76s, environment 11.21s)

@@ -1,0 +1,254 @@
+{
+ "description": "Local: Tricot prebuilt step order Models > Finishes > Countertop > Accessories > Faucet Details > Summary, Faucet Holes default 0 on Summary (SO-01, SO-03, SO-04). Read-only, guarded: Summary auto-save is blocked.",
+ "steps": [
+  {
+   "tool": "list_pages",
+   "args": {},
+   "save": "00-pages.txt",
+   "capture": {
+    "pageId": "(52): [^\\n]*\\(http://localhost:5173"
+   }
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "url",
+    "url": "http://localhost:5173/prebuilt/model?collectionId=tricot",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n\n// QA harness (agent tab only): simulates the proposed loader fix \u2014 collection JSON fetched with cache:'no-cache'\n// (forces revalidation, so a heuristically-fresh stale copy is not used). Combine with write-guard.js.\n(() => {\n  if (window.__qaCollectionsNoCache) return;\n  window.__qaCollectionsNoCache = true;\n  const prev = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    if (url && url.includes('/collections/')) return prev(input, { ...init, cache: 'no-cache' });\n    return prev(input, init);\n  };\n})();\n"
+   },
+   "save": "01-nav.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Skip\" (mode \"exact\": exact | prefix | contains), right panel first.\n  const want = \"Skip\", mode = \"exact\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "02-skip.txt",
+   "optional": true
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const labels=['Tricot Models','Tricot Cabinet Builder','Cabinet Finishes','Countertop & Basin','Accessories','Faucet Details','Summary']; const tabs=[...document.querySelectorAll('a,button,span,div,li,p')].filter(e=>e.children.length===0&&labels.includes(txt(e.innerText))).map(e=>{const r=e.getBoundingClientRect();return {t:txt(e.innerText),x:Math.round(r.left),y:Math.round(r.top),shown:r.width>0}}).filter(e=>e.shown&&e.y<200).sort((a,b)=>a.x-b.x).map(e=>e.t); const nav=[...document.querySelectorAll('button,a')].map(e=>txt(e.innerText)).filter(t=>/^(Next|Back)\\b/.test(t)); return {path:location.pathname, tabs:[...new Set(tabs)], nav}; }"
+   },
+   "save": "100-step.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: section headings in the right panel and controls that follow each heading (names only, de-duplicated).\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const els = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,button,[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,label')]\n    .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= minX; });\n  const out = [];\n  let cur = null;\n  for (const e of els) {\n    const t = txt(e.getAttribute('aria-label') || e.innerText || e.value);\n    if (!t || /^Preview /.test(t)) continue;\n    if (/^H\\d|LEGEND/.test(e.tagName) || (e.tagName === 'BUTTON' && e.getAttribute('aria-expanded') !== null)) { cur = { section: t.slice(0, 50), items: [] }; out.push(cur); continue; }\n    const on = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked)([-_ A-Z]|$)/.test(e.className || '');\n    const off = e.disabled || e.getAttribute('aria-disabled') === 'true';\n    if (cur && cur.items.length < 14) cur.items.push((on ? '*' : '') + (off ? '~' : '') + t.slice(0, 40));\n  }\n  return out.filter((s) => s.items.length || /Thickness|Style|Handle|Leg|Pattern|Side|Frame/i.test(s.section));\n}\n"
+   },
+   "save": "101-sections.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "102-next.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const labels=['Tricot Models','Tricot Cabinet Builder','Cabinet Finishes','Countertop & Basin','Accessories','Faucet Details','Summary']; const tabs=[...document.querySelectorAll('a,button,span,div,li,p')].filter(e=>e.children.length===0&&labels.includes(txt(e.innerText))).map(e=>{const r=e.getBoundingClientRect();return {t:txt(e.innerText),x:Math.round(r.left),y:Math.round(r.top),shown:r.width>0}}).filter(e=>e.shown&&e.y<200).sort((a,b)=>a.x-b.x).map(e=>e.t); const nav=[...document.querySelectorAll('button,a')].map(e=>txt(e.innerText)).filter(t=>/^(Next|Back)\\b/.test(t)); return {path:location.pathname, tabs:[...new Set(tabs)], nav}; }"
+   },
+   "save": "110-step.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: section headings in the right panel and controls that follow each heading (names only, de-duplicated).\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const els = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,button,[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,label')]\n    .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= minX; });\n  const out = [];\n  let cur = null;\n  for (const e of els) {\n    const t = txt(e.getAttribute('aria-label') || e.innerText || e.value);\n    if (!t || /^Preview /.test(t)) continue;\n    if (/^H\\d|LEGEND/.test(e.tagName) || (e.tagName === 'BUTTON' && e.getAttribute('aria-expanded') !== null)) { cur = { section: t.slice(0, 50), items: [] }; out.push(cur); continue; }\n    const on = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked)([-_ A-Z]|$)/.test(e.className || '');\n    const off = e.disabled || e.getAttribute('aria-disabled') === 'true';\n    if (cur && cur.items.length < 14) cur.items.push((on ? '*' : '') + (off ? '~' : '') + t.slice(0, 40));\n  }\n  return out.filter((s) => s.items.length || /Thickness|Style|Handle|Leg|Pattern|Side|Frame/i.test(s.section));\n}\n"
+   },
+   "save": "111-sections.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "112-next.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const labels=['Tricot Models','Tricot Cabinet Builder','Cabinet Finishes','Countertop & Basin','Accessories','Faucet Details','Summary']; const tabs=[...document.querySelectorAll('a,button,span,div,li,p')].filter(e=>e.children.length===0&&labels.includes(txt(e.innerText))).map(e=>{const r=e.getBoundingClientRect();return {t:txt(e.innerText),x:Math.round(r.left),y:Math.round(r.top),shown:r.width>0}}).filter(e=>e.shown&&e.y<200).sort((a,b)=>a.x-b.x).map(e=>e.t); const nav=[...document.querySelectorAll('button,a')].map(e=>txt(e.innerText)).filter(t=>/^(Next|Back)\\b/.test(t)); return {path:location.pathname, tabs:[...new Set(tabs)], nav}; }"
+   },
+   "save": "120-step.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: section headings in the right panel and controls that follow each heading (names only, de-duplicated).\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const els = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,button,[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,label')]\n    .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= minX; });\n  const out = [];\n  let cur = null;\n  for (const e of els) {\n    const t = txt(e.getAttribute('aria-label') || e.innerText || e.value);\n    if (!t || /^Preview /.test(t)) continue;\n    if (/^H\\d|LEGEND/.test(e.tagName) || (e.tagName === 'BUTTON' && e.getAttribute('aria-expanded') !== null)) { cur = { section: t.slice(0, 50), items: [] }; out.push(cur); continue; }\n    const on = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked)([-_ A-Z]|$)/.test(e.className || '');\n    const off = e.disabled || e.getAttribute('aria-disabled') === 'true';\n    if (cur && cur.items.length < 14) cur.items.push((on ? '*' : '') + (off ? '~' : '') + t.slice(0, 40));\n  }\n  return out.filter((s) => s.items.length || /Thickness|Style|Handle|Leg|Pattern|Side|Frame/i.test(s.section));\n}\n"
+   },
+   "save": "121-sections.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "122-next.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const labels=['Tricot Models','Tricot Cabinet Builder','Cabinet Finishes','Countertop & Basin','Accessories','Faucet Details','Summary']; const tabs=[...document.querySelectorAll('a,button,span,div,li,p')].filter(e=>e.children.length===0&&labels.includes(txt(e.innerText))).map(e=>{const r=e.getBoundingClientRect();return {t:txt(e.innerText),x:Math.round(r.left),y:Math.round(r.top),shown:r.width>0}}).filter(e=>e.shown&&e.y<200).sort((a,b)=>a.x-b.x).map(e=>e.t); const nav=[...document.querySelectorAll('button,a')].map(e=>txt(e.innerText)).filter(t=>/^(Next|Back)\\b/.test(t)); return {path:location.pathname, tabs:[...new Set(tabs)], nav}; }"
+   },
+   "save": "130-step.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: section headings in the right panel and controls that follow each heading (names only, de-duplicated).\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const els = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,button,[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,label')]\n    .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= minX; });\n  const out = [];\n  let cur = null;\n  for (const e of els) {\n    const t = txt(e.getAttribute('aria-label') || e.innerText || e.value);\n    if (!t || /^Preview /.test(t)) continue;\n    if (/^H\\d|LEGEND/.test(e.tagName) || (e.tagName === 'BUTTON' && e.getAttribute('aria-expanded') !== null)) { cur = { section: t.slice(0, 50), items: [] }; out.push(cur); continue; }\n    const on = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked)([-_ A-Z]|$)/.test(e.className || '');\n    const off = e.disabled || e.getAttribute('aria-disabled') === 'true';\n    if (cur && cur.items.length < 14) cur.items.push((on ? '*' : '') + (off ? '~' : '') + t.slice(0, 40));\n  }\n  return out.filter((s) => s.items.length || /Thickness|Style|Handle|Leg|Pattern|Side|Frame/i.test(s.section));\n}\n"
+   },
+   "save": "131-sections.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "132-next.txt",
+   "optional": false
+  },
+  {
+   "sleep": 5000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const labels=['Tricot Models','Tricot Cabinet Builder','Cabinet Finishes','Countertop & Basin','Accessories','Faucet Details','Summary']; const tabs=[...document.querySelectorAll('a,button,span,div,li,p')].filter(e=>e.children.length===0&&labels.includes(txt(e.innerText))).map(e=>{const r=e.getBoundingClientRect();return {t:txt(e.innerText),x:Math.round(r.left),y:Math.round(r.top),shown:r.width>0}}).filter(e=>e.shown&&e.y<200).sort((a,b)=>a.x-b.x).map(e=>e.t); const nav=[...document.querySelectorAll('button,a')].map(e=>txt(e.innerText)).filter(t=>/^(Next|Back)\\b/.test(t)); return {path:location.pathname, tabs:[...new Set(tabs)], nav}; }"
+   },
+   "save": "50-faucet-step.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: section headings in the right panel and controls that follow each heading (names only, de-duplicated).\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const minX = innerWidth * 0.62;\n  const els = [...document.querySelectorAll('h1,h2,h3,h4,h5,legend,button,[role=radio],[role=option],[role=tab],[role=checkbox],[role=switch],input,label')]\n    .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left >= minX; });\n  const out = [];\n  let cur = null;\n  for (const e of els) {\n    const t = txt(e.getAttribute('aria-label') || e.innerText || e.value);\n    if (!t || /^Preview /.test(t)) continue;\n    if (/^H\\d|LEGEND/.test(e.tagName) || (e.tagName === 'BUTTON' && e.getAttribute('aria-expanded') !== null)) { cur = { section: t.slice(0, 50), items: [] }; out.push(cur); continue; }\n    const on = e.getAttribute('aria-pressed') === 'true' || e.getAttribute('aria-checked') === 'true' || e.getAttribute('aria-selected') === 'true' || e.checked === true || /(^|[-_ ])(active|selected|checked)([-_ A-Z]|$)/.test(e.className || '');\n    const off = e.disabled || e.getAttribute('aria-disabled') === 'true';\n    if (cur && cur.items.length < 14) cur.items.push((on ? '*' : '') + (off ? '~' : '') + t.slice(0, 40));\n  }\n  return out.filter((s) => s.items.length || /Thickness|Style|Handle|Leg|Pattern|Side|Frame/i.test(s.section));\n}\n"
+   },
+   "save": "51-faucet-sections.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "52-faucet-snapshot.txt"
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "53-faucet.shot.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => (document.body.innerText.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/)||[''])[0]"
+   },
+   "save": "54-price.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Click the visible element whose text matches \"Next:\" (mode \"prefix\": exact | prefix | contains), right panel first.\n  const want = \"Next:\", mode = \"prefix\";\n  const txt = (s) => (s || '').replace(/\\s+/g, ' ').trim();\n  const vis = (e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && r.bottom > 0 && r.top < innerHeight; };\n  const match = (s) => (mode === 'exact' ? s === want : mode === 'prefix' ? s.startsWith(want) : s.includes(want));\n  const rank = { BUTTON: 0, A: 1, INPUT: 1, LABEL: 2 };\n  const all = [...document.querySelectorAll('button,a,[role=button],[role=option],[role=radio],[role=tab],[role=menuitem],label,li,[tabindex],div,span,p')]\n    .filter((e) => vis(e) && match(txt(e.innerText || e.getAttribute('aria-label') || e.value)));\n  if (!all.length) return 'NOT FOUND: ' + want;\n  all.sort((a, b) => (a.innerText.length - b.innerText.length) || ((rank[a.tagName] ?? 3) - (rank[b.tagName] ?? 3)));\n  const el = all[0].closest('button,a,[role=button],[role=option],[role=radio],[role=tab],label') || all[0];\n  if (el.disabled || el.getAttribute('aria-disabled') === 'true') return 'DISABLED: ' + txt(el.innerText).slice(0, 60);\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return 'clicked: ' + txt(el.innerText || el.getAttribute('aria-label')).slice(0, 70) + ' <' + el.tagName + '>';\n}\n"
+   },
+   "save": "55-next-summary.txt",
+   "optional": false
+  },
+  {
+   "sleep": 7000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => { const txt=s=>(s||'').replace(/\\s+/g,' ').trim(); const labels=['Tricot Models','Tricot Cabinet Builder','Cabinet Finishes','Countertop & Basin','Accessories','Faucet Details','Summary']; const tabs=[...document.querySelectorAll('a,button,span,div,li,p')].filter(e=>e.children.length===0&&labels.includes(txt(e.innerText))).map(e=>{const r=e.getBoundingClientRect();return {t:txt(e.innerText),x:Math.round(r.left),y:Math.round(r.top),shown:r.width>0}}).filter(e=>e.shown&&e.y<200).sort((a,b)=>a.x-b.x).map(e=>e.t); const nav=[...document.querySelectorAll('button,a')].map(e=>txt(e.innerText)).filter(t=>/^(Next|Back)\\b/.test(t)); return {path:location.pathname, tabs:[...new Set(tabs)], nav}; }"
+   },
+   "save": "60-summary-step.txt",
+   "optional": false
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => {\n  // Read-only: Summary page lines (name / spec / finish / price) and total.\n  const t = document.body.innerText;\n  const i = t.indexOf('Your Configuration');\n  const j = t.indexOf('Total List Price', i);\n  return { total: (t.slice(j).match(/\\$[\\d,]+(\\.\\d+)?/) || [null])[0], block: i >= 0 ? t.slice(i, j > 0 ? j : i + 4000).slice(0, 4000) : t.slice(0, 3000) };\n}\n"
+   },
+   "save": "61-summary.txt",
+   "optional": false
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "62-summary.shot.txt"
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ guard: !!window.__qaWriteGuard, blockedWrites: window.__blockedWrites || null })"
+   },
+   "save": "63-guard.txt",
+   "optional": false
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 300,
+    "types": [
+     "error",
+     "warn"
+    ]
+   },
+   "save": "64-console.txt"
+  }
+ ]
+}

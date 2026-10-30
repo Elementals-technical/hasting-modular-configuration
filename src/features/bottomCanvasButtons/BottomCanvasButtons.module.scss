@@ -1,6 +1,7 @@
 .bottomCanvasButtons {
   position: absolute;
-  left: 32px;
+  // Moved right of the Divider Options panel while it stands beside the canvas (set by Player; 0 otherwise).
+  left: calc(32px + var(--player-left-inset, 0px));
   bottom: 32px;
 
   display: flex;
@@ -10,7 +11,9 @@
 
 @media (max-width: 1024px) {
   .bottomCanvasButtons {
-    left: 16px;
+    --icon-stroke-width: 1;
+
+    left: calc(16px + var(--player-left-inset, 0px));
     bottom: 12px;
     gap: 6px;
     max-width: calc(100% - 80px);
@@ -36,7 +39,7 @@
 
 @media (max-width: 767px) {
   .bottomCanvasButtons {
-    left: 8px;
+    left: calc(8px + var(--player-left-inset, 0px));
     bottom: 8px;
     gap: 4px;
     max-width: calc(100% - 56px);

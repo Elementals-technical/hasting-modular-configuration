@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+"clicked: Next: Countertop & Basin <BUTTON>"
+```
+Page navigated to http://localhost:5173/prebuilt/countertop?collectionId=class.

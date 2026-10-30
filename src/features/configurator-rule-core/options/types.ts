@@ -1,3 +1,4 @@
+import type { MessageParams } from "@/entities/collection";
 import type { OptionState } from "@/features/configurator-rule-core/cabinetBuilder/model/types";
 
 export type { OptionState };
@@ -11,6 +12,10 @@ export type GrainDirectionRuleResult = {
   available: boolean;
   options: OptionState<string>[];
   reason?: string;
+  /** Stable code of `reason`, for control flow. */
+  reasonCode?: string;
+  /** Values the code's text names, so the interface can resolve it itself (DEV-08). */
+  reasonParams?: MessageParams;
 };
 
 export type BookMatchingRuleInput = {
@@ -21,6 +26,8 @@ export type BookMatchingRuleInput = {
 export type BookMatchingRuleResult = {
   enabled: boolean;
   reason?: string;
+  /** Stable code of `reason`, for control flow. */
+  reasonCode?: string;
 };
 
 export type FlutingRuleInput = {
@@ -33,6 +40,8 @@ export type FlutingRuleResult = {
   available: boolean;
   options: OptionState<string>[];
   reason?: string;
+  /** Stable code of `reason`, for control flow. */
+  reasonCode?: string;
 };
 
 export type SidePanelSpecInput = {
@@ -90,11 +99,14 @@ export type SidePanelReasonCode =
   | "mixed-open-side-shelf"
   | "select-edge-cabinet"
   | "exceeds-max-length"
-  | "unsupported-groove";
+  | "unsupported-groove"
+  | "not-in-collection";
 
 export type SidePanelAvailabilityResult = {
   allowed: Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">;
   reason?: string;
   /** Structured counterpart of `reason` for non-fragile comparisons. */
   reasonCode?: SidePanelReasonCode;
+  /** Reason code of the text, as `messages` spells it; the interface resolves it. */
+  messageCode?: string;
 };

@@ -1,5 +1,13 @@
-type VisibleButtonsOptions = {
+export type VisibleButtonsOptions = {
+  /** "Side-Shelf": the scene shows the "+" at the row ends only. */
   productType?: string;
+  /**
+   * Height / Handle of the cabinet about to be added: the scene keeps only the "+" it may use
+   * (Urban Freestanding row rule: tall cabinets stand in one block) and puts them at its height.
+   * Must match the Height / Handle sent to setProductByParams for the clicked "+".
+   * Without it the scene shows every "+", as before; outside an UF row it changes nothing.
+   */
+  config?: { Height?: number; Handle?: string };
 };
 
 export function setVisibleButtons(isEnabled: boolean, options?: VisibleButtonsOptions) {

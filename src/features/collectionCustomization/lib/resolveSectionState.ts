@@ -1,0 +1,209 @@
+import {
+  normalizeOptionValue,
+  selectAttribute,
+  selectConfiguratorGroup,
+  selectConfiguratorSection,
+  selectOptions,
+  selectResetValue,
+} from "@/entities/collection";
+
+import { buildConfiguratorOptions } from "./buildConfiguratorOptions";
+import { resolveOptionImage } from "./optionImageVariants";
+
+import type {
+  CustomizationFieldDefinition,
+  MessageParams,
+  CustomizationSchema,
+  FieldOptionState,
+  FieldRuntimeState,
+  FieldToggleState,
+  ProductProfile,
+} from "@/entities/collection";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+
+import type { OptionImageContext } from "./optionImageVariants";
+
+export type FieldAvailability = {
+  available: boolean;
+  reason?: string;
+  /** Stable code of `reason`; the interface resolves it to text. */
+  reasonCode?: string;
+  /** Values the code's text names; without them the interface shows its placeholders. */
+  reasonParams?: MessageParams;
+  /** false hides the field; a hidden field keeps its stored value. */
+  visible?: boolean;
+  /** When set, only these option values stay enabled. */
+  allowedValues?: readonly string[];
+  /** When set, only the options it accepts stay enabled: options that share a value can differ. */
+  isOptionAllowed?: (option: FieldOptionState) => boolean;
+  /**
+   * The reason of one refused option, where options are refused for reasons of their own (a colour by its
+   * material); an option it gives none keeps the field's `reason` / `reasonCode`.
+   */
+  optionReason?: (
+    option: FieldOptionState,
+  ) => Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> | undefined;
+  /**
+   * Values still offered but drawn restricted: choosing one asks first, as it changes more than the field
+   * (Tricot: Integrated over a Sink Base it leaves out). The reason is what they show.
+   */
+  restriction?: Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> & { values: readonly string[] };
+  /** When set, only these option values are shown; a hidden one keeps its stored value. */
+  visibleValues?: readonly string[];
+  /** The option shown as chosen while nothing is stored, e.g. None for a vessel without a basin. */
+  valueWhenEmpty?: string;
+  /** The allowed value `autoSelect` takes before the first one, e.g. the default finish of a vessel. */
+  preferredValue?: string;
+};
+
+// Keyed by availabilityRef as spelled in ui.json.
+export type FieldAvailabilityResults = Record<string, FieldAvailability>;
+
+export type ResolvedCustomizationField = {
+  definition: CustomizationFieldDefinition;
+  field: FieldRuntimeState;
+};
+
+const readFieldValue = (values: Record<string, unknown>, attributeId: string): FieldRuntimeState["value"] => {
+  const value = values[attributeId];
+  return typeof value === "string" || typeof value === "number" || typeof value === "boolean" ? value : null;
+};
+
+// Unknown or absent ref defaults to available.
+const resolveFieldAvailability = (
+  availabilityRef: string | undefined,
+  results: FieldAvailabilityResults,
+): FieldAvailability => {
+  if (!availabilityRef) return { available: true };
+  return results[availabilityRef] ?? { available: true };
+};
+
+// An optionsRef field takes the configurator section its profile attribute names in optionsSource,
+// or the one option of it the source names.
+export const resolveConfiguratorOptions = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  configurator: ConfiguratorGroupCatalog | null,
+): FieldOptionState[] => {
+  const attribute = selectAttribute(profile, attributeId);
+  const localOptions = () =>
+    selectOptions(profile, attributeId).map(({ value, label, category }) => ({
+      value,
+      label,
+      enabled: true,
+      desc: category,
+      traits: category ? { materials: [category] } : undefined,
+    }));
+  if (!selectConfiguratorSection(profile, attributeId)) return localOptions();
+  if (!configurator) return [];
+
+  const resetValue = selectResetValue(profile, attributeId);
+  const external = buildConfiguratorOptions(selectConfiguratorGroup(profile, attributeId, configurator));
+  const options = attribute?.options
+    ? external.flatMap((option) => {
+        const canonical = normalizeOptionValue(profile, attributeId, option.value);
+        if (!canonical) return [];
+        const declared = attribute.options?.find(({ value }) => value === canonical);
+        return [{ ...option, value: canonical, label: declared?.label ?? option.label }];
+      })
+    : external;
+
+  return resetValue && !options.some((option) => option.value === resetValue)
+    ? [{ value: resetValue, label: resetValue, enabled: true }, ...options]
+    : options;
+};
+
+// A field that declares `toggle` switches between its profile default (On) and reset value (Off),
+// and is on while it holds anything else than the reset value.
+const resolveFieldToggle = (
+  profile: ProductProfile | null,
+  { attributeId, toggle }: CustomizationFieldDefinition,
+  value: FieldRuntimeState["value"],
+): FieldToggleState | undefined => {
+  const attribute = selectAttribute(profile, attributeId);
+  if (!toggle || attribute?.defaultValue === undefined || attribute.resetValue === undefined) return undefined;
+
+  const { defaultValue: onValue, resetValue: offValue } = attribute;
+  return { label: toggle.label, on: value !== null && value !== "" && value !== offValue, onValue, offValue };
+};
+
+export const resolveSectionFields = (
+  schema: CustomizationSchema | null,
+  sectionId: string,
+  profile: ProductProfile | null,
+  /** The values the fields show, by attributeId. */
+  values: Record<string, unknown>,
+  availabilityResults: FieldAvailabilityResults,
+  configurator: ConfiguratorGroupCatalog | null = null,
+  /** Values the collection's `optionImageVariants` rows are matched against (the selected height among them). */
+  imageContext: OptionImageContext = {},
+): ResolvedCustomizationField[] => {
+  const definitions = schema?.sections[sectionId]?.fields ?? [];
+
+  return definitions.map((definition) => {
+    const availability = resolveFieldAvailability(definition.availabilityRef, availabilityResults);
+    const storedValue = readFieldValue(values, definition.attributeId);
+    const toggle = resolveFieldToggle(profile, definition, storedValue);
+    const declaredOptions: FieldOptionState[] = definition.optionsRef
+      ? resolveConfiguratorOptions(profile, definition.attributeId, configurator)
+      : selectOptions(profile, definition.attributeId).map(({ value, label, category }) => ({
+          value,
+          label,
+          enabled: true,
+          desc: category,
+        }));
+
+    // Pictures the collection declares for this attribute, a variant row first; a configurator
+    // option keeps its own.
+    const declaredImage = (value: string) =>
+      resolveOptionImage({
+        optionImages: schema?.optionImages,
+        variants: schema?.optionImageVariants,
+        attributeId: definition.attributeId,
+        value,
+        context: imageContext,
+      });
+
+    const shownOptions = availability.visibleValues
+      ? declaredOptions.filter((option) => availability.visibleValues?.includes(option.value))
+      : declaredOptions;
+
+    const options = shownOptions.map((option) => {
+      const enabled =
+        (!availability.allowedValues || availability.allowedValues.includes(option.value)) &&
+        (!availability.isOptionAllowed || availability.isOptionAllowed(option));
+      // A refused option says its own reason where the availability gives it one, else the field's.
+      const refusal = enabled ? undefined : (availability.optionReason?.(option) ?? availability);
+      const restriction =
+        enabled && availability.restriction?.values.includes(option.value) ? availability.restriction : undefined;
+      const why = refusal ?? restriction;
+      return {
+        ...option,
+        enabled,
+        ...(restriction ? { restricted: true } : {}),
+        image: option.image ?? declaredImage(option.value),
+        reason: why?.reason,
+        reasonCode: why?.reasonCode,
+        reasonParams: why?.reasonParams,
+      };
+    });
+
+    const value =
+      storedValue === null || storedValue === "" ? (availability.valueWhenEmpty ?? storedValue) : storedValue;
+    const field: FieldRuntimeState = {
+      attributeId: definition.attributeId,
+      value,
+      options,
+      toggle,
+      visible: availability.visible ?? true,
+      enabled: availability.available,
+      disabledReason: availability.reason,
+      reasonCode: availability.reasonCode,
+      reasonParams: availability.reasonParams,
+      hint: value === null ? undefined : definition.hints?.[String(value)],
+      preferredValue: availability.preferredValue,
+    };
+
+    return { definition, field };
+  });
+};

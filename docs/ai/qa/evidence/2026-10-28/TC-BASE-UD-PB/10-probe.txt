@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/model?collectionId=urban-duplex","price":"$6,925.00","step":"Model","dialogs":[],"alerts":["Ready to drag a cabinet"],"sceneReady":true,"order":null,"products":[],"countertop":{"productId":"Top_Solid-8zhvvjpzj","placementState":"attached","attached":true,"moved":false,"canResize":false,"thickness":0.012700083809517482,"autoLength":0.6000000238419041,"customLength":null,"size":{"length":0.6000000238419041,"depth":0.45999997950115723},"lengthLimitsM":{"minLengthM":0.6,"maxLengthM":3.048,"requestedMinM":0.6,"requestedMaxM":3.048,"basinMinLengthM":0.553776},"offset":{"x":0,"y":0}},"coverEntries":0}
+```

@@ -1,0 +1,68 @@
+{
+  "source_id": "sheet-mako-sku",
+  "file": "Mako Vanities - SKUs + Pricing.xlsx",
+  "sha256": "32e716c6de725b5a3b73ab2d4ffffb1eba2abf7d027eb46d62062254d2941a6e",
+  "size_bytes": 526551,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "SKU Structure - Product Model",
+      "dimension": "",
+      "non_empty_rows": 5,
+      "max_row_with_value": 10,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 2,
+      "name": "SKU Curation",
+      "dimension": "",
+      "non_empty_rows": 17,
+      "max_row_with_value": 21,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 3,
+      "name": "CabinetPricing",
+      "dimension": "",
+      "non_empty_rows": 45,
+      "max_row_with_value": 60,
+      "formulas": 0,
+      "links": 1,
+      "notes": 2
+    },
+    {
+      "index": 4,
+      "name": "CountertopPricing",
+      "dimension": "",
+      "non_empty_rows": 10,
+      "max_row_with_value": 15,
+      "formulas": 8,
+      "links": 1,
+      "notes": 0
+    },
+    {
+      "index": 5,
+      "name": "Basin StylePricing",
+      "dimension": "",
+      "non_empty_rows": 17,
+      "max_row_with_value": 36,
+      "formulas": 17,
+      "links": 1,
+      "notes": 0
+    },
+    {
+      "index": 6,
+      "name": "AccessoriesPricing",
+      "dimension": "",
+      "non_empty_rows": 2,
+      "max_row_with_value": 5,
+      "formulas": 1,
+      "links": 1,
+      "notes": 0
+    }
+  ]
+}

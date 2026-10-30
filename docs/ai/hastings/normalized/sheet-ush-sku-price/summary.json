@@ -1,0 +1,78 @@
+{
+  "source_id": "sheet-ush-sku-price",
+  "file": "Urban Standard Height - Matrix (SKU+Price) - for import.xlsx",
+  "sha256": "d4a7c3cfeb6c5c148c74e5c83817723f6fb827ca8ec996c965eeeb9fcf9f381f",
+  "size_bytes": 678449,
+  "sheets": [
+    {
+      "index": 1,
+      "name": "Sheet1",
+      "dimension": "",
+      "non_empty_rows": 11,
+      "max_row_with_value": 12,
+      "formulas": 0,
+      "links": 1,
+      "notes": 0
+    },
+    {
+      "index": 2,
+      "name": "Countertops",
+      "dimension": "",
+      "non_empty_rows": 79,
+      "max_row_with_value": 103,
+      "formulas": 80,
+      "links": 5,
+      "notes": 18
+    },
+    {
+      "index": 3,
+      "name": "CabinetsPrice",
+      "dimension": "",
+      "non_empty_rows": 1088,
+      "max_row_with_value": 1111,
+      "formulas": 0,
+      "links": 0,
+      "notes": 10
+    },
+    {
+      "index": 4,
+      "name": "Cabinets VAN-URSTD-SB (missing)",
+      "dimension": "",
+      "non_empty_rows": 51,
+      "max_row_with_value": 55,
+      "formulas": 0,
+      "links": 0,
+      "notes": 0
+    },
+    {
+      "index": 5,
+      "name": "CounterTopPrice",
+      "dimension": "",
+      "non_empty_rows": 42,
+      "max_row_with_value": 47,
+      "formulas": 26,
+      "links": 0,
+      "notes": 39
+    },
+    {
+      "index": 6,
+      "name": "BasinStylePrice",
+      "dimension": "",
+      "non_empty_rows": 111,
+      "max_row_with_value": 122,
+      "formulas": 95,
+      "links": 0,
+      "notes": 68
+    },
+    {
+      "index": 7,
+      "name": "AсcessoriesPricing",
+      "dimension": "",
+      "non_empty_rows": 70,
+      "max_row_with_value": 71,
+      "formulas": 0,
+      "links": 0,
+      "notes": 9
+    }
+  ]
+}

@@ -1,9 +1,53 @@
 .Root {
   width: 100%;
-  background-color: var(--mauve-6);
-  box-shadow: 0 2px 10px var(--black-a4);
+  background-color: var(--main-header-bg);
+}
 
-  // border-bottom: 1px solid #e5e6ea;
+.Root[data-accordion-layout="contained"] {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--accordion-max-height);
+  overflow: hidden;
+
+  > .Item {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    min-height: var(--accordion-header-height);
+  }
+
+  .Content {
+    height: min(var(--accordion-panel-height), var(--accordion-content-max-height));
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 1;
+    min-height: 0;
+    max-height: var(--accordion-content-max-height);
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      height: 0;
+    }
+
+    // Base UI measures scrollHeight before opening. Let it see the natural content,
+    // then animate to the available height while the inner wrapper becomes scrollable.
+    &[data-starting-style] > .ContentText {
+      flex: none;
+    }
+  }
+
+  .ContentText {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+    &::-webkit-scrollbar {
+      width: 2px;
+    }
+  }
 }
 
 .Item {
@@ -19,27 +63,26 @@
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
   }
-
-  &:focus-within {
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 0 0 2px var(--mauve-12);
-  }
 }
 
 .Header {
-  all: unset;
+  flex-shrink: 0;
+  margin: 0;
+  font: inherit;
   display: flex;
 
   cursor: pointer;
 
-  border-bottom: 1px solid #e5e6ea;
+  border-bottom: 1px solid var(--border-main-color);
 }
 
 .Trigger {
-  all: unset;
+  border: 0;
   font-family: inherit;
-  background-color: transparent;
+  font-weight: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
   padding: 0 20px;
   height: 45px;
   flex: 1;
@@ -48,37 +91,43 @@
   justify-content: space-between;
   font-size: 15px;
   line-height: 1;
-  color: var(--violet-11);
-  box-shadow: 0 1px 0 var(--mauve-6);
-  background-color: var(--mauve-1);
-  &:hover {
-    background-color: var(--mauve-2);
+  color: var(--text-color-base);
+  background-color: var(--main-header-bg);
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: calc(-1 * var(--focus-ring-offset));
+  }
+
+  &:not([data-disabled]):hover {
+    background-color: var(--player-bg);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }
 
 .Content {
+  height: var(--accordion-panel-height);
   overflow: hidden;
   font-size: 15px;
-  color: var(--mauve-11);
-  background-color: var(--mauve-2);
-  &[data-state="open"] {
-    animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
-  }
-  &[data-state="closed"] {
-    animation: slideUp 300ms cubic-bezier(0.87, 0, 0.13, 1);
+  color: var(--text-color-base);
+  background-color: var(--main-header-bg);
+  transition: height 300ms cubic-bezier(0.87, 0, 0.13, 1);
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    height: 0;
   }
 
-  border-bottom: 1px solid #e5e6ea;
+  border-bottom: 1px solid var(--border-main-color);
 }
 
 .ContentText {
-  padding: 15px 20px;
-
-  > div {
-    &:nth-child(2) {
-      margin-top: 20px;
-    }
-  }
+  --accordion-content-padding-x: 20px;
+  --accordion-content-padding-y: 15px;
+  padding: var(--accordion-content-padding-y) var(--accordion-content-padding-x);
 }
 
 @media (max-width: 767px) {
@@ -94,38 +143,23 @@
   }
 
   .ContentText {
-    padding: 10px 12px;
-
-    > div {
-      &:nth-child(2) {
-        margin-top: 12px;
-      }
-    }
+    --accordion-content-padding-x: 12px;
+    --accordion-content-padding-y: 10px;
+    padding: var(--accordion-content-padding-y) var(--accordion-content-padding-x);
   }
 }
 
 .Chevron {
-  color: var(--violet-10);
+  color: currentColor;
   transition: transform 300ms cubic-bezier(0.87, 0, 0.13, 1);
-  .Trigger[data-state="open"] > & {
+  .Trigger[data-panel-open] > & {
     transform: rotate(180deg);
   }
 }
 
-@keyframes slideDown {
-  from {
-    height: 0;
-  }
-  to {
-    height: var(--radix-accordion-content-height);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    height: var(--radix-accordion-content-height);
-  }
-  to {
-    height: 0;
+@media (prefers-reduced-motion: reduce) {
+  .Content,
+  .Chevron {
+    transition: none;
   }
 }

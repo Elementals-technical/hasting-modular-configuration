@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+["Standard $ Quality finishes offered at a great value.","Classic $$ Client and designer favorites that are timeless."]
+```
