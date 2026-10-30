@@ -11,8 +11,9 @@
       min-width: auto !important;
     }
 
-    &:nth-child(3) {
-      flex-grow: 1;
+    // A filter with nothing to choose is left out, so Price is found by name, not by place.
+    &[data-filter="Price"] {
+      margin-inline-start: auto;
     }
   }
 }

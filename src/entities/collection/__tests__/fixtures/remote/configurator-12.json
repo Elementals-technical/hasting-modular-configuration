@@ -836,6 +836,7 @@
               "metadata": {
                 "codeColor": "419 GL",
                 "Color": "Blue",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#7098ab",
                 "label": "Acqua 419 GL",
                 "Material": "Glass GL",
@@ -854,6 +855,7 @@
               "metadata": {
                 "codeColor": "419 MT",
                 "Color": "Blue",
+                "GBMaterial": "Glass Matte",
                 "hex": "#7098ab",
                 "label": "Acqua 419 MT",
                 "Material": "Glass MT",
@@ -872,6 +874,7 @@
               "metadata": {
                 "codeColor": "407 GL",
                 "Color": "Grey, Beige",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#c2bfb9",
                 "label": "Agata 407 GL",
                 "Material": "Glass GL",
@@ -890,6 +893,7 @@
               "metadata": {
                 "codeColor": "407 MT",
                 "Color": "Grey, Beige",
+                "GBMaterial": "Glass Matte",
                 "hex": "#c2bfb9",
                 "label": "Agata 407 MT",
                 "Material": "Glass MT",
@@ -908,6 +912,7 @@
               "metadata": {
                 "codeColor": "413 GL",
                 "Color": "Orange",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#d58c44",
                 "label": "Ambra 413 GL",
                 "Material": "Glass GL",
@@ -926,6 +931,7 @@
               "metadata": {
                 "codeColor": "413 MT",
                 "Color": "Orange",
+                "GBMaterial": "Glass Matte",
                 "hex": "#d58c44",
                 "label": "Ambra 413 MT",
                 "Material": "Glass MT",
@@ -944,6 +950,7 @@
               "metadata": {
                 "codeColor": "400 GL",
                 "Color": "Black",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#414144",
                 "label": "Antracite 400 GL",
                 "Material": "Glass GL",
@@ -962,6 +969,7 @@
               "metadata": {
                 "codeColor": "400 MT",
                 "Color": "Black",
+                "GBMaterial": "Glass Matte",
                 "hex": "#414144",
                 "label": "Antracite 400 MT",
                 "Material": "Glass MT",
@@ -980,6 +988,7 @@
               "metadata": {
                 "codeColor": "328",
                 "Color": "Black",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-65dc6d930eeb459aa21c45e1e5791ef039d487a617e4ed03192c6b3c8961c39b",
                 "label": "Ardesia Nera 328",
                 "Look": "Stone/Marble-look",
@@ -999,6 +1008,7 @@
               "metadata": {
                 "codeColor": "414 GL",
                 "Color": "Green",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#a3a793",
                 "label": "Asparago 414 GL",
                 "Material": "Glass GL",
@@ -1017,6 +1027,7 @@
               "metadata": {
                 "codeColor": "414 MT",
                 "Color": "Green",
+                "GBMaterial": "Glass Matte",
                 "hex": "#a3a793",
                 "label": "Asparago 414 MT",
                 "Material": "Glass MT",
@@ -1035,6 +1046,7 @@
               "metadata": {
                 "codeColor": "250",
                 "Color": "White",
+                "GBMaterial": "HPL",
                 "hex": "#dedbd8",
                 "label": "Bianco Kos 250",
                 "Material": "HPL",
@@ -1053,6 +1065,7 @@
               "metadata": {
                 "codeColor": "259",
                 "Color": "White",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-98546ac83a269f248b37596e46f76407de1a1b771cd65b156623ac22a5d2c24b",
                 "label": "Calacatta 259",
                 "Look": "Stone/Marble-Look",
@@ -1072,6 +1085,7 @@
               "metadata": {
                 "codeColor": "338",
                 "Color": "Black, Grey",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-c36b777d309b37993e9ae760414fbc24fc4ac1759c6054f493a72c76438c97fb",
                 "label": "Calacatta Black 338",
                 "Look": "Stone/Marble-look",
@@ -1091,6 +1105,7 @@
               "metadata": {
                 "codeColor": "331",
                 "Color": "White",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-4c4f9bafa50e65fef0650289709726b7ad77e1f100062fda0c80e8dc0001dc61",
                 "label": "Calacatta Oro Opaco 331",
                 "Look": "Stone/Marble-look",
@@ -1110,6 +1125,7 @@
               "metadata": {
                 "codeColor": "416 GL",
                 "Color": "Grey, Brown",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#8b8781",
                 "label": "Creta 416 GL",
                 "Material": "Glass GL",
@@ -1128,6 +1144,7 @@
               "metadata": {
                 "codeColor": "416 MT",
                 "Color": "Grey, Brown",
+                "GBMaterial": "Glass Matte",
                 "hex": "#8b8781",
                 "label": "Creta 416 MT",
                 "Material": "Glass MT",
@@ -1146,6 +1163,7 @@
               "metadata": {
                 "codeColor": "322",
                 "Color": "Brown",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-087c049f3267e743020415007cd5f19431b77eaf6f1d8e51a4cc607e09a8b3c3",
                 "label": "Emperador Opaco 322",
                 "Look": "Stone/Marble-look",
@@ -1165,6 +1183,7 @@
               "metadata": {
                 "codeColor": "401 GL",
                 "Color": "Grey",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#8c8b87",
                 "label": "Fumo 401 GL",
                 "Material": "Glass GL",
@@ -1183,6 +1202,7 @@
               "metadata": {
                 "codeColor": "401 MT",
                 "Color": "Grey",
+                "GBMaterial": "Glass Matte",
                 "hex": "#8c8b87",
                 "label": "Fumo 401 MT",
                 "Material": "Glass MT",
@@ -1201,6 +1221,7 @@
               "metadata": {
                 "codeColor": "403 GL",
                 "Color": "Grey",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#b8b7b7",
                 "label": "Grigio Argento 403 GL",
                 "Material": "Glass GL",
@@ -1219,6 +1240,7 @@
               "metadata": {
                 "codeColor": "403 MT",
                 "Color": "Grey",
+                "GBMaterial": "Glass Matte",
                 "hex": "#b8b7b7",
                 "label": "Grigio Argento 403 MT",
                 "Material": "Glass MT",
@@ -1237,6 +1259,7 @@
               "metadata": {
                 "codeColor": "253",
                 "Color": "Grey, Blue",
+                "GBMaterial": "HPL",
                 "hex": "#5a5c5e",
                 "label": "Grigio Bromo 253",
                 "Material": "HPL",
@@ -1255,6 +1278,7 @@
               "metadata": {
                 "codeColor": "252",
                 "Color": "Grey, Brown",
+                "GBMaterial": "HPL",
                 "hex": "#8b8179",
                 "label": "Grigio London 252",
                 "Material": "HPL",
@@ -1273,6 +1297,7 @@
               "metadata": {
                 "codeColor": "260",
                 "Color": "Black, Grey",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-a6e8c768f76dc3a35cef3f306112e25b75f052733bd67f0b609879359b55cda5",
                 "label": "Impero 260",
                 "Look": "Stone/Marble-Look",
@@ -1292,6 +1317,7 @@
               "metadata": {
                 "codeColor": "334",
                 "Color": "White",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-8ad6d52f91cf116beaada0423b85b674eb1ee7172a55f33b1744f8168ea2932d",
                 "label": "Invisible White Lucido 334",
                 "Look": "Stone/Marble-look",
@@ -1311,6 +1337,7 @@
               "metadata": {
                 "codeColor": "332",
                 "Color": "White, Grey",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-1e24be33d8acfdaa01b42dcaf268f5c484638586c6004e725f7f0dd0b277a204",
                 "label": "Invisible White Opaco 332",
                 "Look": "Stone/Marble-look",
@@ -1330,6 +1357,7 @@
               "metadata": {
                 "codeColor": "262",
                 "Color": "Grey",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-549c1ba25674111b6a47ea7d4496c0a9b08fe831747babfb58462a081377002e",
                 "label": "Kaspio Argento 262",
                 "Look": "Stone/Marble-Look",
@@ -1349,6 +1377,7 @@
               "metadata": {
                 "codeColor": "261",
                 "Color": "Brown, Grey",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-826d6f94bab2a893acf9b82e709e37684df24ffa0f28f3011df2694ae8e246f1",
                 "label": "Kaspio Oro 261",
                 "Look": "Stone/Marble-Look",
@@ -1368,6 +1397,7 @@
               "metadata": {
                 "codeColor": "417 GL",
                 "Color": "White",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#dadad8",
                 "label": "Latte 417 GL",
                 "Material": "Glass GL",
@@ -1386,6 +1416,7 @@
               "metadata": {
                 "codeColor": "417 MT",
                 "Color": "White",
+                "GBMaterial": "Glass Matte",
                 "hex": "#dadad8",
                 "label": "Latte 417 MT",
                 "Material": "Glass MT",
@@ -1404,6 +1435,7 @@
               "metadata": {
                 "codeColor": "MW",
                 "Color": "White",
+                "GBMaterial": "Technolite",
                 "hex": "#ffffff",
                 "label": "Matte White",
                 "Material": "Solid Surface",
@@ -1422,6 +1454,7 @@
               "metadata": {
                 "codeColor": "MW",
                 "Color": "White",
+                "GBMaterial": "Technomat",
                 "hex": "#ffffff",
                 "label": "Matte White 8cm",
                 "Material": "Solid Surface",
@@ -1440,6 +1473,7 @@
               "metadata": {
                 "codeColor": "404 GL",
                 "Color": "Grey",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#71706d",
                 "label": "Metropoli 404 GL",
                 "Material": "Glass GL",
@@ -1458,6 +1492,7 @@
               "metadata": {
                 "codeColor": "404 MT",
                 "Color": "Grey",
+                "GBMaterial": "Glass Matte",
                 "hex": "#71706d",
                 "label": "Metropoli 404 MT",
                 "Material": "Glass MT",
@@ -1476,6 +1511,7 @@
               "metadata": {
                 "codeColor": "317",
                 "Color": "Brown, Grey",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-a517271bba330b7018bcd99183d38ddb4ce98711337876ec70afa9fac74d9f51",
                 "label": "Mine Goffrato 317",
                 "Look": "Stone/Marble-look, Metallic",
@@ -1495,6 +1531,7 @@
               "metadata": {
                 "codeColor": "408 GL",
                 "Color": "Brown",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#a8a294",
                 "label": "Moka 408 GL",
                 "Material": "Glass GL",
@@ -1513,6 +1550,7 @@
               "metadata": {
                 "codeColor": "408 MT",
                 "Color": "Brown",
+                "GBMaterial": "Glass Matte",
                 "hex": "#a8a294",
                 "label": "Moka 408 MT",
                 "Material": "Glass MT",
@@ -1531,6 +1569,7 @@
               "metadata": {
                 "codeColor": "402 GL",
                 "Color": "Grey",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#b6b5b5",
                 "label": "Nebbia 402 GL",
                 "Material": "Glass GL",
@@ -1549,6 +1588,7 @@
               "metadata": {
                 "codeColor": "402 MT",
                 "Color": "Grey",
+                "GBMaterial": "Glass Matte",
                 "hex": "#b6b5b5",
                 "label": "Nebbia 402 MT",
                 "Material": "Glass MT",
@@ -1567,6 +1607,7 @@
               "metadata": {
                 "codeColor": "433 GL",
                 "Color": "Black",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#1f1f20",
                 "label": "Nero 433 GL",
                 "Material": "Glass GL",
@@ -1585,6 +1626,7 @@
               "metadata": {
                 "codeColor": "433 MT",
                 "Color": "Black",
+                "GBMaterial": "Glass Matte",
                 "hex": "#1f1f20",
                 "label": "Nero 433 MT",
                 "Material": "Glass MT",
@@ -1603,6 +1645,7 @@
               "metadata": {
                 "codeColor": "326",
                 "Color": "Black",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-ba3cdd13811007cafa8bd2b0e571c8035d98765a7a426447452f71365f3156bd",
                 "label": "Nero Atlante Lucido 326",
                 "Look": "Stone/Marble-look",
@@ -1622,6 +1665,7 @@
               "metadata": {
                 "codeColor": "251",
                 "Color": "Black",
+                "GBMaterial": "HPL",
                 "hex": "#2d2b2a",
                 "label": "Nero Ingo 251",
                 "Material": "HPL",
@@ -1640,6 +1684,7 @@
               "metadata": {
                 "codeColor": "256",
                 "Color": "Brown",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-d1728a5d8e23f9ce7d3b7d9ce4e447a117aa22a3b5bab90d41ae17ece78546ac",
                 "label": "Noce Savoia 256",
                 "Look": "Wood-look",
@@ -1659,6 +1704,7 @@
               "metadata": {
                 "codeColor": "323",
                 "Color": "Grey",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-4b1911fb612e08d95a515fa65c6b8cf57bda25df2031aaa8844f7504b97e2e11",
                 "label": "Pietra Grey Goffrato 323",
                 "Look": "Stone/Marble-look",
@@ -1678,6 +1724,7 @@
               "metadata": {
                 "codeColor": "324",
                 "Color": "Grey, Brown",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-e410c0b5ddd653f48cd91934c8aa713562db68a5f21e9be633b8c90b4f7c6fec",
                 "label": "Pietra Piasentina Goffrato 324",
                 "Material": "Porcelain",
@@ -1696,6 +1743,7 @@
               "metadata": {
                 "codeColor": "418 GL",
                 "Color": "Grey, Blue",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#9ca8a9",
                 "label": "Ponente 418 GL",
                 "Material": "Glass GL",
@@ -1714,6 +1762,7 @@
               "metadata": {
                 "codeColor": "418 MT",
                 "Color": "Grey, Blue",
+                "GBMaterial": "Glass Matte",
                 "hex": "#9ca8a9",
                 "label": "Ponente 418 MT",
                 "Material": "Glass MT",
@@ -1732,6 +1781,7 @@
               "metadata": {
                 "codeColor": "337",
                 "Color": "Grey, Brown, Orange",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-181edaa49bdfe59e7f34e7de121e9ca187dcb9b3f4947a1d752494ae2f71107f",
                 "label": "Porfido 337",
                 "Look": "Stone/Marble-look, Metallic",
@@ -1751,6 +1801,7 @@
               "metadata": {
                 "codeColor": "257",
                 "Color": "Brown, Grey",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-2236d3324e9e71b0cceb8a807c349b79c81c0be3b29fe7bd97865e8b326896eb",
                 "label": "Rivel 257",
                 "Look": "Wood-look",
@@ -1770,6 +1821,7 @@
               "metadata": {
                 "codeColor": "255",
                 "Color": "Brown, Grey",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-392111d4bfe37a02ea777c0efae3c712da9fa2cd678bfa5ad260fd68ab957665",
                 "label": "Rovere Prussia 255",
                 "Look": "Wood-look",
@@ -1789,6 +1841,7 @@
               "metadata": {
                 "codeColor": "254",
                 "Color": "Brown",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-d08c483823bdeffe6c63f114c0d9599299c1f1a56581e85e59ab07a3994abada",
                 "label": "Rovere Slavonia 254",
                 "Look": "Wood-look",
@@ -1808,6 +1861,7 @@
               "metadata": {
                 "codeColor": "264",
                 "Color": "Brown, Grey",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-0b6916faebcae513ebebe93cc5c058a15974a48a77855c87c1ad521353fbeb45",
                 "label": "Rovere Texas 264",
                 "Look": "Wood-look",
@@ -1827,6 +1881,7 @@
               "metadata": {
                 "codeColor": "405 GL",
                 "Color": "Beige",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#cdcabf",
                 "label": "Sabbia 405 GL",
                 "Material": "Glass GL",
@@ -1845,6 +1900,7 @@
               "metadata": {
                 "codeColor": "405 MT",
                 "Color": "Beige",
+                "GBMaterial": "Glass Matte",
                 "hex": "#cdcabf",
                 "label": "Sabbia 405 MT",
                 "Material": "Glass MT",
@@ -1863,6 +1919,7 @@
               "metadata": {
                 "codeColor": "335",
                 "Color": "Black",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-e349c2e755a98b89a62ea76dfc9045bd8467ffd163e8b67571f8e36bda4cfea9",
                 "label": "Sahara Noir Bocciardato 335",
                 "Look": "Stone/Marble-look",
@@ -1882,6 +1939,7 @@
               "metadata": {
                 "codeColor": "339",
                 "Color": "Black",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-b6b377e720c74269aa2e03741a70c6f192031428baf4fbde23ce05273bc0d5dd",
                 "label": "Sahara Noir Lucido 339",
                 "Look": "Stone/Marble-look",
@@ -1901,6 +1959,7 @@
               "metadata": {
                 "codeColor": "415 GL",
                 "Color": "Green",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#89938a",
                 "label": "Salvia 415 GL",
                 "Material": "Glass GL",
@@ -1919,6 +1978,7 @@
               "metadata": {
                 "codeColor": "415 MT",
                 "Color": "Green",
+                "GBMaterial": "Glass Matte",
                 "hex": "#89938a",
                 "label": "Salvia 415 MT",
                 "Material": "Glass MT",
@@ -1937,6 +1997,7 @@
               "metadata": {
                 "codeColor": "406 GL",
                 "Color": "Grey, Beige",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#cfcfc8",
                 "label": "Seta 406 GL",
                 "Material": "Glass GL",
@@ -1955,6 +2016,7 @@
               "metadata": {
                 "codeColor": "406 MT",
                 "Color": "Grey, Beige",
+                "GBMaterial": "Glass Matte",
                 "hex": "#cfcfc8",
                 "label": "Seta 406 MT",
                 "Material": "Glass MT",
@@ -1973,6 +2035,7 @@
               "metadata": {
                 "codeColor": "263",
                 "Color": "Grey, Blue",
+                "GBMaterial": "HPL",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-16785b78a3b8f951a7150334dbcd860c3fd52cfaf8f3749b86fdbba2aa8e4a3a",
                 "label": "Silver Voyage 263",
                 "Material": "HPL",
@@ -1991,6 +2054,7 @@
               "metadata": {
                 "codeColor": "333",
                 "Color": "White",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-91674c081fc76ac6518cdc42050451aef0ace5fbcb730a35bd81d3d08cce471c",
                 "label": "Statuario Altissimo Lucido 333",
                 "Look": "Stone/Marble-look",
@@ -2010,6 +2074,7 @@
               "metadata": {
                 "codeColor": "336",
                 "Color": "Brown, Grey",
+                "GBMaterial": "Porcelain",
                 "image": "https://preview.threekit.com/api/files/hash/sha256-5348f54f8bfc4c29a1b4af76acedb06f4f312ea70b84ed6ec18e985f2ef16bed",
                 "label": "Terre Di Saturnia 336",
                 "Look": "Stone/Marble-look",
@@ -2029,6 +2094,7 @@
               "metadata": {
                 "codeColor": "410 GL",
                 "Color": "Blue, Green",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#7aa3a0",
                 "label": "Turchese 410 GL",
                 "Material": "Glass GL",
@@ -2047,6 +2113,7 @@
               "metadata": {
                 "codeColor": "410 MT",
                 "Color": "Blue, Green",
+                "GBMaterial": "Glass Matte",
                 "hex": "#7aa3a0",
                 "label": "Turchese 410 MT",
                 "Material": "Glass MT",
@@ -2065,6 +2132,7 @@
               "metadata": {
                 "codeColor": "412 GL",
                 "Color": "Yellow",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#dbbb55",
                 "label": "Zafferano 412 GL",
                 "Material": "Glass GL",
@@ -2083,6 +2151,7 @@
               "metadata": {
                 "codeColor": "412 MT",
                 "Color": "Yellow",
+                "GBMaterial": "Glass Matte",
                 "hex": "#dbbb55",
                 "label": "Zafferano 412 MT",
                 "Material": "Glass MT",
@@ -2101,6 +2170,7 @@
               "metadata": {
                 "codeColor": "411 GL",
                 "Color": "Blue",
+                "GBMaterial": "Glass Gloss",
                 "hex": "#275871",
                 "label": "Zaffiro 411 GL",
                 "Material": "Glass GL",
@@ -2119,6 +2189,7 @@
               "metadata": {
                 "codeColor": "411 MT",
                 "Color": "Blue",
+                "GBMaterial": "Glass Matte",
                 "hex": "#275871",
                 "label": "Zaffiro 411 MT",
                 "Material": "Glass MT",

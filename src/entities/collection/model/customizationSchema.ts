@@ -279,6 +279,8 @@ export type CustomizationDrawerOrganizers = {
 export type FieldOptionTraits = {
   sku?: string;
   materials?: string[];
+  /** The material of the client's GB price list (configurator `GBMaterial`), e.g. Technolite, a type of Solid Surface. */
+  gbMaterial?: string;
   colors?: string[];
   looks?: string[];
   hex?: string;

@@ -10,10 +10,8 @@ import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { BaseButton } from "@/shared/ui/Buttons/BaseButton";
 import {
-  filterOptionsByMaterialSelection,
+  filterOptionsByMaterialTree,
   groupMaterialsHierarchically,
-  materialFilterValuesMatch,
-  resolveSelectedMaterialFilterValues,
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier, type PriceTierOverride } from "@/shared/constants/priceFilters";
@@ -96,29 +94,15 @@ export const FullModeColorsModal: React.FC<FullModeColorsModalProps> = ({
   const fallbackTierOptions = useMemo(() => buildTierFilterOptions(options, tierOverride), [options, tierOverride]);
   const resolvedTierFilterOptions = tierFilterOptions ?? fallbackTierOptions;
 
-  const selectedMaterialValues = useMemo(
-    () => resolveSelectedMaterialFilterValues(resolvedMaterialFilterOptions, selectedFilter.material),
-    [resolvedMaterialFilterOptions, selectedFilter.material],
+  const filteredOptions = useMemo(
+    () =>
+      filterOptionsByTier(
+        filterOptionsByMaterialTree(options, resolvedMaterialFilterOptions, selectedFilter),
+        selectedFilter.tier,
+        tierOverride,
+      ),
+    [options, resolvedMaterialFilterOptions, selectedFilter, tierOverride],
   );
-
-  const filteredOptions = useMemo(() => {
-    const filteredWithoutMaterial = filterOptionsByMaterialSelection(options, {
-      ...selectedFilter,
-      material: undefined,
-    });
-
-    const filteredByMaterial =
-      selectedMaterialValues.length === 0
-        ? filteredWithoutMaterial
-        : filteredWithoutMaterial.filter((option) => {
-            const materials = option.metadata?.materials ?? [];
-            return selectedMaterialValues.some((selectedMaterial) =>
-              materials.some((optionMaterial) => materialFilterValuesMatch(optionMaterial, selectedMaterial)),
-            );
-          });
-
-    return filterOptionsByTier(filteredByMaterial, selectedFilter.tier, tierOverride);
-  }, [options, selectedFilter, selectedMaterialValues, tierOverride]);
 
   const clearAllFilters = () => setSelectedFilter({});
 
