@@ -48,7 +48,9 @@ import {
   URBAN_LOW_HEIGHT,
   type CollectionPricingScenarioId,
 } from "./fixtures/collectionPricingScenarios";
+import classDefaultOrder from "./fixtures/prices/class-default-model.json";
 import classOrder from "./fixtures/prices/class-porcelain-integrated.json";
+import makoDefaultOrder from "./fixtures/prices/mako-default-model.json";
 import makoOrder from "./fixtures/prices/mako-vessel-with-legs.json";
 import { ulhCoverConfigurator } from "./fixtures/ulhCoverConfigurator";
 
@@ -66,6 +68,8 @@ type RecordedPrices = { scenario: string; recordedAt: string; answers: Record<st
 const RECORDED: Record<CollectionPricingScenarioId, RecordedPrices> = {
   "class-porcelain-integrated": classOrder as RecordedPrices,
   "mako-vessel-with-legs": makoOrder as RecordedPrices,
+  "class-default-model": classDefaultOrder as RecordedPrices,
+  "mako-default-model": makoDefaultOrder as RecordedPrices,
 };
 
 /**
@@ -99,12 +103,35 @@ const WORKBOOK_PRICES: Record<CollectionPricingScenarioId, Record<string, number
     // AccessoriesPricing, ROW-MTL-43: a metal organizer column, 170 each.
     "VAN-GBDIV-MTL-3.9W-2H-16.9D": 170,
   },
+  "class-default-model": {
+    // CabinetPricing: SB/2DW 23.6W, POR/B (black frame).
+    "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-332-CABS-LACM-417-FRM-LACM-433": 3498,
+    // CountertopPricing: Porcelain .8 at 29.49 / cm × 60 cm = 1769.39, rounded up.
+    "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-332": 1770,
+    // Basin StylePricing: POR LV890, 3149.49.
+    "CT-GBPOR-LV890-.8H": 3149,
+    // AccessoriesPricing R15: no faucet holes are free.
+    "CT-GBPOR-FAHO/0": 0,
+  },
+  "mako-default-model": {
+    // CabinetPricing: SB/2DW/G57 23.6W, LACM.
+    "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400": 2702,
+    // CountertopPricing: SS Technolite .5 at 13.11 / cm × 60 cm = 786.60, rounded up.
+    "CT-GBSSTL-INTG-23.6W-.5H-20.7D": 787,
+    // Basin StylePricing: SSTL LB440, 1881.67.
+    "CT-GBSSTL-LB440-.5H": 1882,
+    // Class AccessoriesPricing R11, which Mako refers to: no faucet holes are free.
+    "CT-GBSSTL-FAHO/0": 0,
+  },
 };
 
 const EXPECTED = {
   "class-porcelain-integrated": { total: 14650, status: "ready" },
   // The pair of legs and two organizer columns are priced; the Iris vessel is not, so the total leaves it out and says so.
   "mako-vessel-with-legs": { total: 10253, status: "partial" },
+  // The models as they start, now with no faucet holes: the faucet line keeps the total complete.
+  "class-default-model": { total: 8417, status: "ready" },
+  "mako-default-model": { total: 5371, status: "ready" },
 } as const;
 
 const entriesOf = (scenario: CollectionPricingScenarioId): Record<string, SkuPriceEntry> =>
@@ -1212,17 +1239,30 @@ describe("Urban Freestanding side panels, priced as Urban Standard Height's", ()
     );
 
   const sidePanelsOf = (lines: PricingLine[]) =>
-    lines.filter(({ group }) => group === "sidePanel").map(({ sku, quantity }) => ({ sku, quantity }));
+    lines
+      .filter(({ group }) => group === "sidePanel")
+      .map(({ sku, quantity, sides, finish }) => ({ sku, quantity, sides, finish }));
 
   it("stands a panel on each active side at the cabinets' height, the upper groove beside an Upper Groove cabinet", () => {
     const upperGroove = order(91, "UG", "UpperG");
 
     // 91 cm with the plinth (35.8"), 50 cm deep; the groove in the cabinet colour while none is chosen.
     expect(sidePanelsOf(upperGroove.lines)).toEqual([
-      { sku: "VAN-URSP-1GU-.4W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1", quantity: 2 },
+      {
+        sku: "VAN-URSP-1GU-.4W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1",
+        quantity: 2,
+        sides: ["left", "right"],
+        // The first cabinet's colour, which Summary shows as the panels' finish.
+        finish: { color: "Castagno chiaro 1C1", materialSku: "3D" },
+      },
     ]);
     expect(sidePanelsOf(order(88, "PTO", "NoG").lines)).toEqual([
-      { sku: "VAN-URSP-0G-.4W-34.6H-19.7D-CAB-3D-1C1", quantity: 2 },
+      {
+        sku: "VAN-URSP-0G-.4W-34.6H-19.7D-CAB-3D-1C1",
+        quantity: 2,
+        sides: ["left", "right"],
+        finish: { color: "Castagno chiaro 1C1", materialSku: "3D" },
+      },
     ]);
     // The price list has no panel SKU of its own (UFS-SP-01): the total still stands, with a note.
     expect(upperGroove.gaps).toEqual([expect.objectContaining({ group: "sidePanel", blocksTotal: false })]);

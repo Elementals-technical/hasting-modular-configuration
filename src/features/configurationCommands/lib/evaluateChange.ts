@@ -207,7 +207,11 @@ export const evaluateChange = (
   return {
     kind: "planned",
     plan: [...requestedPlan, ...undeterminedResets, ...countertop.dependencies],
-    confirmation: resolveConfirmation(change, planResult.plan, activeProfile, cabinets.length),
+    // The countertop asks too when it changes the cabinets under it (Tricot: Integrated over an inner drawer).
+    confirmation: [
+      ...resolveConfirmation(change, planResult.plan, activeProfile, cabinets.length),
+      ...(countertop.confirmation ?? []),
+    ],
     collectionId: activeProfile.collectionId,
   };
 };

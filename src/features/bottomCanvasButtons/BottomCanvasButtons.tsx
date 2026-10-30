@@ -1,3 +1,5 @@
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useState } from "react";
 import { useCollectionNavigation } from "@/features/collectionCustomization";
 
@@ -54,6 +56,7 @@ export const BottomCanvasButtons = () => {
   const [isShareOpening, setIsShareOpening] = useState(false);
   const [shareValue, setShareValue] = useState("");
 
+  const activeProfile = useAppSelector(getActiveProductProfile);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const saveCurrentConfiguration = useSaveCurrentConfiguration();
 
@@ -77,7 +80,11 @@ export const BottomCanvasButtons = () => {
 
     setIsFullDimensionsMenuOpen(false);
 
-    const didShow = await computeAndShowFullDimensions({ countertopThickness, unit });
+    const didShow = await computeAndShowFullDimensions({
+      countertopThickness,
+      unit,
+      panelWidthCm: getSidePanelWidthCm(activeProfile),
+    });
     if (!didShow) {
       deactivateFullDimensions();
       return;

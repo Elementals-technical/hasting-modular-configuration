@@ -1,17 +1,29 @@
 import type { CollectionOwnSidePanel, CollectionSkuProfile } from "@/entities/collection/model/schemas";
 import type { ProductProfile } from "@/entities/collection/model/productProfile";
 import { normalizeOptionValue, selectOption } from "@/entities/collection/lib/productProfileSelectors";
+import type { CollectionValueReader } from "./buildCollectionSkus";
 import type { ConfiguratorColorReader } from "./configuratorColors";
 import { resolveCollectionColorCode, resolveCollectionColorMaterial } from "./buildCollectionSkus";
 
-export type CollectionPanelSkuResult = { sku: string | null; quantity: number | null; reason?: string };
+export type CollectionPanelSkuResult = {
+  sku: string | null;
+  quantity: number | null;
+  /** The colour and material the SKU is spelled in, when it is spelled. */
+  finish?: { color: string; materialSku: string };
+  reason?: string;
+};
 
 /** Spells an own panel only from an approved suffix/inheritance policy and explicitly supplied quantity. */
 export const buildCollectionSidePanelSku = (
   panel: CollectionOwnSidePanel,
   skuProfile: CollectionSkuProfile,
   profile: ProductProfile | null,
-  input: { quantity: number | null; color: string | null; readConfiguratorColor?: ConfiguratorColorReader },
+  input: {
+    quantity: number | null;
+    color: string | null;
+    readConfiguratorColor?: ConfiguratorColorReader;
+    read?: CollectionValueReader;
+  },
 ): CollectionPanelSkuResult => {
   const unavailable = (reason: string): CollectionPanelSkuResult => ({ sku: null, quantity: null, reason });
   if (panel.status !== "confirmed") return unavailable(panel.reason ?? "Approved panel product data is required.");
@@ -34,5 +46,20 @@ export const buildCollectionSidePanelSku = (
   );
   const code = resolveCollectionColorCode(skuProfile, color);
   if (!material || !code) return unavailable("Panel material and color code are unresolved.");
-  return { sku: `${panel.baseSku}-${panel.elementCode}-${material}-${code}`, quantity: input.quantity };
+  let baseSku = panel.baseSku;
+  if (panel.variants) {
+    const matches = panel.variants.filter(({ when }) =>
+      Object.entries(when).every(([attributeId, expected]) => {
+        const raw = input.read?.(attributeId);
+        return raw != null && (normalizeOptionValue(profile, attributeId, raw) ?? raw) === expected;
+      }),
+    );
+    if (matches.length !== 1) return unavailable("Exactly one supported panel size and pattern variant is required.");
+    baseSku = matches[0].baseSku;
+  }
+  return {
+    sku: `${baseSku}-${panel.elementCode}-${material}-${code}`,
+    quantity: input.quantity,
+    finish: { color, materialSku: material },
+  };
 };

@@ -1,0 +1,21 @@
+{
+  "collection": "lame",
+  "task": "Side Panels UI / SKU / pricing / undo-redo",
+  "date": "2026-10-29",
+  "gitRevision": "e802ccf5ab015be9a72b622307e093f6053582fd",
+  "branch": "fix/all-preset",
+  "runtimeTitle": "Hasting-phase-2-stage-v90",
+  "runtimeEntry": "/HastingCabinetsParametrization/index.html?v=039",
+  "runtimeIndexSha256": "b84a1e9f30911dbe4533cdcda367954e260f811295c8f466feab2802fe52efae",
+  "nodeVersion": "v22.20.0",
+  "browser": "ChatGPT in-app browser (IAB), browser 2, agent tab 17",
+  "viewport": "1280 x 720 screenshot",
+  "approvedQuantityPolicy": "One SKU unit price per active side; both active = 2 pieces",
+  "sourceWorkbookSha256": "0a76f76e92368d50e2b6b495a81fec4a3be07a8ecff2532e14caa049ca805309",
+  "captureNotes": "HMR during source/JSON edits reset temporary scenes. Those attempts were excluded; fresh preset entry used for final runs. Baseline-off.png was already taken after UI implementation and is not before-change evidence.",
+  "completedAtUTC": "2026-10-29T17:47:15.402678+00:00",
+  "stagedFiles": 26,
+  "commitCreated": true,
+  "pushed": false,
+  "implementationCommit": "3748c10a3c68acdec77b0ffa04f91d05fbab7abc"
+}

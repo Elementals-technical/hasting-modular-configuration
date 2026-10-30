@@ -1,0 +1,11 @@
+Snapshot [selector: [class*=swatchesGrid]] [includeAll: true]
+
+uid=e103 div
+  uid=e96 button
+    uid=e95 div text="0"
+  uid=e98 button
+    uid=e97 div text="1"
+  uid=e100 button
+    uid=e99 div text="2"
+  uid=e102 button
+    uid=e101 div text="3"

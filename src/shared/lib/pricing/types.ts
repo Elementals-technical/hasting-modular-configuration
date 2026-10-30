@@ -48,10 +48,16 @@ export type PricingLine = {
   /** Actual countertop width the top line is priced for. */
   widthCm?: number;
   /**
-   * The finish the line is ordered in where no attribute holds it: a Lower slab's (`cabinetCover`), which
-   * the scene paints, as the Upper's palette names its colour and the SKU names its material.
+   * The finish the line is ordered in where Summary cannot read it from one attribute: a Lower slab's
+   * (`cabinetCover`), which the scene paints, as the Upper's palette names its colour and the SKU names its
+   * material; an own side panel's, its cabinet colour and the material the SKU profile names for it.
    */
   finish?: { color: string; materialSku: string };
+  /**
+   * The ends whose panel a side panel line orders, one piece each, where Summary cannot read them from the side
+   * statuses: the panel beside an Urban Freestanding short cabinet is active but not ordered (UFS-SP-01).
+   */
+  sides?: ("left" | "right")[];
 };
 
 /**

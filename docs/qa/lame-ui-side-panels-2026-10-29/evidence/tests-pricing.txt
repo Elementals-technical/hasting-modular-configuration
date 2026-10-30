@@ -1,0 +1,37 @@
+
+ RUN  v4.1.8 <workspace>
+
+ ❯ src/shared/lib/pricing/__tests__/collectionPricing.test.ts (93 tests | 1 failed | 2 skipped) 81ms
+     × prices a Class model before a colour is chosen, from the collection's defaults 15ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/shared/lib/pricing/__tests__/collectionPricing.test.ts > Class and Mako order lines > prices a Class model before a colour is chosen, from the collection's defaults
+AssertionError: expected [ …(3) ] to deeply equal [ …(3) ]
+
+- Expected
++ Received
+
+  [
+-   "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-334-CABS-LACM-433-FRM-LACM-433",
+-   "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-334",
++   "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-332-CABS-LACM-417-FRM-LACM-433",
++   "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-332",
+    "CT-GBPOR-LV890-.8H",
+  ]
+
+ ❯ src/shared/lib/pricing/__tests__/collectionPricing.test.ts:483:41
+    481|     // An Invisible White porcelain front in a black frame and sides, …
+    482|     // with its LV890 basin.
+    483|     expect(lines.map(({ sku }) => sku)).toEqual([
+       |                                         ^
+    484|       "VAN-CLSV-SB/2DW-23.6W-20.5H-20.5D-CABF-POR/B-334-CABS-LACM-433-…
+    485|       "CT-GBPOR-INTG-23.6W-.8H-20.7D-POR-334",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 15 passed | 1 skipped (17)
+      Tests  1 failed | 273 passed | 8 skipped (282)
+   Start at  19:42:50
+   Duration  13.30s (transform 7.77s, setup 0ms, import 19.65s, tests 702ms, environment 2.39s)

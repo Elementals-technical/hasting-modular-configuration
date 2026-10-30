@@ -1,3 +1,4 @@
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import type { ProductProfile } from "@/entities/collection";
 import type { PresetProduct } from "@/entities/product/types";
 import type { SidePanelAvailabilityResult, SidePanelReasonCode } from "@/features/configurator-rule-core/options/types";
@@ -68,12 +69,13 @@ export const projectedTotalAfterGrooveChange = (
   currentCabinetOnly: number | null,
   leftStatus: string,
   rightStatus: string,
+  profile?: ProductProfile | null,
 ): number | null => {
   if (currentCabinetOnly === null) return null;
   if (value === "None" || targetSide === null) return currentCabinetOnly;
   const leftAfter = targetSide !== "right" || leftStatus === "active";
   const rightAfter = targetSide !== "left" || rightStatus === "active";
-  return currentCabinetOnly + (leftAfter ? 1 : 0) + (rightAfter ? 1 : 0);
+  return currentCabinetOnly + (Number(leftAfter) + Number(rightAfter)) * getSidePanelWidthCm(profile);
 };
 
 type BuildOptionsArgs = {
@@ -123,6 +125,7 @@ export const buildSidePanelOptions = ({
       lengthGuard.currentCabinetOnly,
       leftStatus,
       rightStatus,
+      profile,
     );
     if (totalAfter === null || lengthGuard.max === null || lengthGuard.canAccommodateTotal(totalAfter)) return [option];
     return [

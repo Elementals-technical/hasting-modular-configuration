@@ -4,7 +4,12 @@ import classProfileDocument from "../../../../public/collections/class/product-p
 import classManifest from "../../../../public/collections/class/manifest.json";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
-import { isDrawerStyleMixingRestricted, selectBasinOptions, selectOptionValues } from "../lib/productProfileSelectors";
+import {
+  isDrawerStyleMixingRestricted,
+  selectBasinOptions,
+  selectDefaultValue,
+  selectOptionValues,
+} from "../lib/productProfileSelectors";
 
 /**
  * The Class product profile carries only what the Class documents confirm: the WebGL Scoping rules,
@@ -111,6 +116,7 @@ describe("class product profile", () => {
   it("has the confirmed countertop, faucet and divider options", () => {
     expect(selectOptionValues(profile(), "CountertopStyle")).toEqual(["integrated", "vessel"]);
     expect(selectOptionValues(profile(), "FaucetHolesAmount")).toEqual(["0", "1", "2", "3"]);
+    expect(selectDefaultValue(profile(), "FaucetHolesAmount")).toBe("0");
     expect(selectOptionValues(profile(), "DividersStyle")).toEqual(["Metal", "Oak"]);
   });
 

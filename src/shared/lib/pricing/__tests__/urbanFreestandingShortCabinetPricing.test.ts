@@ -61,7 +61,8 @@ describe("Urban Freestanding Floor-Mount Short Cabinet pricing", () => {
 
     // 91 cm (35.8") at the Sink Base end, never the short cabinet's 56 cm.
     expect(lines.filter(({ group }) => group === "sidePanel")).toEqual([
-      expect.objectContaining({ sku: expect.stringContaining("-35.8H-"), quantity: 1 }),
+      // The short cabinet stands at the left end: the line orders the right panel alone, which Summary lists.
+      expect.objectContaining({ sku: expect.stringContaining("-35.8H-"), quantity: 1, sides: ["right"] }),
     ]);
     expect(gaps).toContainEqual(
       expect.objectContaining({

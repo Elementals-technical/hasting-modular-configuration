@@ -177,7 +177,8 @@ describe("lame collection package", () => {
     const rules = catalog.countertops ?? [];
 
     expect(rules).toHaveLength(12);
-    expect(new Set(rules.map(({ basinStyle }) => basinStyle))).toEqual(new Set(integratedBasins));
+    // Table 597 still has the client's VA030 (SS Texturizzato) rows; Lame dropped VA030, so they match no offered basin.
+    expect(new Set(rules.map(({ basinStyle }) => basinStyle))).toEqual(new Set([...integratedBasins, "VA030"]));
     for (const rule of rules) {
       expect(rule, rule.basinStyle).toMatchObject({
         depths: [52],

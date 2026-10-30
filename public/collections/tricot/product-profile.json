@@ -555,6 +555,7 @@
     "product.missingData": "Approved Tricot product data is required.",
     "drawer.mixedGroups": "One-drawer and two-drawer modules cannot be mixed in this composition.",
     "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "countertop.integratedDrawers": "Your design will be updated: a Sink Base with 1 Drawer + Inner Drawer is not compatible with an Integrated countertop and will switch to 1 Drawer.",
     "countertop.materialNotAvailableForTotalWidth": "Not available for current total cabinets width on scene",
     "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",

@@ -1,9 +1,10 @@
 import { calcTotalCountertopWidthCm, getActiveSidePanelCount } from "@/entities/countertop";
 import { getSidePanelLeftStatus, getSidePanelRightStatus } from "@/features/sidePanel";
+import { getActiveProductProfile } from "@/entities/configuration/model/store/selectors";
+import { getSidePanelWidthCm } from "@/entities/countertop";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
 import { useSceneTotalWidth } from "@/shared/hooks/useSceneTotalWidth";
-import { SIDE_PANEL_WIDTH_CM } from "@/shared/lib/sku";
 
 /** The length (cm) the countertop's rules judge: with its side panels, and of its cabinets alone. */
 export type CountertopLength = {
@@ -30,6 +31,7 @@ export const useCountertopLength = (productIds: string[], fallbackWidth: number 
       ? state.autoLength
       : null,
   );
+  const profile = useAppSelector(getActiveProductProfile);
   const left = useAppSelector(getSidePanelLeftStatus);
   const right = useAppSelector(getSidePanelRightStatus);
   // One scene poll for both values, as `useSceneTotalWidthWithSidePanels` adds the panels.
@@ -37,7 +39,10 @@ export const useCountertopLength = (productIds: string[], fallbackWidth: number 
 
   if (autoLengthM === null) {
     return {
-      withSidePanels: compositionOnly === null ? null : calcTotalCountertopWidthCm(compositionOnly, left, right),
+      withSidePanels:
+        compositionOnly === null
+          ? null
+          : calcTotalCountertopWidthCm(compositionOnly, left, right, getSidePanelWidthCm(profile)),
       cabinetsOnly: compositionOnly,
     };
   }
@@ -45,6 +50,6 @@ export const useCountertopLength = (productIds: string[], fallbackWidth: number 
   const withSidePanels = Math.floor(autoLengthM * 100 + FLOAT_EPSILON_CM);
   return {
     withSidePanels,
-    cabinetsOnly: withSidePanels - getActiveSidePanelCount(left, right) * SIDE_PANEL_WIDTH_CM,
+    cabinetsOnly: withSidePanels - getActiveSidePanelCount(left, right) * getSidePanelWidthCm(profile),
   };
 };

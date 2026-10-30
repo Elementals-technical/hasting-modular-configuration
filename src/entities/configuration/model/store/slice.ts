@@ -208,13 +208,17 @@ const configurationSlice = createSlice({
       const cabinetId = action.payload;
 
       for (const [attributeId, values] of Object.entries(state.valuesByAttributeId)) {
-        const next = values.filter(
-          (entry) =>
-            !(
-              (entry.target.scope === "cabinet" || entry.target.scope === "drawer") &&
-              entry.target.cabinetId === cabinetId
-            ),
-        );
+        const next = values.filter(({ target }) => {
+          // A Sink Base's own basin is addressed by its key, as a cabinet or drawer value is; the
+          // composition's basin names no Sink Base and stays.
+          const addressedTo =
+            target.scope === "cabinet" || target.scope === "drawer"
+              ? target.cabinetId
+              : target.scope === "basin"
+                ? target.sinkBaseId
+                : undefined;
+          return addressedTo !== cabinetId;
+        });
 
         if (next.length === 0) {
           delete state.valuesByAttributeId[attributeId];

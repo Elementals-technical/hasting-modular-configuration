@@ -4,10 +4,14 @@ import type { PricingInput, PricingLine } from "./types";
 
 /**
  * The Urban Standard Height side panel (D02): one SKU for the panels of the composition, ordered
- * once per active side, spelled `VAN-{sidePanel}-{groove}-…-CAB-{material}-{code}[-HDL-…]` at the
- * cabinets' height and depth. USH prices its own with it, and so does a collection whose SKU
- * profile prices its side panels as USH's (Urban Low Height). Each caller brings the colours.
+ * once per active side and naming those ends (`sides`), spelled
+ * `VAN-{sidePanel}-{groove}-…-CAB-{material}-{code}[-HDL-…]` at the cabinets' height and depth, in the
+ * cabinet's finish. USH prices its own with it, and so does a collection whose SKU profile prices its side
+ * panels as USH's (Urban Low Height). Each caller brings the colours.
  */
+
+/** The id of the panel line: one line for both ends. */
+export const USH_SIDE_PANEL_LINE_ID = "sidePanel";
 
 type ColorSku = { materialSku: string | null; colorCode: string | null };
 
@@ -19,7 +23,8 @@ export type UshSidePanelLinesInput = {
   sidePanelRight: PricingInput["sidePanelRight"];
   heightCm: number | null;
   depthCm: number | null;
-  cabinet: ColorSku;
+  /** The cabinet's colour as its palette names it (`color`), which Summary shows as the panel's finish. */
+  cabinet: ColorSku & { color: string | null };
   /** A grooved panel's groove; without a colour of its own it is spelled in the cabinet's. */
   groove: ColorSku;
 };
@@ -34,8 +39,10 @@ export const buildUshSidePanelLines = ({
   cabinet,
   groove,
 }: UshSidePanelLinesInput): PricingLine[] => {
-  const activeSideCount = [sidePanelLeft, sidePanelRight].filter((status) => status === "active").length;
-  if (activeSideCount === 0) return [];
+  const sides = (["left", "right"] as const).filter(
+    (side) => (side === "left" ? sidePanelLeft : sidePanelRight) === "active",
+  );
+  if (sides.length === 0) return [];
 
   const sku = buildSidePanelSku(
     { series },
@@ -50,5 +57,18 @@ export const buildUshSidePanelLines = ({
       hdlColorCode: groove.colorCode,
     },
   );
-  return sku ? [{ id: "sidePanel", group: "sidePanel", sku, quantity: activeSideCount }] : [];
+  if (!sku) return [];
+
+  const finish =
+    cabinet.color && cabinet.materialSku ? { color: cabinet.color, materialSku: cabinet.materialSku } : null;
+  return [
+    {
+      id: USH_SIDE_PANEL_LINE_ID,
+      group: "sidePanel",
+      sku,
+      quantity: sides.length,
+      sides,
+      ...(finish ? { finish } : {}),
+    },
+  ];
 };

@@ -1,0 +1,96 @@
+Snapshot [DOM truncated]
+
+uid=e94 body
+  uid=e78 div
+    uid=e77 div
+      uid=e76 div
+        uid=e16 div
+          uid=e15 nav "Configurator steps"
+            uid=e1 div
+              uid=e0 div text="Pre-Built"
+            uid=e14 ul
+              uid=e3 li
+                uid=e2 a "Model" href="http://localhost:5173/prebu..." text="Model"
+              uid=e5 li
+                uid=e4 a "Color" href="http://localhost:5173/prebu..." text="Color"
+              uid=e7 li
+                uid=e6 a "Countertop & Basin" href="http://localhost:5173/prebu..." text="Countertop & Basin"
+              uid=e9 li
+                uid=e8 a "Accessories" href="http://localhost:5173/prebu..." text="Accessories"
+              uid=e11 li
+                uid=e10 a "Faucet Details" href="http://localhost:5173/prebu..." text="Faucet Details"
+              uid=e13 li
+                uid=e12 a "Summary" href="http://localhost:5173/prebu..." text="Summary"
+        uid=e42 div
+          uid=e19 div
+            uid=e18 iframe "scene" src="http://localhost:5173/Hasti..."
+          uid=e20 div
+          uid=e38 div
+            uid=e23 div
+              uid=e22 button
+                uid=e21 span
+            uid=e25 button
+              uid=e24 span
+            uid=e27 button
+              uid=e26 span
+            uid=e29 button
+              uid=e28 span
+            uid=e31 button
+              uid=e30 span
+            uid=e33 button
+              uid=e32 span
+            uid=e35 button
+              uid=e34 span
+            uid=e37 button
+              uid=e36 span
+          uid=e41 div
+            uid=e40 div
+              uid=e39 div text="Help"
+        uid=e75 div
+          uid=e45 a href="http://localhost:5173/prebu..."
+            uid=e43 span text="Summary View"
+            uid=e44 span text="→"
+          uid=e50 div
+            uid=e49 div
+              uid=e46 div
+              uid=e47 div text="Select Faucet Details"
+              uid=e48 div
+          uid=e59 div
+            uid=e58 div
+              uid=e57 div
+                uid=e53 h3
+                  uid=e52 button
+                    uid=e51 span text="Faucet Holes"
+                uid=e56 region tag=div
+                  uid=e55 div
+                    uid=e54 div
+          uid=e74 div
+            uid=e68 div
+              uid=e60 span text="Total List Price"
+              uid=e62 span
+                uid=e61 span "$0.00" text="$0.00"
+              uid=e67 span
+                uid=e66 a "Quote" href="http://localhost:5173/prebu..."
+                  uid=e65 span
+                    uid=e63 span text="Quote"
+                    uid=e64 span
+            uid=e73 div
+              uid=e69 button "Back to Accessories"
+              uid=e72 button
+                uid=e71 span
+                  uid=e70 span text="Next: Summary"
+  uid=e93 div
+    uid=e79 div
+    uid=e92 div
+      uid=e91 alertdialog tag=div
+        uid=e82 div
+          uid=e80 div text="Take the Interactive Walkth..."
+          uid=e81 button "Close"
+        uid=e84 div
+          uid=e83 p text="We'll walk through the two ..."
+        uid=e90 div
+          uid=e85 div
+          uid=e87 button "Skip"
+            uid=e86 span text="Skip"
+          uid=e89 button "Next"
+            uid=e88 span text="Next"

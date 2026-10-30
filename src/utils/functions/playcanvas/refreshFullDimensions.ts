@@ -8,6 +8,7 @@ import { getRememberedSidePanels } from "./sidePanels";
 import { readScenePositionsM, type ScenePositionM } from "./sceneBridge";
 
 type FullDimensionsOptions = {
+  panelWidthCm?: number;
   countertopThickness?: string | number | null;
   unit?: FullDimensionsUnit;
 };
@@ -196,10 +197,9 @@ export const buildFullDimensionsPayload = (
   const levels = resolveLevels(measured);
   const levelSize = levels ? measureLevels(measured) : null;
 
-  const { sidePanels } = options;
+  const { sidePanels, panelWidthCm = SIDE_PANEL_WIDTH_CM } = options;
   const sidePanelsCm =
-    (sidePanels.left !== "None" ? SIDE_PANEL_WIDTH_CM : 0) +
-    (sidePanels.right !== "None" ? SIDE_PANEL_WIDTH_CM : 0);
+    (sidePanels.left !== "None" ? panelWidthCm : 0) + (sidePanels.right !== "None" ? panelWidthCm : 0);
   const totalWidth = (levelSize?.width ?? measured.reduce((sum, item) => sum + (item.width ?? 0), 0)) + sidePanelsCm;
 
   const maxHeight =

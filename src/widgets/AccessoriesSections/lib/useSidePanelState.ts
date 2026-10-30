@@ -221,6 +221,7 @@ export const useSidePanelState = (field: FieldRuntimeState | undefined) => {
         lengthGuard.currentCabinetOnly,
         leftStatus,
         rightStatus,
+        activeProfile,
       );
       if (totalAfter !== null && !lengthGuard.canAccommodateTotal(totalAfter)) return;
     }
