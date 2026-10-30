@@ -1,0 +1,740 @@
+{
+ "description": "Local dev: the Faucet Details step of Class, Mako, Lame, Tricot shows the USH hints for 1/2/3 holes and none for 0; USH as baseline. Direct link to /prebuilt/faucet-holes, read-only (Summary not opened: it auto-saves).",
+ "steps": [
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/faucet-holes?collectionId=class"
+   },
+   "save": "class-00-open.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 400
+   },
+   "save": "class-01-snapshot.txt",
+   "capture": {
+    "skip_class": "uid=(e\\d+) button \"Skip\""
+   },
+   "optional": true
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${skip_class}"
+   },
+   "save": "class-02-skip.txt",
+   "optional": true
+  },
+  {
+   "sleep": 1000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "class-10-value-0-text.txt"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "class-21-swatches.txt",
+   "capture": {
+    "b1_class": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"1\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b1_class}"
+   },
+   "save": "class-31-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "class-11-value-1-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "class-41-value-1.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "class-22-swatches.txt",
+   "capture": {
+    "b2_class": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"2\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b2_class}"
+   },
+   "save": "class-32-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "class-12-value-2-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "class-42-value-2.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "class-23-swatches.txt",
+   "capture": {
+    "b3_class": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"3\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b3_class}"
+   },
+   "save": "class-33-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "class-13-value-3-text.txt"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 50
+   },
+   "save": "class-90-console-errors.txt",
+   "optional": true
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/faucet-holes?collectionId=mako"
+   },
+   "save": "mako-00-open.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 400
+   },
+   "save": "mako-01-snapshot.txt",
+   "capture": {
+    "skip_mako": "uid=(e\\d+) button \"Skip\""
+   },
+   "optional": true
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${skip_mako}"
+   },
+   "save": "mako-02-skip.txt",
+   "optional": true
+  },
+  {
+   "sleep": 1000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "mako-10-value-0-text.txt"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "mako-21-swatches.txt",
+   "capture": {
+    "b1_mako": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"1\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b1_mako}"
+   },
+   "save": "mako-31-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "mako-11-value-1-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "mako-41-value-1.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "mako-22-swatches.txt",
+   "capture": {
+    "b2_mako": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"2\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b2_mako}"
+   },
+   "save": "mako-32-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "mako-12-value-2-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "mako-42-value-2.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "mako-23-swatches.txt",
+   "capture": {
+    "b3_mako": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"3\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b3_mako}"
+   },
+   "save": "mako-33-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "mako-13-value-3-text.txt"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 50
+   },
+   "save": "mako-90-console-errors.txt",
+   "optional": true
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/faucet-holes?collectionId=lame"
+   },
+   "save": "lame-00-open.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 400
+   },
+   "save": "lame-01-snapshot.txt",
+   "capture": {
+    "skip_lame": "uid=(e\\d+) button \"Skip\""
+   },
+   "optional": true
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${skip_lame}"
+   },
+   "save": "lame-02-skip.txt",
+   "optional": true
+  },
+  {
+   "sleep": 1000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "lame-10-value-0-text.txt"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "lame-21-swatches.txt",
+   "capture": {
+    "b1_lame": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"1\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b1_lame}"
+   },
+   "save": "lame-31-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "lame-11-value-1-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "lame-41-value-1.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "lame-22-swatches.txt",
+   "capture": {
+    "b2_lame": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"2\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b2_lame}"
+   },
+   "save": "lame-32-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "lame-12-value-2-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "lame-42-value-2.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "lame-23-swatches.txt",
+   "capture": {
+    "b3_lame": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"3\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b3_lame}"
+   },
+   "save": "lame-33-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "lame-13-value-3-text.txt"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 50
+   },
+   "save": "lame-90-console-errors.txt",
+   "optional": true
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/faucet-holes?collectionId=tricot"
+   },
+   "save": "tricot-00-open.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 400
+   },
+   "save": "tricot-01-snapshot.txt",
+   "capture": {
+    "skip_tricot": "uid=(e\\d+) button \"Skip\""
+   },
+   "optional": true
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${skip_tricot}"
+   },
+   "save": "tricot-02-skip.txt",
+   "optional": true
+  },
+  {
+   "sleep": 1000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "tricot-10-value-0-text.txt"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "tricot-21-swatches.txt",
+   "capture": {
+    "b1_tricot": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"1\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b1_tricot}"
+   },
+   "save": "tricot-31-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "tricot-11-value-1-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "tricot-41-value-1.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "tricot-22-swatches.txt",
+   "capture": {
+    "b2_tricot": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"2\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b2_tricot}"
+   },
+   "save": "tricot-32-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "tricot-12-value-2-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "tricot-42-value-2.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "tricot-23-swatches.txt",
+   "capture": {
+    "b3_tricot": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"3\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b3_tricot}"
+   },
+   "save": "tricot-33-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "tricot-13-value-3-text.txt"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 50
+   },
+   "save": "tricot-90-console-errors.txt",
+   "optional": true
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "url": "http://localhost:5173/prebuilt/faucet-holes?collectionId=urban-standard-height"
+   },
+   "save": "urban-standard-height-00-open.txt"
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "maxLines": 400
+   },
+   "save": "urban-standard-height-01-snapshot.txt",
+   "capture": {
+    "skip_urban_standard_height": "uid=(e\\d+) button \"Skip\""
+   },
+   "optional": true
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${skip_urban_standard_height}"
+   },
+   "save": "urban-standard-height-02-skip.txt",
+   "optional": true
+  },
+  {
+   "sleep": 1000
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-10-value-0-text.txt"
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "urban-standard-height-21-swatches.txt",
+   "capture": {
+    "b1_urban_standard_height": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"1\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b1_urban_standard_height}"
+   },
+   "save": "urban-standard-height-31-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-11-value-1-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "urban-standard-height-41-value-1.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "urban-standard-height-22-swatches.txt",
+   "capture": {
+    "b2_urban_standard_height": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"2\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b2_urban_standard_height}"
+   },
+   "save": "urban-standard-height-32-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-12-value-2-text.txt"
+  },
+  {
+   "tool": "screenshot_page",
+   "args": {},
+   "save": "urban-standard-height-42-value-2.png",
+   "optional": true
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "selector": "[class*=swatchesGrid]",
+    "includeText": true,
+    "includeAll": true
+   },
+   "save": "urban-standard-height-23-swatches.txt",
+   "capture": {
+    "b3_urban_standard_height": "uid=(e\\d+) button\\s+uid=e\\d+ div text=\"3\""
+   }
+  },
+  {
+   "tool": "click_by_uid",
+   "args": {
+    "uid": "${b3_urban_standard_height}"
+   },
+   "save": "urban-standard-height-33-click.txt"
+  },
+  {
+   "sleep": 1500
+  },
+  {
+   "tool": "get_page_text",
+   "args": {
+    "maxLength": 3000
+   },
+   "save": "urban-standard-height-13-value-3-text.txt"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "level": "error",
+    "limit": 50
+   },
+   "save": "urban-standard-height-90-console-errors.txt",
+   "optional": true
+  }
+ ]
+}

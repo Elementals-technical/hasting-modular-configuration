@@ -1239,17 +1239,30 @@ describe("Urban Freestanding side panels, priced as Urban Standard Height's", ()
     );
 
   const sidePanelsOf = (lines: PricingLine[]) =>
-    lines.filter(({ group }) => group === "sidePanel").map(({ sku, quantity }) => ({ sku, quantity }));
+    lines
+      .filter(({ group }) => group === "sidePanel")
+      .map(({ sku, quantity, sides, finish }) => ({ sku, quantity, sides, finish }));
 
   it("stands a panel on each active side at the cabinets' height, the upper groove beside an Upper Groove cabinet", () => {
     const upperGroove = order(91, "UG", "UpperG");
 
     // 91 cm with the plinth (35.8"), 50 cm deep; the groove in the cabinet colour while none is chosen.
     expect(sidePanelsOf(upperGroove.lines)).toEqual([
-      { sku: "VAN-URSP-1GU-.4W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1", quantity: 2 },
+      {
+        sku: "VAN-URSP-1GU-.4W-35.8H-19.7D-CAB-3D-1C1-HDL-3D-1C1",
+        quantity: 2,
+        sides: ["left", "right"],
+        // The first cabinet's colour, which Summary shows as the panels' finish.
+        finish: { color: "Castagno chiaro 1C1", materialSku: "3D" },
+      },
     ]);
     expect(sidePanelsOf(order(88, "PTO", "NoG").lines)).toEqual([
-      { sku: "VAN-URSP-0G-.4W-34.6H-19.7D-CAB-3D-1C1", quantity: 2 },
+      {
+        sku: "VAN-URSP-0G-.4W-34.6H-19.7D-CAB-3D-1C1",
+        quantity: 2,
+        sides: ["left", "right"],
+        finish: { color: "Castagno chiaro 1C1", materialSku: "3D" },
+      },
     ]);
     // The price list has no panel SKU of its own (UFS-SP-01): the total still stands, with a note.
     expect(upperGroove.gaps).toEqual([expect.objectContaining({ group: "sidePanel", blocksTotal: false })]);

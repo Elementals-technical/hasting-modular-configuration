@@ -1,0 +1,1 @@
+Error: ${skip_lame} stale/invalid. Call take_snapshot first.

@@ -46,7 +46,7 @@ import {
 } from "@/shared/lib/sku";
 
 import { buildOrganizerLines, ORGANIZER_BILL_EMPTY_COLUMNS } from "./organizerLines";
-import { OWN_SIDE_PANEL_LINE_ID } from "./ownSidePanelItems";
+import { OWN_SIDE_PANEL_END_LINE_IDS, OWN_SIDE_PANEL_LINE_ID } from "./ownSidePanelItems";
 import type { PricingGap, PricingInput, PricingLine } from "./types";
 import { buildUshCountertopLines, resolveUshCountertop } from "./ushCountertopLines";
 import { buildUshSidePanelLines } from "./ushSidePanelLines";
@@ -547,7 +547,9 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       sidePanelRight: shortRight ? "none" : input.sidePanelRight,
       heightCm: size?.height ?? null,
       depthCm: size?.depth ?? null,
-      cabinet: cabinetColor ? colorSku("CabinetColor", cabinetColor) : { materialSku: null, colorCode: null },
+      cabinet: cabinetColor
+        ? { ...colorSku("CabinetColor", cabinetColor), color: cabinetColor }
+        : { materialSku: null, colorCode: null, color: null },
       groove: isChosenColor(profile, "HandleGrooveColor", grooveColor)
         ? colorSku("HandleGrooveColor", grooveColor)
         : { materialSku: null, colorCode: null },
@@ -696,8 +698,9 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
               bi = input.orderedProductIds.indexOf(b.runtimeId);
             return ai >= 0 && bi >= 0 ? ai - bi : a.index - b.index;
           });
-          if (input.sidePanelLeft === "active") pricePanel(ordered[0], "sidePanel:left", 1);
-          if (input.sidePanelRight === "active") pricePanel(ordered[ordered.length - 1], "sidePanel:right", 1);
+          if (input.sidePanelLeft === "active") pricePanel(ordered[0], OWN_SIDE_PANEL_END_LINE_IDS.left, 1);
+          if (input.sidePanelRight === "active")
+            pricePanel(ordered[ordered.length - 1], OWN_SIDE_PANEL_END_LINE_IDS.right, 1);
         }
       } else {
         const rawQuantity = ownPanel.quantityAttributeId ? globalValue(ownPanel.quantityAttributeId) : null;
