@@ -22,11 +22,14 @@ import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture"
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import { resetConfiguration } from "@/entities/configuration";
+import { changeAttribute } from "@/features/configurationCommands";
+import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import type { ConfiguratorVariant } from "@/entities/configurator/api";
 import {
   reset,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  setActiveCountertopThickness,
   setActiveProfile,
   setCountertopStyle,
   setSelectedDimensions,

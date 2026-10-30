@@ -100,6 +100,8 @@ export const MobileNestedMenu = ({ items, onClose, className, isFullscreenMode =
                 <button
                   key={item.id}
                   type="button"
+                  role={item.checked !== undefined ? "checkbox" : undefined}
+                  aria-checked={item.checked}
                   className={clsx(s.actionItem, item.disabled && s.actionItemDisabled)}
                   onClick={() => handleItemClick(item)}
                   title={item.disabled && item.disabledReason ? item.disabledReason : undefined}

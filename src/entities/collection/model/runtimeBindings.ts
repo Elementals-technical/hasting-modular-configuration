@@ -95,7 +95,8 @@ export type BoundRuntimeBinding = {
    * The scene keeps the value on each product, so a change that names one cabinet and asks for
    * that cabinet alone (`onlyThisCabinet`) reaches that product only: the side of the lateral
    * panel of Urban Duplex, which a field sets for all cabinets and the cabinet's menu for one.
-   * Without it a value bound to "all" reaches every product, whatever cabinet a change names.
+   * Without onlyThisCabinet a value bound to "all" reaches every product. For a perProduct
+   * binding targeting "product", commands expand a shared choice into one change per cabinet.
    */
   perProduct?: boolean;
   /**

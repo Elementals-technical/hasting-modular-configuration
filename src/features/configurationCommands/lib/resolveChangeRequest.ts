@@ -11,8 +11,9 @@ import { findSinkBaseKey } from "./isSinkBase";
  * attribute declares.
  *
  * A cabinet-scoped value that the pages apply to the whole composition (fluting, grain,
- * groove colour) names the first placed cabinet; the runtime binding decides which
- * products the scene updates. `null` when the attribute is unknown, a cabinet-scoped value
+ * groove colour) names the first placed cabinet; commands and runtime bindings determine
+ * which products receive it, expanding perProduct/product choices to all cabinets.
+ * `null` when the attribute is unknown, a cabinet-scoped value
  * has no cabinet to name, a basin has no Sink Base, or the value is addressed per drawer,
  * which a field does not know.
  */

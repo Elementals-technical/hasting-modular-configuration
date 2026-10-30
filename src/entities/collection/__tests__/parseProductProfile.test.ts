@@ -7,6 +7,20 @@ import configurator4 from "./fixtures/remote/configurator-4.json";
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 describe("parseProductProfile", () => {
+  it("rejects a non-boolean model selection policy instead of silently keeping selections", () => {
+    const result = parseProductProfile({
+      ...ushProfile,
+      ruleData: {
+        ...ushProfile.ruleData,
+        prebuiltModelSelection: { resetSelections: "true" },
+      },
+    });
+    expect(result.ok).toBe(false);
+    expect(result.ok ? [] : result.diagnostics.map(({ dataPath }) => dataPath)).toContain(
+      "/ruleData/prebuiltModelSelection/resetSelections",
+    );
+  });
+
   it("reads when a change waits for confirmation and rejects an unknown condition", () => {
     const result = parseProductProfile(ushProfile);
     if (!result.ok) throw new Error("fixture must parse");

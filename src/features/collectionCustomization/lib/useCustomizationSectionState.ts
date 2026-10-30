@@ -5,6 +5,7 @@ import {
   isVesselBasin,
   selectAttribute,
   selectOptions,
+  selectRuleData,
   useActiveCollection,
 } from "@/entities/collection";
 import { getActiveProductProfile, getCabinetEntries, getCompositionValues } from "@/entities/configuration";
@@ -105,6 +106,12 @@ const resolveCountertopColorAvailability = (
   configurator: ConfiguratorGroupCatalog | null,
   { materialRuleInputs }: CountertopRuleState,
 ): FieldAvailability => {
+  // A colour whose own flow is not defined stays visible with the same missing-data reason
+  // the command returns. Its broad material group may otherwise pass the matrix.
+  const undetermined = (selectRuleData(profile, "undeterminedRules") ?? []).filter(
+    ({ attributeId, whenCabinet }) => attributeId === "CountertopColor" && !whenCabinet,
+  );
+  const missingRule = (option: FieldOptionState) => undetermined.find(({ values }) => values?.includes(option.value));
   // The verdict depends on the materials alone: one judgement per material list, for every option that lists it.
   // A colour whose GB material has rows of its own (Technomat) is judged by that material instead.
   const verdicts = new Map<string, ReturnType<typeof evaluateCountertopMaterial>>();
@@ -132,8 +139,10 @@ const resolveCountertopColorAvailability = (
 
   return {
     available: true,
-    isOptionAllowed: (option) => judge(option).isCompatible,
+    isOptionAllowed: (option) => !missingRule(option) && judge(option).isCompatible,
     optionReason: (option) => {
+      const missing = missingRule(option);
+      if (missing) return { reasonCode: "product.missingData", reasonParams: { ruleId: missing.ruleId } };
       const { failedBy } = judge(option);
       return failedBy ? { reasonCode: REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] } : undefined;
     },
