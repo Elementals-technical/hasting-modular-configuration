@@ -5,7 +5,9 @@ description: Read-only review of a Hastings diff, commit, branch or PR against t
 
 # Review Change
 
-Read-only. Team rules in `ai/AGENTS.md` win on conflict.
+Use the common lifecycle in `ai/workflow.md`; this skill owns only the procedure below. Runtime adapters and subagents do not replace that owner.
+
+Read-only. Team rules in `AGENTS.md` win on conflict.
 
 ## Scope
 
@@ -15,8 +17,8 @@ Read-only. Team rules in `ai/AGENTS.md` win on conflict.
 
 ## Project checks
 
-- Team boundaries from `ai/AGENTS.md` › Invariants and the `ai/*.mdc` files for the touched paths (scene path, collection data, imports, types, styling).
-- Paired pages per `ai/paired_pages.mdc`: one page of a pair changed without the other.
+- Team boundaries from `AGENTS.md` › Invariants and the `ai/rules/*.md` files for the touched paths (scene path, collection data, imports, types, styling).
+- Paired pages per `ai/rules/paired-pages.md`: one page of a pair changed without the other.
 - `PENDING_*` lists grew or did not shrink after a migration.
 - Every consumer in `docs/ai/hastings/dependency-graph.md` of a changed attribute is updated: scene, UI, SKU, price, summary, save/share, PDF, undo snapshot.
 - Hand edits under "Do not edit by hand"; any change to the PlayCanvas export or backend contract without an owner handoff.

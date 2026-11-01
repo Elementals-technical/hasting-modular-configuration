@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hasting side panels"
+  short_description: "Side panels (саб-панелі) in 3D and UI, with the 3D↔UI contract"
+  default_prompt: "Use $hasting-side-panels to analyze or change side panel behavior; pick scope ui / playcanvas / both first."

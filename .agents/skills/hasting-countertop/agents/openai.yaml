@@ -1,0 +1,4 @@
+interface:
+  display_name: "Hasting countertop"
+  short_description: "Countertop positioning, validation, drag-and-drop and UI integration"
+  default_prompt: "Use $hasting-countertop to analyze or change countertop behavior; pick scope and PlayCanvas sub-area first."

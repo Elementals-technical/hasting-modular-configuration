@@ -5,7 +5,9 @@ description: Execute an approved Hastings plan, checklist or plans/ issue in sma
 
 # Execute Plan
 
-Team rules in `ai/AGENTS.md` win on conflict.
+Use the common lifecycle in `ai/workflow.md`; this skill owns only the procedure below. Runtime adapters and subagents do not replace that owner.
+
+Team rules in `AGENTS.md` win on conflict.
 
 ## Prepare
 
@@ -16,7 +18,7 @@ Team rules in `ai/AGENTS.md` win on conflict.
 ## Execute
 
 1. One dependency-complete step at a time inside the approved frontend boundary; never backend or PlayCanvas.
-2. Keep the diff to what the plan needs and inside `ai/AGENTS.md` › Invariants.
+2. Keep the diff to what the plan needs and inside `AGENTS.md` › Invariants.
 3. Add the colocated tests the plan names; after each risky step run the narrow check from `local-implement-change/references/verify-frontend.md`.
 4. An unexpected failure → `local-debug-root-cause` before further fixes.
 

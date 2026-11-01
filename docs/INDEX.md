@@ -16,6 +16,7 @@ These links use the current portfolio layout; the maps live outside this Git rep
 
 ## Maintained
 
+- [AI workflow diagrams](../ai/workflow-diagrams.md) — Implementation lifecycle, review loops and runtime permission gates; visual explanation of the [common workflow](../ai/workflow.md).
 - [`products/`](products/README.md) — The maintained description of the collections.
   - [`products/README.md`](products/README.md) — How the collections are wired into the app; the entry to the product documents.
   - [`products/urban-low-height.md`](products/urban-low-height.md) — Working context for changing Urban Low Height.
@@ -30,6 +31,8 @@ These links use the current portfolio layout; the maps live outside this Git rep
 - [`drawer-organizers-ui.md`](drawer-organizers-ui.md) — How Ph2 drawer organizers (Class, Mako, Lame) are offered, edited, priced and restored.
 
 ## Records
+
+- [`records/plans/`](records/plans/) — Closed PRDs kept as decision records; the live rule they produced lives in `ai/rules/*`. First entry: [Lucide icon unification](records/plans/2026-10-12-svg-icon-unification.prd.md) (closed 2026-10-12).
 
 - [Lamè: Side Panels UI, SKU, pricing та history](qa/lame-ui-side-panels-2026-10-29/index.html) — нові знімки prebuilt/custom; [звіт](qa/lame-ui-side-panels-2026-10-29/test-record.uk.md).
 

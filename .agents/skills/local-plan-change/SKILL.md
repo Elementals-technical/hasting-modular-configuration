@@ -5,12 +5,14 @@ description: Produce a decision-complete Hastings plan or design (multi-file or 
 
 # Plan Change
 
-Team rules in `ai/AGENTS.md` win on conflict (its Scope section requires a plan for multi-file work and defines the PRD/issue format).
+Use the common lifecycle in `ai/workflow.md`; this skill owns only the procedure below. Runtime adapters and subagents do not replace that owner.
+
+Team rules in `AGENTS.md` win on conflict (its Scope section requires a plan for multi-file work and defines the PRD/issue format).
 
 ## Ground the plan
 
 1. Restate goal, success criteria, constraints and what is out of scope.
-2. Read the `ai/*.mdc` files the team routing names for the touched files, the collection's team skill and `docs/products/<id>.md` if present.
+2. Read the `ai/rules/*.md` files the team routing names for the touched files, the collection's team skill and `docs/products/<id>.md` if present.
 3. Requirements: rows in `docs/ai/hastings/domain-rules.csv` with anchors and status class; open conflicts in `conflicts-and-decisions.md` become explicit decisions for the user, not assumptions.
 4. Find the closest existing implementation (name, domain term, UI text, behaviour) and its tests.
 5. Blast radius from `docs/ai/hastings/dependency-graph.md`; boundaries, `PENDING_*` lists and paired pages the change touches.
@@ -24,5 +26,5 @@ Team rules in `ai/AGENTS.md` win on conflict (its Scope section requires a plan 
 
 ## Deliver
 
-- In chat by default. A persistent plan only when asked: `references/plan-template.md`; a PRD/issues only when asked, in the format `ai/AGENTS.md` › Scope names.
+- In chat by default. A persistent plan only when asked: `references/plan-template.md`; a PRD/issues only when asked, in the format `AGENTS.md` › Scope names.
 - No placeholders such as "add validation". Stop after the plan; implementation is `local-execute-plan` after approval.

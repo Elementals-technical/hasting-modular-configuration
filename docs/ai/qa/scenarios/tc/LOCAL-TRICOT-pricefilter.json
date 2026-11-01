@@ -56,7 +56,7 @@
    "tool": "take_screenshot",
    "args": {
     "pageId": "${pageId}",
-    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/11-grid-nofilter.png"
+    "filePath": "docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/11-grid-nofilter.png"
    },
    "save": "11-grid-nofilter.txt"
   },
@@ -85,7 +85,7 @@
    "tool": "take_screenshot",
    "args": {
     "pageId": "${pageId}",
-    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/14-grid-standard.png"
+    "filePath": "docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/14-grid-standard.png"
    },
    "save": "14-grid-standard.txt"
   },
@@ -114,7 +114,7 @@
    "tool": "take_screenshot",
    "args": {
     "pageId": "${pageId}",
-    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/17-grid-classic.png"
+    "filePath": "docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/17-grid-classic.png"
    },
    "save": "17-grid-classic.txt"
   },
@@ -185,7 +185,7 @@
    "tool": "take_screenshot",
    "args": {
     "pageId": "${pageId}",
-    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/24-full-standard.png"
+    "filePath": "docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/24-full-standard.png"
    },
    "save": "24-full-standard.txt"
   },
@@ -214,7 +214,7 @@
    "tool": "take_screenshot",
    "args": {
     "pageId": "${pageId}",
-    "filePath": "/Users/nazarpatron/Documents/work/hastings/tagging-modules-tool/docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/27-full-classic.png"
+    "filePath": "docs/ai/qa/evidence/2026-10-28/tricot-task/local/pricefilter/27-full-classic.png"
    },
    "save": "27-full-classic.txt"
   },

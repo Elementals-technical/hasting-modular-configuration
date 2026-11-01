@@ -1,6 +1,6 @@
 # Persistent plan template
 
-Use only when a plan must be stored or handed to another executor. PRD/issue files follow `ai/AGENTS.md` › Scope instead.
+Use only when a plan must be stored or handed to another executor. PRD/issue files follow `AGENTS.md` › Scope instead.
 
 ```markdown
 # <Change title>

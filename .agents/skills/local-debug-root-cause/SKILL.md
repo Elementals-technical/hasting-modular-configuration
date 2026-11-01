@@ -5,7 +5,9 @@ description: Diagnose a concrete Hastings symptom (client bug, regression, wrong
 
 # Debug Root Cause
 
-Team rules in `ai/AGENTS.md` win on conflict.
+Use the common lifecycle in `ai/workflow.md`; this skill owns only the procedure below. Runtime adapters and subagents do not replace that owner.
+
+Team rules in `AGENTS.md` win on conflict.
 
 ## Establish evidence
 

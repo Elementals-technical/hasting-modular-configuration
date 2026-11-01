@@ -1,7 +1,13 @@
-# Approved personal workflows (change only for an approved workflow-set migration)
+# Canonical skills in .agents/skills (change only for an approved skill-set migration)
 local-implement-change
 local-debug-root-cause
 local-plan-change
 local-execute-plan
 local-review-change
 local-maintain-agent-guidance
+hastings-class
+hastings-mako
+hastings-ulh
+hastings-ush
+hasting-countertop
+hasting-side-panels

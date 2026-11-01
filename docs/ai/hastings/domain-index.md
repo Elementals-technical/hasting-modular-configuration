@@ -1,6 +1,6 @@
 # Domain index
 
-Revision 1 · 2026-10-28 · 382 rules in [`domain-rules.csv`](domain-rules.csv) (schema: [`SCHEMAS.md`](SCHEMAS.md)). Find the family row, then filter the CSV by `rule_id` prefix `R-<FAMILY>-<AREA>-`. `URBAN` rules apply to USH, ULH, UD and UFS. Team per-collection contracts: `skills/hastings-<id>/SKILL.md`, `docs/products/<id>.md` (level-3 sources).
+Revision 1 · 2026-10-28 · 382 rules in [`domain-rules.csv`](domain-rules.csv) (schema: [`SCHEMAS.md`](SCHEMAS.md)). Find the family row, then filter the CSV by `rule_id` prefix `R-<FAMILY>-<AREA>-`. `URBAN` rules apply to USH, ULH, UD and UFS. Team per-collection contracts: `.agents/skills/hastings-<id>/SKILL.md`, `docs/products/<id>.md` (level-3 sources).
 
 Areas: FLOW steps/navigation · CAB cabinets/styles/limits · CT countertop · BAS basin/vessel/faucet · POS positioning/DnD/offset/remote · SP side panels · ACC accessories/legs/undertop · MAT materials/colours · SKU · PRC price · UX messages/tooltips · 3D scene · SAVE persistence.
 

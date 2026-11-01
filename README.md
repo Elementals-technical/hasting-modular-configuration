@@ -5,15 +5,13 @@
 - [Documentation map](docs/INDEX.md)
 - [Parent configurator integration](docs/parent-configurator-integration.md)
 
-## Skills for AI agents (`skills/`)
+## Skills for AI agents (`.agents/skills/`)
 
-`skills/<name>/SKILL.md` (+ `agents/openai.yaml` for Codex, `references/` for deep context). Dev-only; not part of the build. Claude Code picks them up through the `.claude/skills/<name>` symlinks when run from the repo root.
+One canonical skills root: `.agents/skills/<name>/SKILL.md` (+ `agents/openai.yaml` for Codex, `references/` for deep context). Dev-only; not part of the build. Codex and Cursor read the folder directly; Claude Code reads it through the `.claude/skills -> ../.agents/skills` symlink.
 
+- `local-debug-root-cause`, `local-plan-change`, `local-implement-change`, `local-execute-plan`, `local-review-change`, `local-maintain-agent-guidance` — the procedure skills routed by `ai/workflow.md`.
 - `hastings-ush`, `hastings-ulh`, `hastings-class`, `hastings-mako` — per-collection skills (see `docs/products/`).
-- `hasting-side-panels` — side panels in UI and 3D with the UI↔3D contract (`references/contract.md`, `ui.md`, `playcanvas*.md`, `rules-by-collection.md`).
-- `hasting-countertop` — countertop: Position / Drag & Drop, thickness-driven modes, `moveSink/liftSink/landSink`, pricing, and the 3D side split into base / positioning / validation / dnd / testing.
-
-The last two are routers: they pick a scope (`ui` / `playcanvas` / `both`) first and load only that layer. The same files live in the PlayCanvas repo (`src/skills/`) and in the claude.ai project "Hasting Modular - PlayCanvas Rules"; the repo copy is canonical — update it in the same PR as the code.
+- `hasting-countertop`, `hasting-side-panels` — routers for the UI↔3D contract: they pick a scope (`ui` / `playcanvas` / `both`) first and load only that layer. Copies also live in the PlayCanvas checkout (`src/skills/`) and in the claude.ai project "Hasting Modular - PlayCanvas Rules"; this repository's copy is canonical — update it in the same PR as the code.
 
 ## Google Analytics
 

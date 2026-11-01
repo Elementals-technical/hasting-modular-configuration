@@ -6,7 +6,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-skills/
 
 # Build outputs
 dist/
@@ -123,6 +122,7 @@ docs/*
 # Maintained product integration guides used by the project skills.
 !docs/products/
 !docs/products/*.md
+!docs/records/
 
 iphone-safari-debugging
 
@@ -134,7 +134,17 @@ iphone-safari-debugging
 /blob-report/
 /playwright/.cache/
 
-# Personal AI layer (AGENTS.local.md, local-* skills, docs/ai): visible in git status, not for commit without team agreement
+# Personal agent layer: each developer keeps their own copy; never committed.
+/AGENTS.local.md
+/CLAUDE.local.md
+.claude/settings.local.json
+.codex/config.toml
+.codex/rules/
+
+# Team agent skills and docs/ai stay tracked.
 !.agents/skills/
 !.claude/skills/
 !docs/ai/
+
+# Local working area: QA runs, evidence, debug dumps, scratch. Never committed.
+/.work/

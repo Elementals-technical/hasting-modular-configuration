@@ -35,7 +35,6 @@ const expect = (name, cond, detail = "") => {
     console.log(`FAIL ${name}${detail ? `: ${detail}` : ""}`);
   }
 };
-const skill = (name, desc) => `---\nname: ${name}\ndescription: ${desc}\n---\n\n# ${name}\n`;
 
 try {
   fs.mkdirSync(repo);
@@ -43,72 +42,53 @@ try {
   git("config", "user.email", "fixture@example.invalid");
   git("config", "user.name", "fixture");
   write("README.md", "fixture\n");
-  write("skills/team-skill/SKILL.md", skill("team-skill", "Team skill. Do not use for tests."));
+  write(".gitignore", "/AGENTS.local.md\n/CLAUDE.local.md\n.claude/settings.local.json\n.codex/config.toml\n.codex/rules/\n");
   git("add", "-A");
   git("commit", "-q", "-m", "init");
-  write(".git/info/exclude", "AGENTS.local.md\nCLAUDE.local.md\n.agents/skills/local-*/\n.claude/\ndocs/ai/\n");
   write("AGENTS.local.md", "# personal root v1\n");
   write("CLAUDE.local.md", "@AGENTS.local.md\n");
-  write(".agents/skills/local-one/SKILL.md", skill("local-one", "Personal workflow. Do not use for anything else.\ndisable-model-invocation: true"));
-  write("docs/ai/notes.md", "notes v1\n");
+  write(".claude/settings.local.json", "{\"hooks\":{}}\n");
+  write(".codex/rules/personal.rules", "# rules v1\n");
 
-  // sync / check-sync
-  let r = env("sync");
-  expect("sync exits 0", r.status === 0, r.stderr);
-  expect("wrapper for personal skill", fs.existsSync(path.join(repo, ".claude/skills/local-one/SKILL.md")));
-  expect("wrapper for team skill", fs.existsSync(path.join(repo, ".claude/skills/team-skill/SKILL.md")));
-  expect("wrapper copies invocation key", /disable-model-invocation: true/.test(read(".claude/skills/local-one/SKILL.md")));
-  expect("wrapper points to canonical path", /\.agents\/skills\/local-one\/SKILL\.md/.test(read(".claude/skills/local-one/SKILL.md")));
-  expect("check-sync ok after sync", env("check-sync").status === 0);
-  write(".agents/skills/local-one/SKILL.md", skill("local-one", "Changed description. Do not use for x."));
-  expect("check-sync detects stale description", env("check-sync").status === 1);
-  env("sync");
-  fs.rmSync(path.join(repo, ".agents/skills/local-one"), { recursive: true });
-  r = env("sync");
-  expect("sync removes stale generated wrapper", !fs.existsSync(path.join(repo, ".claude/skills/local-one")), r.stdout);
-  write(".claude/skills/hand-made/SKILL.md", "hand written, not generated\n");
-  write(".agents/skills/hand-made/SKILL.md", skill("hand-made", "x. Do not use."));
-  r = env("sync");
-  expect("sync refuses to overwrite a non-generated wrapper", r.status === 1 && read(".claude/skills/hand-made/SKILL.md").startsWith("hand written"));
-  fs.rmSync(path.join(repo, ".agents/skills/hand-made"), { recursive: true });
-  fs.rmSync(path.join(repo, ".claude/skills/hand-made"), { recursive: true });
-  write(".agents/skills/local-one/SKILL.md", skill("local-one", "Personal workflow. Do not use for anything else."));
-  env("sync");
+  // list
+  let r = env("list");
+  expect("list exits 0", r.status === 0, r.stderr);
+  expect("list counts personal files", /personal files now: [45]/.test(r.stdout), r.stdout);
 
   // snapshot / verify / restore
   r = env("snapshot", "fixture");
   expect("snapshot exits 0", r.status === 0, r.stderr);
   expect("verify ok right after snapshot", env("verify").status === 0);
   write("AGENTS.local.md", "# personal root v2 (accidentally overwritten)\n");
-  fs.rmSync(path.join(repo, "docs/ai/notes.md"));
+  fs.rmSync(path.join(repo, ".codex/rules/personal.rules"));
   r = env("verify");
-  expect("verify detects change and loss", r.status === 1 && /changed\s+AGENTS\.local\.md/.test(r.stdout) && /missing\s+docs\/ai\/notes\.md/.test(r.stdout), r.stdout);
+  expect("verify detects change and loss", r.status === 1 && /changed\s+AGENTS\.local\.md/.test(r.stdout) && /missing\s+\.codex\/rules\/personal\.rules/.test(r.stdout), r.stdout);
   r = env("restore", "latest");
   expect("restore exits 0", r.status === 0, r.stdout);
-  expect("restore brings content back", read("AGENTS.local.md") === "# personal root v1\n" && read("docs/ai/notes.md") === "notes v1\n");
+  expect("restore brings content back", read("AGENTS.local.md") === "# personal root v1\n" && read(".codex/rules/personal.rules") === "# rules v1\n");
   expect("verify ok after restore", env("verify").status === 0);
+  r = env("restore", "latest", ".codex/rules");
+  expect("restore accepts a path prefix", r.status === 0 && /1 restored/.test(r.stdout), r.stdout);
 
   // collisions: a remote-style ref starts tracking a personal path
   expect("no collisions initially", env("collisions", "--ref", "main").status === 0);
   git("switch", "-q", "-c", "team-change");
-  write("docs/ai/team-doc.md", "team now tracks docs/ai\n");
-  git("add", "-f", "docs/ai/team-doc.md");
-  git("commit", "-q", "-m", "team tracks docs/ai");
-  git("update-ref", "refs/remotes/origin/phase-2/staging", "HEAD");
-  git("switch", "-q", "main");
-  fs.rmSync(path.join(repo, "docs/ai/team-doc.md"), { force: true });
-  r = env("collisions");
-  expect("collision reported for default ref origin/phase-2/staging", r.status === 1 && /origin\/phase-2\/staging: docs\/ai\/team-doc\.md/.test(r.stdout), r.stdout);
-  r = env("collisions", "--all-remotes");
-  expect("collision reported with --all-remotes", r.status === 1, r.stdout);
-
-  // restore refuses a path that became tracked
-  git("switch", "-q", "team-change");
   write("AGENTS.local.md", "# team version\n");
   git("add", "-f", "AGENTS.local.md");
   git("commit", "-q", "-m", "team tracks AGENTS.local.md");
+  git("update-ref", "refs/remotes/origin/phase-2/staging", "HEAD");
+  git("switch", "-q", "main");
+  write("AGENTS.local.md", "# personal root v1\n");
+  r = env("collisions");
+  expect("collision reported for default ref origin/phase-2/staging", r.status === 1 && /origin\/phase-2\/staging: AGENTS\.local\.md/.test(r.stdout), r.stdout);
+  expect("collision reported with --all-remotes", env("collisions", "--all-remotes").status === 1);
+
+  // restore refuses a path that became tracked
+  git("switch", "-q", "team-change");
   r = env("restore", "latest", "AGENTS.local.md");
   expect("restore refuses tracked path", r.status === 1 && /refused\s+AGENTS\.local\.md/.test(r.stdout) && read("AGENTS.local.md") === "# team version\n", r.stdout);
+  r = env("collisions", "--ref", "main");
+  expect("collision reported when the index tracks a personal path", r.status === 1 && /index: AGENTS\.local\.md/.test(r.stdout), r.stdout);
 } catch (e) {
   failures++;
   console.log(`FAIL fixture setup: ${e.message}`);

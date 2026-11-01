@@ -5,13 +5,15 @@ description: Implement a Hastings frontend change (feature, known-cause fix, UI/
 
 # Implement Change
 
-Team rules in `ai/AGENTS.md` win on conflict; this workflow adds Hastings domain routing and the UI gate.
+Use the common lifecycle in `ai/workflow.md`; this skill owns only the procedure below. Runtime adapters and subagents do not replace that owner.
+
+Team rules in `AGENTS.md` win on conflict; this workflow adds Hastings domain routing and the UI gate.
 
 ## Load context just in time
 
-1. Request, `git status`, relevant diff; the `ai/*.mdc` file that `ai/AGENTS.md` › Where to read more names for the touched files.
+1. Request, `git status`, relevant diff; the `ai/rules/*.md` file that `AGENTS.md` › Where to read more names for the touched files.
 2. Requirement: find the rule in `docs/ai/hastings/domain-index.md` → its rows in `domain-rules.csv` (source anchor, status class, conflicts). If the rule is `conflicting` or `unknown`, stop and ask with both anchors from `conflicts-and-decisions.md`.
-3. Collection work: the team skill `skills/hastings-<id>/SKILL.md` and `docs/products/<id>.md`, if they exist.
+3. Collection work: the team skill `.agents/skills/hastings-<id>/SKILL.md` and `docs/products/<id>.md`, if they exist.
 4. Owner and nearest tested analog in `src/`; one row of `docs/ai/hastings/feature-index.md` when unsure where it lives.
 5. Blast radius: the attribute's row in `docs/ai/hastings/dependency-graph.md` → list every consumer (scene, UI, SKU, price, summary, save/share, PDF) as affected invariants, near neighbours and unaffected baselines.
 
@@ -35,4 +37,4 @@ If the first incorrect boundary is in the PlayCanvas export/scene or in backend 
 
 ## Report
 
-Per `ai/AGENTS.md` › Definition of done, plus: TC ids and browser evidence, what was not verified and why, affected rules with source revision, and a learning check via `local-maintain-agent-guidance`.
+Per `AGENTS.md` › Definition of done, plus: TC ids and browser evidence, what was not verified and why, affected rules with source revision, and a learning check via `local-maintain-agent-guidance`.
