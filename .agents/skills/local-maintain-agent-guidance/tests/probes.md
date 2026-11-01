@@ -18,5 +18,9 @@ claude -p "<prompt>" --max-turns 1
 | Which skill covers countertop offset, resizeFrom and sink landing rules? Name only. | hasting-countertop |
 | Which skill covers URSP side-panel SKUs and groove options? Name only. | hasting-side-panels |
 | Which skill covers the Urban Low Height collection package and presets? Name only. | hastings-ulh |
+| Which skill covers Tricot cabinet patterns (Loden, Twill) and the groove colour? Name only. | hastings-tricot |
+| Which skill covers Lame legs, leg caps and the undertop strip? Name only. | hastings-lame |
+| Which skill covers Urban Duplex Base and Lateral panel colours and hybrid cabinets? Name only. | hastings-ud |
+| Which skill covers the Urban Freestanding plinth and the Floor-Mount Short Cabinet? Name only. | hastings-ufs |
 
 A probe fails when the model names a different skill or none. Fix the description's keywords, not the probe.

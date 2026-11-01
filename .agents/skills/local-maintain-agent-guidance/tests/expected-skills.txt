@@ -11,3 +11,7 @@ hastings-ulh
 hastings-ush
 hasting-countertop
 hasting-side-panels
+hastings-tricot
+hastings-lame
+hastings-ud
+hastings-ufs

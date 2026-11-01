@@ -1,6 +1,6 @@
 ---
 name: hasting-countertop
-description: Маршрутизатор знань про стільницю (countertop, Top_Solid, Cabinet_Cover) Hasting Modular: PlayCanvas (композиція, позиціонування, валідні позиції, drag-and-drop) і UI (Position / Drag & Drop, moveSink/liftSink/landSink, pricing), контракт 3D↔UI. Використовуй для countertop, SpatialOffsetM, resizeFrom, setOffset, TRAP_KEEPOUT, sink landing, RuleCountertopLayout. Do not use for side panels or dividers.
+description: Роутер знань про стільницю (countertop, Top_Solid, Cabinet_Cover) у PlayCanvas і UI: позиціонування, offset/remote, drag-and-drop, moveSink/liftSink/landSink, TRAP_KEEPOUT, RuleCountertopLayout, pricing. Do not use for side panels or dividers.
 ---
 
 # Hasting: стільниця — маршрутизатор

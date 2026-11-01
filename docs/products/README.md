@@ -63,12 +63,12 @@ public/collections/registry.json
 |---|---|---:|---:|---:|---:|---:|---|
 | USH | `urban-standard-height` | 4 | 438 | 439 | 54 | 54 | legacy mappings + code series |
 | ULH | `urban-low-height` | 4 | 589 | 580 | 59 | 53 | `sku-profile.json`, partial |
-| Class | `class` | 9 | 578 | 579 | 44 | 0 | `sku-profile.json`, partial |
+| Class | `class` | 8 | 578 | 579 | 44 | 0 | `sku-profile.json`, partial |
 | Mako | `mako` | 9 | 577 | 581 | 42 | 42 | `sku-profile.json`, partial |
 | Urban Freestanding | `urban-freestanding` | 11 | 591 | 590 | 54 | 54 | `sku-profile.json`, partial |
 | Tricot | `tricot` | 12 | 593 | 592 | 41 | 41 | `sku-profile.json`, partial |
 | Urban Duplex | `urban-duplex` | 13 | 595 | 594 | 71 | 66 | `sku-profile.json`, partial |
-| Lame | `lame` | 14 | 597 | 596 | 43 | 43 | `sku-profile.json`, partial |
+| Lame | `lame` | 14 | 597 | 596 | 44 | 44 | `sku-profile.json`, partial |
 
 USH і ULH ділять один configurator, але не countertop table, cabinet table, product profile, UI чи
 runtime bindings. Class і Mako ділять configurator 9, проте мають окремі cabinet/countertop
@@ -162,8 +162,13 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 
 ## Продуктові документи
 
-- [Urban Low Height](urban-low-height.md) — головний робочий контекст.
-- [Urban Standard Height](urban-standard-height.md).
-- [Class](class.md).
-- [Mako](mako.md).
-- [Urban Duplex](urban-duplex.md).
+Специфікація кожної колекції — тека `docs/products/<id>/` (8 файлів за розділами специфікації від 2026-10-28 + `integration.md`, де була окрема сторінка); вхід — `README.md` теки. Статуси — [`_shared/status-legend.md`](_shared/status-legend.md), назви кольорів — [`_shared/palettes.md`](_shared/palettes.md).
+
+- [Urban Low Height](urban-low-height/README.md) — специфікація + [інтеграція в код](urban-low-height/integration.md) (головний робочий контекст).
+- [Urban Standard Height](urban-standard-height.md) — лише робочий контекст; специфікації ще немає.
+- [Class](class/README.md) — специфікація + [інтеграція в код](class/integration.md).
+- [Mako](mako/README.md) — специфікація + [інтеграція в код](mako/integration.md).
+- [Urban Duplex](urban-duplex/README.md) — специфікація + [інтеграція в код](urban-duplex/integration.md).
+- [Urban Freestanding](urban-freestanding/README.md) — специфікація.
+- [Tricot](tricot/README.md) — специфікація.
+- [Lame](lame/README.md) — специфікація.

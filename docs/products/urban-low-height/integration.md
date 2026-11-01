@@ -1,4 +1,6 @@
-# Urban Low Height (ULH)
+# Urban Low Height — інтеграція в код
+
+Як пакет `public/collections/urban-low-height/` підключено в застосунок: джерела, контракт сцени, стан пресетів, межі й мінімальна перевірка. Що колекція *має* робити — у специфікації поруч ([`README.md`](README.md)). Раніше цей файл був `docs/products/urban-low-height.md`.
 
 ## Ідентичність і точка входу
 

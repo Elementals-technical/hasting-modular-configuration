@@ -24,7 +24,7 @@ Read the file before you work in its area. Claude Code attaches `ai/rules/*` by 
 | Writing or changing `src/**/*.ts` or `src/**/*.tsx` | `ai/rules/typescript.md` |
 | Editing `*.scss`, class names or inline styles | `ai/rules/scss.md` |
 | Editing `src/pages/prebuilt/**` or `src/pages/custom/**` | `ai/rules/paired-pages.md` |
-| Collection work (`collectionId=class`, `mako`, `urban-low-height`, `urban-standard-height`) | skill `.agents/skills/hastings-<id>/`, then `docs/products/<id>.md` |
+| Collection work (any `collectionId`: class, mako, tricot, lame, urban-low-height, urban-duplex, urban-freestanding, urban-standard-height) | skill `.agents/skills/hastings-<id>/`, then `docs/products/<id>/README.md` (USH: `urban-standard-height.md`) |
 | Countertop or side panels (UI↔3D contract) | skills `.agents/skills/hasting-countertop/`, `.agents/skills/hasting-side-panels/` |
 | Client rules, conflicts, dependency graph, SKU/price oracle, QA, handoffs, environments | `docs/ai/README.md` |
 

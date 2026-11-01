@@ -1,6 +1,6 @@
 ---
 name: hasting-side-panels
-description: Маршрутизатор знань про бокові панелі (side panels, саб-панелі) Hasting Modular: PlayCanvas (addon, профілі ulh/uf/tricot, RuleSidePanels) і UI (контрол SidePanels/groove, Redux SidePanelLeft/Right, URSP SKU, pricing), контракт 3D↔UI. Використовуй для side panel(s), NoG/UpperG/CenterG/DoubleG, ULH_UniSidePanel, UF_SidePanel, Tricot_SidePanel, URSP, joint strip. Do not use for countertop or dividers.
+description: Роутер знань про бокові панелі (side panels) у PlayCanvas і UI: RuleSidePanels, профілі ulh/uf/tricot, SidePanelLeft/Right, NoG/UpperG/CenterG/DoubleG, URSP SKU, pricing. Do not use for countertop or dividers.
 ---
 
 # Hasting: side panels — маршрутизатор

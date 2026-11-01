@@ -2,13 +2,13 @@
 
 Client requirements, QA state and environment notes for agents working in this repository; `AGENTS.md` routes here. One question → one file: read that file, not the folder.
 
-Precedence on conflict: `docs/products/<id>.md` and `.agents/skills/hastings-<id>/` (team, maintained) → `hastings/*.csv` (extracted from client sources, dated) → `hastings/normalized/` (raw extracts). Record a disagreement in `hastings/conflicts-and-decisions.md`; do not silently change either side.
+Precedence on conflict: `docs/products/<id>/` (specification) and `.agents/skills/hastings-<id>/` (team, maintained) → `hastings/*.csv` (extracted from client sources, dated) → `hastings/normalized/` (raw extracts). Record a disagreement in `hastings/conflicts-and-decisions.md`; do not silently change either side.
 
 ## Read on demand
 
 | Question | File |
 |---|---|
-| Current behaviour of a collection | `../products/<id>.md` ([index](../products/README.md)) |
+| What a collection must do (specification) and how it is wired | `../products/<id>/README.md` ([index](../products/README.md)) |
 | Client rule for a family/area | [`hastings/domain-index.md`](hastings/domain-index.md) → [`domain-rules.csv`](hastings/domain-rules.csv) |
 | Sources disagree | [`hastings/conflicts-and-decisions.md`](hastings/conflicts-and-decisions.md) ([`conflicts.csv`](hastings/conflicts.csv)) |
 | Blast radius of a change | [`hastings/dependency-graph.md`](hastings/dependency-graph.md), [`feature-index.md`](hastings/feature-index.md) |

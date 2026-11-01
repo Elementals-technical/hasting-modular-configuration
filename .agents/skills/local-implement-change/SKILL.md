@@ -1,6 +1,6 @@
 ---
 name: local-implement-change
-description: Implement a Hastings frontend change (feature, known-cause fix, UI/3D/collection/SKU/price) with dependency-graph blast radius, focused tests and the browser acceptance gate. Do not use for unknown-cause bugs, plan-only work, approved-plan execution, review or guidance work; never change backend or PlayCanvas.
+description: Implement a Hastings frontend change (feature, known-cause fix, UI/3D/collection/SKU/price) with blast radius from the dependency graph, focused tests and the browser gate. Do not use for unknown-cause bugs, plan-only work, plan execution, review or guidance; never change backend or PlayCanvas.
 ---
 
 # Implement Change

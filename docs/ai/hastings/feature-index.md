@@ -6,7 +6,7 @@ Revision 2 · 2026-11-01. A router, not a description: one row per feature, open
 
 | Feature | Entry files | Tests | Owner / rule |
 |---|---|---|---|
-| Collection package (data contract) | `public/collections/<id>/manifest.json`, `ui.json`, `product-profile.json`, `sku-profile.json`, `runtime-bindings.json`, `presets.json`; `public/collections/registry.json` | `src/entities/collection/__tests__/` | skill `hastings-<id>`, `docs/products/<id>.md` |
+| Collection package (data contract) | `public/collections/<id>/manifest.json`, `ui.json`, `product-profile.json`, `sku-profile.json`, `runtime-bindings.json`, `presets.json`; `public/collections/registry.json` | `src/entities/collection/__tests__/` | skill `hastings-<id>`, `docs/products/<id>/README.md` |
 | Collection loading, validation | `src/entities/collection/lib/loadCollection.ts`, `src/entities/collection/ui/ActiveCollectionProvider.tsx` | `src/entities/collection/__tests__/collectionConsumerBoundary.test.ts` | invariant: loader only |
 | Routing, steps per collection | `src/app/router/routerConfig.tsx`, `src/features/collectionCustomization/lib/buildStepRoutes.ts`, `src/pages/fieldsStep/FieldsStepPage.tsx` | `src/pages/fieldsStep/__tests__/` | `ui.json` steps |
 | Product profile, runtime product type | `src/entities/product/types.ts`, `src/entities/product/lib/resolveRuntimeProductType.ts`, `src/entities/product/lib/buildSteppedSceneProducts.ts` | `src/entities/product/` (11 files) | `docs/product-profile-migration.md` |

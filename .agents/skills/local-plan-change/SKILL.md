@@ -1,6 +1,6 @@
 ---
 name: local-plan-change
-description: Produce a decision-complete Hastings plan or design (multi-file or multi-family change, collection integration, invariant changes, unclear requirements, requested PRD/issues) grounded in code and client sources; stops after the plan. Do not use for implementing, diagnosing a failure or reviewing a diff.
+description: Produce a decision-complete Hastings plan or design (multi-file or multi-family change, collection integration, invariant changes, unclear requirements, PRD/issues) grounded in code and client sources; stops after the plan. Do not use for implementing, diagnosing or reviewing.
 ---
 
 # Plan Change

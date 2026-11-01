@@ -161,7 +161,8 @@ const size = (files) => files.reduce((n, f) => n + (exists(f) ? fs.statSync(f).s
 const wrapperMeta = walk(".agents/skills", (p) => /^\.agents\/skills\/[^/]+\/SKILL\.md$/.test(p)).reduce((n, f) => n + (read(f).match(/^---[\s\S]*?---/)?.[0].length ?? 0), 0);
 const alwaysOn = ["CLAUDE.md", "CLAUDE.local.md", "AGENTS.md", "AGENTS.local.md"];
 const chains = {
-  "always-on (team + personal root + skill metadata)": [size(alwaysOn) + wrapperMeta, 18000],
+  // 2026-11-01: limit 18000 → 19500 when the four collection skills (tricot, lame, ud, ufs) were added; 16 skill frontmatters ≈ 4.9 KB of this.
+  "always-on (team + personal root + skill metadata)": [size(alwaysOn) + wrapperMeta, 19500],
   "personal always-on only (AGENTS.local.md)": [size(["AGENTS.local.md"]), 7000],
   "typical UI task (always-on + workflow + implement + ui-regression + verify + browser runbook + domain index)": [
     size([...alwaysOn, "ai/workflow.md", ".agents/skills/local-implement-change/SKILL.md", ".agents/skills/local-implement-change/references/ui-regression.md", ".agents/skills/local-implement-change/references/verify-frontend.md", "docs/ai/qa/browser-validation.md", "docs/ai/hastings/domain-index.md"]) + wrapperMeta,

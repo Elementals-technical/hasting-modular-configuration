@@ -1,6 +1,6 @@
 ---
 name: hastings-ush
-description: Analyze or change the Hastings Urban Standard Height collection, including its legacy-compatible package, rules, PlayCanvas bindings, SKU mappings, pricing, and restore behavior. Use for `urban-standard-height` or USH work; do not apply it to ULH, UD or UFS.
+description: Hastings Urban Standard Height collection (`urban-standard-height`, USH, the default): legacy SKU mappings, static options, navigation, tables 438/439, presets. Do not apply its legacy data paths to ULH, UD or UFS.
 ---
 
 # Hastings Urban Standard Height

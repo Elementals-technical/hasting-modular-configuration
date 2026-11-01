@@ -1,4 +1,6 @@
-# Urban Duplex
+# Urban Duplex — інтеграція в код
+
+Як пакет `public/collections/urban-duplex/` підключено в застосунок: джерела, контракт сцени, стан пресетів, межі й мінімальна перевірка. Що колекція *має* робити — у специфікації поруч ([`README.md`](README.md)). Раніше цей файл був `docs/products/urban-duplex.md`.
 
 ## Ідентичність і sources
 
