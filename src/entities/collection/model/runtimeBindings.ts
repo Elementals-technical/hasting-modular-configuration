@@ -63,6 +63,12 @@ export type MappedValues = {
    * sent: a product is placed without them, and a command for one is unsupported.
    */
   unboundValues?: Record<string, string>;
+  /**
+   * A scene value this binding no longer sends -> the configuration value that replaced it. A saved
+   * configuration still carries it, so it resolves to that value's patch. Not a key of `patches`:
+   * two keys sending one scene value would no longer read back as one configuration value.
+   */
+  retiredSceneValues?: Record<string, string>;
 };
 
 /**
