@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"selectors":["Width","Depth","Handle"],"preview":true,"sidebarOpen":true,"handle":"UG","products":1,"price":"$8,216.00","guard":0}
+```

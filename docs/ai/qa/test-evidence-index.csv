@@ -103,3 +103,8 @@ TC-LAME-T7-REPRO-DESKTOP-SEEN,FAIL,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/b
 TC-TRICOT-T7-REPRO-DESKTOP-SEEN,FAIL,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/before-p98qb-desktop-seen-tricot/36-second.txt
 TC-LAME-T7-FIX-DESKTOP-SEEN,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-desktop-seen-lame/23-first.txt
 TC-TRICOT-T7-FIX-DESKTOP-SEEN,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-desktop-seen-tricot/36-second.txt
+TC-TRICOT-HANDLE-REPRO,FAIL,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/before-p98qb-tricot/06-panel.txt
+TC-TRICOT-HANDLE-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-local-tricot/06-panel.txt
+TC-LAME-HANDLE-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-local-lame/06-panel.txt
+TC-UD-HANDLE-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-local-urban-duplex/06-panel.txt
+TC-USH-HANDLE-BASELINE,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-local-ush-control/06-panel.txt

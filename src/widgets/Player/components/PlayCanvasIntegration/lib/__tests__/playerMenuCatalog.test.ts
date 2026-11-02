@@ -83,6 +83,17 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
+  it("offers Handle Style only where the collection has more than one handle", () => {
+    for (const flowId of CUSTOMIZATION_FLOW_IDS) {
+      for (const collection of ["tricot", "lame", "urban-duplex"]) {
+        expect(supportOf(collection, flowId).items.has("handle-style")).toBe(false);
+      }
+      for (const collection of ["urban-standard-height", "urban-low-height", "urban-freestanding", "mako"]) {
+        expect(supportOf(collection, flowId).items.has("handle-style")).toBe(true);
+      }
+    }
+  });
+
   it("offers Open for all four Ph2 drawer collections in every flow", () => {
     for (const flowId of CUSTOMIZATION_FLOW_IDS) {
       for (const collection of ["class", "mako", "lame", "tricot"]) {

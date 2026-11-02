@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"top":["Resize","Width","Depth","Color","Add","Details","Handle Style"],"detailsItems":["Cabinet Style","Handle Style","Push to open","Upper Groove","Central Groove","Accessories"]}
+```

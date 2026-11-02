@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"top":["Resize","Width","Depth","Color","Add","Details","Cabinet Pattern"],"detailsItems":["Cabinet Style","Cabinet Pattern","Apply to all cabinets","Loden","Cannete","Twill","Gessato","Satin","Accessories"]}
+```

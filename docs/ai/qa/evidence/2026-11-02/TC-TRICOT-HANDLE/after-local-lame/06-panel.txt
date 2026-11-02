@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"selectors":["Width","Depth"],"preview":false,"sidebarOpen":true,"handle":"G58","products":1,"price":"$4,477.00","guard":0}
+```
