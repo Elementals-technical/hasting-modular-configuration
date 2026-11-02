@@ -32,7 +32,9 @@ import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/b
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
+import datatable581 from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
+import datatable594 from "@/entities/collection/__tests__/fixtures/remote/datatable-594.json";
 import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
@@ -51,12 +53,18 @@ import {
   type ConfigurationRecord,
 } from "@/entities/configuration";
 import { clearHistory } from "@/entities/history/model/store/slice";
+import type { ProductDatatable } from "@/entities/product/api";
+import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
+import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { getCountertopStyle, getProductsPresets, getSinkType } from "@/entities/product/model/store/selectors";
 import { reset, setActiveBasinStyle, setActiveProfile } from "@/entities/product/model/store/slice";
-import type { AttributeChange } from "@/features/configurationCommands";
+import { recordValues, type AttributeChange } from "@/features/configurationCommands";
+import { createTestCompositionPort, createTestRuntimePort } from "@/features/playCanvasAdapter";
+import type { UseChangeAttributeOptions } from "@/features/configurationCommands/hooks/useChangeAttribute";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { FieldsStepPage } from "@/pages/fieldsStep/FieldsStepPage";
 import { ModelPage } from "@/pages/prebuilt/model/ModelPage";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 
 /**
  * The model page keeps the countertop the configuration prices in step with the one it shows, for
@@ -70,6 +78,7 @@ const mocks = vi.hoisted(() => ({
   record: null as ConfigurationRecord | null,
   changes: [] as AttributeChange[],
   sceneReady: true,
+  ports: null as UseChangeAttributeOptions | null,
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => mocks.sceneReady }));
@@ -112,7 +121,7 @@ vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (impo
   const { useMemo } = await import("react");
   return {
     useChangeAttribute: (options?: Parameters<typeof actual.useChangeAttribute>[0]) => {
-      const runner = actual.useChangeAttribute(options);
+      const runner = actual.useChangeAttribute({ ...options, ...mocks.ports });
       return useMemo(
         () => ({
           ...runner,
@@ -127,7 +136,10 @@ vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (impo
   };
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  mocks.ports = null;
+});
 
 const parsedClassProfile = parseProductProfile(classProfileDocument);
 if (!parsedClassProfile.ok) throw new Error("Class profile must parse");
@@ -143,6 +155,7 @@ type Case = {
   ui: unknown;
   presets: unknown;
   countertopTable: unknown;
+  cabinets?: ConfiguratorCatalog;
 };
 
 const CASES: Case[] = [
@@ -170,7 +183,7 @@ const CASES: Case[] = [
 
 /** The collection as loaded; its model cards only where a test opens the model list. */
 const readyCollectionOf = (
-  { collectionId, manifest, ui, presets, bindings, countertopTable }: Case,
+  { collectionId, manifest, ui, presets, bindings, countertopTable, cabinets }: Case,
   withModels = false,
 ) => {
   const collection = buildReadyCollection(collectionId, manifest, ui, withModels ? presets : undefined);
@@ -184,6 +197,7 @@ const readyCollectionOf = (
         groupsByName: Object.fromEntries(configuratorGroups.map((group) => [group.proxyName, group])),
       },
       countertops: parseCountertopMatrix(countertopDatatableSchema.parse(countertopTable)),
+      ...(cabinets ? { cabinets } : {}),
     },
   };
 };
@@ -474,6 +488,91 @@ describe("mako: a Prebuilt order opened from its link keeps its handle and leg c
       { HandleColor: "Gold", LegColor: "" },
     ]);
   });
+
+  describe("with the composition's handle saved once, at the first cabinet", () => {
+    const makoWithCabinets: Case = {
+      ...mako,
+      cabinets: buildCabinetCatalogFromMatrix(datatable581 as ProductDatatable, mako.profile, mako.bindings),
+    };
+    const COLORS = { HandleColor: "Antracite 400 MT", LegColor: "Antracite 400 MT" };
+    const LEGS_40_2_DRAWER = 'Mako Vanity · 40" 2-Drawer Legs';
+
+    /** A model as Save writes it; the configs name no handle unless a test gives one. */
+    const savedModel = (
+      configs: Array<Record<string, unknown>>,
+      values: Record<string, Record<string, string>>,
+    ): ConfigurationRecord => {
+      const ids = configs.map(({ ProductType }, index) => `${String(ProductType)}-${"abc"[index].repeat(6)}`);
+      return {
+        configuration: Object.fromEntries(ids.map((id, index) => [id, configs[index]])),
+        metadata: {
+          path: "/prebuilt/model",
+          orderedProductIds: ids,
+          collectionId: mako.collectionId,
+          uiState: {},
+          configuration: {
+            version: 2,
+            collectionId: mako.collectionId,
+            cabinets: ids.map((_, index) => ({ stableKey: `cab-${index + 1}`, index })),
+            values,
+          },
+        },
+      };
+    };
+
+    const SINK_BASE = { ProductType: "Mako-sink-cabinet", Width: 60, Height: 52, Depth: 52, Drawers: "2D" };
+    const SINK_CABINET = { ProductType: "Mako-side-cabinet", Width: 40, Height: 52, Depth: 52, Drawers: "2D" };
+
+    const restoreWithModels = async (configId: string) => {
+      renderAt(
+        makoWithCabinets,
+        `/prebuilt/model?collectionId=${mako.collectionId}&configId=${configId}`,
+        <ModelPage />,
+        true,
+      );
+      await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+    };
+
+    const handles = () => getProductsPresets(store.getState()).map(({ Handle }) => Handle);
+
+    it("comes back as the model it was saved from, with that model's card highlighted", async () => {
+      mocks.record = savedModel([SINK_BASE, SINK_CABINET], {
+        "cabinet:cab-1": { ...COLORS, Handle: "G57" },
+        "cabinet:cab-2": COLORS,
+      });
+
+      await restoreWithModels("7211");
+
+      expect(handles()).toEqual(["G57", "G57"]);
+      expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("G57");
+      const model8 = makoPresetsDocument.find(({ id }) => id === 8);
+      expect(arePrebuiltModelPresetsEqual(model8?.presetProducts, getProductsPresets(store.getState()))).toBe(true);
+      expect(screen.getByText(LEGS_40_2_DRAWER).closest('[class*="productModelItem"]')?.className).toMatch(/active/);
+    });
+
+    it("leaves a handle the scene gave", async () => {
+      mocks.record = savedModel([SINK_BASE, { ...SINK_CABINET, Handle: "G50" }], {
+        "cabinet:cab-1": { ...COLORS, Handle: "G57" },
+        "cabinet:cab-2": COLORS,
+      });
+
+      await restoreWithModels("7212");
+
+      expect(handles()).toEqual(["G57", "G50"]);
+    });
+
+    it("leaves cabinets saved with handles that differ per cabinet", async () => {
+      mocks.record = savedModel([SINK_BASE, SINK_CABINET, SINK_CABINET], {
+        "cabinet:cab-1": { ...COLORS, Handle: "G57" },
+        "cabinet:cab-2": { ...COLORS, Handle: "G50" },
+        "cabinet:cab-3": COLORS,
+      });
+
+      await restoreWithModels("7213");
+
+      expect(handles()).toEqual(["G57", "G50", undefined]);
+    });
+  });
 });
 
 describe("urban-duplex: a Prebuilt order opened from its link keeps each cabinet's series and panel side", () => {
@@ -541,6 +640,140 @@ describe("urban-duplex: a Prebuilt order opened from its link keeps each cabinet
       { Series: "URDPX", LateralPanelSide: "L" },
       { Series: "URSTD", LateralPanelSide: undefined },
     ]);
+  });
+
+  // The catalog's models leave the handle off an open shelf, whose cabinet table allows none.
+  it("gives the composition's handle to the cabinets that take one, not to an open shelf", async () => {
+    const sourceIds = ["UD-sink-cabinet-aaa111", "UD-side-cabinet-bbb222", "UD-open-shelves-ccc333"];
+    const size = { Height: 53, Depth: 46 };
+    mocks.record = {
+      configuration: {
+        [sourceIds[0]]: { ProductType: "UD-sink-cabinet", Width: 70, Drawers: "1D", ...size },
+        [sourceIds[1]]: { ProductType: "UD-side-cabinet", Width: 35, Drawers: "1D", ...size },
+        [sourceIds[2]]: { ProductType: "UD-open-shelves", Width: 35, ...size },
+      },
+      metadata: {
+        path: "/prebuilt/model",
+        orderedProductIds: sourceIds,
+        collectionId: ud.collectionId,
+        uiState: {},
+        configuration: {
+          version: 2,
+          collectionId: ud.collectionId,
+          cabinets: [
+            { stableKey: "cab-1", index: 0 },
+            { stableKey: "cab-2", index: 1 },
+            { stableKey: "cab-3", index: 2 },
+          ],
+          values: { "cabinet:cab-1": { Handle: "UG" } },
+        },
+      },
+    };
+
+    const udWithCabinets: Case = {
+      ...ud,
+      cabinets: buildCabinetCatalogFromMatrix(datatable594 as ProductDatatable, ud.profile, ud.bindings),
+    };
+    renderAt(udWithCabinets, `/prebuilt/model?collectionId=${ud.collectionId}&configId=7302`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+
+    expect(getProductsPresets(store.getState()).map(({ name, Handle }) => ({ name, Handle }))).toEqual([
+      { name: "Sink-Base", Handle: "UG" },
+      { name: "Sink-Cabinet", Handle: "UG" },
+      { name: "Open-Shelf", Handle: undefined },
+    ]);
+  });
+});
+
+describe("Class model selection", () => {
+  const testCase = CASES[1];
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(testCase.profile));
+    store.dispatch(setActiveCollectionId(testCase.collectionId));
+    store.dispatch(setActiveRuntimeBindings(testCase.bindings));
+    mocks.sceneReady = false;
+  });
+
+  it.each([
+    ["Iris", true],
+    ["VA023", true],
+    ["Iris", false],
+  ] as const)("selecting another model after %s, resetSelections=%s", async (basin, resetSelections) => {
+    if (!resetSelections) {
+      store.dispatch(
+        setActiveProfile({
+          ...testCase.profile,
+          ruleData: {
+            ...testCase.profile.ruleData,
+            prebuiltModelSelection: undefined,
+          },
+        }),
+      );
+    }
+    const style = basin === "Iris" ? "vessel" : "integrated";
+    const composition = createTestCompositionPort();
+    const runtime = createTestRuntimePort();
+    mocks.ports = { composition: composition.port, runtime: runtime.port };
+    recordValues(
+      {
+        CabinetColor: "Seta 406 MT",
+        CabinetSideColor: "Moka 408 MT",
+        FrameColor: "Moka 408 MT",
+        CountertopColor: "Matte White",
+        CountertopStyle: style,
+        sinkType: basin,
+        Thickness: "0.5",
+        VesselColor: "Acqua 419 GL",
+        FaucetHolesAmount: "1",
+      },
+      { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" },
+    );
+
+    renderAt(testCase, "/prebuilt/model?collectionId=class", <ModelPage />, true);
+    // Returning to this step alone must keep the user's configuration.
+    expect(getCountertopStyle(store.getState())).toBe(style);
+    expect(composition.calls).toHaveLength(0);
+    fireEvent.click(await screen.findByText('Class Vanity 55" 1-Drawer 1'));
+
+    await waitFor(() => expect(getProductsPresets(store.getState())).toHaveLength(2));
+    if (!resetSelections) {
+      expect(store.getState().rootStateUI.product.productOptions).toMatchObject({
+        CabinetColor: "Seta 406 MT",
+        CountertopColor: "Matte White",
+        sinkType: "Iris",
+      });
+      expect(getCountertopStyle(store.getState()).toLowerCase()).toBe("vessel");
+      expect(getAttributeValue(store.getState(), "FrameColor", { scope: "global" })).toBe("Moka 408 MT");
+      return;
+    }
+    expect(getCountertopStyle(store.getState()).toLowerCase()).toBe("integrated");
+    const options = store.getState().rootStateUI.product.productOptions;
+    expect(options).toMatchObject({
+      CabinetColor: "INVISIBLE WHITE OPACO 332",
+      CountertopColor: "INVISIBLE WHITE OPACO 332",
+      Thickness: "0.75",
+      sinkType: "LV890",
+      VesselColor: "",
+      FaucetHolesAmount: "0",
+    });
+    expect(getAttributeValue(store.getState(), "FrameColor", { scope: "global" })).toBe("Nero 433 MT");
+    expect(getAttributeValue(store.getState(), "CabinetSideColor", { scope: "global" })).toBe("Latte 417 MT");
+    expect(composition.calls[0]).toMatchObject({
+      op: "replace",
+      request: {
+        products: [
+          { config: { Width: 60, CabinetColor: "INVISIBLE WHITE OPACO 332", FrameColor: "Nero 433 MT" } },
+          { config: { Width: 80, CabinetColor: "INVISIBLE WHITE OPACO 332", FrameColor: "Nero 433 MT" } },
+        ],
+      },
+    });
+    expect(
+      getProductsPresets(store.getState()).every(({ CabinetColor }) => CabinetColor === "INVISIBLE WHITE OPACO 332"),
+    ).toBe(true);
   });
 });
 

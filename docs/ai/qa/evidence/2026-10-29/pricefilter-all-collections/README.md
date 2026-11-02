@@ -21,7 +21,7 @@ Method: node probe (not kept) over the live configurators 4, 8, 9, 11, 12, 13, 1
 | Solid Surface `SS` (Matte Black T1D, Matte White T1C) | Vessel Color of USH, ULH, UD, UFS | no tier |
 | Solid-Surface `SSTL` Matte White | Countertop Color of UD, UFS | no tier (GB ranks SSTL Classic $$; the Azzurra block lists no Technolite) |
 | Syntesi `SSSYN` (Bianco Gloss TAN, Bianco Matte TAP) | USH Countertop | Standard $ by the code's material map (`syntesi: 1`), not by the document |
-| Metal `MTL` (Gold, Silver) | Lame, Mako Handle / Leg / Undertop | no tier |
+| Metal `MTL` (Gold, Silver) | Lame, Mako Handle / Leg / Undertop | no tier — closed 2026-10-30: revision 2 of the sheet adds GB `Metal = MTL Tier 1`, now Standard $ (`../../2026-10-30/gb-pricefilter-mtl/`) |
 
 Interpretation to confirm: Bianco Calce DA and Bianco Male FA (MT/GL; colours White + Beige) are not "Lacq MT/GL White" in the code (exception since `00f620b0`, 2026-04-01), so they keep Classic $$ (MT) / Specialty $$$ (GL).
 

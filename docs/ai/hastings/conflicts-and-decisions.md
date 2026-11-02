@@ -11,7 +11,7 @@ Revision 1 · 2026-10-28 · generated from [`conflicts.csv`](conflicts.csv) (75 
 
 ## Counts
 
-By priority/status: {('P0', 'decided'): 1, ('P0', 'open'): 42, ('P0', 'superseded'): 1, ('P1', 'decided'): 2, ('P1', 'open'): 19, ('P1', 'superseded'): 2, ('P2', 'decided'): 1, ('P2', 'open'): 4, ('P2', 'superseded'): 3}. By family: {'ALL': 4, 'CLASS': 7, 'LAME': 6, 'MAKO': 8, 'TRICOT': 10, 'UD': 4, 'UFS': 1, 'ULH': 15, 'URBAN': 12, 'USH': 8}.
+By priority/status: {('P0', 'decided'): 2, ('P0', 'open'): 41, ('P0', 'superseded'): 1, ('P1', 'decided'): 3, ('P1', 'open'): 18, ('P1', 'superseded'): 2, ('P2', 'decided'): 1, ('P2', 'open'): 4, ('P2', 'superseded'): 3}. By family: {'ALL': 4, 'CLASS': 7, 'LAME': 6, 'MAKO': 8, 'TRICOT': 10, 'UD': 4, 'UFS': 1, 'ULH': 15, 'URBAN': 12, 'USH': 8}.
 
 ## Open P0 conflicts — questions for the client
 
@@ -58,7 +58,6 @@ By priority/status: {('P0', 'decided'): 1, ('P0', 'open'): 42, ('P0', 'supersede
 | K-CTML-023 | MAKO | Leg quantity / unit of the leg price [client-vs-team-doc] | Is $745 / $1,340 per single leg or per set, and how many legs does a composition take (2 = one per end, or 4 = front+back at each end)? |
 | K-CTML-024 | ALL | VA030 (SS Texturizzato) offered or not [doc-vs-doc / code] | Is VA030 (SS Texturizzato) offered for Class, Tricot, Mako and Lame? Which Solid Surface colours are Texturizzato? |
 | K-CTML-026 | CLASS | Cabinet Color palette must be the Class pre-render list [client-vs-code] | Confirm the Class front palette (Lacquered MT/GL, Smoke glass, Porcelain, Glass MT/GL, Laminates per the pre-render) so configurator 8 can be corrected. |
-| K-CTML-035 | TRICOT | Solid Surface header with Technolite / Technomat and Matte White price group [client-vs-te | Confirm Matte White = SS Technolite (SSTL, 0.5"/4.7") and Matte White 8cm = SS Technomat (SSTMT, 3.1", VA023), and the labels to show under the 'Solid Surface' header. |
 
 ## Implementation drift found during setup (frontend, not client conflicts)
 

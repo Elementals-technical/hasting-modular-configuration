@@ -7,12 +7,13 @@
 - `collectionId`: `class`
 - Live: <https://hasting-modular-phase-2-p98qb.ondigitalocean.app/prebuilt/model?collectionId=class>
 - Package: `public/collections/class/`
-- Remote: configurator 9, countertop table 578, cabinet table 579.
+- Remote: configurator 8, countertop table 578, cabinet table 579.
 - Local: presets, UI, product profile, runtime bindings і partial SKU profile.
 
-Class ділить configurator 9 з Mako, але має власні tables, products, profile та bindings. Profile colors
-посилаються на `configurator:Select Cabinet Color` / `Select Countertop Color`; отже фактичний catalog
-обмежений групами configurator 9, доки Class не отримає окремий configurator.
+Class має власний configurator 8, tables, products, profile та bindings. Profile colors посилаються на
+групи `configurator:Select Cabinet Color`, `Select Cabinet Side Color`, `Select Frame Color` і
+`Select Countertop Color`. Лише side- і frame-групи містять каталоги Class; решта груп — копії груп
+Mako (configurator 9), тож пропонують і кольори інших колекцій (`sourceRefs` у `product-profile.json`).
 
 ## Product contract
 
@@ -30,6 +31,7 @@ CountertopStyle, basin, vessel color, thickness і faucet details поки state
 ## Presets і production стан
 
 Активний каталог має рівно 24 пресети в порядку сайту клієнта, з ID 1–24.
+Усі 24 model cards мають композиції (51 cabinet entries).
 За вимогою власника 2026-10-29 додаткові 20 моделей 2D прибрано з активного
 `presets.json` і збережено в data repo:
 `Class/input/modular-comparison-2026-10-28/local-only-presets-archive-2026-10-29.json`.
@@ -39,8 +41,9 @@ CountertopStyle, basin, vessel color, thickness і faucet details поки state
 Початкові фасад і стільниця — `INVISIBLE WHITE OPACO 332`, integrated basin — `LV890`.
 Ці defaults підтвердив власник скриншотом 2026-10-28; попередні `LUCIDO 334` у
 recipes і profile виправлено. Кожен preset cabinet явно несе колір фасаду й стільниці.
-Боковини та рамка поки `Nero 433 MT`: на наданому фрагменті їхніх defaults немає.
-На сайті боковина візуально світла, тому її відповідність залишається відкритою.
+Поточний `product-profile.json` задає боковини `Latte 417 MT`, рамку `Nero 433 MT`;
+ці кольори також явно записані в кожній тумбі пресетів. Бічні кольори й рамку, яких
+ніхто не вибрав, pricing бере з `defaults`.
 
 [Порівняння 24 пар](../class-preset-comparison-2026-10-28.md) зберігає знімки **до**
 виправлення матеріалу; воно не підтверджує візуальний результат нових defaults.

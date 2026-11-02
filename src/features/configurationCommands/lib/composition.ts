@@ -1,7 +1,13 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 
 import type { RootState } from "@/app/store";
-import { normalizeOptionValue, selectAttribute, selectDefaultValue } from "@/entities/collection";
+import {
+  normalizeOptionValue,
+  resolveRuntimeBinding,
+  selectAttribute,
+  selectDefaultValue,
+  semanticValueOf,
+} from "@/entities/collection";
 import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
@@ -77,6 +83,8 @@ export type CompositionResult =
   | { status: "error"; code: CompositionErrorCode; message: string; sceneCode?: string };
 
 export type ApplyPresetRequest = {
+  /** False for a model selection that starts from its own finishes rather than the user's choices. */
+  preserveSelections?: boolean;
   /** The preset's products, in order. */
   products: readonly SceneCompositionProduct[];
   /** Configuration values every product is placed with. */
@@ -156,10 +164,17 @@ const toSceneProducts = (
   products.map(({ productType, config }) => ({
     productType,
     config: Object.fromEntries(
-      Object.entries(config).map(([attributeId, value]) => [
-        attributeId,
-        isAttributeValue(value) ? toSceneValue(profile, bindings, attributeId, value) : value,
-      ]),
+      Object.entries(config).map(([attributeId, value]) => {
+        if (!isAttributeValue(value)) return [attributeId, value];
+        const canonical = toSceneValue(profile, bindings, attributeId, value);
+        // A copied scene config may name the material asset rather than the catalogue option.
+        // Keep an already accepted option: some collections reuse an asset name for another option.
+        const placedValue =
+          typeof canonical === "string" && bindings && !resolveRuntimeBinding(bindings, attributeId, canonical).ok
+            ? semanticValueOf(bindings, attributeId, canonical)
+            : canonical;
+        return [attributeId, placedValue];
+      }),
     ),
   }));
 
@@ -435,7 +450,7 @@ const settleValues = async (
 };
 
 export const applyPreset = async (
-  { products, shared = {}, afterPlacement, record }: ApplyPresetRequest,
+  { products, shared = {}, afterPlacement, record, preserveSelections = true }: ApplyPresetRequest,
   deps: CompositionDeps,
 ): Promise<CompositionResult> => {
   const state = deps.getState();
@@ -450,7 +465,7 @@ export const applyPreset = async (
 
   // A colour the configuration holds goes on the model too, as the price already reads it:
   // the model's own colours stand only while nothing was chosen.
-  const chosen = selectPlacedWithValues(state, { chosenOnly: true });
+  const chosen = preserveSelections ? selectPlacedWithValues(state, { chosenOnly: true }) : {};
   const placedProducts =
     Object.keys(chosen).length > 0
       ? products.map((product) => ({ ...product, config: { ...product.config, ...chosen } }))
@@ -504,7 +519,7 @@ export const addCabinet = async (
     runtimeId && style ? { [runtimeId]: style } : {},
   );
   if (runtimeId) {
-    recordInherited(deps, runtimeId, inherited, product.config);
+    recordInherited(deps, runtimeId, inherited, sceneProduct.config);
     recordOwnValues(deps, runtimeId, product.config);
   }
 

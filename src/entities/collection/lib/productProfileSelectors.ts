@@ -1,6 +1,6 @@
 import { interpolateMessage, type MessageParams } from "@/shared/lib/reasonText";
 import type { PriceTierOverride } from "@/shared/constants/priceFilters";
-import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import type { ConfiguratorAvailableOption, ConfiguratorVariant } from "@/entities/configurator/api/types";
 import type {
   OptionCapabilities,
   ProductProfile,
@@ -55,6 +55,19 @@ export const selectConfiguratorGroup = (
   const options = group.options.filter(({ name }) => name === source.option);
   return options.length > 0 ? { ...group, options } : undefined;
 };
+
+/** The first variant of that group whose value (metadata `value`, else its name) is `value`. */
+export const selectConfiguratorVariant = (
+  profile: ProductProfile | null,
+  attributeId: string,
+  configurator: { groups: readonly ConfiguratorAvailableOption[] } | null | undefined,
+  value: string | null | undefined,
+): ConfiguratorVariant | undefined =>
+  value
+    ? selectConfiguratorGroup(profile, attributeId, configurator)
+        ?.options.flatMap(({ variants }) => variants)
+        .find((variant) => (variant.metadata?.value ?? variant.name) === value)
+    : undefined;
 
 /** Catalog of an attribute in profile order. Empty when the collection does not declare it. */
 export const selectOptions = (profile: ProductProfile | null, attributeId: string): ProfileOption[] =>

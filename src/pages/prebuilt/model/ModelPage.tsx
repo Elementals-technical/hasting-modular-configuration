@@ -16,6 +16,7 @@ import {
   resolvePrebuiltModelTransferableOverrides,
   type PrebuiltModelTransferableOverrides,
 } from "@/entities/product/lib/prebuiltModelTransferableFields";
+import { resolveActivePrebuiltPresetId } from "@/entities/product/lib/resolveActivePrebuiltPresetId";
 import { type PresetProduct, type ProductSize, type ProductStyle } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
 import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
@@ -27,6 +28,7 @@ import {
   selectDefaultValue,
   selectOptions,
   selectRuntimeBinding,
+  selectRuleData,
   semanticValueOf,
   useActiveCollection,
   useCollectionPresets,
@@ -68,6 +70,7 @@ import {
   getCountertopStyle,
   getHandleGrooveColor,
   getProductsPresets,
+  getSelectedProducts,
   getSinkType,
   getVesselColor,
 } from "@/entities/product/model/store/selectors";
@@ -78,6 +81,8 @@ import {
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
 import { BaseButton, ROUTES } from "@/shared";
+import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
+import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import type { SceneRestoreMatch } from "@/entities/configuration";
@@ -136,6 +141,7 @@ type PendingModelSelection = {
 
 type ApplyPresetSelectionOptions = {
   syncUrl?: boolean;
+  preserveSelections?: boolean;
   preserveCountertopSelections?: boolean;
 };
 
@@ -250,6 +256,27 @@ const withSavedCabinetValues = (
   });
 };
 
+/**
+ * The presets with the composition's handle on the cabinets its catalog lets take it, where neither the
+ * scene config nor the cabinet's saved values name one, as placing a model leaves it on each cabinet:
+ * the save holds it once, at the first cabinet, and a scene may keep it under a key of its own (Mako:
+ * HandleStyle). An open shelf takes no handle. The state only: the choice recorded with the composition
+ * already reaches the price and the scene.
+ */
+const withSavedHandle = (
+  presets: PresetProduct[],
+  handle: string | undefined,
+  catalog: ConfiguratorCatalog | undefined,
+): PresetProduct[] => {
+  if (!handle || !catalog) return presets;
+
+  return presets.map((preset) =>
+    !preset.Handle && findCabinetRule(catalog, preset.name)?.handlesAllowed?.includes(handle)
+      ? { ...preset, Handle: handle }
+      : preset,
+  );
+};
+
 const resolvePrebuiltPresetCountertopDimensions = (presetProducts: PresetProduct[]) => {
   const totalWidthValues = presetProducts.map((preset) =>
     typeof preset.Width === "number" && Number.isFinite(preset.Width) ? preset.Width : null,
@@ -290,6 +317,7 @@ export const ModelPage = () => {
   const presetSelectionQueueRef = useRef<Promise<void>>(Promise.resolve());
   const presetSelectionRequestIdRef = useRef(0);
   const productsPresets = useAppSelector(getProductsPresets);
+  const placedProductIds = useAppSelector(getSelectedProducts);
   const cabinetColor = useAppSelector(getCabinetColor);
   const handleGrooveColor = useAppSelector(getHandleGrooveColor);
   const countertopColor = useAppSelector(getActiveCountertopColor);
@@ -301,6 +329,7 @@ export const ModelPage = () => {
   const spGroove = useAppSelector(getSidePanelsOption);
   const configuratorGroups = activeCollection.catalog.configurator.groups;
   const runtimeBindings = activeCollection.catalog.runtimeBindings ?? null;
+  const cabinetCatalog = activeCollection.catalog.cabinets;
   const countertopRules = useCountertopRules();
   const [pendingModelSelection, setPendingModelSelection] = useState<PendingModelSelection | null>(null);
   const [sizeFilter, setSizeFilter] = useState<ProductSize | "all">("all");
@@ -505,13 +534,18 @@ export const ModelPage = () => {
     [dispatch],
   );
 
-  const activePresetId = useMemo(() => {
-    const target = productsPresets.length ? productsPresets : (defaultPreset?.presetProducts ?? []);
-
-    const match = presets.find((preset) => arePrebuiltModelPresetsEqual(preset.presetProducts, target));
-
-    return match?.id ?? defaultPreset?.id ?? null;
-  }, [productsPresets, presets, defaultPreset]);
+  const activePresetId = useMemo(
+    () =>
+      resolveActivePrebuiltPresetId({
+        presets,
+        presetIdFromUrl: presetFromUrl?.id ?? null,
+        hasConfigIdInUrl: Boolean(configIdFromUrl),
+        productsPresets,
+        placedProductIds,
+        defaultPresetId: defaultPreset?.id ?? null,
+      }),
+    [configIdFromUrl, defaultPreset, placedProductIds, presetFromUrl, presets, productsPresets],
+  );
 
   const resolveCountertopSceneOverrides = useCallback((): PresetSceneDefaults => {
     const overrides: PresetSceneDefaults = {};
@@ -716,13 +750,27 @@ export const ModelPage = () => {
       const runSelection = async () => {
         if (requestId !== presetSelectionRequestIdRef.current) return;
 
-        const preserveCountertopSelections = options?.preserveCountertopSelections !== false;
-        const overrides = preserveCountertopSelections ? transferableOverrides : colorTransferableOverrides;
+        const preserveSelections = options?.preserveSelections !== false;
+        const preserveCountertopSelections = preserveSelections && options?.preserveCountertopSelections !== false;
+        const overrides = !preserveSelections
+          ? {}
+          : preserveCountertopSelections
+            ? transferableOverrides
+            : colorTransferableOverrides;
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
         const globalConfig = resolveCompatibleCountertopSceneConfig(
           {
+            ...(!preserveSelections
+              ? {
+                  CabinetColor: selectDefaultValue(activeProfile, "CabinetColor"),
+                  CountertopColor: selectDefaultValue(activeProfile, "CountertopColor"),
+                  sinkType: selectDefaultValue(activeProfile, "sinkType"),
+                  CountertopStyle: inferCountertopStyleFromSinkType(selectDefaultValue(activeProfile, "sinkType")),
+                  Thickness: selectDefaultValue(activeProfile, "Thickness"),
+                }
+              : {}),
             ...resolvePresetSceneDefaults(effectivePresetProducts),
-            ...resolveColorSceneOverrides(),
+            ...(preserveSelections ? resolveColorSceneOverrides() : {}),
             ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
           },
           effectivePresetProducts,
@@ -748,6 +796,7 @@ export const ModelPage = () => {
         }
         const placed = await composition.applyPreset({
           products: toCompositionProducts(effectivePresetProducts),
+          preserveSelections,
           shared: toConfigurationValues(globalConfig),
           afterPlacement: countertopValuesAfterPlacement(globalConfig),
         });
@@ -761,7 +810,21 @@ export const ModelPage = () => {
           dispatch(addProductPreset(effectivePresetProducts));
           syncCountertopSelectionFromSceneConfig(globalConfig, { clearMissing: !preserveCountertopSelections });
         }
-        if (!preserveCountertopSelections) {
+        if (!preserveSelections) {
+          record({
+            ...Object.fromEntries(
+              (["CabinetSideColor", "FrameColor"] as const).map((attributeId) => [
+                attributeId,
+                effectivePresetProducts.find(
+                  (product) => typeof product[attributeId] === "string" && product[attributeId],
+                )?.[attributeId] ?? selectDefaultValue(activeProfile, attributeId),
+              ]),
+            ),
+            Thickness: globalConfig.Thickness ?? "",
+            VesselColor: "",
+            FaucetHolesAmount: "0",
+          });
+        } else if (!preserveCountertopSelections) {
           resetRestrictedCountertopSelections();
         }
         await updateSelectedDimensionsFromScene(effectivePresetProducts, sceneProductIds);
@@ -816,6 +879,7 @@ export const ModelPage = () => {
     },
     [
       applyAndAdoptCompactPreset,
+      activeProfile,
       colorTransferableOverrides,
       composition,
       dispatch,
@@ -842,6 +906,11 @@ export const ModelPage = () => {
     ) => {
       if (!presetProducts?.length) {
         await applyPresetSelection(presetProducts, presetId, options);
+        return;
+      }
+
+      if (selectRuleData(activeProfileRef.current, "prebuiltModelSelection")?.resetSelections) {
+        await applyPresetSelection(presetProducts, presetId, { ...options, preserveSelections: false });
         return;
       }
 
@@ -1106,11 +1175,20 @@ export const ModelPage = () => {
           runtimeBindings,
           sceneIds,
         );
-        const effectivePresets = withSavedCabinetValues(
-          scenePresets.length ? scenePresets : presetProducts,
-          plan,
-          matches,
-          activeProfileRef.current,
+        // The handle is chosen once for the composition, as placing the model chooses it: the price of the
+        // cabinets after the first, the rules and the handle menus read that choice.
+        const restoredHandle = selectAttribute(activeProfileRef.current, "Handle")
+          ? readSavedHandle(plan.fragment, presetProducts, activeProfileRef.current)
+          : undefined;
+        const effectivePresets = withSavedHandle(
+          withSavedCabinetValues(
+            scenePresets.length ? scenePresets : presetProducts,
+            plan,
+            matches,
+            activeProfileRef.current,
+          ),
+          restoredHandle,
+          cabinetCatalog,
         );
         dispatch(reset());
         dispatch(resetCabinetBuilderBootstrap());
@@ -1131,11 +1209,6 @@ export const ModelPage = () => {
             : undefined;
         const restoredThickness =
           typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
-        // The handle is chosen once for the composition, as placing the model chooses it: the price of the
-        // cabinets after the first, the rules and the handle menus read that choice.
-        const restoredHandle = selectAttribute(activeProfileRef.current, "Handle")
-          ? readSavedHandle(plan.fragment, presetProducts, activeProfileRef.current)
-          : undefined;
         record({
           ...toConfigurationValues({
             CountertopColor: globalConfig.CountertopColor,
@@ -1204,6 +1277,7 @@ export const ModelPage = () => {
       }
     },
     [
+      cabinetCatalog,
       configuratorGroups,
       composition,
       dispatch,

@@ -15,6 +15,11 @@
     background-color: var(--main-header-bg);
     --filter-row-padding-top: 12px;
   }
+
+  // Every filter of the row left out (nothing to choose) and no Clear All: no empty bar.
+  &:empty {
+    display: none;
+  }
 }
 
 @media (max-width: 767px) {

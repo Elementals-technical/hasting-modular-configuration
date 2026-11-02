@@ -8,12 +8,14 @@ import {
 import { FilterItem } from "@/features/filters/ui/filterItem/FilterItem";
 import { BaseButton } from "@/shared";
 import {
-  filterOptionsByMaterialSelection,
+  filterOptionsByMaterialTree,
   groupMaterialsHierarchically,
+  nestGbMaterials,
   sortOptionsByMaterialFilterOrder,
   toFilterOptions,
   type FilterOption,
   type MaterialFilterSelection,
+  type MaterialGroup,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
@@ -45,7 +47,7 @@ type ColorFilters = { materials: FilterOption[]; colors: FilterOption[]; looks: 
 const buildColorFilters = (
   options: ProductOptionData[],
   section: string,
-  hierarchy: ReturnType<typeof selectMaterialHierarchy>,
+  hierarchy: readonly MaterialGroup[],
 ): ColorFilters => ({
   materials: groupMaterialsHierarchically(
     toFilterOptions(
@@ -82,12 +84,16 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
     () => field.options.filter((option) => !option.desc).map(toProductOptionData),
     [field.options],
   );
-  const options = useMemo(
-    () => field.options.filter((option) => option.desc).map(toProductOptionData),
-    [field.options],
-  );
   const profile = useAppSelector(getActiveProductProfile);
-  const materialHierarchy = useMemo(() => selectMaterialHierarchy(profile), [profile]);
+  // A colour of a header material (Solid Surface) is filtered and grouped by its GB material (Technolite).
+  const { options, hierarchy: materialHierarchy } = useMemo(
+    () =>
+      nestGbMaterials(
+        field.options.filter((option) => option.desc).map(toProductOptionData),
+        selectMaterialHierarchy(profile),
+      ),
+    [field.options, profile],
+  );
   const filters = useMemo(
     () => buildColorFilters(options, title, materialHierarchy),
     [options, title, materialHierarchy],
@@ -103,7 +109,7 @@ export const ColorField = ({ field, title, onChange, onOrderSwatches, sortByTitl
     () =>
       sortOptions(
         filterOptionsByTier(
-          filterOptionsByMaterialSelection(options, selectedFilter),
+          filterOptionsByMaterialTree(options, filters.materials, selectedFilter),
           selectedFilter.tier,
           tierOverride,
         ),

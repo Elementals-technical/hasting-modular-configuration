@@ -1,0 +1,159 @@
+{
+  "server": "chrome-devtools",
+  "serverInfo": "chrome_devtools 1.12.0",
+  "tools": [
+    "click",
+    "close_page",
+    "drag",
+    "emulate",
+    "evaluate_script",
+    "fill",
+    "fill_form",
+    "get_console_message",
+    "get_css_styles",
+    "get_network_request",
+    "handle_dialog",
+    "hover",
+    "lighthouse_audit",
+    "list_console_messages",
+    "list_network_requests",
+    "list_pages",
+    "navigate_page",
+    "new_page",
+    "performance_analyze_insight",
+    "performance_start_trace",
+    "performance_stop_trace",
+    "press_key",
+    "resize_page",
+    "screencast_start",
+    "screencast_stop",
+    "select_page",
+    "take_heapsnapshot",
+    "take_screenshot",
+    "take_snapshot",
+    "type_text",
+    "upload_file",
+    "wait_for"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "tool": "list_pages",
+      "status": "ok",
+      "ms": 3193,
+      "summary": "## Pages [non-localhost tabs redacted] "
+    },
+    {
+      "step": 2,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 2326,
+      "summary": "Successfully navigated to http://localhost:5173/prebuilt/model?collectionId=tricot. ## Pages [non-localhost tabs redacted] "
+    },
+    {
+      "step": 4,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 228,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 5,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 244,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Cabinet Finishes <BUTTON>\" ``` Page navigated to http://localhost:5173/prebuilt/color?collectionId=tricot."
+    },
+    {
+      "step": 7,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 4010,
+      "summary": "Script ran on page and returned: ```json {\"cabinet\":{\"display\":\"flex\",\"paddingRight\":20,\"width\":669,\"filters\":[{\"name\":\"Material\",\"left\":20,\"gapToRight\":535},{\"name\":\"Color\",\"left\":145,\"gapToRight\":430},{\"name\":\"Price\",\""
+    },
+    {
+      "step": 8,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 135,
+      "summary": "image 11-tricot-cabinet-color-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 9,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 245,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Countertop & Basin <BUTTON>\" ``` Page navigated to http://localhost:5173/prebuilt/countertop?collectionId=tricot."
+    },
+    {
+      "step": 11,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 215,
+      "summary": "Script ran on page and returned: ```json {\"countertop\":{\"display\":\"flex\",\"paddingRight\":20,\"width\":669,\"filters\":[{\"name\":\"Material\",\"left\":20,\"gapToRight\":535},{\"name\":\"Color\",\"left\":145,\"gapToRight\":430},{\"name\":\"Look\""
+    },
+    {
+      "step": 12,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 119,
+      "summary": "image 22-tricot-countertop-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 13,
+      "tool": "navigate_page",
+      "status": "ok",
+      "ms": 1491,
+      "summary": "Successfully navigated to http://localhost:5173/prebuilt/model?collectionId=urban-standard-height. ## Pages [non-localhost tabs redacted] "
+    },
+    {
+      "step": 15,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 231,
+      "summary": "Script ran on page and returned: ```json \"NOT FOUND: Skip\" ```"
+    },
+    {
+      "step": 16,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 467,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Color <BUTTON>\" ``` Page navigated to http://localhost:5173/prebuilt/color?collectionId=urban-standard-height."
+    },
+    {
+      "step": 18,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 682,
+      "summary": "Script ran on page and returned: ```json \"clicked: Next: Countertop & Basin <BUTTON>\" ``` Page navigated to http://localhost:5173/prebuilt/countertop?collectionId=urban-standard-height."
+    },
+    {
+      "step": 20,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 220,
+      "summary": "Script ran on page and returned: ```json {\"countertop\":{\"display\":\"flex\",\"paddingRight\":20,\"width\":669,\"filters\":[{\"name\":\"Material\",\"left\":20,\"gapToRight\":535},{\"name\":\"Color\",\"left\":145,\"gapToRight\":430},{\"name\":\"Look\""
+    },
+    {
+      "step": 21,
+      "tool": "take_screenshot",
+      "status": "ok",
+      "ms": 111,
+      "summary": "image 35-ush-countertop-1.png; Took a screenshot of the current page's viewport."
+    },
+    {
+      "step": 22,
+      "tool": "evaluate_script",
+      "status": "ok",
+      "ms": 224,
+      "summary": "Script ran on page and returned: ```json {\"guard\":true,\"blockedWrites\":[]} ```"
+    },
+    {
+      "step": 23,
+      "tool": "list_console_messages",
+      "status": "ok",
+      "ms": 15,
+      "summary": "## Console messages Showing 1-20 of 20 (Page 1 of 1). msgid=95 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready Error Component Stack (2 args) msgid=96 [warn] \u001b[2;38;2;124;124;124m%s %o\u001b[0m [PlayCanvas] Config"
+    }
+  ]
+}

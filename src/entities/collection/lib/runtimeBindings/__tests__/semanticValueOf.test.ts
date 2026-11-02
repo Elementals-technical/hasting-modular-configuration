@@ -6,6 +6,7 @@ import ufBindingsDocument from "../../../../../../public/collections/urban-frees
 import { parseRuntimeBindings } from "../parseRuntimeBindings";
 import { sceneValueOf, semanticValueOf } from "../resolveRuntimeBinding";
 import { classRuntimeBindings } from "./classRuntimeBindingsFixture";
+import { makoRuntimeBindings } from "./makoRuntimeBindingsFixture";
 
 const ufResult = parseRuntimeBindings(ufBindingsDocument);
 if (!ufResult.ok) throw new Error("Urban Freestanding bindings failed validation");
@@ -22,6 +23,12 @@ describe("semanticValueOf", () => {
       "Zafferano 412 MT",
     );
     expect(semanticValueOf(tricotRuntimeBindings, "DrawerPanelFluting", "Gessatto")).toBe("Gessato");
+  });
+
+  it("reads Mako's leg material from a patch that also enables the legs", () => {
+    expect(semanticValueOf(makoRuntimeBindings, "LegColor", "Antracite 400 Lacquered MT")).toBe("Antracite 400 MT");
+    expect(semanticValueOf(makoRuntimeBindings, "LegColor", "Enable")).toBe("Enable");
+    expect(semanticValueOf(makoRuntimeBindings, "LegColor", "Gold")).toBe("Gold");
   });
 
   it("reads an identity binding's override as the value it replaces (Class)", () => {

@@ -13,6 +13,7 @@ import type { MessageParams } from "@/shared/lib/reasonText";
 export type ProductOptionMetadata = {
   colors?: string[];
   materials?: string[];
+  gbMaterial?: string;
   looks?: string[];
   hex?: string;
   value?: string;

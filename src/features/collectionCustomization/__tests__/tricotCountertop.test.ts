@@ -19,9 +19,11 @@ import {
 } from "@/entities/configuration";
 import { reset, setActiveProfile, setCabinetCatalog } from "@/entities/product/model/store/slice";
 import cabinetTable from "@/entities/collection/__tests__/fixtures/remote/datatable-592.json";
+import countertopTable from "@/entities/collection/__tests__/fixtures/remote/datatable-593.json";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import { evaluateCountertopChange } from "@/features/configurationCommands/lib/countertopCompatibility";
 import { changeAttribute } from "@/features/configurationCommands/lib/changeAttribute";
+import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop/parse";
 import { confirmAttributeChange } from "@/features/configurationCommands/lib/confirmAttributeChange";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import { createConfiguratorColorReader } from "@/shared/lib/sku/configuratorColors";
@@ -36,12 +38,20 @@ beforeEach(() => {
   store.dispatch(syncCabinets([tricotTestBindings.productTypes["Sink-Base"] + "-1"]));
 });
 
+// Table 593 as uploaded on 2026-10-30 names its 3-1/8" VA023 row Technomat, the GB material of Matte White 8cm.
+// The recorded fixture still names the row Solid Surface.
+const technomatMatrixProfile = {
+  ...tricotProfile,
+  countertopRules: parseCountertopMatrix({
+    ...countertopTable,
+    rows: countertopTable.rows.map((row) => (row.basin_style === "VA023" ? { ...row, material: "Technomat" } : row)),
+  }),
+};
+
 describe("Tricot countertop preparation", () => {
-  const withMatrix = (width = 60) => {
-    store.dispatch(setActiveProfile(tricotMatrixProfile));
-    store.dispatch(
-      setCabinetCatalog(buildCabinetCatalogFromMatrix(cabinetTable, tricotMatrixProfile, tricotTestBindings)),
-    );
+  const withMatrix = (width = 60, profile = tricotMatrixProfile) => {
+    store.dispatch(setActiveProfile(profile));
+    store.dispatch(setCabinetCatalog(buildCabinetCatalogFromMatrix(cabinetTable, profile, tricotTestBindings)));
     const id = tricotTestBindings.productTypes["Sink-Base"] + "-1";
     store.dispatch(
       recordSceneState({ order: [id], cabinets: [{ runtimeId: id, dimensions: { width, height: 40, depth: 52 } }] }),
@@ -94,6 +104,56 @@ describe("Tricot countertop preparation", () => {
       );
     },
   );
+
+  it.each(["prebuilt", "custom"] as const)(
+    'moves Matte White 8cm to its own 3-1/8" top in %s, clearing an LB basin, once table 593 names Technomat',
+    async (flow) => {
+      withMatrix(80, technomatMatrixProfile);
+      const runtime = createTestRuntimePort();
+      const deps = {
+        getState: store.getState,
+        dispatch: store.dispatch,
+        runtime: runtime.port,
+        flow,
+        configurator: tricotConfigurator,
+      };
+      const statusOf = async (attributeId: string, value: string, scope: "countertop" | "basin" = "countertop") =>
+        (
+          await changeAttribute(
+            scope === "basin"
+              ? { attributeId, scope, sinkBaseId: "cab-1", value }
+              : { attributeId, scope: "countertop", value },
+            deps,
+          )
+        ).status;
+
+      // Matte White, Technolite, keeps the Solid Surface rows: 1/2" or 4-3/4", the LB basins.
+      expect(await statusOf("CountertopColor", "Matte White")).toBe("applied");
+      expect(store.getState().rootStateUI.product.productOptions.Thickness).toBe("0.5");
+      expect(await statusOf("sinkType", "LB440", "basin")).toBe("applied");
+      expect(await statusOf("Thickness", "3.125")).toBe("blocked");
+
+      expect(await statusOf("CountertopColor", "Matte White 8cm")).toBe("applied");
+      expect(store.getState().rootStateUI.product.productOptions.Thickness).toBe("3.125");
+      expect(getAttributeValue(store.getState(), "sinkType", { scope: "basin", sinkBaseId: "cab-1" })).toBe("");
+      expect(await statusOf("Thickness", "0.5")).toBe("blocked");
+      expect(await statusOf("sinkType", "VA023", "basin")).toBe("applied");
+    },
+  );
+
+  it("refuses Matte White 8cm on a 60 cm Sink Base once table 593 names Technomat", () => {
+    withMatrix(60, technomatMatrixProfile);
+
+    expect(
+      evaluateCountertopChange(
+        { attributeId: "CountertopColor", scope: "countertop", value: "Matte White 8cm" },
+        { scope: "countertop" },
+        store.getState(),
+        technomatMatrixProfile,
+        tricotConfigurator,
+      ).blocked?.reasonCode,
+    ).toBe("change.notAvailable");
+  });
 
   // The matrix lists integrated basins only: a vessel and the bare cutout follow its vessel rules.
   it.each(["prebuilt", "custom"] as const)(

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"cabinet":{"display":"flex","paddingRight":20,"width":669,"filters":[{"name":"Material","left":20,"gapToRight":535},{"name":"Color","left":145,"gapToRight":430},{"name":"Price","left":558,"gapToRight":20}]},"groove":{"display":"flex","paddingRight":20,"width":669,"filters":[{"name":"Material","left":20,"gapToRight":535},{"name":"Color","left":145,"gapToRight":430},{"name":"Price","left":558,"gapToRight":20}]},"fullMode":{"display":"flex","paddingRight":20,"width":1120,"filters":[{"name":"Material","left":20,"gapToRight":987},{"name":"Color","left":145,"gapToRight":881},{"name":"Price","left":1010,"gapToRight":20}]}}
+```

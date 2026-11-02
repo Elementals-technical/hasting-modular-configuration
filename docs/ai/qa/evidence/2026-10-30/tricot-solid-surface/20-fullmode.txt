@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"dialog":true,"technolite":{"pick":"Technolite","count":1,"swatches":["Matte White"],"groups":["Technolite"]},"header":{"pick":"Solid Surface","count":2,"swatches":["Matte White","Matte White 8cm"],"groups":["Technolite","Technomat"]}}
+```

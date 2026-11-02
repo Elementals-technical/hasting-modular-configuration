@@ -1,0 +1,20 @@
+## Console messages
+Showing 1-18 of 18 (Page 1 of 1).
+msgid=8 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=10 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args) [2 times]
+msgid=19 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=24 [warn] [PlayCanvas] ConfiguratorAPI.setVisibleButtons not ready (1 args)
+msgid=27 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=29 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=30 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=34 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=36 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [6 times]
+msgid=42 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=43 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=49 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=50 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [6 times]
+msgid=56 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=57 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [6 times]
+msgid=63 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=64 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=79 [warn] [useAvailabilityResets] DrawerPanelFluting was not cleared [object Object] (2 args)

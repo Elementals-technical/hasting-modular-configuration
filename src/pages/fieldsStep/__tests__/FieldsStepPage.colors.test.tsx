@@ -65,7 +65,7 @@ const cabinetColors: ConfiguratorAvailableOption = {
           image: null,
           enabled: true,
           description: "",
-          metadata: { sku: "TKH", value: "Pulpis Chiaro TKH", image: "/api/files/hash/sha256-pulpis" },
+          metadata: { sku: "TKH", value: "Pulpis Chiaro TKH", image: "/api/files/hash/sha256-pulpis", Color: "White" },
         },
       ],
     },
@@ -268,7 +268,8 @@ describe("FieldsStepPage colour fields", () => {
     renderColorStep();
 
     const section = within(screen.getByRole("region", { name: "Cabinet Color" }));
-    const filterRow = section.getByText("Material").closest(`.${colorFieldStyles.filters}`);
+    // The colour names a colour and no material, look or price tier: Color is its one filter.
+    const filterRow = section.getByText("Color").closest(`.${colorFieldStyles.filters}`);
 
     expect(filterRow).not.toBeNull();
   });

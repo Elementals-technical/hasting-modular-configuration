@@ -6,6 +6,9 @@ export type PresetProduct = {
   /** Depth value used exclusively for SKU generation (e.g. 50 when canvas Depth is 50.5) */
   SkuDepth?: number;
   CabinetColor?: string;
+  /** Class: the side panels and frame have their own finishes. */
+  CabinetSideColor?: string;
+  FrameColor?: string;
   Drawers?: string;
   Handle?: string;
   sinkType?: string;

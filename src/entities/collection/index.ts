@@ -71,6 +71,7 @@ export {
   selectAttribute,
   selectConfiguratorGroup,
   selectConfiguratorSection,
+  selectConfiguratorVariant,
   selectDefaultValue,
   selectEffectiveFallback,
   selectInitialValue,

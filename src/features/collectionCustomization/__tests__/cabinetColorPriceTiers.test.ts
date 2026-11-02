@@ -44,6 +44,15 @@ const GB_TIERS: Record<string, number> = {
   GLSG: 2,
   SGLS: 2,
   WDV: 3,
+  MTL: 1,
+};
+
+/** The colour fields whose configurator group offers the Metal colours, Gold and Silver (SKU MTL). */
+const METAL_FIELDS: Record<string, string[]> = {
+  tricot: [],
+  lame: ["HandleColor", "LegColor", "UndertopColor"],
+  mako: ["HandleColor", "LegColor"],
+  class: [],
 };
 
 const parseProfile = (document: unknown): ProductProfile => {
@@ -105,9 +114,29 @@ const skusByTier = (options: ProductOptionData[], profile: ProductProfile | null
   );
 };
 
-describe.each(GB_COLLECTIONS)("$id colour price tiers", ({ profile, configurator, colourFields }) => {
+describe.each(GB_COLLECTIONS)("$id colour price tiers", ({ id, profile, configurator, colourFields }) => {
   it("are the GB block of the client's Material Pricing Tiers", () => {
     expect(profile.ruleData.priceTiers).toEqual({ bySku: GB_TIERS });
+  });
+
+  it("rank the Metal colours, Gold and Silver, as Standard $", () => {
+    const optionsOf = (attributeId: string) => resolveConfiguratorOptions(profile, attributeId, configurator);
+    const metalFields = colourFields.filter((attributeId) =>
+      optionsOf(attributeId).some(({ traits }) => traits?.sku?.trim().toUpperCase() === "MTL"),
+    );
+    expect(metalFields).toEqual(METAL_FIELDS[id]);
+
+    for (const attributeId of metalFields) {
+      const options = toGridOptions(optionsOf(attributeId));
+      const override = selectPriceTierOverride(profile, attributeId);
+
+      expect(buildTierFilterOptions(options, override)[0], attributeId).toMatchObject({ label: "Standard $" });
+      expect(
+        filterOptionsByTier(options, "tier-1", override)
+          .map(({ metadata }) => metadata?.value)
+          .sort(),
+      ).toEqual(["Gold", "Silver"]);
+    }
   });
 
   it.each(colourFields)("rank %s by the GB block, a material it does not list by the shared table", (attributeId) => {

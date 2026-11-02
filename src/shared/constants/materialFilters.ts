@@ -203,6 +203,61 @@ export const materialFilterValuesMatch = (optionMaterial: string, selectedMateri
   return normalizeGroupToken(optionMaterial) === normalizeGroupToken(selectedMaterial);
 };
 
+const isGroupHeader = (group: MaterialGroup, token: string) =>
+  [group.label, group.value, ...(group.aliases ?? [])].some((alias) => materialFilterValuesMatch(alias, token));
+
+const isGroupChild = (group: MaterialGroup, token: string) =>
+  group.childValues.some((child) => materialFilterValuesMatch(child, token));
+
+/**
+ * A colour whose material is only a group's header (Solid Surface) and whose configurator names its GB
+ * material (Technolite, Technomat) is filtered and grouped by that GB material, which joins the group's
+ * children. A colour that already names a child material (Glass GL, as Glass Gloss) or a material of no
+ * group (HPL) keeps its materials.
+ */
+export const nestGbMaterials = (
+  options: ProductOptionData[],
+  hierarchy: readonly MaterialGroup[] = LEGACY_MATERIAL_HIERARCHY,
+): { options: ProductOptionData[]; hierarchy: MaterialGroup[] } => {
+  const types = new Map<string, string[]>();
+
+  const nested = options.map((option) => {
+    const gbMaterial = option.metadata?.gbMaterial?.trim();
+    const materials = option.metadata?.materials ?? [];
+    const group = gbMaterial
+      ? hierarchy.find((candidate) => materials.some((material) => isGroupHeader(candidate, material)))
+      : undefined;
+    if (
+      !gbMaterial ||
+      !group ||
+      isGroupHeader(group, gbMaterial) ||
+      materials.some((material) => isGroupChild(group, material))
+    ) {
+      return option;
+    }
+
+    const groupTypes = types.get(group.value) ?? [];
+    if (!groupTypes.includes(gbMaterial)) types.set(group.value, [...groupTypes, gbMaterial]);
+
+    return {
+      ...option,
+      desc: option.desc && isGroupHeader(group, option.desc) ? gbMaterial : option.desc,
+      metadata: {
+        ...option.metadata,
+        materials: [...new Set(materials.map((material) => (isGroupHeader(group, material) ? gbMaterial : material)))],
+      },
+    };
+  });
+
+  return {
+    options: nested,
+    hierarchy: hierarchy.map((group) => {
+      const groupTypes = types.get(group.value);
+      return groupTypes ? { ...group, childValues: [...group.childValues, ...groupTypes] } : group;
+    }),
+  };
+};
+
 const flattenFilterOptionsInOrder = (options: FilterOption[]): string[] =>
   options.flatMap((option) => {
     const ownValues = [option.label, option.value].filter(Boolean);
@@ -368,4 +423,21 @@ export const filterOptionsByMaterialSelection = (
 
     return materialMatch && colorMatch && lookMatch && hexMatch;
   });
+};
+
+/** The options the selection keeps, its material read through the filter tree: a header (Glass, Solid Surface) keeps every material under it. */
+export const filterOptionsByMaterialTree = (
+  options: ProductOptionData[],
+  materialTree: readonly FilterOption[],
+  selection: MaterialFilterSelection,
+): ProductOptionData[] => {
+  const byOtherFilters = filterOptionsByMaterialSelection(options, { ...selection, material: undefined });
+  const selectedMaterials = resolveSelectedMaterialFilterValues(materialTree, selection.material);
+  if (selectedMaterials.length === 0) return byOtherFilters;
+
+  return byOtherFilters.filter((option) =>
+    selectedMaterials.some((selected) =>
+      (option.metadata?.materials ?? []).some((material) => materialFilterValuesMatch(material, selected)),
+    ),
+  );
 };

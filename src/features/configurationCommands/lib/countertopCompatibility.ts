@@ -3,7 +3,7 @@ import {
   isVesselBasin,
   normalizeOptionValue,
   selectAttribute,
-  selectConfiguratorGroup,
+  selectConfiguratorVariant,
   selectOption,
   selectDefaultValue,
   selectMessage,
@@ -21,6 +21,7 @@ import {
   buildCountertopRuleState,
   type CountertopRuleResult,
 } from "@/features/configurator-rule-core/countertop/rules";
+import { resolveCountertopRuleMaterials } from "@/features/configurator-rule-core/countertop/materialAvailability";
 import { parseThicknessValue, normalizeBasinKey } from "@/features/configurator-rule-core/countertop/parse";
 import {
   INTEGRATED_DRAWERS_REASON,
@@ -29,16 +30,17 @@ import {
 import { calcTotalCountertopWidthCm, getSidePanelWidthCm } from "@/entities/countertop";
 import type { AttributeChange, ChangeBlockedReason, ConfirmationReason, PlannedChange } from "../model/types";
 
-/** The material a configurator section lists a countertop colour under, as the matrix names it ("Glass MT"). */
+/**
+ * A material a configurator section gives a countertop colour: the one it lists it under, as the matrix names it
+ * ("Glass MT"), or its GB material ("Technomat").
+ */
 const configuratorMaterialOf = (
   profile: ProductProfile,
   configurator: ConfiguratorGroupCatalog | null,
   value: string,
+  key: "Material" | "GBMaterial" = "Material",
 ): string | undefined => {
-  const variant = selectConfiguratorGroup(profile, "CountertopColor", configurator)
-    ?.options.flatMap(({ variants }) => variants)
-    .find((candidate) => (candidate.metadata?.value ?? candidate.name) === value);
-  const material = variant?.metadata?.Material;
+  const material = selectConfiguratorVariant(profile, "CountertopColor", configurator, value)?.metadata?.[key];
   return typeof material === "string" && material ? material : undefined;
 };
 
@@ -135,6 +137,12 @@ export const evaluateCountertopChange = (
     selectOption(profile, "CountertopColor", canonical)?.category ??
     configuratorMaterialOf(profile, configurator, canonical);
   if (!category) return { blocked: invalid(), dependencies };
+  const ruleMaterials = resolveCountertopRuleMaterials(
+    [category],
+    configuratorMaterialOf(profile, configurator, canonical, "GBMaterial"),
+    profile.countertopRules,
+    profile,
+  );
   const colorChange = change.attributeId === "CountertopColor";
   const thickness = colorChange ? "" : read("Thickness", options.Thickness);
   if (leftOut.length) return { blocked: vesselOnly, dependencies };
@@ -158,7 +166,7 @@ export const evaluateCountertopChange = (
     sinkBases.map((c) =>
       buildCountertopRuleState({
         rules: profile.countertopRules ?? [],
-        activeMaterialTokens: [category],
+        activeMaterialTokens: ruleMaterials,
         width: dimensions[c.stableKey]?.width ?? null,
         sinkBaseWidth: dimensions[c.stableKey]?.width ?? null,
         totalWidth,

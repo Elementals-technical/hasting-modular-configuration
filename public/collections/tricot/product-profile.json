@@ -436,7 +436,8 @@
         "GLSM": 2,
         "GLSG": 2,
         "SGLS": 2,
-        "WDV": 3
+        "WDV": 3,
+        "MTL": 1
       }
     },
     "vesselCompatibility": {
