@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/model?collectionId=lame&preset=8","price":"$5,559.00","storeFound":true,"state":{"SidePanels":"","L":"none","R":"none","CountertopColor":"Matte White","CountertopColorSku":"SSTL","Thickness":"0.5","CountertopStyle":"Integrated","sinkType":"LB175","activeCabinetType":null,"selectedSceneProduct":"","dimH":26,"cfgName":null,"cfgDrawers":null,"cfgHeight":null},"sceneReady":true,"productsErr":"TypeError: api.composition.getAllProducts is not a function","sidePanelEntities":0,"sidePanelSample":[],"dialogs":[],"notices":[],"guard":{"on":true,"blocked":[]}}
+```

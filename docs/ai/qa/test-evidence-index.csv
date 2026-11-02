@@ -93,3 +93,13 @@ TC-MAKO-FAUCET-HINTS,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/smoke-log.
 TC-LAME-FAUCET-HINTS,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/smoke-log.json
 TC-TRICOT-FAUCET-HINTS,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/tricot-41-value-1.png
 TC-USH-FAUCET-HINTS-BASELINE,PASS,docs/ai/qa/evidence/2026-10-29/faucet-hints/urban-standard-height-fresh/smoke-log.json
+TC-TRICOT-T7-REPRO-MOBILE,FAIL,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/before-p98qb-mobile/32-ct-after-mw.txt
+TC-TRICOT-T7-FIX-MOBILE,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-mobile/23-mw.txt
+TC-TRICOT-T7-FIX-TICKET-ORDER,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-ticket-order/23-mw.txt
+TC-TRICOT-T7-FIX-DESKTOP,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-desktop/23-mw.txt
+TC-LAME-T7-FIX-MOBILE,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-lame-mobile/23-color.txt
+TC-USH-T7-SYNTESI-BASELINE,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-ush-syntesi/23-syn.txt
+TC-LAME-T7-REPRO-DESKTOP-SEEN,FAIL,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/before-p98qb-desktop-seen-lame/23-first.txt
+TC-TRICOT-T7-REPRO-DESKTOP-SEEN,FAIL,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/before-p98qb-desktop-seen-tricot/36-second.txt
+TC-LAME-T7-FIX-DESKTOP-SEEN,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-desktop-seen-lame/23-first.txt
+TC-TRICOT-T7-FIX-DESKTOP-SEEN,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-T7/after-local-desktop-seen-tricot/36-second.txt

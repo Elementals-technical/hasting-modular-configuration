@@ -105,13 +105,16 @@ export function setupSidePanelListener(startListening: StartListeningFn) {
 
       if (!currentSidePanels || currentSidePanels === "None") return;
 
-      // Skip when selected entity is not a SP-eligible cabinet (OS, OSS, countertop, towel bar).
+      const availability = selectSidePanelAvailability(state);
       const isSbSc =
         mapCabinetTypeToGroup(state.rootStateUI.product.activeCabinetType, state.rootStateUI.product.activeProfile) ===
         "SBSC";
-      if (!isCountertopMaterialChange && !isSbSc) return;
 
-      const availability = selectSidePanelAvailability(state);
+      // A countertop colour concerns the panels only through the Syntesi rule: with no cabinet selected yet the
+      // availability is empty too, and that does not forbid them. Every other trigger is about the selected
+      // cabinet, so it counts only on a SP-eligible one (not OS, OSS, countertop, towel bar).
+      const concernsPanels = isCountertopMaterialChange ? availability.reasonCode === "syntesi-countertop" : isSbSc;
+      if (!concernsPanels) return;
 
       const productConfig = getSelectedProductConfig(state);
       const handle = productConfig && typeof productConfig.Handle === "string" ? productConfig.Handle : null;

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+["Lame Models","Color","Countertop & Basin","Accessories","Faucet Details","Summary","(disabled) ","Summary View →","Size","Style","Product Details","Quote","Next: Color"]
+```

@@ -1,0 +1,39 @@
+## Console messages
+Showing 1-18 of 18 (Page 1 of 1).
+msgid=8 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=10 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args) [2 times]
+msgid=19 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=24 [warn] [PlayCanvas] ConfiguratorAPI.setVisibleButtons not ready (1 args)
+msgid=27 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=29 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=30 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=32 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=34 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [6 times]
+msgid=40 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=41 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=47 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=48 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=50 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=51 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=53 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=54 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=62 [error] Failed to compile fragment shader:
+
+ERROR: 0:424: 'vNormalW' : undeclared identifier
+WARNING: 0:424: 'normalize' : operation result is undefined for the values passed in
+ERROR: 0:424: 'normalize' : no matching overloaded function found
+ERROR: 0:424: '=' : dimension mismatch
+ERROR: 0:424: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'
+
+  419:	    vec3 axisY = normalize(matrix_model[1].xyz);
+  420:	    vec3 axisZ = normalize(matrix_model[2].xyz);
+  421:	    mat3 rotationMatrix = mat3(axisX, axisY, axisZ);
+  422:	    vec3 localPos = (vPositionW - offset) * rotationMatrix;
+  423:	
+> 424:	    vec3 localNormal = normalize(normalize(vNormalW) * rotationMatrix);
+  425:	    vec3 blend = vec3(abs(localNormal.x), abs(localNormal.y), abs(localNormal.z));
+  426:	    blend /= (dot(blend, vec3(1.0)) + 0.0001);
+  427:	
+  428:	    float sX = (tri_scale > 0.001) ? tri_scale : 1.0;
+  429:	
+ while rendering undefined (1 args) [2 times]

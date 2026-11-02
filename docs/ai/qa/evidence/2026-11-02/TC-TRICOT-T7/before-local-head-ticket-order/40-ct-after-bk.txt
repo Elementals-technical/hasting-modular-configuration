@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/countertop?collectionId=tricot","price":"$11,842.00","storeFound":true,"state":{"SidePanels":"NoG","L":"active","R":"auto-removed","CountertopColor":"BIANCO KOS 250","CountertopColorSku":"HPL","Thickness":"0.5","CountertopStyle":"Integrated","sinkType":"VA024","activeCabinetType":"Sink-Base","selectedSceneProduct":"","dimH":40,"cfgName":"Tricot-sink-cabinet","cfgDrawers":"1D","cfgHeight":40},"sceneReady":true,"productsErr":"TypeError: api.composition.getAllProducts is not a function","sidePanelEntities":2,"sidePanelSample":["Tricot-SidePanel_Left-km29860ne","Tricot_SidePanel_Panel"],"dialogs":[],"notices":[],"guard":{"on":true,"blocked":[]}}
+```
