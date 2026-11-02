@@ -87,7 +87,12 @@ import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPo
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import type { SceneRestoreMatch } from "@/entities/configuration";
 import { NOT_CARRIED_ATTRIBUTE_IDS, useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
-import { matchSavedStableKeys, useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
+import {
+  matchSavedStableKeys,
+  resolveTowelBarOption,
+  useRestoreSavedConfiguration,
+} from "@/features/configurationRestore";
+import type { RestorePlan } from "@/features/configurationRestore";
 import { readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -184,6 +189,12 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   }
 
   return globalConfig;
+};
+
+/** A text value of the saved ui state; an empty one says nothing. */
+const readSavedText = (uiState: RestorePlan["uiState"], key: string): string | undefined => {
+  const value = uiState[key];
+  return typeof value === "string" && value ? value : undefined;
 };
 
 /**
@@ -1133,15 +1144,27 @@ export const ModelPage = () => {
           },
           presetProducts,
         );
+        // Only a collection that offers a towel bar reads one: the others have no scene translation for it.
+        const restoredTowelBarOption = selectAttribute(activeProfileRef.current, "TowelBarOption")
+          ? resolveTowelBarOption(
+              readSavedText(uiStateValues, "TowelBarOption"),
+              readSavedText(uiStateValues, "TowelBarSide"),
+            )
+          : undefined;
+        const restoredTowelBarColor = selectAttribute(activeProfileRef.current, "TowelBarColor")
+          ? readSavedText(uiStateValues, "TowelBarColor")
+          : undefined;
 
-        // The restorer placed the saved configs as they are. The configuration's countertop and basin
-        // are shown on them again, as placing the preset does.
+        // The restorer placed the saved configs as they are. The configuration's countertop, basin and
+        // towel bar are shown on them again, as placing the preset does.
         const replayed = await replay({
           send: {
             ...countertopValuesAfterPlacement(globalConfig),
             ...(restoredVesselColor !== undefined
               ? { VesselColor: restoredVesselColor }
               : toConfigurationValues({ VesselColor: globalConfig.VesselColor })),
+            ...(restoredTowelBarOption ? { TowelBarOption: restoredTowelBarOption } : {}),
+            ...(restoredTowelBarColor ? { TowelBarColor: restoredTowelBarColor } : {}),
           },
           record: false,
         });
@@ -1209,6 +1232,18 @@ export const ModelPage = () => {
             : undefined;
         const restoredThickness =
           typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
+        const restoredDrawerPanelFluting = readSavedText(uiStateValues, "DrawerPanelFluting");
+        const restoredGrainDirection = readSavedText(uiStateValues, "GrainDirection");
+        // A towel bar without a colour of its own is saved as none.
+        const towelBarColorToRecord = restoredTowelBarColor ?? (restoredTowelBarOption === "None" ? "" : undefined);
+
+        // Recording a pattern writes it into every preset, but the presets keep what each cabinet was
+        // saved with (Tricot cabinets differ, and Customize places them from the presets). So the pattern
+        // is recorded alone and the presets are put back, before the values below add to them.
+        if (restoredDrawerPanelFluting) {
+          record({ DrawerPanelFluting: restoredDrawerPanelFluting });
+          dispatch(addProductPreset(effectivePresets));
+        }
         record({
           ...toConfigurationValues({
             CountertopColor: globalConfig.CountertopColor,
@@ -1226,6 +1261,9 @@ export const ModelPage = () => {
           ...(restoredHandleGrooveColor ? { HandleGrooveColor: restoredHandleGrooveColor } : {}),
           ...(restoredThickness ? { Thickness: restoredThickness } : {}),
           ...(restoredHandle ? { Handle: restoredHandle } : {}),
+          ...(restoredGrainDirection ? { GrainDirection: restoredGrainDirection } : {}),
+          ...(restoredTowelBarOption ? { TowelBarOption: restoredTowelBarOption } : {}),
+          ...(towelBarColorToRecord !== undefined ? { TowelBarColor: towelBarColorToRecord } : {}),
         });
         if (globalConfig.CountertopColor) {
           if (restoredCountertopColorSku) {
