@@ -1,6 +1,7 @@
 import { createSceneIcon } from "@/shared/ui/AppIcon/createSceneIcon";
 
 import { renderDrawerCloseWidget } from "@/utils/functions/playcanvas/drawerCloseWidget";
+import { protectDrawerWidgetInput } from "@/utils/functions/playcanvas/drawerWidgetInput";
 import { onDrawerCloseWidgetRender, onDrawerWidgetRender } from "@/utils/functions/playcanvas/drawerWidgetRenderers";
 
 const configuratorApi = () => window.containerRef?.current?.contentWindow?.ConfiguratorAPI;
@@ -38,6 +39,7 @@ export const installDrawerWidgets = () => {
 
     const button = document.createElement("button");
     button.type = "button";
+    protectDrawerWidgetInput(button);
     const label = document.createElement("span");
     label.textContent = "Open Drawer";
     const plus = document.createElement("span");

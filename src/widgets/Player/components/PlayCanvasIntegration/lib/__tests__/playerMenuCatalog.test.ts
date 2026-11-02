@@ -83,10 +83,11 @@ describe("resolvePlayerMenuSupport", () => {
     }
   });
 
-  it("hides Open for Class, as its ui.json asks, and keeps it for Mako", () => {
+  it("offers Open for all four Ph2 drawer collections in every flow", () => {
     for (const flowId of CUSTOMIZATION_FLOW_IDS) {
-      expect(supportOf("class", flowId).items.has("open")).toBe(false);
-      expect(supportOf("mako", flowId).items.has("open")).toBe(true);
+      for (const collection of ["class", "mako", "lame", "tricot"]) {
+        expect(supportOf(collection, flowId).items.has("open")).toBe(true);
+      }
     }
   });
 

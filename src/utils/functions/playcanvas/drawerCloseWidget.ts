@@ -1,3 +1,5 @@
+import { protectDrawerWidgetInput } from "./drawerWidgetInput";
+
 const DRAWER_CLOSE_VIEWPORT_PADDING_PX = 28;
 
 type DrawerCloseWidgetOptions = {
@@ -20,6 +22,24 @@ export const clampDrawerCloseWidgetToViewport = (
   const rect = parentEl.getBoundingClientRect();
 
   if (rect.width <= 0 || rect.height <= 0) return;
+
+  // The parent toolbar is drawn above the iframe. An in-frame viewport clamp alone can leave Close behind Undo/Redo.
+  const frame = parentEl.ownerDocument.defaultView?.frameElement;
+  const toolbar = frame?.ownerDocument.querySelector("[data-canvas-toolbar]");
+  if (frame && toolbar) {
+    const frameRect = frame.getBoundingClientRect();
+    const toolbarRect = toolbar.getBoundingClientRect();
+    if (
+      toolbarRect.width > 0 &&
+      toolbarRect.height > 0 &&
+      toolbarRect.right > frameRect.left &&
+      toolbarRect.left < frameRect.right &&
+      toolbarRect.top > frameRect.top &&
+      toolbarRect.top < frameRect.bottom
+    ) {
+      viewportHeight = Math.min(viewportHeight, toolbarRect.top - frameRect.top);
+    }
+  }
 
   const currentLeft = toFinitePx(parentEl.style.left);
   const currentTop = toFinitePx(parentEl.style.top);
@@ -100,6 +120,7 @@ export function renderDrawerCloseWidget(parentEl: HTMLDivElement, { onClick }: D
 
   const button = document.createElement("button");
   button.type = "button";
+  protectDrawerWidgetInput(button);
   button.textContent = "Close";
   button.style.background = "#282828";
   button.style.color = "#fff";
