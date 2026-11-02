@@ -2,6 +2,8 @@ import type { AppDispatch, RootState } from "@/app/store";
 import { LEGACY_COLLECTION_ID } from "@/entities/collection";
 import {
   finishRestore,
+  restoreExplicitUserChoices,
+  setActivePrebuiltPresetId,
   getActiveCollectionId,
   isRestoreInFlightOrDone,
   isSinkBase,
@@ -100,6 +102,8 @@ export const restoreSavedConfiguration = async (
     if (scene.status === "rejected") return fail("scene", joinMessages(scene.issues));
 
     sceneChanged = true;
+    dispatch(restoreExplicitUserChoices({}));
+    dispatch(setActivePrebuiltPresetId(null));
     await applyPage(built.plan, scene.matches);
     applyRestoredIdentity(built.plan, scene.matches, dispatch, (sceneType) => isSinkBase(getState(), sceneType));
 

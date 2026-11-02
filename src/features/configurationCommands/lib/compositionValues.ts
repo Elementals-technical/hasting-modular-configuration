@@ -7,6 +7,7 @@ import {
   getCabinetEntries,
   getValuesByAttributeId,
   isSameTarget,
+  isExplicitUserChoice,
 } from "@/entities/configuration";
 import type { AttributeValue } from "@/entities/configuration";
 import type { ProductProfile, RuntimeBindingSet } from "@/entities/collection";
@@ -123,9 +124,23 @@ export const selectPlacedWithValues = (
       if (TYPED_COMMIT_ATTRIBUTE_IDS.includes(attributeId)) return [];
       if (isBroadcastCabinetValue(profile, bindings, attributeId)) return [];
 
+      if (chosenOnly && !isExplicitUserChoice(state, attributeId)) return [];
       const held = compositionValueOf(recorded[attributeId], firstCabinetId);
       const value = held !== undefined ? held : chosenOnly ? null : selectDefaultValue(profile, attributeId);
       return value === null || value === "" ? [] : [[attributeId, value]];
     }),
   );
+};
+
+/** Starting values for attributes placed on each module; authored model fields beat these defaults. */
+export const selectPlacedWithDefaults = (state: RootState): Record<string, AttributeValue> => {
+  const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
+  if (!profile || !bindings) return {};
+  return Object.fromEntries(profile.attributes.flatMap(({ attributeId }) => {
+    const binding = selectRuntimeBinding(bindings, attributeId);
+    if (binding?.status !== "bound" || !binding.placedWithNewProducts || TYPED_COMMIT_ATTRIBUTE_IDS.includes(attributeId) || isBroadcastCabinetValue(profile, bindings, attributeId)) return [];
+    const value = selectDefaultValue(profile, attributeId);
+    return value === null || value === "" ? [] : [[attributeId, value]];
+  }));
 };

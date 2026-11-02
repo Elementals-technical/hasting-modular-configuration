@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
@@ -56,6 +56,7 @@ import { configuratorSchema, countertopDatatableSchema } from "@/entities/collec
 import {
   clearRestore,
   getAttributeValue,
+  setExplicitUserChoice,
   getRestoreState,
   resetConfiguration,
   setActiveCollectionId,
@@ -72,6 +73,7 @@ import {
   getCountertopStyle,
   getDrawerPanelFluting,
   getGrainDirection,
+  getHandleGrooveColor,
   getProductsPresets,
   getSidePanelLeftStatus,
   getSidePanelRightStatus,
@@ -592,6 +594,23 @@ describe("tricot: a Prebuilt order opened from its link", () => {
     mocks.sceneReady = true;
   });
 
+  it("records the model's groove for pricing before Customize, replacing stale automatic state", async () => {
+    const composition = createTestCompositionPort();
+    const id = "Tricot-sink-cabinet-placed";
+    composition.answerNext({
+      status: "applied", placed: [id],
+      scene: { status: "ready", order: [id], cabinets: [{ runtimeId: id, dimensions: { width: 60, height: 40, depth: 52 } }] },
+    });
+    mocks.ports = { composition: composition.port, runtime: createTestRuntimePort().port };
+    recordValues({ HandleGrooveColor: "Agata 407 MT" }, { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" });
+    expect(getHandleGrooveColor(store.getState())).toBe("Agata 407 MT");
+    renderAt(tricot, "/prebuilt/model?collectionId=tricot&preset=1190388679", <ModelPage />, true);
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBe(1190388679));
+    expect(composition.calls[0]).toMatchObject({ op: "replace", request: { shared: { HandleGrooveColor: "Nero 433 MT" } } });
+    expect(getHandleGrooveColor(store.getState())).toBe("Nero 433 MT");
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+  });
+
   /** Two cabinets with a pattern each; the ui state holds the last one chosen. */
   const savedWithTwoPatterns = (uiState: Record<string, string> = {}): ConfigurationRecord => ({
     configuration: {
@@ -997,6 +1016,11 @@ describe("Class model selection", () => {
       { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" },
     );
 
+    // These are deliberate UI choices; a record-only bootstrap is not carry intent.
+    for (const attributeId of ["CabinetColor", "CabinetSideColor", "FrameColor", "CountertopColor", "CountertopStyle", "sinkType", "Thickness", "VesselColor", "FaucetHolesAmount"]) {
+      store.dispatch(setExplicitUserChoice({ attributeId, chosen: true }));
+    }
+
     renderAt(testCase, "/prebuilt/model?collectionId=class", <ModelPage />, true);
     // Returning to this step alone must keep the user's configuration.
     expect(getCountertopStyle(store.getState())).toBe(style);
@@ -1052,18 +1076,15 @@ describe.each(CASES)("$collectionId: Customize on a model card", (testCase) => {
     mocks.sceneReady = false;
   });
 
-  it("starts Custom from the basin and style the page falls back to, not an earlier pick", async () => {
+  it("does not replace the configuration or enter Custom when the selected model cannot be placed", async () => {
     // A basin picked on the Countertop & Basin step is the composition's too.
     store.dispatch(setActiveBasinStyle("VA002"));
     store.dispatch(setAttributeValue({ attributeId: "sinkType", target: { scope: "basin" }, value: "VA002" }));
 
     renderAt(testCase, `/prebuilt/model?collectionId=${testCase.collectionId}`, <ModelPage />, true);
-    fireEvent.click((await screen.findAllByText("Customize"))[0]);
-    await waitFor(() => expect(getProductsPresets(store.getState()).length).toBeGreaterThan(0));
-
-    // The model's products carry no basin, so the page falls back to the collection's.
-    const state = store.getState();
-    expect(getAttributeValue(state, "sinkType", { scope: "basin" })).toBe(getSinkType(state));
-    expect(getAttributeValue(state, "CountertopStyle", { scope: "countertop" })).toBe(getCountertopStyle(state));
+    await act(async () => { fireEvent.click((await screen.findAllByText("Customize"))[0]); });
+    expect(getProductsPresets(store.getState())).toHaveLength(0);
+    expect(getSinkType(store.getState())).toBe("VA002");
+    expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBeNull();
   });
 });

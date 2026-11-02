@@ -1,6 +1,8 @@
 import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { recordValues } from "@/features/configurationCommands/lib/replayValues";
 import { store } from "@/app/store";
 import { rootReducer } from "@/app/store/reducer";
 import {
@@ -13,11 +15,13 @@ import {
   requestSceneStateSync,
   resetConfiguration,
   setActiveCollectionId,
+  setActivePrebuiltPresetId,
+  setExplicitUserChoice,
   syncCabinets,
 } from "@/entities/configuration";
 import type { ConfigurationRecord, SceneRestoreMatch } from "@/entities/configuration";
 import { clearHistory } from "@/entities/history/model/store/slice";
-import { addProductId, reset, resetProducts } from "@/entities/product/model/store/slice";
+import { addProductId, reset, resetProducts, setActiveProfile } from "@/entities/product/model/store/slice";
 import { setupSceneStateListener } from "@/features/configurationCommands";
 import { createTestSceneReader } from "@/features/playCanvasAdapter";
 import { createTestSceneRestorer } from "@/features/playCanvasAdapter/lib/testSceneRestorer";
@@ -96,9 +100,29 @@ describe("restoreSavedConfiguration", () => {
   });
 
   it("rebuilds the cabinets, gives them their saved keys and values and starts the history over", async () => {
-    const { scene, restore } = setUp();
+    store.dispatch(setActiveProfile(ushProfile));
+    const record = savedRecord();
+    record.metadata.uiState = { CabinetColor: "Rovere Moro 934", CountertopColor: "Automatic top" };
+    store.dispatch(setExplicitUserChoice({ attributeId: "CabinetColor", chosen: true }));
+    store.dispatch(setExplicitUserChoice({ attributeId: "HandleGrooveColor", chosen: true }));
+    store.dispatch(setActivePrebuiltPresetId(13));
+    const { scene, restore, applyPage } = setUp(record);
+    const applyBase = applyPage.getMockImplementation();
+    applyPage.mockImplementationOnce(async (plan, matches) => {
+      await applyBase?.(plan, matches);
+      recordValues({ CabinetColor: "Rovere Moro 934", CountertopColor: "Automatic top" }, {
+        getState: store.getState, dispatch: store.dispatch, flow: "custom",
+      });
+    });
 
     const result = await restore();
+    // Matching saved values carry no evidence that they were explicit user choices.
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+    expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBeNull();
+    expect(store.getState().rootStateUI.product.productOptions).toMatchObject({
+      CabinetColor: "Rovere Moro 934",
+      CountertopColor: "Automatic top",
+    });
 
     expect(result.status).toBe("restored");
     expect(scene.requests[0].products.map(({ sourceId }) => sourceId)).toEqual([

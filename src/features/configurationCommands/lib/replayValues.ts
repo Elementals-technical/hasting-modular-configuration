@@ -13,8 +13,10 @@ import {
   getCabinetEntries,
   getValuesByAttributeId,
   markRuntimeOutOfSync,
+  configurationReducer,
   requestSceneStateSync,
 } from "@/entities/configuration";
+import { productReducer } from "@/entities/product/model/store/slice";
 import type { AttributeValue, ConfigurationRuntimePort, ValueTarget } from "@/entities/configuration";
 
 import { buildCommitContext, buildRuntimeContext } from "./applyPlan";
@@ -169,7 +171,18 @@ export const replayValues = async (
           : [change];
       });
     }
-    const color = String(send.CabinetColor ?? state.rootStateUI.product.productOptions.CabinetColor);
+    // Validate the whole proposed batch together, without publishing optimistic values.
+    // A basin in the same batch as its valid thickness must not see the previous empty thickness.
+    let proposed = state;
+    const context = buildRuntimeContext(state, collectionId, flow);
+    const proposedChanges = record ? sendChanges.flatMap((change) => resolveBasinTargets(change.target, findSinkBaseKeys(state)).map((target) => ({ ...change, target }))) : sendChanges;
+    for (const action of commitPlan(proposedChanges, buildCommitContext(state, context, configurator))) {
+      proposed = { ...proposed, rootStateUI: { ...proposed.rootStateUI,
+        product: productReducer(proposed.rootStateUI.product, action),
+        configuration: configurationReducer(proposed.rootStateUI.configuration, action),
+      } };
+    }
+    const color = String(proposed.rootStateUI.product.productOptions.CabinetColor);
     const material = resolveColorTraits(color, configurator ?? null, profile)?.material;
     for (const change of sendChanges) {
       const canonical =
@@ -178,8 +191,8 @@ export const replayValues = async (
           : change.value;
       const request = { attributeId: change.attributeId, value: canonical, ...change.target };
       const verdict = selectAttribute(profile, change.attributeId) ? validateChange(request, profile) : { ok: true };
-      const undetermined = checkUndetermined(request, change.target, state, profile);
-      const countertop = evaluateCountertopChange(request, change.target, state, profile, configurator ?? null);
+      const undetermined = checkUndetermined(request, change.target, proposed, profile);
+      const countertop = evaluateCountertopChange(request, change.target, proposed, profile, configurator ?? null);
       const invalidPattern =
         change.attributeId === "DrawerPanelFluting" &&
         Boolean(canonical) &&

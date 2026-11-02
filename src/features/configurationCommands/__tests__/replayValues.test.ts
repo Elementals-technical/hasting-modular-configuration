@@ -1,11 +1,17 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { resolveRuntimeBinding } from "@/entities/collection";
+import { tricotMatrixProfile, tricotRuntimeBindings, tricotConfigurator } from "@/entities/collection/__tests__/tricotFixtures";
+import { toSceneValue } from "../lib/sceneValue";
+import { evaluateCountertopChange } from "../lib/countertopCompatibility";
+import { validateChange } from "../lib/validateChange";
 import { store } from "@/app/store";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
   getRuntimeSyncState,
   resetConfiguration,
+  recordSceneState,
   setActiveCollectionId,
   setActiveRuntimeBindings,
   syncCabinets,
@@ -37,6 +43,28 @@ describe("replayValues", () => {
     store.dispatch(setActiveCollectionId("urban-standard-height"));
     store.dispatch(setActiveRuntimeBindings(ushRuntimeBindings));
     store.dispatch(syncCabinets(["runtime-a", "runtime-b"]));
+  });
+
+  it("validates a countertop batch against its coherent proposed values while retaining material checks", async () => {
+    store.dispatch(setActiveProfile(tricotMatrixProfile));
+    store.dispatch(setActiveCollectionId("tricot"));
+    store.dispatch(setActiveRuntimeBindings(tricotRuntimeBindings));
+    store.dispatch(syncCabinets(["Tricot-sink-cabinet-test"]));
+    const runtime = createTestRuntimePort();
+    const deps = { ...depsWith(runtime.port), configurator: tricotConfigurator };
+    recordValues({ CabinetColor: "Rovere Oro 932", CountertopColor: "BIANCO KOS 250", CountertopStyle: "integrated", sinkType: "VA024" }, deps);
+    expect(toSceneValue(tricotMatrixProfile, tricotRuntimeBindings, "sinkType", "VA024")).toBe("VA024");
+    expect(validateChange({ attributeId: "sinkType", value: "VA024", scope: "basin" }, tricotMatrixProfile).ok).toBe(true);
+    expect(resolveRuntimeBinding(tricotRuntimeBindings, "sinkType", "VA024", "custom")).toMatchObject({ ok: true, patch: { sinkType: "Top_VA024" } });
+    const request = { attributeId: "sinkType", value: "VA024", scope: "basin" } as const;
+    expect(evaluateCountertopChange(request, { scope: "basin" }, store.getState(), tricotMatrixProfile, tricotConfigurator).blocked).toBeDefined();
+    store.dispatch(recordSceneState({ order: ["Tricot-sink-cabinet-test"], cabinets: [{ runtimeId: "Tricot-sink-cabinet-test", dimensions: { width: 60, height: 40, depth: 52 } }] }));
+    expect(evaluateCountertopChange(request, { scope: "basin" }, store.getState(), tricotMatrixProfile, tricotConfigurator).blocked).toBeUndefined();
+    const send = { sinkType: "VA024", CountertopColor: "BIANCO KOS 250", CountertopStyle: "integrated", Thickness: "0.5" };
+    expect(await replayValues({ send, record: true }, deps)).toMatchObject({ status: "applied", skipped: [] });
+    expect(runtime.calls[0][0]).toMatchObject({ attributeId: "sinkType", value: "VA024" });
+    expect(await replayValues({ send: { ...send, sinkType: "LB440" }, record: true }, deps)).toMatchObject({ status: "error" });
+    expect(runtime.calls).toHaveLength(1);
   });
 
   it("addresses each value at the scope its attribute declares and sends the set once", async () => {

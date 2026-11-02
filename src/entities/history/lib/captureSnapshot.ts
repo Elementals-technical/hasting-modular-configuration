@@ -65,6 +65,8 @@ export async function captureSnapshot(
       getCabinetEntries(getState()).map(({ runtimeId, stableKey }) => [runtimeId, stableKey]),
     ),
     configuration: getConfigurationSnapshot(getState()),
+    explicitUserChoices: { ...getState().rootStateUI.configuration.explicitUserChoices },
+    activePrebuiltPresetId: getState().rootStateUI.configuration.activePrebuiltPresetId,
     productsPresets: state.productsPresets.map((preset) => ({ ...preset })),
     productOptions: { ...state.productOptions },
     activeCabinetType: state.activeCabinetType,

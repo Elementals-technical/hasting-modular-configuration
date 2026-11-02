@@ -96,6 +96,9 @@ export {
   requestSceneStateSync,
   startRestore,
   resetConfiguration,
+  setExplicitUserChoice,
+  setActivePrebuiltPresetId,
+  restoreExplicitUserChoices,
   restoreCabinets,
   restoreConfigurationFragment,
   setActiveCollectionId,
@@ -107,6 +110,7 @@ export {
 
 export {
   getActiveCollectionId,
+  isExplicitUserChoice,
   getActiveProductProfile,
   getActiveRuntimeBindings,
   isSinkBase,

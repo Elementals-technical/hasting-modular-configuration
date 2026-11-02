@@ -74,11 +74,6 @@ const expectedCounts = (list: Record<string, CountedResidue>) =>
  * so the list only shrinks (DEV-10).
  */
 const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
-  "/src/widgets/CountertopSections/ui/CountertopSections.tsx": {
-    owner: "B",
-    count: 4,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
-  },
   "/src/widgets/CountertopSections/lib/useBasinState.ts": {
     owner: "B",
     count: 1,
@@ -161,11 +156,6 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
     owner: "B",
     count: 3,
     reason: "C06 phase 5: dividers option and style through the command",
-  },
-  "/src/widgets/CountertopSections/ui/CountertopSections.tsx": {
-    owner: "B",
-    count: 5,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
   "/src/widgets/CountertopSections/lib/useBasinState.ts": {
     owner: "B",

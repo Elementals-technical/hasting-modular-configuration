@@ -3,6 +3,7 @@ export type PresetProduct = {
   Width?: number;
   Height?: number;
   Depth?: number;
+  Thickness?: string | number;
   /** Depth value used exclusively for SKU generation (e.g. 50 when canvas Depth is 50.5) */
   SkuDepth?: number;
   CabinetColor?: string;

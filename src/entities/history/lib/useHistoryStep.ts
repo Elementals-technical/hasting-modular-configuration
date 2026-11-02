@@ -46,6 +46,8 @@ const configurationFingerprint = (state: RootState): string => {
     product.placedCabinetStyles,
     configuration.cabinets,
     configuration.valuesByAttributeId,
+    configuration.explicitUserChoices,
+    configuration.activePrebuiltPresetId,
   ]);
 };
 
