@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import type { ReactNode } from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -66,20 +66,11 @@ describe("ModelPage against a non-USH collection", () => {
     );
   });
 
-  it("Customize carries the picked preset's products into Custom and leaves the Prebuilt flow", async () => {
+  it("does not enter Custom or publish a preset when placement cannot succeed", async () => {
     renderModelPage({ extra: <LocationProbe /> });
 
-    fireEvent.click(await screen.findByText("Customize"));
-
-    await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/custom?collectionId=fixture-ui"));
-
-    expect(getProductsPresets(store.getState())).toEqual([
-      {
-        name: "Fixture-Cabinet",
-        Width: 79,
-        CabinetColor: "Fixture Blue",
-        fixtureExtension: "retained",
-      },
-    ]);
+    await act(async () => { fireEvent.click(await screen.findByText("Customize")); });
+    expect(screen.getByTestId("location").textContent).toBe("/fixture/models?collectionId=fixture-ui");
+    expect(getProductsPresets(store.getState())).toEqual([]);
   });
 });

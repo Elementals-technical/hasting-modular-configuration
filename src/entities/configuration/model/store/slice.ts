@@ -70,6 +70,8 @@ const initialState: ConfigurationState = {
   dimensionsByCabinet: {},
   organizersByCabinet: {},
   valuesByAttributeId: {},
+  explicitUserChoices: {},
+  activePrebuiltPresetId: null,
   restore: { configId: null, status: "idle", reason: null, message: null },
   runtimeSync: { needsSync: false },
 };
@@ -80,6 +82,10 @@ const configurationSlice = createSlice({
   reducers: {
     /** Set by A once the active collection resolves. */
     setActiveCollectionId(state, action: PayloadAction<string | null>) {
+      if (state.collectionId !== action.payload) {
+        state.explicitUserChoices = {};
+        state.activePrebuiltPresetId = null;
+      }
       state.collectionId = action.payload;
     },
 
@@ -87,6 +93,20 @@ const configurationSlice = createSlice({
     setActiveRuntimeBindings(state, action: PayloadAction<RuntimeBindingSet | null>) {
       // Replaced whole, never edited: the table is the collection's, read-only.
       return { ...state, runtimeBindings: action.payload };
+    },
+
+    setActivePrebuiltPresetId(state, action: PayloadAction<number | null>) {
+      state.activePrebuiltPresetId = action.payload;
+    },
+
+    setExplicitUserChoice(state, action: PayloadAction<{ attributeId: string; chosen: boolean }>) {
+      const { attributeId, chosen } = action.payload;
+      if (chosen) state.explicitUserChoices[attributeId] = true;
+      else delete state.explicitUserChoices[attributeId];
+    },
+
+    restoreExplicitUserChoices(state, action: PayloadAction<Record<string, true>>) {
+      state.explicitUserChoices = action.payload;
     },
 
     /** Registers the runtime ids currently present in the scene, preserving known keys. */
@@ -288,6 +308,9 @@ const configurationSlice = createSlice({
 
 export const {
   setActiveCollectionId,
+  setExplicitUserChoice,
+  setActivePrebuiltPresetId,
+  restoreExplicitUserChoices,
   setActiveRuntimeBindings,
   syncCabinets,
   syncCabinetOrder,

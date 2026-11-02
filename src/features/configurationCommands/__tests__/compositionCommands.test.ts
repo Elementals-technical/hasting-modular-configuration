@@ -22,6 +22,7 @@ import {
   setActiveCollectionId,
   setActiveRuntimeBindings,
   setAttributeValue,
+  setExplicitUserChoice,
 } from "@/entities/configuration";
 import {
   getCabinetColor,
@@ -107,6 +108,7 @@ describe("composition commands", () => {
         store.dispatch(
           setAttributeValue({ attributeId: "FrameColor", target: { scope: "global" }, value: "Moka 408 MT" }),
         );
+        store.dispatch(setExplicitUserChoice({ attributeId: "FrameColor", chosen: true }));
         await applyPreset(
           {
             products: [{ productType: "Sink-Base", config: { FrameColor: "Nero 433 MT", Drawers: "1D" } }],
@@ -883,6 +885,7 @@ describe("composition commands", () => {
             value: "Castagno Scuro 1C3",
           }),
         );
+        store.dispatch(setExplicitUserChoice({ attributeId: "BasePanelColor", chosen: true }));
         await applyPreset({ products: model }, deps);
 
         // The price reads the chosen base colour for every product, so the scene shows it too.

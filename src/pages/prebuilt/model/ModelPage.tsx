@@ -65,17 +65,16 @@ import {
 import {
   getActiveCountertopThickness,
   getActiveCountertopColor,
-  getCabinetColor,
   getCountertopColorSku,
   getCountertopStyle,
-  getHandleGrooveColor,
   getProductsPresets,
   getSelectedProducts,
   getSinkType,
-  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import {
   findCountertopSkuByColorName,
+  parseThicknessValue,
+  resolveDefaultThicknessFromRules,
   resolveIntegratedCountertopBasinFallback,
   resolvePrebuiltModelCountertopCompatibility,
   useCountertopRules,
@@ -85,9 +84,16 @@ import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import type { SceneRestoreMatch } from "@/entities/configuration";
+import { isExplicitUserChoice, setExplicitUserChoice, setActivePrebuiltPresetId, restoreExplicitUserChoices, type SceneRestoreMatch } from "@/entities/configuration";
+import { selectPlacedWithValues, selectPlacedWithDefaults } from "@/features/configurationCommands/lib/compositionValues";
+import { readCountertopConfig } from "@/features/playCanvasAdapter";
 import { NOT_CARRIED_ATTRIBUTE_IDS, useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
-import { matchSavedStableKeys, useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
+import {
+  matchSavedStableKeys,
+  resolveTowelBarOption,
+  useRestoreSavedConfiguration,
+} from "@/features/configurationRestore";
+import type { RestorePlan } from "@/features/configurationRestore";
 import { readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
@@ -96,6 +102,7 @@ import {
   isGrooveType,
   reapplySidePanelsForPreset,
   restoreSidePanelState,
+  settleSavedSideStatuses,
   type SidePanelStatus,
 } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
@@ -177,6 +184,12 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   const firstWithSink = presetProducts.find((p) => typeof p.sinkType === "string" && p.sinkType.trim());
 
   const globalConfig: PresetSceneDefaults = {};
+  const firstThickness = presetProducts.find((product) => product.Thickness !== undefined)?.Thickness;
+  if (firstThickness !== undefined) globalConfig.Thickness = String(firstThickness);
+  const cabinet = presetProducts.find((product) => product.CabinetColor)?.CabinetColor;
+  const groove = presetProducts.find((product) => product.HandleGrooveColor)?.HandleGrooveColor;
+  if (cabinet) globalConfig.CabinetColor = cabinet;
+  if (groove) globalConfig.HandleGrooveColor = groove;
   if (firstWithCountertop?.CountertopColor) globalConfig.CountertopColor = firstWithCountertop.CountertopColor;
   if (firstWithSink?.sinkType) {
     globalConfig.sinkType = firstWithSink.sinkType;
@@ -184,6 +197,12 @@ const resolvePresetSceneDefaults = (presetProducts?: PresetProduct[]): PresetSce
   }
 
   return globalConfig;
+};
+
+/** A text value of the saved ui state; an empty one says nothing. */
+const readSavedText = (uiState: RestorePlan["uiState"], key: string): string | undefined => {
+  const value = uiState[key];
+  return typeof value === "string" && value ? value : undefined;
 };
 
 /**
@@ -306,7 +325,7 @@ export const ModelPage = () => {
     activeProfileRef.current = activeProfile;
   }, [activeProfile]);
   const navigate = useStepNavigate();
-  const { composition, replay, record } = useChangeAttribute();
+  const { composition, replay, record, getState: getCommandState } = useChangeAttribute();
   const [searchParams, setSearchParams] = useSearchParams();
   const { search } = useLocation();
   const modelStepPath = useCollectionNavigation()?.currentStep?.path ?? "/prebuilt/model";
@@ -316,16 +335,14 @@ export const ModelPage = () => {
   const isDefinedProductsRef = useRef(false);
   const presetSelectionQueueRef = useRef<Promise<void>>(Promise.resolve());
   const presetSelectionRequestIdRef = useRef(0);
-  const productsPresets = useAppSelector(getProductsPresets);
+  const appliedPresetId = useAppSelector((state) => state.rootStateUI.configuration.activePrebuiltPresetId);
   const placedProductIds = useAppSelector(getSelectedProducts);
-  const cabinetColor = useAppSelector(getCabinetColor);
-  const handleGrooveColor = useAppSelector(getHandleGrooveColor);
+  const productsPresets = useAppSelector(getProductsPresets);
   const countertopColor = useAppSelector(getActiveCountertopColor);
   const countertopColorSku = useAppSelector(getCountertopColorSku);
   const countertopThickness = useAppSelector(getActiveCountertopThickness);
   const countertopStyle = useAppSelector(getCountertopStyle);
   const activeBasinStyle = useAppSelector(getSinkType);
-  const vesselColor = useAppSelector(getVesselColor);
   const spGroove = useAppSelector(getSidePanelsOption);
   const configuratorGroups = activeCollection.catalog.configurator.groups;
   const runtimeBindings = activeCollection.catalog.runtimeBindings ?? null;
@@ -368,37 +385,6 @@ export const ModelPage = () => {
     if (activeBasinStyle) return activeBasinStyle;
     return countertopStyle.trim().toLowerCase() === "vessel" ? "Vessel" : undefined;
   }, [activeBasinStyle, countertopStyle]);
-  const colorTransferableOverrides = useMemo(
-    () =>
-      resolvePrebuiltModelTransferableOverrides({
-        presetProducts: productsPresets,
-        selectedOptions: {
-          CabinetColor: cabinetColor,
-          HandleGrooveColor: handleGrooveColor,
-        },
-        fields: PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS,
-      }),
-    [cabinetColor, handleGrooveColor, productsPresets],
-  );
-  const countertopTransferableOverrides = useMemo(
-    () =>
-      resolvePrebuiltModelTransferableOverrides({
-        presetProducts: productsPresets,
-        selectedOptions: {
-          CountertopColor: countertopColor,
-          sinkType: selectedCountertopSinkType,
-        },
-        fields: PREBUILT_MODEL_COUNTERTOP_TRANSFERABLE_FIELDS,
-      }),
-    [countertopColor, productsPresets, selectedCountertopSinkType],
-  );
-  const transferableOverrides = useMemo(
-    () => ({
-      ...colorTransferableOverrides,
-      ...countertopTransferableOverrides,
-    }),
-    [colorTransferableOverrides, countertopTransferableOverrides],
-  );
   const countertopColorSkuCandidatesByValue = useMemo(
     () => buildCountertopColorSkuCandidates(configuratorGroups),
     [configuratorGroups],
@@ -443,6 +429,7 @@ export const ModelPage = () => {
           CountertopColor: globalConfig.CountertopColor,
           sinkType: globalConfig.sinkType,
           CountertopStyle: globalConfig.CountertopStyle,
+          Thickness: globalConfig.Thickness,
         }),
       });
 
@@ -536,7 +523,7 @@ export const ModelPage = () => {
 
   const activePresetId = useMemo(
     () =>
-      resolveActivePrebuiltPresetId({
+      appliedPresetId ?? resolveActivePrebuiltPresetId({
         presets,
         presetIdFromUrl: presetFromUrl?.id ?? null,
         hasConfigIdInUrl: Boolean(configIdFromUrl),
@@ -544,32 +531,37 @@ export const ModelPage = () => {
         placedProductIds,
         defaultPresetId: defaultPreset?.id ?? null,
       }),
-    [configIdFromUrl, defaultPreset, placedProductIds, presetFromUrl, presets, productsPresets],
+    [appliedPresetId, configIdFromUrl, defaultPreset, placedProductIds, presetFromUrl, presets, productsPresets],
   );
 
   const resolveCountertopSceneOverrides = useCallback((): PresetSceneDefaults => {
     const overrides: PresetSceneDefaults = {};
-    if (countertopColor) overrides.CountertopColor = countertopColor;
-    if (vesselColor) overrides.VesselColor = vesselColor;
-    if (countertopThickness) overrides.Thickness = countertopThickness;
-    if (selectedCountertopSinkType) {
-      overrides.sinkType = selectedCountertopSinkType;
-      overrides.CountertopStyle = inferCountertopStyleFromSinkType(selectedCountertopSinkType);
+    const current = getCommandState().rootStateUI.product.productOptions;
+    if (current.CountertopColor && isExplicitUserChoice(getCommandState(), "CountertopColor")) overrides.CountertopColor = current.CountertopColor;
+    if (current.VesselColor && isExplicitUserChoice(getCommandState(), "VesselColor")) overrides.VesselColor = current.VesselColor;
+    if (current.Thickness && isExplicitUserChoice(getCommandState(), "Thickness")) overrides.Thickness = current.Thickness;
+    if (isExplicitUserChoice(getCommandState(), "sinkType")) {
+      const sink = current.sinkType || selectAttribute(activeProfileRef.current, "sinkType")?.noneValue;
+      if (sink) { overrides.sinkType = sink; overrides.CountertopStyle = inferCountertopStyleFromSinkType(sink); }
     }
-    if (countertopStyle) {
-      const normalizedStyle = countertopStyle.trim().toLowerCase();
-      if (normalizedStyle === "vessel") overrides.CountertopStyle = "Vessel";
+    if (current.CountertopStyle && isExplicitUserChoice(getCommandState(), "CountertopStyle")) {
+      const normalizedStyle = current.CountertopStyle.trim().toLowerCase();
+      if (normalizedStyle === "vessel") {
+        overrides.CountertopStyle = "Vessel";
+        overrides.sinkType = current.sinkType || "Vessel";
+      }
       if (normalizedStyle === "integrated") overrides.CountertopStyle = "Integrated";
     }
     return overrides;
-  }, [countertopColor, countertopStyle, countertopThickness, selectedCountertopSinkType, vesselColor]);
+  }, [getCommandState]);
 
   const resolveColorSceneOverrides = useCallback((): PresetSceneDefaults => {
     const overrides: PresetSceneDefaults = {};
-    if (cabinetColor) overrides.CabinetColor = cabinetColor;
-    if (handleGrooveColor) overrides.HandleGrooveColor = handleGrooveColor;
+    const current = getCommandState().rootStateUI.product.productOptions;
+    if (current.CabinetColor && isExplicitUserChoice(getCommandState(), "CabinetColor")) overrides.CabinetColor = current.CabinetColor;
+    if (current.HandleGrooveColor && isExplicitUserChoice(getCommandState(), "HandleGrooveColor")) overrides.HandleGrooveColor = current.HandleGrooveColor;
     return overrides;
-  }, [cabinetColor, handleGrooveColor]);
+  }, [getCommandState]);
 
   // Compact import bypasses applyPreset: adopt its actual primary cabinets so their sizes and
   // colours enter the same pricing pipeline as flat presets, and keep them as the model's products,
@@ -651,10 +643,115 @@ export const ModelPage = () => {
     [composition, dispatch, runtimeBindings],
   );
 
+  const resetRestrictedCountertopSelections = useCallback(() => {
+    record({ VesselColor: "", FaucetHolesAmount: "0" });
+    for (const attributeId of ["CountertopColor", "sinkType", "CountertopStyle", "Thickness", "VesselColor", "FaucetHolesAmount"]) {
+      dispatch(setExplicitUserChoice({ attributeId, chosen: false }));
+    }
+  }, [dispatch, record]);
+
+  const resolveCompatibleCountertopSceneConfig = useCallback(
+    (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[], targetThickness = resolvePresetSceneDefaults(presetProducts).Thickness, targetSink = resolvePresetSceneDefaults(presetProducts).sinkType): PresetSceneDefaults => {
+      if (globalConfig.Thickness !== undefined) globalConfig = { ...globalConfig, Thickness: String(globalConfig.Thickness) };
+      const defaults: PresetSceneDefaults = {};
+      for (const field of ["CabinetColor", "HandleGrooveColor", "CountertopColor", "sinkType", "VesselColor"] as const) {
+        const value = selectDefaultValue(activeProfile, field);
+        if (typeof value === "string" && value) defaults[field] = value;
+      }
+      globalConfig = { ...defaults, ...globalConfig };
+      if (!globalConfig.CountertopStyle && globalConfig.sinkType) globalConfig.CountertopStyle = inferCountertopStyleFromSinkType(globalConfig.sinkType);
+      if (countertopRules.length || !globalConfig.Thickness) {
+        const options = selectOptions(activeProfile, "Thickness");
+        const allowed = new Set(options.map(({ value }) => parseThicknessValue(value)));
+        const rules = countertopRules.map((rule) => ({
+          ...rule,
+          topThicknesses: rule.topThicknesses.filter((value) => !options.length || allowed.has(parseThicknessValue(value))),
+        }));
+        const dimensions = resolvePrebuiltPresetCountertopDimensions(presetProducts);
+        const context = {
+          profile: activeProfile, rules, activeMaterialTokens: resolveCountertopMaterialTokensForSceneConfig(globalConfig),
+          width: dimensions.totalWidth, depth: dimensions.depth, activeCountertopStyle: globalConfig.CountertopStyle,
+        };
+        const preferred = selectDefaultValue(activeProfile, "Thickness");
+        const preferredRules = typeof preferred === "string" ? rules.map((rule) => ({
+          ...rule, topThicknesses: rule.topThicknesses.filter((value) => parseThicknessValue(value) === parseThicknessValue(preferred)),
+        })) : [];
+        const requested = globalConfig.Thickness;
+        const requestedRules = requested ? rules.map((rule) => ({
+          ...rule, topThicknesses: rule.topThicknesses.filter((value) => parseThicknessValue(value) === parseThicknessValue(requested)),
+        })) : [];
+        const targetRules = targetThickness ? rules.map((rule) => ({
+          ...rule, topThicknesses: rule.topThicknesses.filter((value) => parseThicknessValue(value) === parseThicknessValue(String(targetThickness))),
+        })) : [];
+        const thickness = resolveDefaultThicknessFromRules({ ...context, rules: requestedRules })
+          ?? resolveDefaultThicknessFromRules({ ...context, rules: targetRules })
+          ?? resolveDefaultThicknessFromRules({ ...context, rules: preferredRules })
+          ?? resolveDefaultThicknessFromRules(context);
+        if (thickness) globalConfig.Thickness = thickness;
+      }
+      if (globalConfig.CountertopStyle !== "Integrated" || !globalConfig.sinkType) return globalConfig;
+
+      const materialTokens = resolveCountertopMaterialTokensForSceneConfig(globalConfig);
+      if (!materialTokens.length) return globalConfig;
+
+      const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
+        profile: activeProfile,
+        basinOptions: selectOptions(activeProfile, "sinkType").map(({ value, label }) => ({
+          name: value,
+          title: label,
+        })),
+        rules: countertopRules,
+        activeMaterialTokens: materialTokens,
+        activeThickness: globalConfig.Thickness,
+        activeBasinStyle: globalConfig.sinkType,
+        preferredBasinStyle: targetSink ?? resolveDefaultBasinForCountertopSelection({
+          countertopColor: globalConfig.CountertopColor,
+          materialTokens,
+        }),
+        dimensions: resolvePrebuiltPresetCountertopDimensions(presetProducts),
+      });
+
+      if (!fallbackBasinStyle || fallbackBasinStyle === globalConfig.sinkType) return globalConfig;
+
+      return {
+        ...globalConfig,
+        sinkType: fallbackBasinStyle,
+        CountertopStyle: inferCountertopStyleFromSinkType(fallbackBasinStyle),
+      };
+    },
+    [activeProfile, countertopRules, resolveCountertopMaterialTokensForSceneConfig],
+  );
+
   const applyAndAdoptCompactPreset = useCallback(
-    async (preset: CompactPresetSource | null | undefined, overrides: PrebuiltModelTransferableOverrides = {}) => {
+    async (preset: CompactPresetSource | null | undefined, overrides: PrebuiltModelTransferableOverrides = {}, preserveCountertopSelections = true, preserveSelections = true) => {
       // The user's colors and basin are carried into the model, as the flat path does.
-      const effectivePreset = preset ? mergeCompactPresetOverrides(preset, overrides) : preset;
+      if (!preset) return false;
+      const requestedThickness = getCommandState().rootStateUI.product.productOptions.Thickness;
+      const authoredSink = preset.top?.sinkType ?? preset.rows?.flatMap(({ products }) => products).find((product) => typeof product.sinkType === "string")?.sinkType;
+      let effectivePreset = mergeCompactPresetOverrides(preset, overrides);
+      const placedWith = preserveSelections ? selectPlacedWithValues(getCommandState(), { chosenOnly: true }) : {};
+      const defaults = selectPlacedWithDefaults(getCommandState());
+      effectivePreset = {
+        ...effectivePreset, shared: { ...defaults, ...effectivePreset.shared, ...placedWith },
+        rows: effectivePreset.rows?.map((row) => ({ ...row, products: row.products.map((product) => ({ ...defaults, ...effectivePreset.shared, ...product, ...placedWith })) })),
+      };
+      const products: PresetProduct[] = (effectivePreset.rows ?? []).flatMap((row) => row.products.map((product) => ({ ...effectivePreset.shared, ...product })));
+      const globalConfig = resolveCompatibleCountertopSceneConfig({
+        ...resolvePresetSceneDefaults(products), ...effectivePreset.shared, ...effectivePreset.top,
+        ...(preserveSelections ? resolveColorSceneOverrides() : {}), ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
+      }, products, String(effectivePreset.top?.Thickness ?? effectivePreset.shared?.Thickness ?? resolvePresetSceneDefaults(products).Thickness ?? ""), typeof authoredSink === "string" ? authoredSink : undefined);
+      effectivePreset = mergeCompactPresetOverrides(effectivePreset, {
+        CountertopColor: globalConfig.CountertopColor, sinkType: globalConfig.sinkType,
+      });
+      const thickness = globalConfig.Thickness ? { Thickness: globalConfig.Thickness } : {};
+      effectivePreset = {
+        ...effectivePreset,
+        shared: { ...effectivePreset.shared, ...thickness },
+        rows: effectivePreset.rows?.map((row) => ({
+          ...row, products: row.products.map((product) => ({ ...product, ...(product.Thickness !== undefined ? thickness : {}) })),
+        })),
+        top: { ...effectivePreset.top, ...countertopValuesAfterPlacement(globalConfig) },
+      };
       // A collection whose scene lays cabinets in columns imports the model as columns.
       const columnsCollection = columnsCollectionOf(activeCollection.id);
       const columns =
@@ -672,7 +769,7 @@ export const ModelPage = () => {
           ),
         columns ? () => columns.preset : undefined,
       );
-      if (!imported) return;
+      if (!imported) return false;
       // The basin of such a model is its sink cabinet's.
       const sinkType = effectivePreset?.rows
         ?.flatMap(({ products }) => products)
@@ -695,47 +792,13 @@ export const ModelPage = () => {
       if (typeof config.Thickness === "string" || typeof config.Thickness === "number") {
         record({ Thickness: String(config.Thickness) });
       }
+      if (overrides.sinkType && globalConfig.sinkType !== overrides.sinkType) dispatch(setExplicitUserChoice({ attributeId: "sinkType", chosen: false }));
+      if (globalConfig.Thickness && parseThicknessValue(globalConfig.Thickness) !== parseThicknessValue(requestedThickness)) dispatch(setExplicitUserChoice({ attributeId: "Thickness", chosen: false }));
+      if (!preserveCountertopSelections) resetRestrictedCountertopSelections();
+      if (!preserveSelections) dispatch(restoreExplicitUserChoices({}));
+      return true;
     },
-    [activeCollection.id, adoptCompactCabinets, composition, record, syncCountertopSelectionFromSceneConfig],
-  );
-
-  const resetRestrictedCountertopSelections = useCallback(() => {
-    record({ Thickness: "", VesselColor: "", FaucetHolesAmount: "0" });
-  }, [record]);
-
-  const resolveCompatibleCountertopSceneConfig = useCallback(
-    (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[]): PresetSceneDefaults => {
-      if (globalConfig.CountertopStyle !== "Integrated" || !globalConfig.sinkType) return globalConfig;
-
-      const materialTokens = resolveCountertopMaterialTokensForSceneConfig(globalConfig);
-      if (!materialTokens.length) return globalConfig;
-
-      const fallbackBasinStyle = resolveIntegratedCountertopBasinFallback({
-        profile: activeProfile,
-        basinOptions: selectOptions(activeProfile, "sinkType").map(({ value, label }) => ({
-          name: value,
-          title: label,
-        })),
-        rules: countertopRules,
-        activeMaterialTokens: materialTokens,
-        activeThickness: globalConfig.Thickness ?? countertopThickness,
-        activeBasinStyle: globalConfig.sinkType,
-        preferredBasinStyle: resolveDefaultBasinForCountertopSelection({
-          countertopColor: globalConfig.CountertopColor,
-          materialTokens,
-        }),
-        dimensions: resolvePrebuiltPresetCountertopDimensions(presetProducts),
-      });
-
-      if (!fallbackBasinStyle || fallbackBasinStyle === globalConfig.sinkType) return globalConfig;
-
-      return {
-        ...globalConfig,
-        sinkType: fallbackBasinStyle,
-        CountertopStyle: inferCountertopStyleFromSinkType(fallbackBasinStyle),
-      };
-    },
-    [activeProfile, countertopRules, countertopThickness, resolveCountertopMaterialTokensForSceneConfig],
+    [activeCollection.id, adoptCompactCabinets, composition, dispatch, getCommandState, record, resetRestrictedCountertopSelections, resolveColorSceneOverrides, resolveCountertopSceneOverrides, resolveCompatibleCountertopSceneConfig, syncCountertopSelectionFromSceneConfig],
   );
 
   const applyPresetSelection = useCallback(
@@ -746,17 +809,41 @@ export const ModelPage = () => {
     ) => {
       const requestId = presetSelectionRequestIdRef.current + 1;
       presetSelectionRequestIdRef.current = requestId;
+      dispatch(setActivePrebuiltPresetId(null));
 
       const runSelection = async () => {
-        if (requestId !== presetSelectionRequestIdRef.current) return;
+        if (requestId !== presetSelectionRequestIdRef.current) return false;
 
-        const preserveSelections = options?.preserveSelections !== false;
+        const preserveSelections = options?.preserveSelections !== false && activeProfileRef.current?.ruleData.prebuiltModelSelection?.resetSelections !== true;
         const preserveCountertopSelections = preserveSelections && options?.preserveCountertopSelections !== false;
-        const overrides = !preserveSelections
-          ? {}
-          : preserveCountertopSelections
-            ? transferableOverrides
-            : colorTransferableOverrides;
+        const current = getCommandState().rootStateUI.product.productOptions;
+        const fields = !preserveSelections ? [] : preserveCountertopSelections
+          ? [...PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS, ...PREBUILT_MODEL_COUNTERTOP_TRANSFERABLE_FIELDS]
+          : [...PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS];
+        const overrides = resolvePrebuiltModelTransferableOverrides({
+          selectedOptions: current,
+          fields: fields.filter((field) => isExplicitUserChoice(getCommandState(), field)),
+        });
+        // Compact presets (format "ulh-compact-v1") replace the composition via composition.importCompactPreset.
+        const selectedPreset = presetId === undefined ? null : (presets.find((preset) => preset.id === presetId) ?? null);
+        if (hasCompactRows(selectedPreset)) {
+          await clearSidePanels(dispatch);
+          try {
+            if (!await applyAndAdoptCompactPreset(selectedPreset, overrides, preserveCountertopSelections, preserveSelections)) return false;
+          } catch (error) {
+            console.warn("[Prebuilt] The compact preset was not applied", error);
+            return false;
+          }
+          if (requestId !== presetSelectionRequestIdRef.current) return false;
+          dispatch(setActivePrebuiltPresetId(presetId ?? null));
+          dispatch(clearHistory());
+          if (presetId && options?.syncUrl !== false) {
+            const nextSearchParams = new URLSearchParams(searchParams);
+            nextSearchParams.set("preset", String(presetId));
+            setSearchParams(nextSearchParams);
+          }
+          return true;
+        }
         const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts ?? [], overrides);
         const globalConfig = resolveCompatibleCountertopSceneConfig(
           {
@@ -773,37 +860,21 @@ export const ModelPage = () => {
             ...(preserveSelections ? resolveColorSceneOverrides() : {}),
             ...(preserveCountertopSelections ? resolveCountertopSceneOverrides() : {}),
           },
-          effectivePresetProducts,
+          effectivePresetProducts, resolvePresetSceneDefaults(presetProducts).Thickness, resolvePresetSceneDefaults(presetProducts).sinkType,
         );
         await clearSidePanels(dispatch);
-        // Compact presets (format "ulh-compact-v1") replace the composition via composition.importCompactPreset.
-        const selectedPreset = presetId === undefined ? null : (presets.find((preset) => preset.id === presetId) ?? null);
-        if (hasCompactRows(selectedPreset)) {
-          try {
-            await applyAndAdoptCompactPreset(selectedPreset, overrides);
-          } catch (error) {
-            console.warn("[Prebuilt] The compact preset was not applied", error);
-            return;
-          }
-          if (requestId !== presetSelectionRequestIdRef.current) return;
-          dispatch(clearHistory());
-          if (presetId && options?.syncUrl !== false) {
-            const nextSearchParams = new URLSearchParams(searchParams);
-            nextSearchParams.set("preset", String(presetId));
-            setSearchParams(nextSearchParams);
-          }
-          return;
-        }
         const placed = await composition.applyPreset({
           products: toCompositionProducts(effectivePresetProducts),
           preserveSelections,
           shared: toConfigurationValues(globalConfig),
           afterPlacement: countertopValuesAfterPlacement(globalConfig),
         });
-        if (placed.status === "error") {
+        if (placed.status !== "applied") {
           console.warn("[Prebuilt] The preset was not placed", placed);
-          return;
+          return false;
         }
+        if (requestId !== presetSelectionRequestIdRef.current) return false;
+        if (globalConfig.HandleGrooveColor) record({ HandleGrooveColor: globalConfig.HandleGrooveColor });
         const sceneProductIds = placed.productIds;
 
         if (effectivePresetProducts.length) {
@@ -856,6 +927,10 @@ export const ModelPage = () => {
           record({ [attributeId]: presetValue ?? "" });
         }
 
+        dispatch(setActivePrebuiltPresetId(presetId ?? null));
+        if (!preserveSelections) dispatch(restoreExplicitUserChoices({}));
+        if (overrides.sinkType && globalConfig.sinkType !== overrides.sinkType) dispatch(setExplicitUserChoice({ attributeId: "sinkType", chosen: false }));
+        if (globalConfig.Thickness && parseThicknessValue(globalConfig.Thickness) !== parseThicknessValue(current.Thickness)) dispatch(setExplicitUserChoice({ attributeId: "Thickness", chosen: false }));
         dispatch(clearHistory());
 
         if (presetId && options?.syncUrl !== false) {
@@ -863,6 +938,7 @@ export const ModelPage = () => {
           nextSearchParams.set("preset", String(presetId));
           setSearchParams(nextSearchParams);
         }
+        return requestId === presetSelectionRequestIdRef.current;
       };
 
       const queuedSelection = presetSelectionQueueRef.current.then(runSelection, runSelection);
@@ -872,15 +948,16 @@ export const ModelPage = () => {
       );
 
       try {
-        await queuedSelection;
+        return await queuedSelection;
       } catch (error) {
         console.error("[ProductModelItem] Failed to apply preset", error);
+        return false;
       }
     },
     [
       applyAndAdoptCompactPreset,
       activeProfile,
-      colorTransferableOverrides,
+      getCommandState,
       composition,
       dispatch,
       presets,
@@ -892,7 +969,6 @@ export const ModelPage = () => {
       searchParams,
       setSearchParams,
       syncCountertopSelectionFromSceneConfig,
-      transferableOverrides,
       updateSelectedDimensionsFromScene,
       spGroove,
     ],
@@ -915,7 +991,7 @@ export const ModelPage = () => {
       }
 
       const isSameModel = arePrebuiltModelPresetsEqual(productsPresets, presetProducts);
-      if (!options?.skipCompatibilityPrompt && !isSameModel) {
+      if (!activeProfileRef.current?.ruleData.prebuiltModelSelection?.resetSelections && !options?.skipCompatibilityPrompt && !isSameModel) {
         const compatibility = resolvePrebuiltModelCountertopCompatibility({
           rules: countertopRules,
           presetProducts,
@@ -955,55 +1031,25 @@ export const ModelPage = () => {
     ],
   );
 
-  const rehydrateCountertopFromPresets = (presetProducts: PresetProduct[]) => {
-    const color = presetProducts.find(
-      (p) => typeof p.CountertopColor === "string" && p.CountertopColor,
-    )?.CountertopColor;
-    const sinkType = presetProducts.find((p) => typeof p.sinkType === "string" && p.sinkType)?.sinkType;
-
-    record({
-      ...(color ? { CountertopColor: color } : {}),
-      ...(sinkType
-        ? { sinkType, CountertopStyle: inferCountertopStyleFromSinkType(sinkType) }
-        : {
-            // Products that carry no basin start from the collection's, which reset() leaves on the
-            // page: the configuration records it too, or it would keep a basin picked earlier.
-            sinkType: selectDefaultValue(activeProfileRef.current, "sinkType"),
-            CountertopStyle: selectDefaultValue(activeProfileRef.current, "CountertopStyle"),
-          }),
-    });
-    if (color) dispatch(setCountertopColorSku(resolveCountertopSkuForSelection(color, sinkType)));
-  };
-
-  const handleCustomizePreset = async (presetProducts?: PresetProduct[]) => {
-    if (!presetProducts?.length) return;
-
-    trackModularCustomizeClick({
-      cta_location: "prebuilt_model_selection",
-      configurator_flow: "prebuilt",
-      model_count: presetProducts.length,
-    });
-
-    // Custom starts from the preset's products alone: the scene is cleared with its add-ons.
-    const cleared = await composition.clear({ resetAddOns: true });
-    if (cleared.status === "error") console.warn("[Prebuilt] The scene was not cleared", cleared);
-
-    dispatch(reset());
-    dispatch(resetCabinetBuilderBootstrap());
-    dispatch(addProductPreset(presetProducts));
-    rehydrateCountertopFromPresets(presetProducts);
-    navigate(ROUTES.CUSTOM);
-  };
-
   const enterCustomMode = useCallback(async (targetRoute: string = ROUTES.CUSTOM) => {
+    const requestId = presetSelectionRequestIdRef.current;
+    await presetSelectionQueueRef.current;
+    if (requestId !== presetSelectionRequestIdRef.current) return;
     // Sync HandleGrooveColor from the scene to slice before navigating. In
     // prebuilt the groove color may exist only on the PlayCanvas products and
     // not in productOptions; the cabinet-builder bootstrap then falls back to
     // cabinetColor, losing the real value. Pre-populating the slice ensures
     // bootstrap uses the scene's groove color.
+    const top = await readCountertopConfig();
+    if (requestId !== presetSelectionRequestIdRef.current) return;
+    if (typeof top?.Thickness === "string" || typeof top?.Thickness === "number") {
+      record({ Thickness: String(top.Thickness) });
+    }
+    dispatch(resetCabinetBuilderBootstrap());
     const orderedIds = getOrderedProductIds();
     for (const productId of orderedIds) {
       const config = await getConfig(productId);
+      if (requestId !== presetSelectionRequestIdRef.current) return;
       const sceneGroove =
         config && typeof config === "object" ? (config as Record<string, unknown>).HandleGrooveColor : undefined;
       if (typeof sceneGroove === "string" && sceneGroove.trim()) {
@@ -1019,8 +1065,24 @@ export const ModelPage = () => {
     // dimensions and activeCabinetType — so products become deletable and newly
     // added cabinets inherit current colors — without wiping scene extras
     // (side panels, towel bar).
+    if (requestId !== presetSelectionRequestIdRef.current) return;
     navigate(targetRoute);
-  }, [navigate, record, runtimeBindings]);
+  }, [dispatch, navigate, record, runtimeBindings]);
+
+  const handleCustomizePreset = async (presetProducts?: PresetProduct[], presetId?: number) => {
+    await presetSelectionQueueRef.current;
+    if (presetId === undefined || getCommandState().rootStateUI.configuration.activePrebuiltPresetId !== presetId) {
+      const applied = await applyPresetSelection(presetProducts, presetId);
+      if (!applied) return;
+    }
+    await presetSelectionQueueRef.current;
+    if (presetId !== undefined && getCommandState().rootStateUI.configuration.activePrebuiltPresetId !== presetId) return;
+    trackModularCustomizeClick({
+      cta_location: "prebuilt_model_selection", configurator_flow: "prebuilt",
+      model_count: getOrderedProductIds().length,
+    });
+    await enterCustomMode();
+  };
 
   // "Create Your Own" starts Custom from an empty scene, without the preset's add-ons.
   const handleCreateOwnComposition = useCallback(async () => {
@@ -1133,15 +1195,27 @@ export const ModelPage = () => {
           },
           presetProducts,
         );
+        // Only a collection that offers a towel bar reads one: the others have no scene translation for it.
+        const restoredTowelBarOption = selectAttribute(activeProfileRef.current, "TowelBarOption")
+          ? resolveTowelBarOption(
+              readSavedText(uiStateValues, "TowelBarOption"),
+              readSavedText(uiStateValues, "TowelBarSide"),
+            )
+          : undefined;
+        const restoredTowelBarColor = selectAttribute(activeProfileRef.current, "TowelBarColor")
+          ? readSavedText(uiStateValues, "TowelBarColor")
+          : undefined;
 
-        // The restorer placed the saved configs as they are. The configuration's countertop and basin
-        // are shown on them again, as placing the preset does.
+        // The restorer placed the saved configs as they are. The configuration's countertop, basin and
+        // towel bar are shown on them again, as placing the preset does.
         const replayed = await replay({
           send: {
             ...countertopValuesAfterPlacement(globalConfig),
             ...(restoredVesselColor !== undefined
               ? { VesselColor: restoredVesselColor }
               : toConfigurationValues({ VesselColor: globalConfig.VesselColor })),
+            ...(restoredTowelBarOption ? { TowelBarOption: restoredTowelBarOption } : {}),
+            ...(restoredTowelBarColor ? { TowelBarColor: restoredTowelBarColor } : {}),
           },
           record: false,
         });
@@ -1209,6 +1283,18 @@ export const ModelPage = () => {
             : undefined;
         const restoredThickness =
           typeof uiStateValues?.Thickness === "string" ? (uiStateValues.Thickness as string) : undefined;
+        const restoredDrawerPanelFluting = readSavedText(uiStateValues, "DrawerPanelFluting");
+        const restoredGrainDirection = readSavedText(uiStateValues, "GrainDirection");
+        // A towel bar without a colour of its own is saved as none.
+        const towelBarColorToRecord = restoredTowelBarColor ?? (restoredTowelBarOption === "None" ? "" : undefined);
+
+        // Recording a pattern writes it into every preset, but the presets keep what each cabinet was
+        // saved with (Tricot cabinets differ, and Customize places them from the presets). So the pattern
+        // is recorded alone and the presets are put back, before the values below add to them.
+        if (restoredDrawerPanelFluting) {
+          record({ DrawerPanelFluting: restoredDrawerPanelFluting });
+          dispatch(addProductPreset(effectivePresets));
+        }
         record({
           ...toConfigurationValues({
             CountertopColor: globalConfig.CountertopColor,
@@ -1226,6 +1312,9 @@ export const ModelPage = () => {
           ...(restoredHandleGrooveColor ? { HandleGrooveColor: restoredHandleGrooveColor } : {}),
           ...(restoredThickness ? { Thickness: restoredThickness } : {}),
           ...(restoredHandle ? { Handle: restoredHandle } : {}),
+          ...(restoredGrainDirection ? { GrainDirection: restoredGrainDirection } : {}),
+          ...(restoredTowelBarOption ? { TowelBarOption: restoredTowelBarOption } : {}),
+          ...(towelBarColorToRecord !== undefined ? { TowelBarColor: towelBarColorToRecord } : {}),
         });
         if (globalConfig.CountertopColor) {
           if (restoredCountertopColorSku) {
@@ -1249,13 +1338,16 @@ export const ModelPage = () => {
         const restoredSidePanelRight =
           typeof uiStateValues?.SidePanelRight === "string" ? (uiStateValues.SidePanelRight as string) : undefined;
         if (restoredSidePanels && isGrooveType(restoredSidePanels) && effectivePresets.length) {
-          const leftStatus = (restoredSidePanelLeft ?? "active") as SidePanelStatus;
-          const rightStatus = (restoredSidePanelRight ?? "active") as SidePanelStatus;
+          const { left: leftStatus, right: rightStatus } = await settleSavedSideStatuses(
+            activeProfileRef.current,
+            (restoredSidePanelLeft ?? "active") as SidePanelStatus,
+            (restoredSidePanelRight ?? "active") as SidePanelStatus,
+          );
           await restoreSidePanelState(
             dispatch,
             restoredSidePanels,
-            restoredSidePanelLeft,
-            restoredSidePanelRight,
+            leftStatus,
+            rightStatus,
             effectivePresets.length,
             { panels: restoredSidePanels, left: leftStatus, right: rightStatus },
           );
@@ -1308,79 +1400,13 @@ export const ModelPage = () => {
     const presetProducts =
       presetFromUrl?.presetProducts ?? (productsPresets.length ? productsPresets : (defaultPreset?.presetProducts ?? []));
 
-    const run = async () => {
-      // Compact presets (format "ulh-compact-v1") carry rows, not presetProducts: import them via the bridge.
-      if (hasCompactRows(presetFromUrl)) {
-        try {
-          await applyAndAdoptCompactPreset(presetFromUrl, transferableOverrides);
-          sessionStorage.setItem("prebuiltModelInitialized", "1");
-          dispatch(clearHistory());
-        } catch (error) {
-          // Nothing was placed: a later run of this effect may try again.
-          isDefinedProductsRef.current = false;
-          console.warn("[Prebuilt] The compact preset was not applied", error);
-        }
-        return;
-      }
-      try {
-        const effectivePresetProducts = mergePrebuiltModelTransferableOverrides(presetProducts, transferableOverrides);
-        const globalConfig = resolveCompatibleCountertopSceneConfig(
-          {
-            ...resolvePresetSceneDefaults(effectivePresetProducts),
-            ...resolveColorSceneOverrides(),
-            ...resolveCountertopSceneOverrides(),
-          },
-          effectivePresetProducts,
-        );
-        const placed = await composition.applyPreset({
-          products: toCompositionProducts(effectivePresetProducts),
-          shared: toConfigurationValues(globalConfig),
-          afterPlacement: countertopValuesAfterPlacement(globalConfig),
-        });
-        if (placed.status === "error") {
-          // Nothing was placed: a later run of this effect may try again.
-          isDefinedProductsRef.current = false;
-          console.warn("[Prebuilt] The preset was not placed", placed);
-          return;
-        }
-
-        if (!productsPresets.length) {
-          dispatch(addProductPreset(effectivePresetProducts));
-          syncCountertopSelectionFromSceneConfig(globalConfig);
-        }
-
-        await updateSelectedDimensionsFromScene(effectivePresetProducts, placed.productIds);
-        sessionStorage.setItem("prebuiltModelInitialized", "1");
-
-        const presetCabinetColor = effectivePresetProducts.find(
-          (p) => typeof p.CabinetColor === "string" && p.CabinetColor,
-        )?.CabinetColor;
-        if (presetCabinetColor) record({ CabinetColor: presetCabinetColor });
-
-        dispatch(clearHistory());
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    run();
-  }, [
-    applyAndAdoptCompactPreset,
-    canvasReady,
-    composition,
-    configIdFromUrl,
-    configuratorGroups,
-    record,
-    defaultPreset,
-    dispatch,
-    presetFromUrl,
-    productsPresets,
-    resolveCompatibleCountertopSceneConfig,
-    resolveColorSceneOverrides,
-    resolveCountertopSceneOverrides,
-    syncCountertopSelectionFromSceneConfig,
-    transferableOverrides,
-    updateSelectedDimensionsFromScene,
-  ]);
+    const presetId = presetFromUrl?.id ?? defaultPreset?.id;
+    if (presetId !== undefined && getCommandState().rootStateUI.configuration.activePrebuiltPresetId === presetId && getOrderedProductIds().length) return;
+    void applyPresetSelection(presetProducts, presetId, { syncUrl: false }).then((applied) => {
+      if (applied) sessionStorage.setItem("prebuiltModelInitialized", "1");
+      else isDefinedProductsRef.current = false;
+    });
+  }, [applyPresetSelection, canvasReady, configIdFromUrl, defaultPreset, getCommandState, presetFromUrl, productsPresets]);
 
   useEffect(() => {
     if (isDetail) return;

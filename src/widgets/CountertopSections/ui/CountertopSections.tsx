@@ -1,13 +1,8 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { selectAttribute } from "@/entities/collection";
 import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
-import {
-  setActiveBasinStyle,
-  setCountertopColorSku,
-  setCountertopStyle,
-  setVesselColor,
-} from "@/entities/product/model/store/slice";
+import { setCountertopColorSku } from "@/entities/product/model/store/slice";
 import {
   ProductOptionsGrid,
   type ProductOptionMetadata,
@@ -17,7 +12,7 @@ import {
   useCustomizationStepSections,
   type ResolvedCustomizationField,
 } from "@/features/collectionCustomization";
-import { useChangeAttribute } from "@/features/configurationCommands";
+import { useChangeAttribute, type AttributeChange, type ChangePreview } from "@/features/configurationCommands";
 import {
   filterThicknessValuesByCountertopRules,
   findCountertopSkuByColorName,
@@ -25,8 +20,8 @@ import {
 import { openSwatchOrder } from "@/features/swatchOrder";
 import { useAppDispatch } from "@/shared/hooks/store/redux";
 import { trackModularOrderFreeSwatchesClick } from "@/shared/lib/analytics/modularKeyEvents";
+import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { ViewModePanel } from "@/shared/ui/ViewModePanel/ViewModePanel";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
 
 import { VESSEL_SINK_NONE_OPTION_VALUE } from "../lib/countertopColorOptions";
 import { useBasinState } from "../lib/useBasinState";
@@ -48,14 +43,20 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
   const dispatch = useAppDispatch();
   // A pick on the step is one undo step, written once it changed the configuration.
   const { run: runStep } = useHistoryStep();
-  const { change } = useChangeAttribute();
+  const { change, confirm } = useChangeAttribute();
+  const [pendingChange, setPendingChange] = useState<ChangePreview | null>(null);
+  const changeFromUser = useCallback(async (request: AttributeChange) => {
+    const result = await runStep(() => change({ ...request, userInitiated: true }));
+    setPendingChange(result.status === "confirmation-required" ? result.preview : null);
+    return result;
+  }, [change, runStep]);
   const sections = useCustomizationStepSections(stepId);
   const fieldOf = (attributeId: string) =>
     sections.flatMap((section) => section.fields).find(({ definition }) => definition.attributeId === attributeId)
       ?.field;
 
   const context = useCountertopContext();
-  const { activeBasinStyle, activeCountertopColor, activeProfile, activeThickness, isVesselStyle, sinkBaseCabinetId } =
+  const { activeBasinStyle, activeCountertopColor, activeProfile, activeThickness, sinkBaseCabinetId } =
     context;
   const colorState = useCountertopColorState(context);
   const vesselState = useVesselColorState({
@@ -79,8 +80,8 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
   }, [context.ruleState.allowedThicknesses, thicknessField]);
 
   const changeThickness = useCallback(
-    (thickness: string) => runStep(() => change({ attributeId: "Thickness", value: thickness, scope: "countertop" })),
-    [change, runStep],
+    (thickness: string) => changeFromUser({ attributeId: "Thickness", value: thickness, scope: "countertop" }),
+    [changeFromUser],
   );
 
   // A thickness the rules pick for the countertop: their change, not the user's, so it takes no undo step.
@@ -91,9 +92,7 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
 
   const changeCountertopColor = async (colorName: string, _config?: unknown, metadata?: ProductOptionMetadata) => {
     if (!colorName || !colorState.isColorCompatible(colorName)) return;
-    const result = await runStep(() =>
-      change({ attributeId: "CountertopColor", value: colorName, scope: "countertop" }),
-    );
+    const result = await changeFromUser({ attributeId: "CountertopColor", value: colorName, scope: "countertop" });
     if (result.status !== "applied") return;
     dispatch(
       setCountertopColorSku(metadata?.sku ?? findCountertopSkuByColorName(context.configuratorGroups, colorName)),
@@ -104,45 +103,18 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
     if (!colorName || !sinkBaseCabinetId) return;
     const option = vesselState.findOptionByValue(colorName);
     if (option && !vesselState.isCompatibleWithSinkStyle(option)) return;
-    const result = await runStep(() =>
-      change({
+    const result = await changeFromUser({
         attributeId: "VesselColor",
         value: colorName,
         scope: "basin",
         sinkBaseId: sinkBaseCabinetId,
-      }),
-    );
+      });
     if (result.status === "applied") vesselState.setActiveVesselColor(colorName);
   };
 
-  // The vessel cutout: the scene keeps the profile's noneValue for sinkType where state keeps "no basin chosen".
-  const applyVesselCutout = useCallback(async () => {
-    const noneValue = selectAttribute(activeProfile, "sinkType")?.noneValue;
-    if (!noneValue || !sinkBaseCabinetId) return;
-    await change({ attributeId: "sinkType", value: noneValue, scope: "basin", sinkBaseId: sinkBaseCabinetId });
-  }, [activeProfile, change, sinkBaseCabinetId]);
-
-  const { syncColorWithSinkStyle } = vesselState;
-  const { applyIntegratedBasin } = basinState;
-
-  // A vessel goes on every preset product; custom has no presets and uses the composition.
-  const applyVesselBasin = useCallback(
-    async (basinStyle: string) => {
-      await (context.presetNames.length
-        ? Promise.all(
-            context.presetNames.map((name) => setConfigBatch({ productType: name }, { sinkType: basinStyle })),
-          )
-        : setConfigBatch(context.selectedProducts, { sinkType: basinStyle }));
-      await syncColorWithSinkStyle(basinStyle);
-      dispatch(setActiveBasinStyle(basinStyle));
-    },
-    [context.presetNames, context.selectedProducts, dispatch, syncColorWithSinkStyle],
-  );
-
   const applyBasin = useCallback(
-    (basinStyle: string) =>
-      basinStyle.startsWith("Vessel_") ? applyVesselBasin(basinStyle) : applyIntegratedBasin(basinStyle),
-    [applyIntegratedBasin, applyVesselBasin],
+    async (basinStyle: string) => { await change({ attributeId: "sinkType", value: basinStyle, scope: "basin" }); },
+    [change],
   );
 
   useCountertopResets({
@@ -159,31 +131,15 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
     const option = basinState.basinOptions.find((item) => (item.name ?? item.title) === basinStyle);
     if (option?.isAvailable === false) return;
 
-    await runStep(async () => {
-      const isNone = basinStyle === VESSEL_SINK_NONE_OPTION_VALUE;
-      if (isNone || basinStyle.startsWith("Vessel_")) {
-        if (!isVesselStyle) dispatch(setCountertopStyle("Vessel"));
-        // "None" and a second click on the chosen vessel leave an empty cutout.
-        if (isNone || activeBasinStyle === basinStyle) return applyVesselCutout();
-      }
-      await applyBasin(basinStyle);
+    const isCutout = basinStyle === VESSEL_SINK_NONE_OPTION_VALUE || (basinStyle.startsWith("Vessel_") && activeBasinStyle === basinStyle);
+    await changeFromUser({
+      attributeId: "sinkType", value: isCutout ? selectAttribute(activeProfile, "sinkType")?.noneValue ?? "" : basinStyle,
+      scope: "basin",
     });
   };
 
   const changeCountertopStyle = async (styleValue: string) => {
-    const style = basinState.styleOptions.find((option) => option.value === styleValue)?.label ?? styleValue;
-
-    await runStep(async () => {
-      dispatch(setCountertopStyle(style));
-
-      if (style.toLowerCase() === "vessel") {
-        await setConfigBatch({ productType: "Sink-Base" }, { sinkType: "Vessel" });
-        dispatch(setActiveBasinStyle(""));
-      } else {
-        await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: "" });
-        dispatch(setVesselColor(""));
-      }
-    });
+    await changeFromUser({ attributeId: "CountertopStyle", value: styleValue, scope: "countertop" });
   };
 
   const orderSwatches = () => {
@@ -295,6 +251,7 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
     }
   };
 
+  const firstVisibleSection = sections.find((section) => section.fields.some(({ field }) => field.visible))?.sectionId;
   return sections.flatMap((section) => {
     const visibleFields = section.fields.filter(({ field }) => field.visible);
     if (!visibleFields.length) return [];
@@ -312,7 +269,17 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
         sectionId: section.sectionId,
         label,
         defaultOpen: section.defaultOpen,
-        content: <FieldStack>{visibleFields.map(renderField)}</FieldStack>,
+        content: <FieldStack>{visibleFields.map(renderField)}{section.sectionId === firstVisibleSection && (
+          <AttentionPopup
+            isOpening={pendingChange !== null}
+            setIsOpening={(open) => { if (!open) setPendingChange(null); }}
+            content={<p>{pendingChange?.reasons[0]?.reason}</p>}
+            onConfirm={() => {
+              if (!pendingChange) return;
+              void runStep(() => confirm(pendingChange)).then((result) => setPendingChange(result.status === "confirmation-required" ? result.preview : null));
+            }}
+          />
+        )}</FieldStack>,
       },
     ];
   });

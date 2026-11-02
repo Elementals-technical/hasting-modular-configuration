@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
@@ -12,6 +12,9 @@ import classUiDocument from "../../../../../public/collections/class/ui.json";
 import makoManifestDocument from "../../../../../public/collections/mako/manifest.json";
 import makoPresetsDocument from "../../../../../public/collections/mako/presets.json";
 import makoUiDocument from "../../../../../public/collections/mako/ui.json";
+import tricotManifestDocument from "../../../../../public/collections/tricot/manifest.json";
+import tricotPresetsDocument from "../../../../../public/collections/tricot/presets.json";
+import tricotUiDocument from "../../../../../public/collections/tricot/ui.json";
 import ulhManifestDocument from "../../../../../public/collections/urban-low-height/manifest.json";
 import ulhPresetsDocument from "../../../../../public/collections/urban-low-height/presets.json";
 import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
@@ -21,6 +24,9 @@ import udPresetsDocument from "../../../../../public/collections/urban-duplex/pr
 import udProfileDocument from "../../../../../public/collections/urban-duplex/product-profile.json";
 import udBindingsDocument from "../../../../../public/collections/urban-duplex/runtime-bindings.json";
 import udUiDocument from "../../../../../public/collections/urban-duplex/ui.json";
+import ushManifestDocument from "../../../../../public/collections/urban-standard-height/manifest.json";
+import ushPresetsDocument from "../../../../../public/collections/urban-standard-height/presets.json";
+import ushUiDocument from "../../../../../public/collections/urban-standard-height/ui.json";
 import { store } from "@/app/store";
 import {
   parseProductProfile,
@@ -35,16 +41,22 @@ import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datata
 import datatable581 from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import datatable594 from "@/entities/collection/__tests__/fixtures/remote/datatable-594.json";
+import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
+import datatable593 from "@/entities/collection/__tests__/fixtures/remote/datatable-593.json";
 import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
+import { tricotMatrixProfile, tricotRuntimeBindings } from "@/entities/collection/__tests__/tricotFixtures";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
+import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import type { RuntimeBindingSet } from "@/entities/collection/model/runtimeBindings";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import {
   clearRestore,
   getAttributeValue,
+  setExplicitUserChoice,
   getRestoreState,
   resetConfiguration,
   setActiveCollectionId,
@@ -52,19 +64,36 @@ import {
   setAttributeValue,
   type ConfigurationRecord,
 } from "@/entities/configuration";
+import type { ConfigurationSidePanelPort } from "@/entities/configuration";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import type { ProductDatatable } from "@/entities/product/api";
 import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
-import { getCountertopStyle, getProductsPresets, getSinkType } from "@/entities/product/model/store/selectors";
+import {
+  getCountertopStyle,
+  getDrawerPanelFluting,
+  getGrainDirection,
+  getHandleGrooveColor,
+  getProductsPresets,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
+  getSinkType,
+  getTowelBarColor,
+  getTowelBarOption,
+} from "@/entities/product/model/store/selectors";
 import { reset, setActiveBasinStyle, setActiveProfile } from "@/entities/product/model/store/slice";
 import { recordValues, type AttributeChange } from "@/features/configurationCommands";
-import { createTestCompositionPort, createTestRuntimePort } from "@/features/playCanvasAdapter";
+import {
+  createTestCompositionPort,
+  createTestRuntimePort,
+  createTestSidePanelPort,
+} from "@/features/playCanvasAdapter";
 import type { UseChangeAttributeOptions } from "@/features/configurationCommands/hooks/useChangeAttribute";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { FieldsStepPage } from "@/pages/fieldsStep/FieldsStepPage";
 import { ModelPage } from "@/pages/prebuilt/model/ModelPage";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import type { EdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 
 /**
  * The model page keeps the countertop the configuration prices in step with the one it shows, for
@@ -79,6 +108,8 @@ const mocks = vi.hoisted(() => ({
   changes: [] as AttributeChange[],
   sceneReady: true,
   ports: null as UseChangeAttributeOptions | null,
+  sidePanelPort: null as ConfigurationSidePanelPort | null,
+  edgeCabinets: { leftCabinetId: null, rightCabinetId: null } as EdgeCabinets,
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => mocks.sceneReady }));
@@ -115,6 +146,11 @@ vi.mock("@/utils/functions/playcanvas/getOrderedProductIds", () => ({
   getOrderedProductIds: (fallback: string[] = []) => fallback,
 }));
 vi.mock("@/utils/functions/playcanvas/getConfig", () => ({ getConfig: vi.fn(async () => null) }));
+vi.mock("@/utils/functions/playcanvas/getEdgeCabinets", () => ({ getEdgeCabinets: () => mocks.edgeCabinets }));
+vi.mock("@/features/playCanvasAdapter/lib/createSidePanelPort", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/playCanvasAdapter/lib/createSidePanelPort")>();
+  return { createSidePanelPort: () => mocks.sidePanelPort ?? actual.createSidePanelPort() };
+});
 // The page's own command service; the changes a field sends are recorded.
 vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/configurationCommands/hooks/useChangeAttribute")>();
@@ -139,6 +175,8 @@ vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (impo
 afterEach(() => {
   cleanup();
   mocks.ports = null;
+  mocks.sidePanelPort = null;
+  mocks.edgeCabinets = { leftCabinetId: null, rightCabinetId: null };
 });
 
 const parsedClassProfile = parseProductProfile(classProfileDocument);
@@ -217,6 +255,8 @@ const savedOrder = (
   saved: SavedBasin,
   shown: SavedBasin = saved,
   sceneBasin = "Top_HPLPrisma",
+  uiState: Record<string, string> = {},
+  cabinetValues?: Record<string, string>,
 ): ConfigurationRecord => {
   const sourceId = `${sinkBaseSceneType}-aaa111`;
   return {
@@ -240,6 +280,7 @@ const savedOrder = (
         VesselColor: shown.vesselColor,
         CountertopColor: "Nero 433 GL",
         Thickness: "0.5",
+        ...uiState,
       },
       configuration: {
         version: 2,
@@ -248,6 +289,7 @@ const savedOrder = (
         values: {
           countertop: { CountertopStyle: saved.style, CountertopColor: "Nero 433 GL", Thickness: "0.5" },
           "basin:cab-1": { sinkType: saved.basin, VesselColor: saved.vesselColor },
+          ...(cabinetValues ? { "cabinet:cab-1": cabinetValues } : {}),
         },
       },
     },
@@ -412,6 +454,247 @@ describe("urban-low-height: a Prebuilt order opened from its link keeps its hand
     await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
 
     expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_urban_topcut");
+  });
+
+  it("keeps the fluting the Summary shows, from the ui state and at the cabinet that holds it", async () => {
+    mocks.record = savedOrder(
+      ulh,
+      { style: "integrated", basin: "VA002", vesselColor: "" },
+      undefined,
+      undefined,
+      { DrawerPanelFluting: "FlutingVerticalA" },
+      { DrawerPanelFluting: "FlutingVerticalA" },
+    );
+
+    renderAt(ulh, `/prebuilt/model?collectionId=${ulh.collectionId}&configId=7102`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+
+    expect(getDrawerPanelFluting(store.getState())).toBe("FlutingVerticalA");
+    expect(getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: "cab-1" })).toBe(
+      "FlutingVerticalA",
+    );
+  });
+});
+
+describe("urban-standard-height: a Prebuilt order opened from its link keeps its add-ons and cabinet options", () => {
+  const ush: Case = {
+    collectionId: "urban-standard-height",
+    profile: ushProfile,
+    bindings: ushRuntimeBindings,
+    sinkBaseSceneType: "Sink-Base",
+    manifest: ushManifestDocument,
+    ui: ushUiDocument,
+    presets: ushPresetsDocument,
+    countertopTable: datatable438,
+  };
+  const INTEGRATED: SavedBasin = { style: "integrated", basin: "VA002", vesselColor: "" };
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(clearRestore());
+    store.dispatch(clearHistory());
+    store.dispatch(setActiveProfile(ush.profile));
+    store.dispatch(setActiveCollectionId(ush.collectionId));
+    store.dispatch(setActiveRuntimeBindings(ush.bindings));
+    mocks.changes.length = 0;
+    mocks.sceneReady = true;
+  });
+
+  const restore = async (configId: string, uiState: Record<string, string>) => {
+    const runtime = createTestRuntimePort();
+    mocks.ports = { runtime: runtime.port };
+    mocks.record = savedOrder(ush, INTEGRATED, INTEGRATED, undefined, uiState);
+
+    renderAt(ush, `/prebuilt/model?collectionId=${ush.collectionId}&configId=${configId}`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+
+    return runtime;
+  };
+
+  /** What the page sent the scene for an attribute, in the order it was sent. */
+  const sentToScene = (runtime: ReturnType<typeof createTestRuntimePort>, attributeId: string) =>
+    runtime.calls.flat().flatMap((change) => (change.attributeId === attributeId ? [change.value] : []));
+
+  it("comes back with both towel bars and their colour, in the state and in the scene", async () => {
+    const runtime = await restore("7401", { TowelBarOption: "Both", TowelBarColor: "Carbone 43 MT" });
+
+    expect(getTowelBarOption(store.getState())).toBe("Both");
+    expect(getTowelBarColor(store.getState())).toBe("Carbone 43 MT");
+    // Sent once: nothing later in the restore takes the bar back out.
+    expect(sentToScene(runtime, "TowelBarOption")).toEqual(["Both"]);
+    expect(sentToScene(runtime, "TowelBarColor")).toEqual(["Carbone 43 MT"]);
+  });
+
+  it("reads the option of a legacy save from the scene's towel bar and its side", async () => {
+    const runtime = await restore("7402", {
+      TowelBarOption: "TowelBar40_R",
+      TowelBarSide: "left",
+      TowelBarColor: "Carbone 43 MT",
+    });
+
+    expect(getTowelBarOption(store.getState())).toBe("Left");
+    expect(sentToScene(runtime, "TowelBarOption")).toEqual(["Left"]);
+  });
+
+  it("comes back without a towel bar and without a colour when saved with none", async () => {
+    const runtime = await restore("7403", { TowelBarOption: "None", TowelBarColor: "" });
+
+    expect(getTowelBarOption(store.getState())).toBe("None");
+    expect(getTowelBarColor(store.getState())).toBe("");
+    expect(sentToScene(runtime, "TowelBarOption")).toEqual(["None"]);
+    expect(sentToScene(runtime, "TowelBarColor")).toEqual([]);
+  });
+
+  it("keeps the option of a towel bar saved without a colour", async () => {
+    const runtime = await restore("7404", { TowelBarOption: "Right" });
+
+    expect(getTowelBarOption(store.getState())).toBe("Right");
+    expect(getTowelBarColor(store.getState())).toBe("");
+    expect(sentToScene(runtime, "TowelBarColor")).toEqual([]);
+  });
+
+  it("records the fluting and the grain direction, which the scene already holds", async () => {
+    const runtime = await restore("7405", {
+      DrawerPanelFluting: "FlutingVerticalA",
+      GrainDirection: "GrainVertical",
+    });
+
+    expect(getDrawerPanelFluting(store.getState())).toBe("FlutingVerticalA");
+    expect(getGrainDirection(store.getState())).toBe("GrainVertical");
+    expect(sentToScene(runtime, "DrawerPanelFluting")).toEqual([]);
+    expect(sentToScene(runtime, "GrainDirection")).toEqual([]);
+  });
+});
+
+describe("tricot: a Prebuilt order opened from its link", () => {
+  const tricot: Case = {
+    collectionId: "tricot",
+    profile: tricotMatrixProfile,
+    bindings: tricotRuntimeBindings,
+    sinkBaseSceneType: "Tricot-sink-cabinet",
+    manifest: tricotManifestDocument,
+    ui: tricotUiDocument,
+    presets: tricotPresetsDocument,
+    countertopTable: datatable593,
+  };
+  const sourceIds = ["Tricot-sink-cabinet-aaa111", "Tricot-side-cabinet-bbb222"];
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(clearRestore());
+    store.dispatch(clearHistory());
+    store.dispatch(setActiveProfile(tricot.profile));
+    store.dispatch(setActiveCollectionId(tricot.collectionId));
+    store.dispatch(setActiveRuntimeBindings(tricot.bindings));
+    mocks.changes.length = 0;
+    mocks.sceneReady = true;
+  });
+
+  it("records the model's groove for pricing before Customize, replacing stale automatic state", async () => {
+    const composition = createTestCompositionPort();
+    const id = "Tricot-sink-cabinet-placed";
+    composition.answerNext({
+      status: "applied", placed: [id],
+      scene: { status: "ready", order: [id], cabinets: [{ runtimeId: id, dimensions: { width: 60, height: 40, depth: 52 } }] },
+    });
+    mocks.ports = { composition: composition.port, runtime: createTestRuntimePort().port };
+    recordValues({ HandleGrooveColor: "Agata 407 MT" }, { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" });
+    expect(getHandleGrooveColor(store.getState())).toBe("Agata 407 MT");
+    renderAt(tricot, "/prebuilt/model?collectionId=tricot&preset=1190388679", <ModelPage />, true);
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBe(1190388679));
+    expect(composition.calls[0]).toMatchObject({ op: "replace", request: { shared: { HandleGrooveColor: "Nero 433 MT" } } });
+    expect(getHandleGrooveColor(store.getState())).toBe("Nero 433 MT");
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+  });
+
+  /** Two cabinets with a pattern each; the ui state holds the last one chosen. */
+  const savedWithTwoPatterns = (uiState: Record<string, string> = {}): ConfigurationRecord => ({
+    configuration: {
+      [sourceIds[0]]: { ProductType: "Tricot-sink-cabinet", Width: 60, Height: 40, Depth: 52, Drawers: "1DW" },
+      [sourceIds[1]]: { ProductType: "Tricot-side-cabinet", Width: 60, Height: 40, Depth: 52, Drawers: "1DW" },
+    },
+    metadata: {
+      path: "/prebuilt/summary",
+      orderedProductIds: sourceIds,
+      collectionId: tricot.collectionId,
+      uiState: { CabinetColor: "Noce Canaletto 933", DrawerPanelFluting: "Satin", ...uiState },
+      configuration: {
+        version: 2,
+        collectionId: tricot.collectionId,
+        cabinets: [
+          { stableKey: "cab-1", index: 0 },
+          { stableKey: "cab-2", index: 1 },
+        ],
+        values: {
+          "cabinet:cab-1": { DrawerPanelFluting: "Cannette" },
+          "cabinet:cab-2": { DrawerPanelFluting: "Satin" },
+        },
+      },
+    },
+  });
+
+  const restore = async (configId: string, uiState?: Record<string, string>) => {
+    const runtime = createTestRuntimePort();
+    mocks.ports = { runtime: runtime.port };
+    mocks.record = savedWithTwoPatterns(uiState);
+
+    renderAt(tricot, `/prebuilt/model?collectionId=${tricot.collectionId}&configId=${configId}`, <ModelPage />);
+    await waitFor(() => expect(getRestoreState(store.getState()).status).toBe("restored"));
+
+    return runtime;
+  };
+
+  it("keeps each cabinet's pattern for the price and for Customize, and the last one chosen for Summary", async () => {
+    await restore("7501");
+
+    expect(getDrawerPanelFluting(store.getState())).toBe("Satin");
+    expect(getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: "cab-1" })).toBe(
+      "Cannette",
+    );
+    expect(getAttributeValue(store.getState(), "DrawerPanelFluting", { scope: "cabinet", cabinetId: "cab-2" })).toBe(
+      "Satin",
+    );
+    expect(getProductsPresets(store.getState()).map(({ DrawerPanelFluting }) => DrawerPanelFluting)).toEqual([
+      "Cannette",
+      "Satin",
+    ]);
+    // The colour recorded after the pattern still reaches the presets.
+    expect(getProductsPresets(store.getState()).map(({ CabinetColor }) => CabinetColor)).toEqual([
+      "Noce Canaletto 933",
+      "Noce Canaletto 933",
+    ]);
+  });
+
+  it("neither sends nor records a towel bar, which the collection does not offer", async () => {
+    const optionBefore = getTowelBarOption(store.getState());
+
+    const runtime = await restore("7502", { TowelBarOption: "Both", TowelBarColor: "Carbone 43 MT" });
+
+    expect(runtime.calls.flat().filter(({ attributeId }) => attributeId.startsWith("TowelBar"))).toEqual([]);
+    expect(getTowelBarOption(store.getState())).toBe(optionBefore);
+    expect(getTowelBarColor(store.getState())).toBe("");
+  });
+
+  it("comes back without the panel of a side saved without it, on an edge that could hold one", async () => {
+    const sidePanels = createTestSidePanelPort();
+    mocks.sidePanelPort = sidePanels.port;
+    // The scene names a rebuilt product after its scene type.
+    mocks.edgeCabinets = {
+      leftCabinetId: "Tricot-sink-cabinet-rebuilt0",
+      rightCabinetId: "Tricot-side-cabinet-rebuilt1",
+    };
+
+    await restore("7503", { SidePanels: "NoG", SidePanelLeft: "active", SidePanelRight: "auto-removed" });
+
+    expect(getSidePanelLeftStatus(store.getState())).toBe("active");
+    expect(getSidePanelRightStatus(store.getState())).toBe("none");
+    expect(sidePanels.calls.flatMap(({ placements }) => placements).filter(({ panel }) => panel !== "None")).toEqual([
+      { panel: "NoG", side: "left" },
+    ]);
   });
 });
 
@@ -733,6 +1016,11 @@ describe("Class model selection", () => {
       { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" },
     );
 
+    // These are deliberate UI choices; a record-only bootstrap is not carry intent.
+    for (const attributeId of ["CabinetColor", "CabinetSideColor", "FrameColor", "CountertopColor", "CountertopStyle", "sinkType", "Thickness", "VesselColor", "FaucetHolesAmount"]) {
+      store.dispatch(setExplicitUserChoice({ attributeId, chosen: true }));
+    }
+
     renderAt(testCase, "/prebuilt/model?collectionId=class", <ModelPage />, true);
     // Returning to this step alone must keep the user's configuration.
     expect(getCountertopStyle(store.getState())).toBe(style);
@@ -788,18 +1076,15 @@ describe.each(CASES)("$collectionId: Customize on a model card", (testCase) => {
     mocks.sceneReady = false;
   });
 
-  it("starts Custom from the basin and style the page falls back to, not an earlier pick", async () => {
+  it("does not replace the configuration or enter Custom when the selected model cannot be placed", async () => {
     // A basin picked on the Countertop & Basin step is the composition's too.
     store.dispatch(setActiveBasinStyle("VA002"));
     store.dispatch(setAttributeValue({ attributeId: "sinkType", target: { scope: "basin" }, value: "VA002" }));
 
     renderAt(testCase, `/prebuilt/model?collectionId=${testCase.collectionId}`, <ModelPage />, true);
-    fireEvent.click((await screen.findAllByText("Customize"))[0]);
-    await waitFor(() => expect(getProductsPresets(store.getState()).length).toBeGreaterThan(0));
-
-    // The model's products carry no basin, so the page falls back to the collection's.
-    const state = store.getState();
-    expect(getAttributeValue(state, "sinkType", { scope: "basin" })).toBe(getSinkType(state));
-    expect(getAttributeValue(state, "CountertopStyle", { scope: "countertop" })).toBe(getCountertopStyle(state));
+    await act(async () => { fireEvent.click((await screen.findAllByText("Customize"))[0]); });
+    expect(getProductsPresets(store.getState())).toHaveLength(0);
+    expect(getSinkType(store.getState())).toBe("VA002");
+    expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBeNull();
   });
 });

@@ -121,3 +121,7 @@ export const getConfigurationSnapshot = (state: RootState): ConfigurationSnapsho
     ]),
   ),
 });
+
+/** Automatic defaults/scene records are not permission to overwrite another model's authored values. */
+export const isExplicitUserChoice = (state: RootState, attributeId: string): boolean =>
+  state.rootStateUI.configuration.explicitUserChoices[attributeId] === true;
