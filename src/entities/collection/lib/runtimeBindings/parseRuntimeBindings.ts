@@ -208,7 +208,37 @@ const parseValues = (raw: unknown, path: string, collect: Collector): IdentityVa
         }
       }
     }
-    return valid ? { kind: "map", patches, ...(raw.unboundValues !== undefined ? { unboundValues } : {}) } : null;
+
+    const retiredSceneValues: Record<string, string> = {};
+    if (raw.retiredSceneValues !== undefined) {
+      if (!isRecord(raw.retiredSceneValues)) {
+        collect.add(
+          "binding.invalid_values",
+          `${path}/retiredSceneValues`,
+          "retiredSceneValues must map scene values to configuration values",
+        );
+        valid = false;
+      } else {
+        for (const [sceneValue, value] of Object.entries(raw.retiredSceneValues)) {
+          if (typeof value !== "string" || !Object.hasOwn(patches, value) || Object.hasOwn(patches, sceneValue)) {
+            collect.add(
+              "binding.invalid_values",
+              `${path}/retiredSceneValues/${sceneValue}`,
+              "A retired scene value needs a configuration value with a patch and cannot have a patch of its own",
+            );
+            valid = false;
+          } else retiredSceneValues[sceneValue] = value;
+        }
+      }
+    }
+    return valid
+      ? {
+          kind: "map",
+          patches,
+          ...(raw.unboundValues !== undefined ? { unboundValues } : {}),
+          ...(raw.retiredSceneValues !== undefined ? { retiredSceneValues } : {}),
+        }
+      : null;
   }
 
   collect.add("binding.invalid_values", `${path}/kind`, 'values kind must be "identity" or "map"');

@@ -344,6 +344,20 @@ export const readSceneSupportGroups = (countertopId: string): SceneSupportGroups
   return { layout: layoutOf(manager), countertopGroupId: supportGroupOf(countertop), cabinets, sidePanelsByGroup };
 };
 
+/** Semantic Top_Solid config for adopting an existing composition; no geometry getter fallback. */
+export const readSceneCountertopConfig = async (): Promise<Record<string, unknown> | null> => {
+  const app = getConfiguratorApi()?.config;
+  const manager = isRecord(app) ? app.compositionManager : null;
+  if (!isRecord(manager) || typeof manager.getActiveComposition !== "function") return null;
+  const composition: unknown = manager.getActiveComposition();
+  if (!isRecord(composition) || typeof composition.getAllProducts !== "function") return null;
+  const products: unknown = composition.getAllProducts();
+  if (!isRecord(products)) return null;
+  const read = await readSceneProducts(Object.keys(products));
+  if (read.status !== "ready") return null;
+  return Object.values(read.configs).find((config) => (config.productType ?? config.ProductType) === "Top_Solid") ?? null;
+};
+
 /**
  * Answer of one scene operation used to rebuild a composition. `sceneCode`: the scene's own code of a
  * refusal, e.g. "UF_HEIGHT_RUN_VIOLATION" (the change would split the block of tall UF cabinets).

@@ -27,3 +27,5 @@ export const restoreCountertopConfigs = async (
 
   return results;
 };
+
+export { readSceneCountertopConfig as readCountertopConfig } from "@/utils/functions/playcanvas/sceneBridge";

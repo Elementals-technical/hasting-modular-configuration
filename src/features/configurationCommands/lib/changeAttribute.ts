@@ -3,7 +3,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import type { RuntimeFlow } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
-import { getCabinetEntries, resolveStableKey } from "@/entities/configuration";
+import { getCabinetEntries, resolveStableKey, setExplicitUserChoice } from "@/entities/configuration";
 import type { ConfigurationRuntimePort } from "@/entities/configuration";
 
 import { applyPlan } from "./applyPlan";
@@ -47,7 +47,7 @@ export const changeAttribute = async (
     };
   }
 
-  return applyPlan(evaluation.plan, {
+  const result = await applyPlan(evaluation.plan, {
     state,
     dispatch,
     runtime,
@@ -55,8 +55,21 @@ export const changeAttribute = async (
     collectionId: evaluation.collectionId,
     configurator,
   });
+  recordAcceptedUserChoice(change, result, dispatch);
+  return result;
 };
 
 /** Exported for tests that need the same runtime-id lookup as the command service. */
 export const createRuntimeIdResolver = (state: RootState) => (cabinetId: string) =>
   resolveStableKey(getCabinetEntries(state), cabinetId);
+
+/** Called before the enclosing UI history step completes, including accepted no-ops. */
+export const recordAcceptedUserChoice = (
+  change: AttributeChange,
+  result: ChangeResult,
+  dispatch: ChangeAttributeDeps["dispatch"],
+): void => {
+  if (!change.userInitiated || result.status !== "applied") return;
+  if (change.scope === "drawer" || (change.scope === "cabinet" && change.onlyThisCabinet) || (change.scope === "basin" && change.sinkBaseId)) return;
+  dispatch(setExplicitUserChoice({ attributeId: change.attributeId, chosen: true }));
+};

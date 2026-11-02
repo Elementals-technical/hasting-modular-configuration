@@ -2,11 +2,13 @@
 import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import { parseProductProfile, ReadyCollectionContext, type CollectionPreset } from "@/entities/collection";
+import { countertopDatatableSchema, parseProductProfile, ReadyCollectionContext, type CollectionPreset } from "@/entities/collection";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
+import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { parseRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/parseRuntimeBindings";
 import {
@@ -16,7 +18,7 @@ import {
   setActiveCollectionId,
   setActiveRuntimeBindings,
 } from "@/entities/configuration";
-import { getCountertopStyle, getSinkType } from "@/entities/product/model/store/selectors";
+import { getActiveCountertopThickness, getCountertopStyle, getSinkType } from "@/entities/product/model/store/selectors";
 import { addProductPreset, reset, setActiveProfile } from "@/entities/product/model/store/slice";
 import type { CabinetsState } from "@/features/configuratorApi";
 import type { CompactPresetSource } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
@@ -51,14 +53,17 @@ vi.mock("@/entities/product/ui/ProductModelsGrid/ProductModelsGrid", () => ({
   ProductModelsGrid: ({
     data,
     handleAddPreset,
+    handleCustomizePreset,
   }: {
     data: CollectionPreset[];
     handleAddPreset: (products: CollectionPreset["presetProducts"], id: number) => void;
+    handleCustomizePreset: (products: CollectionPreset["presetProducts"], id: number) => void;
   }) =>
     data.map((preset) => (
-      <button key={preset.id} onClick={() => handleAddPreset(preset.presetProducts, preset.id)}>
-        Select {preset.id}
-      </button>
+      <div key={preset.id}>
+        <button onClick={() => handleAddPreset(preset.presetProducts, preset.id)}>Select {preset.id}</button>
+        <button onClick={() => handleCustomizePreset(preset.presetProducts, preset.id)}>Customize {preset.id}</button>
+      </div>
     )),
 }));
 vi.mock("@/features/playCanvasAdapter/lib/applyCompactPreset", async (original) => ({
@@ -91,9 +96,15 @@ const base = buildReadyCollection(
   "urban-low-height",
   manifest,
   ui,
-  presetsDocument.filter(({ id }) => id === 28 || id === 29),
+  presetsDocument.filter(({ id }) => id === 28 || id === 29).map((preset) => ({
+    ...preset,
+    shared: { ...preset.shared, Thickness: undefined },
+    top: { ...preset.top, Thickness: undefined },
+  })),
 );
-const collection = { ...base, catalog: { ...base.catalog, runtimeBindings: bindings.bindings } };
+const collection = { ...base, catalog: { ...base.catalog, runtimeBindings: bindings.bindings, countertops: parseCountertopMatrix(countertopDatatableSchema.parse(datatable589)) } };
+
+const LocationProbe = () => <output data-testid="route">{useLocation().pathname}</output>;
 
 beforeEach(() => {
   sessionStorage.clear();
@@ -120,6 +131,10 @@ it("adopts compact primary cabinets for pricing on first URL load and on a subse
   await waitFor(() => expect(getCabinetEntries(store.getState())).toHaveLength(2));
   expect(store.getState().rootStateUI.product.selectedProductConfig?.Handle).toBe("handle_urban_topcut");
   expect(getSinkType(store.getState())).toBe("Top_HPL/Fenix_Cover_Gres");
+  const imported = calls.imports.mock.calls[0][0] as CompactPresetSource;
+  expect(imported.shared?.Thickness).toBe("0.5");
+  expect(imported.top?.Thickness).toBe("0.5");
+  expect(getActiveCountertopThickness(store.getState())).toBe("0.5");
   expect(getCountertopStyle(store.getState())).toBe("Integrated");
   const before = getCabinetEntries(store.getState()).map(({ runtimeId }) => runtimeId);
   fireEvent.click(screen.getByRole("button", { name: "Select 29" }));
@@ -149,14 +164,23 @@ it("hands Custom the compact model's cabinets, so the builder prices them with t
   // A Sink Base above a Side Cabinet and an Open Shelf.
   const model = render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={["/prebuilt/model?collectionId=urban-low-height&preset=29"]}>
+      <MemoryRouter initialEntries={["/prebuilt/model?collectionId=urban-low-height&preset=28"]}>
         <ReadyCollectionContext.Provider value={collection}>
-          <ModelPage />
+          <ModelPage /><LocationProbe />
         </ReadyCollectionContext.Provider>
       </MemoryRouter>
     </Provider>,
   );
-  await waitFor(() => expect(getCabinetEntries(store.getState())).toHaveLength(3));
+  await waitFor(() => expect(getCabinetEntries(store.getState())).toHaveLength(2));
+  fireEvent.click(screen.getByRole("button", { name: "Customize 29" }));
+  await waitFor(() => expect(screen.getByTestId("route").textContent).toBe("/custom"));
+  expect(getCabinetEntries(store.getState())).toHaveLength(3);
+  expect(calls.imports).toHaveBeenCalledTimes(2);
+  const adoptedIds = getCabinetEntries(store.getState()).map(({ runtimeId }) => runtimeId);
+  fireEvent.click(screen.getByRole("button", { name: "Customize 29" }));
+  await waitFor(() => expect(getActiveCountertopThickness(store.getState())).toBe("0.5"));
+  expect(calls.imports).toHaveBeenCalledTimes(2);
+  expect(getCabinetEntries(store.getState()).map(({ runtimeId }) => runtimeId)).toEqual(adoptedIds);
   model.unmount();
 
   // "Create Your Own": the builder adopts the cabinets the scene kept.

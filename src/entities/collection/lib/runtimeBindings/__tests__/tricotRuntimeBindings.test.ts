@@ -187,6 +187,50 @@ describe("Tricot delivered runtime bindings", () => {
     expect(findProductConfigBindingErrors(bindings, { sinkType: "Top_LB440" })).toEqual([]);
   });
 
+  // The scene tokens saved configurations carry from before each basin code got its own scene model.
+  describe.each([
+    ["Top_HPLPrisma", "LB440", "Top_LB440"],
+    ["Top_Tekorlux_Ron", "LB175", "Top_LB175"],
+    ["Top_Tekorlux_Quadra", "LB575", "Top_LB575"],
+    ["Top_HPLStrip", "LB856", "Top_LB856"],
+    ["Top_Tekormud_Tivi", "VA023", "Top_VA023"],
+    ["Top_HPLCover", "VA024", "Top_VA024"],
+    ["Top_Tekorlux_Trip", "LV890", "Top_LV890"],
+    ["Top_Ocritech_Orion", "LV892", "Top_LV892"],
+    ["Top_Ocritech_Oly55", "VA002", "Top_VA002"],
+    ["Top_Tekorlux_Rectangular", "VA005", "Top_VA005"],
+    ["Vessel_Blade11", "Plaza", "Vessel_Plaza"],
+  ])("a saved retired basin token %s", (retired, code, current) => {
+    it("passes the preflight", () => {
+      expect(findProductConfigBindingErrors(bindings, { sinkType: retired })).toEqual([]);
+    });
+
+    it("places the current scene model of its code", () => {
+      expect(resolveProductConfig(bindings, { sinkType: retired })).toEqual({ sinkType: current });
+    });
+
+    it("reads back as its code, and the current scene model still does", () => {
+      expect(semanticValueOf(bindings, "sinkType", retired)).toBe(code);
+      expect(semanticValueOf(bindings, "sinkType", current)).toBe(code);
+    });
+  });
+
+  it.each(["Top_Nonexistent", "toString"])("still rejects the unknown basin token %s", (token) => {
+    expect(patch("sinkType", token)).toMatchObject({ ok: false, reason: "unknown-value" });
+    expect(findProductConfigBindingErrors(bindings, { sinkType: token })).toHaveLength(1);
+    expect(semanticValueOf(bindings, "sinkType", token)).toBe(token);
+  });
+
+  it("reads a scene value by the patch that sends it, even when a retired entry names it", () => {
+    const binding = bindings.bindings.find(({ attributeId }) => attributeId === "sinkType");
+    if (binding?.status !== "bound" || binding.values.kind !== "map") throw new Error("Missing basin");
+    const set = {
+      ...bindings,
+      bindings: [{ ...binding, values: { ...binding.values, retiredSceneValues: { Top_VA024: "LB440" } } }],
+    };
+    expect(semanticValueOf(set, "sinkType", "Top_VA024")).toBe("VA024");
+  });
+
   it("sends the vessel colour to the sink base as its lacquer material, and reads it back", () => {
     const scene = JSON.parse(sceneConfig) as { assets: Record<string, { name?: string; type?: string }> };
     const materials = new Set(

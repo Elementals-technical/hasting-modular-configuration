@@ -1,17 +1,29 @@
+import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { recordValues } from "@/features/configurationCommands/lib/replayValues";
 import { store } from "@/app/store";
+import { rootReducer } from "@/app/store/reducer";
 import {
   clearRestore,
   getAttributeValue,
+  getCabinetDimensions,
   getCabinetEntries,
+  getDimensionsByCabinet,
   getRestoreState,
+  requestSceneStateSync,
   resetConfiguration,
   setActiveCollectionId,
+  setActivePrebuiltPresetId,
+  setExplicitUserChoice,
+  syncCabinets,
 } from "@/entities/configuration";
 import type { ConfigurationRecord, SceneRestoreMatch } from "@/entities/configuration";
 import { clearHistory } from "@/entities/history/model/store/slice";
-import { addProductId, reset, resetProducts } from "@/entities/product/model/store/slice";
+import { addProductId, reset, resetProducts, setActiveProfile } from "@/entities/product/model/store/slice";
+import { setupSceneStateListener } from "@/features/configurationCommands";
+import { createTestSceneReader } from "@/features/playCanvasAdapter";
 import { createTestSceneRestorer } from "@/features/playCanvasAdapter/lib/testSceneRestorer";
 import { isRestoreBlockingSave } from "@/features/saveConfiguration/lib/restoreSaveGuard";
 
@@ -88,9 +100,29 @@ describe("restoreSavedConfiguration", () => {
   });
 
   it("rebuilds the cabinets, gives them their saved keys and values and starts the history over", async () => {
-    const { scene, restore } = setUp();
+    store.dispatch(setActiveProfile(ushProfile));
+    const record = savedRecord();
+    record.metadata.uiState = { CabinetColor: "Rovere Moro 934", CountertopColor: "Automatic top" };
+    store.dispatch(setExplicitUserChoice({ attributeId: "CabinetColor", chosen: true }));
+    store.dispatch(setExplicitUserChoice({ attributeId: "HandleGrooveColor", chosen: true }));
+    store.dispatch(setActivePrebuiltPresetId(13));
+    const { scene, restore, applyPage } = setUp(record);
+    const applyBase = applyPage.getMockImplementation();
+    applyPage.mockImplementationOnce(async (plan, matches) => {
+      await applyBase?.(plan, matches);
+      recordValues({ CabinetColor: "Rovere Moro 934", CountertopColor: "Automatic top" }, {
+        getState: store.getState, dispatch: store.dispatch, flow: "custom",
+      });
+    });
 
     const result = await restore();
+    // Matching saved values carry no evidence that they were explicit user choices.
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+    expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBeNull();
+    expect(store.getState().rootStateUI.product.productOptions).toMatchObject({
+      CabinetColor: "Rovere Moro 934",
+      CountertopColor: "Automatic top",
+    });
 
     expect(result.status).toBe("restored");
     expect(scene.requests[0].products.map(({ sourceId }) => sourceId)).toEqual([
@@ -245,5 +277,46 @@ describe("restoreSavedConfiguration", () => {
     await restore();
 
     expect("layout" in scene.requests[0]).toBe(false);
+  });
+});
+
+describe("restoreSavedConfiguration with a scene reader", () => {
+  const LOW = { width: 60, height: 50, depth: 46 };
+  const HIGH = { width: 80, height: 56, depth: 50.5 };
+
+  it("reads the sizes again when the saved keys differ from the session's", async () => {
+    const reader = createTestSceneReader();
+    reader.setScene(["new-Sink-Base-aaa111", "new-Sink-Cabinet-bbb222"], {
+      "new-Sink-Base-aaa111": LOW,
+      "new-Sink-Cabinet-bbb222": HIGH,
+    });
+
+    // Its own store: the app store's listener reads the real scene, not this one.
+    const listener = createListenerMiddleware();
+    setupSceneStateListener(listener.startListening, { reader: reader.reader, settleMs: 0 });
+    const isolated = configureStore({
+      reducer: rootReducer,
+      middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }).prepend(listener.middleware),
+    });
+    isolated.dispatch(setActiveCollectionId(USH));
+
+    const result = await restoreSavedConfiguration(CONFIG_ID, {
+      dispatch: isolated.dispatch,
+      getState: isolated.getState,
+      loadRecord: async () => savedRecord(),
+      restorer: createTestSceneRestorer().restorer,
+      // Like a page: the rebuilt products get session keys, and their sizes are read under those.
+      applyPage: async (_plan, matches) => {
+        isolated.dispatch(syncCabinets(matches.map(({ runtimeId }) => runtimeId)));
+        isolated.dispatch(requestSceneStateSync());
+        await vi.waitFor(() => expect(getCabinetDimensions(isolated.getState(), "cab-2")).toEqual(HIGH));
+      },
+    });
+
+    expect(result.status).toBe("restored");
+    await vi.waitFor(() =>
+      expect(getDimensionsByCabinet(isolated.getState())).toEqual({ "cab-4": LOW, "cab-7": HIGH }),
+    );
   });
 });

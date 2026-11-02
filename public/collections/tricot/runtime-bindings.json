@@ -487,6 +487,19 @@
           "Plaza": {
             "sinkType": "Vessel_Plaza"
           }
+        },
+        "retiredSceneValues": {
+          "Top_HPLPrisma": "LB440",
+          "Top_Tekorlux_Ron": "LB175",
+          "Top_Tekorlux_Quadra": "LB575",
+          "Top_HPLStrip": "LB856",
+          "Top_Tekormud_Tivi": "VA023",
+          "Top_HPLCover": "VA024",
+          "Top_Tekorlux_Trip": "LV890",
+          "Top_Ocritech_Orion": "LV892",
+          "Top_Ocritech_Oly55": "VA002",
+          "Top_Tekorlux_Rectangular": "VA005",
+          "Vessel_Blade11": "Plaza"
         }
       },
       "order": 40,

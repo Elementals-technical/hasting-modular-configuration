@@ -272,4 +272,44 @@ describe("parseRuntimeBindings", () => {
 
     expect(codesOf(entry({ perProduct: "yes" }))).toEqual([["bindings.invalid_field_type", "/bindings/0/perProduct"]]);
   });
+
+  describe("retired scene values", () => {
+    const entry = (retiredSceneValues?: unknown) =>
+      withBinding({
+        attributeId: "sinkType",
+        status: "bound",
+        target: { kind: "all" },
+        values: { kind: "map", patches: { VA024: { sinkType: "Top_VA024" } }, retiredSceneValues },
+      });
+
+    it("reads a retired scene value with the configuration value that replaced it", () => {
+      const result = parseRuntimeBindings(entry({ Top_HPLCover: "VA024" }));
+
+      expect(result.ok && result.bindings.bindings[0]).toMatchObject({
+        values: { retiredSceneValues: { Top_HPLCover: "VA024" } },
+      });
+    });
+
+    it("leaves them out of an entry that does not name them", () => {
+      const result = parseRuntimeBindings(entry());
+
+      expect(result.ok && result.bindings.bindings[0]).toMatchObject({ values: { kind: "map" } });
+      expect(result.ok && result.bindings.bindings[0]).not.toHaveProperty("values.retiredSceneValues");
+    });
+
+    it("rejects a table that is not an object", () => {
+      expect(codesOf(entry([]))).toEqual([["binding.invalid_values", "/bindings/0/values/retiredSceneValues"]]);
+    });
+
+    it.each([
+      ["a configuration value without a patch", { Top_HPLCover: "LB440" }, "Top_HPLCover"],
+      ["a target found only on the prototype", { Top_HPLCover: "toString" }, "Top_HPLCover"],
+      ["a target that is not a string", { Top_HPLCover: 24 }, "Top_HPLCover"],
+      ["a retired value that also has a patch", { VA024: "VA024" }, "VA024"],
+    ])("rejects %s", (_case, retiredSceneValues, key) => {
+      expect(codesOf(entry(retiredSceneValues))).toEqual([
+        ["binding.invalid_values", `/bindings/0/values/retiredSceneValues/${key}`],
+      ]);
+    });
+  });
 });
