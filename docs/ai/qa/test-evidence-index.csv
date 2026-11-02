@@ -115,3 +115,5 @@ TC-TRICOT-T3-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-loc
 TC-CLASS-C15-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-class/14-style-list.txt
 TC-ULH-ULH4-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-ulh/14-style-list.txt
 TC-UD-PRESET-FILTERS-BASELINE,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-urban-duplex/14-style-list.txt
+TC-ULH-CAB-010-RESIZE,PASS,docs/ai/qa/evidence/2026-11-02/TC-ULH-CAB-010-RESIZE/README.md
+TC-ULH-HISTORY-LAYOUT,FAIL,docs/ai/qa/evidence/2026-11-02/TC-ULH-CAB-010-RESIZE/05-undo-collapse-on-head-without-fix.png

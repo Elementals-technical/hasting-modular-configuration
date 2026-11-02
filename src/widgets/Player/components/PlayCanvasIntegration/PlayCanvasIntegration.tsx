@@ -177,7 +177,6 @@ import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
   findThicknessOption,
-  resolveMaxResizableCabinetWidthCm,
   useCabinetRowCapacity,
   useCountertopLengthGuard,
   useCountertopRules,
@@ -892,7 +891,6 @@ export const PlayCanvasIntegration = ({
   // A cabinet may also go in a row the countertop does not rest on, judged by that row's own length.
   const rowCapacity = useCabinetRowCapacity(lengthGuard);
   const sceneTotalWidth = lengthGuard.currentWithSp;
-  const maxCountertopLength = lengthGuard.max;
   const isHistoryRestoring = useAppSelector(getIsHistoryRestoring);
   const wasRestoringRef = useRef(false);
   const sidePanelsOption = useAppSelector(getSidePanelsOption);
@@ -1436,20 +1434,12 @@ export const PlayCanvasIntegration = ({
       activeBasinStyle,
       activeThickness: activeCountertopThickness ?? null,
     });
-    if (
-      maxCountertopLength === null ||
-      sceneTotalWidth === null ||
-      typeof selectedDimensions.width !== "number" ||
-      !Number.isFinite(selectedDimensions.width)
-    ) {
+    if (typeof selectedDimensions.width !== "number" || !Number.isFinite(selectedDimensions.width)) {
       return filteredByRules;
     }
 
-    const maxSelectableWidth = resolveMaxResizableCabinetWidthCm({
-      maxCm: maxCountertopLength,
-      currentTotalCm: sceneTotalWidth,
-      currentCabinetWidthCm: selectedDimensions.width,
-    });
+    // The cabinet's own row decides: a lower level is not measured by the countertop's length.
+    const maxSelectableWidth = rowCapacity.maxResizedWidth(selectedSceneProduct, selectedDimensions.width);
     if (maxSelectableWidth === null) return filteredByRules;
 
     return filteredByRules.filter((value) => {
@@ -1464,8 +1454,7 @@ export const PlayCanvasIntegration = ({
     activeMaterialTokens,
     countertopRules,
     dimensionOptions.width,
-    maxCountertopLength,
-    sceneTotalWidth,
+    rowCapacity,
     selectedDimensions.depth,
     selectedDimensions.width,
     activeCabinetRule?.isOpen,
