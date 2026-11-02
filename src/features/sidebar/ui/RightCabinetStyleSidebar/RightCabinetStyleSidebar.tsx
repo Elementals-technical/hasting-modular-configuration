@@ -64,6 +64,7 @@ import {
   normalizeOptionValue,
   resolveCabinetTypeOfRuntimeId,
   selectEffectiveFallback,
+  selectHasChoice,
   selectOptions,
   useActiveCollection,
   type StyleSidebarFieldId,
@@ -193,6 +194,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
     selectedProductConfig,
   );
   const handlesDisabled = Boolean(activeCabinetRule?.isOpen) || dimensionOptions.handles.length === 0;
+  const showsHandle = !handlesDisabled && selectHasChoice(activeProfile, "Handle");
   const [pendingHandlePreview, setPendingHandlePreview] = useState<ChangePreview | null>(null);
   const [pendingOssHandleChange, setPendingOssHandleChange] = useState<PendingOssHandleChange | null>(null);
   const [pendingDepthChange, setPendingDepthChange] = useState<PendingDepthChange | null>(null);
@@ -1070,7 +1072,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
         />
       </div>
     ),
-    Handle: !handlesDisabled && (
+    Handle: showsHandle && (
       <div className={s.contentItem} key="Handle">
         <div>Handle</div>
         <FilterSelection
@@ -1226,7 +1228,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
             Click <span className={s.plusButtonIcon}> + </span> button to place your cabinet
           </div>
 
-          {!handlesDisabled && (
+          {showsHandle && (
             <div className={s.image}>
               <img src={handleImage} alt="handle preview" />
             </div>

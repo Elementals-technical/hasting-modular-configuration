@@ -2,7 +2,7 @@ import type { Reason } from "@/shared/lib/reasonText";
 import { cmToInches } from "@/shared/lib/sku/cmToInches";
 import type { ScenePlusKind, SceneSupportGroups } from "@/utils/functions/playcanvas/sceneBridge";
 
-import { compositionLengthReachedReason } from "./lengthLimits";
+import { compositionLengthReachedReason, resolveMaxResizableCabinetWidthCm } from "./lengthLimits";
 
 /**
  * Rows of a composition on more than one level (Urban Low Height Multi-Level). The countertop rests on
@@ -88,6 +88,31 @@ export const maxCabinetRowWidth = (limits: CabinetRowLimits, cabinetType: string
   return Math.max(0, remaining, ...roomsInOtherRows(limits, cabinetType));
 };
 
+/** The row a placed cabinet stands in, unless it is the countertop's. */
+const otherRowOfCabinet = (rows: CabinetRows, cabinetId: string): OtherCabinetRow | undefined => {
+  const groupId = rows.groupOfCabinet[cabinetId];
+  return groupId === undefined || groupId === rows.countertopGroupId
+    ? undefined
+    : rows.otherRows.find((row) => row.groupId === groupId);
+};
+
+/**
+ * The widest a placed cabinet may be resized to: the maximum less the rest of its own row, the countertop's
+ * or another. Null while its row cannot be judged, or its width is not known.
+ */
+export const maxResizedCabinetWidth = (
+  { rows, maxCm, countertopRemainingCm }: CabinetRowLimits,
+  cabinetId: string,
+  widthCm: number | null,
+): number | null => {
+  if (widthCm === null || countertopRemainingCm === null) return null;
+
+  const row = otherRowOfCabinet(rows, cabinetId);
+  return row
+    ? resolveMaxResizableCabinetWidthCm({ maxCm, currentTotalCm: row.lengthCm, currentCabinetWidthCm: widthCm })
+    : countertopRemainingCm + widthCm;
+};
+
 /** A scene "+": the cabinet it stands by and its kind. */
 export type PlusAnchor = { cabinetId: string; kind: ScenePlusKind };
 
@@ -99,11 +124,7 @@ export const plusRowOf = (rows: CabinetRows, { cabinetId, kind }: PlusAnchor): P
   if (kind === "bottom") return { kind: "under" };
   if (kind !== "left" && kind !== "right") return { kind: "countertop" };
 
-  const groupId = rows.groupOfCabinet[cabinetId];
-  const row =
-    groupId === undefined || groupId === rows.countertopGroupId
-      ? undefined
-      : rows.otherRows.find((item) => item.groupId === groupId);
+  const row = otherRowOfCabinet(rows, cabinetId);
   return row ? { kind: "other", row } : { kind: "countertop" };
 };
 

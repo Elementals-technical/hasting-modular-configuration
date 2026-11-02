@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/accessories?collectionId=urban-standard-height","price":"$7,053.00","storeFound":true,"state":{"SidePanels":"NoG","L":"active","R":"active","CountertopColor":"Cacao Orinoco FF MT","CountertopColorSku":"SSTKR","Thickness":"0.5","CountertopStyle":"Integrated","sinkType":"Top_Tekorlux_Rectangular","activeCabinetType":null,"selectedSceneProduct":"","dimH":53,"cfgName":null,"cfgDrawers":null,"cfgHeight":null},"sceneReady":true,"productsErr":"TypeError: api.composition.getAllProducts is not a function","sidePanelEntities":9,"sidePanelSample":["SidePanel_Point","SidePanel_Left-tkhblr8d3","SidePanels_NoG_Point","SidePanels_NoG_50D_Point","SidePanel_NoG_53H_50D_Panel","SidePanel_Right-f87eqyryf"],"dialogs":[],"notices":[],"guard":{"on":true,"blocked":[]}}
+```

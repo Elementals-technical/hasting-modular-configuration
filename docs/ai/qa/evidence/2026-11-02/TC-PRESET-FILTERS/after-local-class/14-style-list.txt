@@ -1,0 +1,13 @@
+Snapshot [selector: [role=listbox]]
+
+uid=e155 listbox "Style" tag=div
+  uid=e146 option tag=button
+    uid=e145 span text="All"
+  uid=e148 option tag=button
+    uid=e147 span text="1 Drawer"
+  uid=e150 option tag=button
+    uid=e149 span text="Single Basin"
+  uid=e152 option tag=button
+    uid=e151 span text="Double Basin"
+  uid=e154 option tag=button
+    uid=e153 span text="Asymmetrical"

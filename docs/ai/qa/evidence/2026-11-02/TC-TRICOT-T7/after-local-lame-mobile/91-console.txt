@@ -1,0 +1,20 @@
+Emulating viewport: {"deviceScaleFactor":3,"isMobile":true,"hasTouch":true,"isLandscape":false,"width":390,"height":844}
+## Console messages
+Showing 1-17 of 17 (Page 1 of 1).
+msgid=8 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=10 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args) [2 times]
+msgid=19 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=24 [warn] [PlayCanvas] ConfiguratorAPI.setVisibleButtons not ready (1 args)
+msgid=27 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=29 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=30 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=34 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=36 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [8 times]
+msgid=44 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=45 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [4 times]
+msgid=51 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=52 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=54 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=55 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]
+msgid=57 [warn] [PlayCanvas] ConfiguratorAPI.getDimensionTool not ready (1 args)
+msgid=58 [warn] [PlayCanvas] ConfiguratorAPI.getSelectTool not ready (1 args) [2 times]

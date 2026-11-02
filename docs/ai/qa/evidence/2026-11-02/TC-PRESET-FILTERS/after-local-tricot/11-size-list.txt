@@ -1,0 +1,19 @@
+Snapshot [selector: [role=listbox]]
+
+uid=e162 listbox "Size" tag=div
+  uid=e147 option tag=button
+    uid=e146 span text="All"
+  uid=e149 option tag=button
+    uid=e148 span text="24–29″"
+  uid=e151 option tag=button
+    uid=e150 span text="30–39″"
+  uid=e153 option tag=button
+    uid=e152 span text="40–49″"
+  uid=e155 option tag=button
+    uid=e154 span text="50–59″"
+  uid=e157 option tag=button
+    uid=e156 span text="60–69″"
+  uid=e159 option tag=button
+    uid=e158 span text="70–79″"
+  uid=e161 option tag=button
+    uid=e160 span text="80–89″"

@@ -33,6 +33,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import type { CountertopSinkLandingStatus, CountertopState } from "@/features/configuratorApi";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import { checkUndetermined } from "@/features/configurationCommands/lib/undeterminedGate";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import { resolveUiReasonText } from "@/shared/lib/reasonText";
 import classManifest from "../../../../public/collections/class/manifest.json";
@@ -341,6 +342,19 @@ describe("Class countertop colours follow table 578", () => {
     expect(colorOf("Matte White 8cm")?.enabled).toBe(true);
     expect(enabledValues("thickness")).toEqual(["3.125"]);
     expect(shownValues("basin-style")).toEqual(["VA023"]);
+  });
+
+  // Matte White 8cm is Technomat (configurator 8's GBMaterial) with a row of its own in table 578: no
+  // undetermined rule keeps the command from choosing it.
+  it("lets the command choose Matte White 8cm", () => {
+    expect(
+      checkUndetermined(
+        { attributeId: "CountertopColor", scope: "countertop", value: "Matte White 8cm" },
+        { scope: "countertop" },
+        store.getState(),
+        classLive.profile,
+      ),
+    ).toBeNull();
   });
 });
 

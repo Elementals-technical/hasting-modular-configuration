@@ -12,6 +12,7 @@ import {
   checkPlusRow,
   fitsCabinetRow,
   maxCabinetRowWidth,
+  maxResizedCabinetWidth,
   ONE_CABINET_ROW,
   pickRowEnd,
   resolveCabinetRows,
@@ -34,6 +35,8 @@ export type CabinetRowCapacity = {
   fits: (cabinetType: string | null, widthCm: number) => boolean;
   /** The widest cabinet of this type some row can take; null while the countertop cannot be judged. */
   maxWidth: (cabinetType: string | null) => number | null;
+  /** The widest a placed cabinet of this width may be resized to, by its own row; null while it cannot be judged. */
+  maxResizedWidth: (cabinetId: string, widthCm: number | null) => number | null;
   /** Whether a "+" may add this cabinet, by the rows as last read: for the scene's "+" filter. */
   allowsPlus: (plus: PlusAnchor, cabinetType: string | null, widths: readonly number[] | null) => boolean;
   /** Whether a "+" may add this cabinet and in which widths, by the rows read again now: for its click. */
@@ -93,6 +96,7 @@ export const useCabinetRowCapacity = (guard: CountertopLengthGuard): CabinetRowC
     () => ({
       fits: (cabinetType, widthCm) => fitsCabinetRow(limits, cabinetType, widthCm),
       maxWidth: (cabinetType) => maxCabinetRowWidth(limits, cabinetType),
+      maxResizedWidth: (cabinetId, widthCm) => maxResizedCabinetWidth(limits, cabinetId, widthCm),
       allowsPlus: (plus, cabinetType, widths) => checkPlusRow(limits, plus, cabinetType, widths).status === "ok",
       checkPlus: (plus, cabinetType, widths) =>
         withText(checkPlusRow({ ...limits, rows: readCabinetRows() }, plus, cabinetType, widths)),

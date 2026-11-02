@@ -164,7 +164,7 @@ describe("the side of the lateral panel in the style sidebar", () => {
   it("is offered after the sidebar's own selectors, on the collection's starting side", () => {
     renderSidebar();
 
-    expect(selectorTitles()).toEqual(["Width", "Depth", "Handle", "Lateral Panel"]);
+    expect(selectorTitles()).toEqual(["Width", "Depth", "Lateral Panel"]);
     expect(sideSelector().textContent).toContain("Right");
   });
 
@@ -226,6 +226,6 @@ describe("the side of the lateral panel in the style sidebar", () => {
   it("is not offered by a collection that lists no such value", () => {
     renderSidebar({ styleSidebar: { fields: ["Width", "Depth", "Height", "Handle"] } });
 
-    expect(selectorTitles()).toEqual(["Width", "Depth", "Handle"]);
+    expect(selectorTitles()).toEqual(["Width", "Depth"]);
   });
 });

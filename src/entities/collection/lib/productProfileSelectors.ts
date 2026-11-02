@@ -73,6 +73,10 @@ export const selectConfiguratorVariant = (
 export const selectOptions = (profile: ProductProfile | null, attributeId: string): ProfileOption[] =>
   selectAttribute(profile, attributeId)?.options ?? [];
 
+/** Whether the collection offers a choice of the attribute: a single option leaves nothing to choose. */
+export const selectHasChoice = (profile: ProductProfile | null, attributeId: string): boolean =>
+  selectOptions(profile, attributeId).length > 1;
+
 export const selectOptionValues = (profile: ProductProfile | null, attributeId: string): string[] =>
   selectOptions(profile, attributeId).map((option) => option.value);
 
