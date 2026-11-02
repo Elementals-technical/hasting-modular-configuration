@@ -26,7 +26,7 @@ interface ProductModelGridI {
   price?: string;
   presetProducts?: PresetProduct[];
   onSelect: (presetProducts?: PresetProduct[], presetId?: number) => void;
-  onCustomize?: (presetProducts?: PresetProduct[]) => void;
+  onCustomize?: (presetProducts?: PresetProduct[], presetId?: number) => void;
   isActive?: boolean;
 }
 
@@ -69,7 +69,7 @@ export const ProductModelItem: React.FC<ProductModelGridI> = ({
   const handleSelect = () => onSelect(presetProducts, id);
   const customizePreset = () => {
     if (onCustomize) {
-      onCustomize(presetProducts);
+      onCustomize(presetProducts, id);
       return;
     }
 

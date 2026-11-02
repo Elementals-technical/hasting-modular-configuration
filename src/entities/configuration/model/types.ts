@@ -85,6 +85,10 @@ export type ConfigurationState = {
    * Invariant: an attributeId lives either here or in the typed product slice — never in both.
    */
   valuesByAttributeId: Record<string, ScopedValue[]>;
+  /** Session intent only; values stay in their existing owner, never in the saved backend fragment. */
+  explicitUserChoices: Record<string, true>;
+  /** Successfully applied model identity, retained while navigating Prebuilt steps. */
+  activePrebuiltPresetId: number | null;
   /** Service state of restoring a saved configuration (C09). */
   restore: RestoreState;
   /** A runtime command changed only part of its agreed set; saving must wait for a scene sync. */

@@ -1,0 +1,1702 @@
+{
+  "provenance": {
+    "audit": "docs/qa/urban-low-height-preset-audit-2026-10-30-ulh01",
+    "clientUrl": "https://www.hastingsbathcollection.com/products/vanities/urban-low-height",
+    "capturedDates": ["2026-10-30", "2026-10-31"],
+    "annotationsSource": "sources/client-dimension-annotations.json",
+    "annotationsSha256": "1eec712a9b0b40a1bec98f20048949ea5034149b566f3810b11eb7b0f1879897",
+    "nominalTargetsApprovedOn": "2026-11-02",
+    "depthCm": 50,
+    "physicalBOM": "UNKNOWN",
+    "positionMethod": "User-approved nominal reconstruction from rounded overall Dimensions labels and ordered module widths. Values are not exact client mesh offsets.",
+    "roundingLimit": "Nominal width210cm for preset47 is about82.68in; printed client width is82.6in. Preserve both; no exact mesh equality is claimed.",
+    "annotationCorrection": "Preset40 image order is41.3/19.7/13.8in; the annotations array incorrectly swaps the last two. Source JPG takes precedence."
+  },
+  "lowLinearPresetIds": [
+    2, 4, 6, 8, 10, 13, 14, 16, 17, 20, 21, 22, 23, 24, 25, 27, 34, 35, 40, 41, 43, 45, 49, 53, 54, 59
+  ],
+  "linearPresets": [
+    {
+      "id": 1,
+      "title": "Urban Low Height · 24\" 1-Drawer 1",
+      "clientInternalKey": "24 1DW 1_24",
+      "clientAssetId": "9bc4f170-83ba-43f3-880a-c138e80fab25",
+      "dimensionsImage": "evidence/client/preset-01/dimensions.jpg",
+      "dimensionsImageSha256": "e2d367b1ea5a0bae487483d17c3d094905e84b705b1777cb79b5105e2d58819e",
+      "clientDimensionsIn": {
+        "width": 23.6,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [23.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Urban Low Height · 24\" 1-Drawer",
+      "clientInternalKey": "24 1DW_24",
+      "clientAssetId": "bcdb22cc-040b-439a-9b6b-bbd30676d9c5",
+      "dimensionsImage": "evidence/client/preset-02/dimensions.jpg",
+      "dimensionsImageSha256": "cab1d7342fbf8f10c9d2be5674d428688fb8b746f6915bd60eae8ec004dbbb02",
+      "clientDimensionsIn": {
+        "width": 23.6,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Urban Low Height · 28\" 1-Drawer 1",
+      "clientInternalKey": "28 1DW 1_24",
+      "clientAssetId": "98751fd6-276f-450f-aa4d-5284dbae4026",
+      "dimensionsImage": "evidence/client/preset-03/dimensions.jpg",
+      "dimensionsImageSha256": "5b156285cd6975a836cb5c7d405cab27d13ba0aa7d8c372aeea8e860416bfdef",
+      "clientDimensionsIn": {
+        "width": 27.5,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [27.5]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Urban Low Height · 28\" 1-Drawer",
+      "clientInternalKey": "28 1DW_24",
+      "clientAssetId": "609115b3-0683-45f7-8517-9e028831f6fd",
+      "dimensionsImage": "evidence/client/preset-04/dimensions.jpg",
+      "dimensionsImageSha256": "fa701db7fe7f8b4216dd496a0967053c7213d57deba060bc84de712bf0bf49ed",
+      "clientDimensionsIn": {
+        "width": 27.5,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [27.5]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Urban Low Height · 32\" 1-Drawer 1",
+      "clientInternalKey": "32 1DW 1_30",
+      "clientAssetId": "c09a450e-7e09-46e3-864d-b51106769a7e",
+      "dimensionsImage": "evidence/client/preset-05/dimensions.jpg",
+      "dimensionsImageSha256": "9bd3a0fe7baf0af11ec16978e7d592eb3c54405f70f7e3e3994a8952c5a5e2b8",
+      "clientDimensionsIn": {
+        "width": 31.5,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [31.5]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Urban Low Height · 32\" 1-Drawer",
+      "clientInternalKey": "32 1DW_30",
+      "clientAssetId": "be7e192a-de96-4ecc-b1ea-cdb723b6adec",
+      "dimensionsImage": "evidence/client/preset-06/dimensions.jpg",
+      "dimensionsImageSha256": "d0aba3c69ec40ee1704ead68e218b4a763a015df87cb7aa85b3a64af811d5d9f",
+      "clientDimensionsIn": {
+        "width": 31.5,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [31.5]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Urban Low Height · 34\" 1-Drawer 1",
+      "clientInternalKey": "34 1DW 1_30",
+      "clientAssetId": "20b16774-f4a9-4c5f-9f45-6ab9784830fd",
+      "dimensionsImage": "evidence/client/preset-07/dimensions.jpg",
+      "dimensionsImageSha256": "6e754aa2ed0659f0e4a81836c9124ee2f84416fa18df765a92f3a6ca7b63e810",
+      "clientDimensionsIn": {
+        "width": 33.4,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [23.6, 9.8]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 25
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Urban Low Height · 34\" 1-Drawer",
+      "clientInternalKey": "34 1DW_30",
+      "clientAssetId": "95b13476-80c0-4bc8-941d-7ad49cf48bb9",
+      "dimensionsImage": "evidence/client/preset-08/dimensions.jpg",
+      "dimensionsImageSha256": "13911fc4097e32bf1f1da0524fd244b311c4b3d653e1347930340201463d6b1f",
+      "clientDimensionsIn": {
+        "width": 33.4,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [23.6, 9.8]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 25
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Urban Low Height · 36\" 1-Drawer 1",
+      "clientInternalKey": "36 1DW 1_30",
+      "clientAssetId": "b54b29f1-62e1-4dde-8790-ef5589ab2d41",
+      "dimensionsImage": "evidence/client/preset-09/dimensions.jpg",
+      "dimensionsImageSha256": "6cfd75166270f4aa23ca6238a68a7834db14f81369df463d3ff6e504d0a1437c",
+      "clientDimensionsIn": {
+        "width": 35.4,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [35.4]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Urban Low Height · 36\" 1-Drawer",
+      "clientInternalKey": "36 1DW_30",
+      "clientAssetId": "cd01aa42-743f-4335-8c86-3f76aa541e49",
+      "dimensionsImage": "evidence/client/preset-10/dimensions.jpg",
+      "dimensionsImageSha256": "f1c26fe57679a90618e7c789a550ba39856319ff9ba5933c6dd1fcc55fd4c02f",
+      "clientDimensionsIn": {
+        "width": 35.4,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [35.4]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Urban Low Height · 38\" 1-Drawer",
+      "clientInternalKey": "38 1DW_30",
+      "clientAssetId": "a6d0ca1e-5809-4187-ac5f-5ed26d50cee8",
+      "dimensionsImage": "evidence/client/preset-11/dimensions.jpg",
+      "dimensionsImageSha256": "be6f886b71f579dc540c5da1e4ca45caf7a17fedb6713736729b280e1679c9b6",
+      "clientDimensionsIn": {
+        "width": 37.4,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [13.8, 23.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Urban Low Height · 42\" 1-Drawer 1",
+      "clientInternalKey": "42 1DW 1_40",
+      "clientAssetId": "c7d7c045-81ab-4ece-91df-dffd5338f32e",
+      "dimensionsImage": "evidence/client/preset-12/dimensions.jpg",
+      "dimensionsImageSha256": "ca24aa443ed2e92b0c405da4f5a540f81782f3e01ba9da4326b022a1c8b40626",
+      "clientDimensionsIn": {
+        "width": 41.3,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [27.6, 13.8]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Urban Low Height · 42\" 1-Drawer 2",
+      "clientInternalKey": "42 1DW 2_40",
+      "clientAssetId": "21e7afad-0eee-4cbd-aab7-b380a516e3ef",
+      "dimensionsImage": "evidence/client/preset-13/dimensions.jpg",
+      "dimensionsImageSha256": "b14c7b715e88d78fa40a030403200dea0ca36f044162e4f1b9c24f1a17831b26",
+      "clientDimensionsIn": {
+        "width": 41.3,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [31.5, 9.8]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 25
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Urban Low Height · 42\" 1-Drawer 3",
+      "clientInternalKey": "42 1DW 3_40",
+      "clientAssetId": "bd17d419-d92f-4456-a4e1-4e37947c44b6",
+      "dimensionsImage": "evidence/client/preset-14/dimensions.jpg",
+      "dimensionsImageSha256": "8267e6afdc1e7cdb6486d53c6c1697f9e877527de5fe10d448dcfc3bf3331bb8",
+      "clientDimensionsIn": {
+        "width": 41.3,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [41.3]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Urban Low Height · 42\" 1-Drawer",
+      "clientInternalKey": "42 1DW_40",
+      "clientAssetId": "602639a6-ff61-4185-b0b2-25b37e50cf9f",
+      "dimensionsImage": "evidence/client/preset-15/dimensions.jpg",
+      "dimensionsImageSha256": "8c9749970ecd37cbc84b33179dd09ddb0569c1ea86bea65409e24828bbbbfe8f",
+      "clientDimensionsIn": {
+        "width": 41.3,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [27.6, 13.8]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 35
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Urban Low Height · 46\" 1-Drawer",
+      "clientInternalKey": "46 1DW_40",
+      "clientAssetId": "1b3a3b50-3eec-4acb-aa45-d8a36719afd3",
+      "dimensionsImage": "evidence/client/preset-16/dimensions.jpg",
+      "dimensionsImageSha256": "a0f2a501a25a7d741f80a647dc111c6a893fe6ad8ac004a076e83a49081e9e4d",
+      "clientDimensionsIn": {
+        "width": 45.3,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [13.8, 31.5]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Urban Low Height · 48\" 1-Drawer Double",
+      "clientInternalKey": "48 1DW Double_40",
+      "clientAssetId": "4591ad22-9534-4d3f-b9a9-23817b003315",
+      "dimensionsImage": "evidence/client/preset-17/dimensions.jpg",
+      "dimensionsImageSha256": "71628f061ba4654eed75c2cee4fa9e5010bd82544e515b18f72195848012c809",
+      "clientDimensionsIn": {
+        "width": 47.2,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [23.6, 23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Urban Low Height · 48\" 1-Drawer",
+      "clientInternalKey": "48 1DW_40",
+      "clientAssetId": "2dad20fe-cda9-477e-9caa-041c29a64f09",
+      "dimensionsImage": "evidence/client/preset-18/dimensions.jpg",
+      "dimensionsImageSha256": "95bee019de733cf90289b71205518ca2b0189fce3ca2837389e7af3b0b1f7295",
+      "clientDimensionsIn": {
+        "width": 47.2,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [47.2]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 120
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Urban Low Height · 55\" 1-Drawer 1",
+      "clientInternalKey": "55 1DW 1_50",
+      "clientAssetId": "4ad987bc-007e-489f-97c4-6168b60fe2dc",
+      "dimensionsImage": "evidence/client/preset-19/dimensions.jpg",
+      "dimensionsImageSha256": "8f35a934eb32cc9531706d437db4251ff323760c10a47c91c2f27da6cd2b78c8",
+      "clientDimensionsIn": {
+        "width": 55.1,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [13.8, 41.3]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Urban Low Height · 55\" 1-Drawer 2",
+      "clientInternalKey": "55 1DW 2_50",
+      "clientAssetId": "04f2075b-436c-46ca-b132-da3367091558",
+      "dimensionsImage": "evidence/client/preset-20/dimensions.jpg",
+      "dimensionsImageSha256": "73cafe0da917c11dba8f3b58c73cdbb04377a84fdf6bc1ea297404f1b1f3878d",
+      "clientDimensionsIn": {
+        "width": 55.2,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [13.8, 27.6, 13.8]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Urban Low Height · 55\" 1-Drawer Double",
+      "clientInternalKey": "55 1DW Double_50",
+      "clientAssetId": "d56edcd3-d4fe-4946-954a-6cb3dc173169",
+      "dimensionsImage": "evidence/client/preset-21/dimensions.jpg",
+      "dimensionsImageSha256": "4e25151f939d11ef2b0a66551db5e86ddc90d73ac2be83fd097dd565d89cfaed",
+      "clientDimensionsIn": {
+        "width": 55.2,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [27.6, 27.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Urban Low Height · 55\" 1-Drawer",
+      "clientInternalKey": "55 1DW_50",
+      "clientAssetId": "e94823a5-1359-4287-9e10-96e72ce4066e",
+      "dimensionsImage": "evidence/client/preset-22/dimensions.jpg",
+      "dimensionsImageSha256": "f6fe37370795355986ed4326c0a0653e4fa75a468d275ad421567cb2f5c4037a",
+      "clientDimensionsIn": {
+        "width": 55.1,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [19.7, 35.4]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Open-Shelf",
+          "widthCm": 50
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Urban Low Height · 57\" 1-Drawer Double 1",
+      "clientInternalKey": "57 1DW Double 1_50",
+      "clientAssetId": "88186acc-685d-4860-849a-9db511c0ca80",
+      "dimensionsImage": "evidence/client/preset-23/dimensions.jpg",
+      "dimensionsImageSha256": "166f9b98548ae5b91d5421143315c54ab096c24254f2d2f5cfe8ffe0533bc3e1",
+      "clientDimensionsIn": {
+        "width": 57,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [23.6, 9.8, 23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 25
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Urban Low Height · 57\" 1-Drawer Double",
+      "clientInternalKey": "57 1DW Double_50",
+      "clientAssetId": "18f8de87-cb30-44a5-a8a9-6d22830e7a9d",
+      "dimensionsImage": "evidence/client/preset-24/dimensions.jpg",
+      "dimensionsImageSha256": "97d37b7764cd7e5e1329a5ada0b396341c7d2ce03b55b2adbfc6ea56b9b9d252",
+      "clientDimensionsIn": {
+        "width": 57,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [23.6, 9.8, 23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 25
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Urban Low Height · 59\" 1-Drawer 1",
+      "clientInternalKey": "59 1DW 1_50",
+      "clientAssetId": "7911efb4-b316-4325-886a-58c689f7f29f",
+      "dimensionsImage": "evidence/client/preset-25/dimensions.jpg",
+      "dimensionsImageSha256": "2127a4eba0862ba5ee485abb94f57067bed84133d4f18d34ba8773255b651fb8",
+      "clientDimensionsIn": {
+        "width": 59,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [35.4, 23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "title": "Urban Low Height · 59\" 1-Drawer 2",
+      "clientInternalKey": "59 1DW 2_50",
+      "clientAssetId": "cd8ef450-9d41-4e5f-bd6a-b7f087901b3b",
+      "dimensionsImage": "evidence/client/preset-26/dimensions.jpg",
+      "dimensionsImageSha256": "6f16490d8b2ab4b049a82799a7ce56ee6354a3a1247d2245ea605855cb759a7a",
+      "clientDimensionsIn": {
+        "width": 59.1,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [13.8, 13.8, 31.5]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 35
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "title": "Urban Low Height · 59\" 1-Drawer",
+      "clientInternalKey": "59 1DW_50",
+      "clientAssetId": "d39b990b-066b-4481-9cc3-1a0c146df260",
+      "dimensionsImage": "evidence/client/preset-27/dimensions.jpg",
+      "dimensionsImageSha256": "d51862c75d0d317a3f058bd474b1b248b11693ee42fe2fe196c7f3774b5f1563",
+      "clientDimensionsIn": {
+        "width": 59.1,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [31.5, 27.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Urban Low Height · 63\" 1-Drawer 1",
+      "clientInternalKey": "63 1DW 1_60",
+      "clientAssetId": "ff4ae7e9-57b3-469c-a8e2-69264b162084",
+      "dimensionsImage": "evidence/client/preset-30/dimensions.jpg",
+      "dimensionsImageSha256": "5ed95085c90b5a2b0353d4df316fb9a27c7d7d6537fbb2a510d2a3220fd28072",
+      "clientDimensionsIn": {
+        "width": 63,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [35.4, 27.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Urban Low Height · 63\" 1-Drawer Double",
+      "clientInternalKey": "63 1DW Double_60",
+      "clientAssetId": "4cd9af1b-aa0d-48b6-907c-7c07462a4f47",
+      "dimensionsImage": "evidence/client/preset-31/dimensions.jpg",
+      "dimensionsImageSha256": "352d83a239abed51f465a6b8b5230cb448c941044e121d56e7079beee196ff89",
+      "clientDimensionsIn": {
+        "width": 63,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [31.5, 31.5]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Urban Low Height · 63\" 1-Drawer",
+      "clientInternalKey": "63 1DW_60",
+      "clientAssetId": "07c9515b-4967-491a-823c-abac4cc19a87",
+      "dimensionsImage": "evidence/client/preset-32/dimensions.jpg",
+      "dimensionsImageSha256": "e95566c90955f68b3dfd00c2a5d6b3feba4838af45df2c27b05cb614f5564ba5",
+      "clientDimensionsIn": {
+        "width": 63,
+        "verticalAnnotation": 14.9,
+        "depth": 19.9,
+        "componentWidths": [35.4, 13.8, 13.8]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 35
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Urban Low Height · 65\" 1-Drawer",
+      "clientInternalKey": "65 1DW_60",
+      "clientAssetId": "239f1e80-643b-4d81-83d9-ba31bcd7b8d7",
+      "dimensionsImage": "evidence/client/preset-33/dimensions.jpg",
+      "dimensionsImageSha256": "b159e8ee916a6f870e7fb9eef7cf35e68c45338ed3ef59ce3f6dd08d444586e6",
+      "clientDimensionsIn": {
+        "width": 64.9,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [23.6, 41.3]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Urban Low Height · 67\" 1-Drawer",
+      "clientInternalKey": "67 1DW_60",
+      "clientAssetId": "8fa4dd1b-1eaa-4624-9b36-e7923031ff45",
+      "dimensionsImage": "evidence/client/preset-34/dimensions.jpg",
+      "dimensionsImageSha256": "8b7160a8087b84b7f84cf1162a83f52921483c5203b04182c66d43fb63fc1fe5",
+      "clientDimensionsIn": {
+        "width": 66.9,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [27.6, 19.7, 19.7]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "title": "Urban Low Height · 69\" 1-Drawer",
+      "clientInternalKey": "69 1DW_60",
+      "clientAssetId": "12c0af58-744b-4fcb-be78-8aa2582a01c2",
+      "dimensionsImage": "evidence/client/preset-35/dimensions.jpg",
+      "dimensionsImageSha256": "e41fe347d456f1a57dda9edd16fd5e323326bc88e741663ae39ad576187befbf",
+      "clientDimensionsIn": {
+        "width": 68.9,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [41.3, 27.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "title": "Urban Low Height · 71\" 1-Drawer Double",
+      "clientInternalKey": "71 1DW Double_70",
+      "clientAssetId": "bd7ae807-d47c-4b69-8d90-35c4de407d97",
+      "dimensionsImage": "evidence/client/preset-37/dimensions.jpg",
+      "dimensionsImageSha256": "6479190fe7f133f90cb49ec3d605244528349cee80e8e48f42fbcb9100d87dbd",
+      "clientDimensionsIn": {
+        "width": 70.8,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [35.4, 35.4]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "title": "Urban Low Height · 71\" 1-Drawer",
+      "clientInternalKey": "71 1DW_70",
+      "clientAssetId": "0b9b6f00-125d-4b4a-83ac-bba1845760f2",
+      "dimensionsImage": "evidence/client/preset-38/dimensions.jpg",
+      "dimensionsImageSha256": "92680bd9bf3b4551e43377d4c73e1a5c5a87811f6c2002443aac36cacd6c0be0",
+      "clientDimensionsIn": {
+        "width": 70.8,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [47.2, 23.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 120
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Urban Low Height · 75\" 1-Drawer 1",
+      "clientInternalKey": "75 1DW 1_70",
+      "clientAssetId": "c0316d3d-d529-458c-93af-3a01b20804c6",
+      "dimensionsImage": "evidence/client/preset-40/dimensions.jpg",
+      "dimensionsImageSha256": "db527431a5dda2f20292f6bfb14b3f06d4071ef6e15eab88328dfaa6adc3b098",
+      "clientDimensionsIn": {
+        "width": 74.8,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [41.3, 13.8, 19.7]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 35
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "title": "Urban Low Height · 75\" 1-Drawer",
+      "clientInternalKey": "75 1DW_70",
+      "clientAssetId": "bb539e7f-0b3d-404d-858b-0eab22b400fc",
+      "dimensionsImage": "evidence/client/preset-41/dimensions.jpg",
+      "dimensionsImageSha256": "00059c52ecbcf924e72e6ecbf5122bf16f0f8ec1160f0996d64277f8abbeebab",
+      "clientDimensionsIn": {
+        "width": 74.8,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [35.4, 19.7, 19.7]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 50
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "title": "Urban Low Height · 79\" 1-Drawer Double",
+      "clientInternalKey": "79 1DW Double_70",
+      "clientAssetId": "d5d186ec-e315-49e1-83e2-9e7ac2b89563",
+      "dimensionsImage": "evidence/client/preset-42/dimensions.jpg",
+      "dimensionsImageSha256": "8ad69473899c527b1f83c0018c547d26aeab215020246870ad8b508566c8e0e5",
+      "clientDimensionsIn": {
+        "width": 78.8,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [27.6, 23.6, 27.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "title": "Urban Low Height · 79\" 1-Drawer",
+      "clientInternalKey": "79 1DW_70",
+      "clientAssetId": "c3547a90-86a5-4426-ad8e-57d6f734ef0d",
+      "dimensionsImage": "evidence/client/preset-43/dimensions.jpg",
+      "dimensionsImageSha256": "1f0a6cac66355560165b63e86e3ce3c394354f282955ab3854010c4ee0a65489",
+      "clientDimensionsIn": {
+        "width": 78.7,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [41.3, 13.8, 23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 35
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "title": "Urban Low Height · 81\" 1-Drawer",
+      "clientInternalKey": "81 1DW_80",
+      "clientAssetId": "2f4d09b3-f271-4fc8-b9d1-fd25ebd73b51",
+      "dimensionsImage": "evidence/client/preset-44/dimensions.jpg",
+      "dimensionsImageSha256": "c869873a063f7deb308eaf416268fd02361b02f65b368b60d7bdbf07ec08078e",
+      "clientDimensionsIn": {
+        "width": 80.7,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [41.3, 19.7, 19.7]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "title": "Urban Low Height · 83\" 1-Drawer Double",
+      "clientInternalKey": "83 1DW Double_80",
+      "clientAssetId": "1acd0f38-d603-46c7-accf-6cf04580aade",
+      "dimensionsImage": "evidence/client/preset-45/dimensions.jpg",
+      "dimensionsImageSha256": "16a4df9d582e53974fb46f4f7a0c6e4c135922a0f53fc423b973cfde439e078a",
+      "clientDimensionsIn": {
+        "width": 82.6,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [41.3, 41.3]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "title": "Urban Low Height · 83\" 1-Drawer",
+      "clientInternalKey": "83 1DW_80",
+      "clientAssetId": "bfd0d480-1507-4942-a4d1-f3c145064b21",
+      "dimensionsImage": "evidence/client/preset-48/dimensions.jpg",
+      "dimensionsImageSha256": "2682652e2f92de2a5ed99178defc2ff20183577c50633bfebbd15004f1caccec",
+      "clientDimensionsIn": {
+        "width": 82.6,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [35.4, 23.6, 23.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "title": "Urban Low Height · 87\" 1-Drawer",
+      "clientInternalKey": "87 1DW_80",
+      "clientAssetId": "3b5b0500-3165-4ede-bcc0-deecf85cfbfd",
+      "dimensionsImage": "evidence/client/preset-49/dimensions.jpg",
+      "dimensionsImageSha256": "bf3e24058a488ee724dc3e9ea5fd55dc62d0408499a7c3a3cf7ba17e1fff2e9c",
+      "clientDimensionsIn": {
+        "width": 86.6,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [31.5, 23.6, 31.5]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 60
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 80
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "title": "Urban Low Height · 89\" 1-Drawer 1",
+      "clientInternalKey": "89 1DW 1_80",
+      "clientAssetId": "c32f681c-765a-4a7b-9be9-2654ad5d69b4",
+      "dimensionsImage": "evidence/client/preset-50/dimensions.jpg",
+      "dimensionsImageSha256": "be06266c5130ef328b24ac00b81e1f4238d968b5987a3b7534cc86cf645cb90c",
+      "clientDimensionsIn": {
+        "width": 88.5,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [23.6, 41.3, 23.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "title": "Urban Low Height · 89\" 1-Drawer",
+      "clientInternalKey": "89 1DW_80",
+      "clientAssetId": "15dc638f-53af-4535-ab81-d3d97eb06528",
+      "dimensionsImage": "evidence/client/preset-51/dimensions.jpg",
+      "dimensionsImageSha256": "4e1b856d9b976c97a42bbf4759ec7e3dd3719c4e1b4290c541ff789acd048b2d",
+      "clientDimensionsIn": {
+        "width": 88.6,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [41.3, 19.7, 27.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "title": "Urban Low Height · 95\" 1-Drawer Double 1",
+      "clientInternalKey": "95 1DW Double 1_90",
+      "clientAssetId": "6708c8c0-2409-4e6d-870a-70ceef5cabe0",
+      "dimensionsImage": "evidence/client/preset-52/dimensions.jpg",
+      "dimensionsImageSha256": "93a5f7b624af3efd10e7e532098c9b363f69bb2648a109200ebc19c6989cc32e",
+      "clientDimensionsIn": {
+        "width": 94.5,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [35.4, 23.6, 35.4]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 90
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "title": "Urban Low Height · 95\" 1-Drawer Double 2",
+      "clientInternalKey": "95 1DW Double 2_90",
+      "clientAssetId": "9efcb8ba-471e-4d7a-8a92-fc1e05f62c73",
+      "dimensionsImage": "evidence/client/preset-53/dimensions.jpg",
+      "dimensionsImageSha256": "9e807c1b6bb6511e92e8caa80735f13ee685bf0956d90f405b5a032e6a7bd056",
+      "clientDimensionsIn": {
+        "width": 94.5,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [47.2, 47.2]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 120
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 120
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "title": "Urban Low Height · 95\" 1-Drawer Double",
+      "clientInternalKey": "95 1DW Double_90",
+      "clientAssetId": "47b51676-c029-4d31-bd44-3940d9b06945",
+      "dimensionsImage": "evidence/client/preset-54/dimensions.jpg",
+      "dimensionsImageSha256": "db8d32d44a0d3e7cf85b56637418189c08a7041057a1f0bede898ba4fd6a7569",
+      "clientDimensionsIn": {
+        "width": 94.5,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [31.5, 31.5, 31.5]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 80
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 80
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "title": "Urban Low Height · 95\" 1-Drawer",
+      "clientInternalKey": "95 1DW_90",
+      "clientAssetId": "6f9f8c28-8a2f-4f66-bd8b-09b2ba133eb1",
+      "dimensionsImage": "evidence/client/preset-55/dimensions.jpg",
+      "dimensionsImageSha256": "8c9c185c952bd669e6862008330aac79020dcfe6af4f892996fa8f93b855aab8",
+      "clientDimensionsIn": {
+        "width": 94.5,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [47.2, 23.6, 23.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 120
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 60
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "title": "Urban Low Height · 97\" 1-Drawer 1",
+      "clientInternalKey": "97 1DW 1_90",
+      "clientAssetId": "02126409-c200-42a7-be46-29c6384c7945",
+      "dimensionsImage": "evidence/client/preset-56/dimensions.jpg",
+      "dimensionsImageSha256": "cbfdb30a51245342d149ae3464675a0a47f48e10d0d4e6a9b043408d5865d89c",
+      "clientDimensionsIn": {
+        "width": 96.4,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [27.6, 41.3, 27.6]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 70
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 70
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "title": "Urban Low Height · 97\" 1-Drawer",
+      "clientInternalKey": "97 1DW_90",
+      "clientAssetId": "7c5aa277-636f-4a1e-89d3-f46708f77181",
+      "dimensionsImage": "evidence/client/preset-57/dimensions.jpg",
+      "dimensionsImageSha256": "71dfd55a97f81a984eb18356a2d42b3915aa252544a5bd8524c7e666d02b08d8",
+      "clientDimensionsIn": {
+        "width": 96.5,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [41.3, 13.8, 27.6, 13.8]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 35
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 70
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 35
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "title": "Urban Low Height · 99\" 1-Drawer",
+      "clientInternalKey": "99 1DW_90",
+      "clientAssetId": "0f5eba57-eae5-4cef-a418-c5884138a431",
+      "dimensionsImage": "evidence/client/preset-58/dimensions.jpg",
+      "dimensionsImageSha256": "879cdd1ae99dc2848133e00ea3e13e1ee2ad19f71a8d883d3a03dbd32dd21b1d",
+      "clientDimensionsIn": {
+        "width": 98.4,
+        "verticalAnnotation": 15,
+        "depth": 19.9,
+        "componentWidths": [47.2, 31.5, 19.7]
+      },
+      "heightCm": 38,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Sink-Base",
+          "widthCm": 120
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 80
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 50
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "title": "Urban Low Height · 99\" 1-Drawer 1",
+      "clientInternalKey": "99 1DW 1_90",
+      "clientAssetId": "0842fffa-bbac-4513-a7fe-f0792fd654f7",
+      "dimensionsImage": "evidence/client/preset-59/dimensions.jpg",
+      "dimensionsImageSha256": "26b494a2d376dfdaecb04ed2da43af2835a145cc07ef17cb7fffdd69ad5580fc",
+      "clientDimensionsIn": {
+        "width": 98.4,
+        "verticalAnnotation": 11,
+        "depth": 19.9,
+        "componentWidths": [23.6, 41.3, 9.8, 23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "products": [
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        },
+        {
+          "name": "Sink-Base",
+          "widthCm": 105
+        },
+        {
+          "name": "Open-Shelf",
+          "widthCm": 25
+        },
+        {
+          "name": "Side-Cabinet",
+          "widthCm": 60
+        }
+      ]
+    }
+  ],
+  "multiLevelPresets": [
+    {
+      "id": 28,
+      "title": "Urban Low Height · 60\" 1-Drawer Multi-Level",
+      "clientInternalKey": "60 1DW Multi-Level_60",
+      "clientAssetId": "1479c1df-f7a7-49fa-adf3-038969f2eaf5",
+      "dimensionsImage": "evidence/client/preset-28/dimensions.jpg",
+      "dimensionsImageSha256": "6aeea7b2f6b85fefc5b20dbf6b6261fb1e6db2638d1bc0642d1c4364f7fa2e8e",
+      "clientDimensionsIn": {
+        "width": 59,
+        "verticalAnnotation": 22,
+        "depth": 19.9,
+        "componentWidths": [31.5, 31.5]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "rows": [
+        {
+          "elevationCm": 0,
+          "offsetXCm": 0,
+          "products": [
+            {
+              "name": "ULH-sink-cabinet",
+              "widthCm": 80
+            }
+          ]
+        },
+        {
+          "elevationCm": -28,
+          "offsetXCm": 70,
+          "products": [
+            {
+              "name": "ULH-side-cabinet",
+              "widthCm": 80
+            }
+          ]
+        }
+      ],
+      "nominalEnvelopeWidthCm": 150
+    },
+    {
+      "id": 29,
+      "title": "Urban Low Height · 61\" 1-Drawer Multi-Level",
+      "clientInternalKey": "61 1DW Multi-Level_60",
+      "clientAssetId": "4ac11508-6323-43de-890c-395a9cd24adf",
+      "dimensionsImage": "evidence/client/preset-29/dimensions.jpg",
+      "dimensionsImageSha256": "caf1b1f55404be026f1ee5f332d432c434fa1949b171c4a8954ccd398bcafc48",
+      "clientDimensionsIn": {
+        "width": 61,
+        "verticalAnnotation": 22,
+        "depth": 19.9,
+        "componentWidths": [27.6, 27.6, 13.8]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "rows": [
+        {
+          "elevationCm": 0,
+          "offsetXCm": 0,
+          "products": [
+            {
+              "name": "ULH-sink-cabinet",
+              "widthCm": 70
+            }
+          ]
+        },
+        {
+          "elevationCm": -28,
+          "offsetXCm": 50,
+          "products": [
+            {
+              "name": "ULH-side-cabinet",
+              "widthCm": 70
+            },
+            {
+              "name": "ULH-Open-Shelf",
+              "widthCm": 35
+            }
+          ]
+        }
+      ],
+      "nominalEnvelopeWidthCm": 155
+    },
+    {
+      "id": 36,
+      "title": "Urban Low Height · 70\" 1-Drawer Multi-Level",
+      "clientInternalKey": "70 1DW Multi-Level_70",
+      "clientAssetId": "687d9671-aa1a-4457-9323-b38248d84271",
+      "dimensionsImage": "evidence/client/preset-36/dimensions.jpg",
+      "dimensionsImageSha256": "95eb47a4261d135b2f066a2f206666c6e12c42fa5c998db97139de0ce054e495",
+      "clientDimensionsIn": {
+        "width": 70.2,
+        "verticalAnnotation": 22,
+        "depth": 19.9,
+        "componentWidths": [35.4, 23.6, 13.8]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "rows": [
+        {
+          "elevationCm": 0,
+          "offsetXCm": 0,
+          "products": [
+            {
+              "name": "ULH-sink-cabinet",
+              "widthCm": 90
+            }
+          ]
+        },
+        {
+          "elevationCm": -28,
+          "offsetXCm": 83.3,
+          "products": [
+            {
+              "name": "ULH-side-cabinet",
+              "widthCm": 60
+            },
+            {
+              "name": "ULH-Open-Shelf",
+              "widthCm": 35
+            }
+          ]
+        }
+      ],
+      "nominalEnvelopeWidthCm": 178.3
+    },
+    {
+      "id": 39,
+      "title": "Urban Low Height · 73\" 1-Drawer Multi-Level",
+      "clientInternalKey": "73 1DW Multi-Level_70",
+      "clientAssetId": "2e724a6a-0067-4cf1-bc74-c9a67aa0ea38",
+      "dimensionsImage": "evidence/client/preset-39/dimensions.jpg",
+      "dimensionsImageSha256": "570c49467b9327b060c4942828f3bdebb86da3c06270897277e2caab9109eddc",
+      "clientDimensionsIn": {
+        "width": 72.8,
+        "verticalAnnotation": 22,
+        "depth": 19.9,
+        "componentWidths": [41.3, 41.3]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "rows": [
+        {
+          "elevationCm": -28,
+          "offsetXCm": 0,
+          "products": [
+            {
+              "name": "ULH-side-cabinet",
+              "widthCm": 105
+            }
+          ]
+        },
+        {
+          "elevationCm": 0,
+          "offsetXCm": 80,
+          "products": [
+            {
+              "name": "ULH-sink-cabinet",
+              "widthCm": 105
+            }
+          ]
+        }
+      ],
+      "nominalEnvelopeWidthCm": 185
+    },
+    {
+      "id": 46,
+      "title": "Urban Low Height · 82\" 1-Drawer Multi-Level",
+      "clientInternalKey": "82 1DW Multi-Level_80",
+      "clientAssetId": "1e6fcb77-19f4-4e2c-b9b3-983fd51d0851",
+      "dimensionsImage": "evidence/client/preset-46/dimensions.jpg",
+      "dimensionsImageSha256": "55add18a5d4e1b76ccf47fd80e1f92275b2b5217929fcd39d34ee5140dadcbb9",
+      "clientDimensionsIn": {
+        "width": 82,
+        "verticalAnnotation": 22,
+        "depth": 19.9,
+        "componentWidths": [41.3, 23.6, 23.6]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "rows": [
+        {
+          "elevationCm": 0,
+          "offsetXCm": 0,
+          "products": [
+            {
+              "name": "ULH-sink-cabinet",
+              "widthCm": 105
+            }
+          ]
+        },
+        {
+          "elevationCm": -28,
+          "offsetXCm": 88.3,
+          "products": [
+            {
+              "name": "ULH-side-cabinet",
+              "widthCm": 60
+            },
+            {
+              "name": "ULH-side-cabinet",
+              "widthCm": 60
+            }
+          ]
+        }
+      ],
+      "nominalEnvelopeWidthCm": 208.3
+    },
+    {
+      "id": 47,
+      "title": "Urban Low Height · 83\" 1-Drawer Multi-Level",
+      "clientInternalKey": "83 1DW Multi-Level_80",
+      "clientAssetId": "6edcf945-41e7-446a-9514-afdc7c65fa92",
+      "dimensionsImage": "evidence/client/preset-47/dimensions.jpg",
+      "dimensionsImageSha256": "6cee7d201a8299f4dd53d4c440659faf033151a34061c256d10ded2440fdc62a",
+      "clientDimensionsIn": {
+        "width": 82.6,
+        "verticalAnnotation": 22,
+        "depth": 19.9,
+        "componentWidths": [47.2, 41.3]
+      },
+      "heightCm": 28,
+      "depthCm": 50,
+      "rows": [
+        {
+          "elevationCm": 0,
+          "offsetXCm": 0,
+          "products": [
+            {
+              "name": "ULH-sink-cabinet",
+              "widthCm": 120
+            }
+          ]
+        },
+        {
+          "elevationCm": -28,
+          "offsetXCm": 105,
+          "products": [
+            {
+              "name": "ULH-side-cabinet",
+              "widthCm": 105
+            }
+          ]
+        }
+      ],
+      "nominalEnvelopeWidthCm": 210
+    }
+  ]
+}

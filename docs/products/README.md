@@ -87,7 +87,7 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 | `presets.json` | Model cards і `presetProducts`, які реально створюють композицію. |
 | `ui.json` | Prebuilt/custom flows, routes, sections, controls, image references. |
 | `product-profile.json` | Attribute catalog, aliases, defaults, capabilities, rule data, reason messages. |
-| `runtime-bindings.json` | Product type mapping і переклад attribute values у scene patches; `state-only` та `unbound` межі. |
+| `runtime-bindings.json` | Product type mapping і переклад attribute values у scene patches; `state-only` та `unbound` межі; `retiredSceneValues` — перейменований scene-токен, який збережені конфігурації ще містять, → значення, що його замінило. |
 | `sku-profile.json` | Data-driven SKU grammar для ULH/Class/Mako; `status: partial` і pricing gaps. |
 | `cabinet-sku-mappings.json` | Legacy USH SKU mappings. |
 | `static-options.json` / `navigation.json` | Legacy USH data; для нових колекцій відповідні дані вже походять з profile/UI. |
@@ -96,6 +96,9 @@ Urban Freestanding, Tricot, Urban Duplex і Lame мають власні materia
 
 - Manifest id та всі локальні `collectionId` збігаються.
 - Поле з `ui.json` існує в profile або має свідомий runtime/status contract.
+- Колекція, що перейменовує scene-токен, який збережені конфігурації вже містять, лишає старий токен у
+  `retiredSceneValues` binding; інакше strict-колекція (`strictProductConfig`) відхилить такі конфігурації
+  під час відновлення.
 - Розділ, який показує одне зі своїх полів за раз, описує `ui.json`, а не код сторінки: `fieldTabs: { label }`
   у розділі (рядок над вкладками) і `tab: { label, icon }` у кожному його полі. Urban Duplex так показує
   Panel Color: вкладки Base Panel / Lateral Panel, під ними сітка кольорів вибраної панелі. `icon` — файл

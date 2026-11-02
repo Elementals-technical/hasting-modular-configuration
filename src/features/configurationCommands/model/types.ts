@@ -21,7 +21,12 @@ import type {
  * `DividersStyle` is `drawer`. The wider set is used here; the contract needs the same
  * widening before B writes its UI description against three.
  */
-export type AttributeChange = { attributeId: string; value: AttributeValue } & (
+export type AttributeChange = {
+  attributeId: string;
+  value: AttributeValue;
+  /** Set only by a deliberate UI action; automatic defaults, replay and dependencies omit it. */
+  userInitiated?: true;
+} & (
   | { scope: "global" | "countertop" }
   | { scope: "basin"; sinkBaseId?: StableCabinetKey }
   /**

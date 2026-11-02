@@ -94,7 +94,10 @@ const toPatch = (binding: BoundRuntimeBinding, value: SemanticValue): ScenePatch
 
   // Own keys only, so a value like "toString" is not found on the prototype.
   const key = String(value);
-  return Object.hasOwn(values.patches, key) ? { ...values.patches[key] } : null;
+  if (Object.hasOwn(values.patches, key)) return { ...values.patches[key] };
+
+  const retired = values.retiredSceneValues ?? {};
+  return Object.hasOwn(retired, key) ? { ...values.patches[retired[key]] } : null;
 };
 
 /** The scene value of an identity patch under each other key the binding names. */
@@ -192,7 +195,9 @@ export const configurationValueOf = (
  * The configuration value a scene value stands for, with no choice to compare it to: the one value
  * the binding sends as it (an `overrides` entry, or a value map's patch), so the scene's
  * "Nero 433 Lacquered MT" reads as Tricot's "Nero 433 MT". The binding is the only place that
- * knows the scene's names. A scene value no value is sent as, or more than one, is returned as read.
+ * knows the scene's names. A scene value no value is sent as reads as the value that replaced it
+ * when the binding retired it (`retiredSceneValues`), and otherwise is returned as read, as is one
+ * more than one value is sent as.
  */
 export const semanticValueOf = (set: RuntimeBindingSet | null, attributeId: string, sceneValue: string): string => {
   const binding = set ? selectRuntimeBinding(set, attributeId) : null;
@@ -211,7 +216,10 @@ export const semanticValueOf = (set: RuntimeBindingSet | null, attributeId: stri
         )
       : Object.entries(binding.values.patches).flatMap(([value, scenePatch]) => (sentAs(scenePatch) ? [value] : []));
 
-  return values.length === 1 ? values[0] : sceneValue;
+  if (values.length === 1) return values[0];
+
+  const retired = binding.values.kind === "map" ? (binding.values.retiredSceneValues ?? {}) : {};
+  return values.length === 0 && Object.hasOwn(retired, sceneValue) ? retired[sceneValue] : sceneValue;
 };
 
 /**

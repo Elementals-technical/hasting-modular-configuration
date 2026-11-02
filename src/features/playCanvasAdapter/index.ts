@@ -46,7 +46,7 @@ export type {
 export { createTestOrganizerPort } from "./lib/testOrganizerPort";
 export type { TestOrganizerAnswer, TestOrganizerCall, TestOrganizerPort } from "./lib/testOrganizerPort";
 
-export { fitCountertop, restoreCountertopConfigs } from "./lib/countertopScene";
+export { fitCountertop, restoreCountertopConfigs, readCountertopConfig } from "./lib/countertopScene";
 export type { CountertopSize } from "./lib/countertopScene";
 export { ensureCabinetHeights } from "./lib/ensureCabinetHeights";
 export type { CabinetHeightCheck } from "./lib/ensureCabinetHeights";

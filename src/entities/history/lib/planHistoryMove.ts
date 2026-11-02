@@ -80,6 +80,7 @@ export function planHistoryMove(current: SceneSnapshot, target: SceneSnapshot): 
 const full = (reason: string): HistoryMovePlan => ({ kind: "full", reason });
 
 function classifyMove(current: SceneSnapshot, target: SceneSnapshot): HistoryMovePlan {
+  if (!isDeepEqual(current.explicitUserChoices ?? {}, target.explicitUserChoices ?? {}) || current.activePrebuiltPresetId !== target.activePrebuiltPresetId) return full("choice-intent-differs");
   // 1. Products are matched across a rebuild by stable key: a snapshot that cannot name each of its products
   //    by one (an older client, a product the configuration never recorded) cannot be matched.
   const currentView = readSnapshot(current);

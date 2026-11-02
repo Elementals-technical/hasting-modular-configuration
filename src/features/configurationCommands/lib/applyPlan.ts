@@ -8,6 +8,7 @@ import {
   getActiveRuntimeBindings,
   getCabinetEntries,
   markRuntimeOutOfSync,
+  setExplicitUserChoice,
   requestSceneStateSync,
 } from "@/entities/configuration";
 import type { ConfigurationRuntimePort, RuntimeContext } from "@/entities/configuration";
@@ -102,6 +103,13 @@ export const applyPlan = async (
   // not end up in state as if it had succeeded.
   for (const action of commitPlan(runtimeResult.applied, buildCommitContext(state, context, configurator))) {
     dispatch(action);
+  }
+
+  // Only applied changes revoke prior carry permission. The UI request marks its own
+  // attribute again only after the whole requested transaction succeeds.
+  for (const change of runtimeResult.applied) {
+    if (change.target.scope === "drawer" || (change.target.scope === "basin" && change.target.sinkBaseId)) continue;
+    dispatch(setExplicitUserChoice({ attributeId: change.attributeId, chosen: false }));
   }
 
   if (runtimeResult.status === "partial") {

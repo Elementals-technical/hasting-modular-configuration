@@ -587,7 +587,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
 
     const result = await runStep(() =>
       changeAttributeValue({
-        attributeId,
+          userInitiated: true,
+          attributeId,
         value: next,
         scope: "cabinet",
         cabinetId: selectedCabinetId,
@@ -644,7 +645,7 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
     }
 
     // A change that waits for confirmation takes its undo step when it is confirmed, not before the dialog.
-    const request: AttributeChange = { attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId };
+    const request: AttributeChange = { userInitiated: true, attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId };
     const evaluation = evaluateAttributeChange(request);
     const appliesAtOnce = evaluation.kind === "planned" && evaluation.confirmation.length === 0;
     showHandleChangeResult(

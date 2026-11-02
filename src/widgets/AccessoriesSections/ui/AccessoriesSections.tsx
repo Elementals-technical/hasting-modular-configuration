@@ -57,7 +57,7 @@ export const useAccessoriesSections = (stepId: string) => {
 
   const changeAttribute = (attributeId: "TowelBarOption" | "TowelBarColor") => async (value: string) => {
     if (!value) return;
-    await runStep(() => change({ attributeId, value, scope: "global" }));
+    await runStep(() => change({ attributeId, value, scope: "global", userInitiated: true }));
   };
 
   const onSectionChange = (sectionId: string) => {

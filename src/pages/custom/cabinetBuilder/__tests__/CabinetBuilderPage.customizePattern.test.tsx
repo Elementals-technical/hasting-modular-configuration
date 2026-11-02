@@ -15,10 +15,13 @@ import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/b
 import {
   getAttributeValue,
   getCabinetEntries,
+  recordSceneState,
   resetConfiguration,
   setActiveCollectionId,
   setActiveRuntimeBindings,
+  syncCabinets,
 } from "@/entities/configuration";
+import { getSelectedDimensions } from "@/entities/product/model/store/selectors";
 import { addProductPreset, reset, setActiveProfile } from "@/entities/product/model/store/slice";
 
 import { CabinetBuilderPage } from "../CabinetBuilderPage";
@@ -69,14 +72,21 @@ describe("Customize a Tricot model", () => {
 
   afterEach(cleanup);
 
-  it("keeps the pattern chosen in Prebuilt on the cabinets the scene kept", async () => {
+  it("keeps the pattern and actual dimensions on the cabinets the scene kept", async () => {
     // The presets as Prebuilt leaves them once Twill was chosen for the model.
     store.dispatch(
       addProductPreset([
-        { name: "Sink-Base", Width: 60, Drawers: "1D", DrawerPanelFluting: "Twill" },
+        { name: "Sink-Base", Width: 60, Height: 40, Depth: 52, Drawers: "1D", DrawerPanelFluting: "Twill" },
         { name: "Side-Cabinet", Width: 40, Drawers: "1D", DrawerPanelFluting: "Twill" },
       ]),
     );
+
+    const actualDimensions = { width: 80, height: 30, depth: 50 };
+    store.dispatch(syncCabinets(SCENE_IDS));
+    store.dispatch(recordSceneState({
+      order: SCENE_IDS,
+      cabinets: SCENE_IDS.map((runtimeId) => ({ runtimeId, dimensions: actualDimensions })),
+    }));
 
     render(
       <Provider store={store}>
@@ -91,6 +101,7 @@ describe("Customize a Tricot model", () => {
     await waitFor(() =>
       expect(getCabinetEntries(store.getState()).map(({ runtimeId }) => runtimeId)).toEqual(SCENE_IDS),
     );
+    await waitFor(() => expect(getSelectedDimensions(store.getState())).toEqual(actualDimensions));
     const [first] = getCabinetEntries(store.getState());
     await waitFor(() =>
       expect(

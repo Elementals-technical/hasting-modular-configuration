@@ -4,6 +4,8 @@ export type { BuildRestorePlanResult, RestoreIssue, RestorePlan, RestoreTopConfi
 
 export { applyRestoredIdentity, matchSavedStableKeys, toRestoredValues } from "./lib/applyRestoredIdentity";
 
+export { resolveTowelBarOption } from "./lib/resolveTowelBarOption";
+
 export { restoreSavedConfiguration } from "./lib/restoreSavedConfiguration";
 export type { RestoreSavedConfigurationDeps, RestoreSavedConfigurationResult } from "./lib/restoreSavedConfiguration";
 

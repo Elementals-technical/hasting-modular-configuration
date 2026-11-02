@@ -32,7 +32,8 @@ export const useAttributeChangeHandler = (attributeId: string, { runtime }: UseC
 
   const onChange = useCallback(
     async (value: AttributeValue): Promise<ChangeResult> => {
-      const request = resolveChangeRequest(getState(), attributeId, value);
+      const addressed = resolveChangeRequest(getState(), attributeId, value);
+      const request = addressed ? { ...addressed, userInitiated: true as const } : null;
 
       if (!request) {
         return showResult({

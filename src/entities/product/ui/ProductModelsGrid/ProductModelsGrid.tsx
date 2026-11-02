@@ -12,7 +12,7 @@ interface ProductModelsGridI {
   detailsTo: (presetId: number) => To;
   createModelBtn?: React.ReactNode;
   handleAddPreset: (presetProducts?: PresetProduct[], presetId?: number) => void;
-  handleCustomizePreset: (presetProducts?: PresetProduct[]) => void;
+  handleCustomizePreset: (presetProducts?: PresetProduct[], presetId?: number) => void;
   activePresetId?: number | null;
   emptyMessage?: string;
 }

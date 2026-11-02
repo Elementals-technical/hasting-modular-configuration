@@ -6,6 +6,7 @@ import {
   getCabinetEntries,
   getRuntimeSyncState,
   resetConfiguration,
+  setExplicitUserChoice,
   setAttributeValue,
   type SceneLayout,
 } from "@/entities/configuration";
@@ -54,6 +55,20 @@ describe("history snapshot restore", () => {
     store.dispatch(resetConfiguration());
     vi.mocked(setConfigBatch).mockClear();
     replay.mockClear();
+  });
+
+  it("restores choice provenance separately from the backend snapshot and clears absent legacy metadata", async () => {
+    placeTwoCabinets();
+    store.dispatch(setExplicitUserChoice({ attributeId: "CountertopColor", chosen: true }));
+    const snapshot = await captureSnapshot(getState);
+    expect(snapshot.explicitUserChoices).toEqual({ CountertopColor: true });
+    expect(snapshot.configuration).not.toHaveProperty("explicitUserChoices");
+    store.dispatch(setExplicitUserChoice({ attributeId: "CabinetColor", chosen: true }));
+    const deps = { dispatch: store.dispatch, getState, getBindings: () => null, restorer: createTestSceneRestorer().restorer, replay };
+    await restoreSnapshot(snapshot, deps);
+    expect(getState().rootStateUI.configuration.explicitUserChoices).toEqual({ CountertopColor: true });
+    await restoreSnapshot({ ...snapshot, explicitUserChoices: undefined }, deps);
+    expect(getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
   });
 
   it("records the stable key of every product", async () => {

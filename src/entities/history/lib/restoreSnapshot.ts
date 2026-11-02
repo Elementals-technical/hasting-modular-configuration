@@ -14,6 +14,8 @@ import {
   requestSceneStateSync,
   restoreCabinets,
   restoreConfigurationFragment,
+  restoreExplicitUserChoices,
+  setActivePrebuiltPresetId,
 } from "@/entities/configuration/model/store/slice";
 import type { SceneSnapshot } from "@/entities/history/model/store/slice";
 import { restoreProductState } from "@/entities/product/model/store/slice";
@@ -110,6 +112,8 @@ export async function restoreSnapshot(
   }
   const result = await restorer.restore(buildSnapshotRestoreRequest(snapshot));
   if (result.status === "not-ready" || result.status === "rejected") return result;
+  dispatch(restoreExplicitUserChoices({}));
+  dispatch(setActivePrebuiltPresetId(null));
 
   const newProductIds = result.matches.map(({ runtimeId }) => runtimeId);
   const productIdMap = Object.fromEntries(result.matches.map(({ sourceId, runtimeId }) => [sourceId, runtimeId]));
@@ -226,5 +230,7 @@ export async function restoreSnapshot(
     };
   }
 
+  dispatch(restoreExplicitUserChoices(result.status === "restored" ? snapshot.explicitUserChoices ?? {} : {}));
+  dispatch(setActivePrebuiltPresetId(result.status === "restored" ? snapshot.activePrebuiltPresetId ?? null : null));
   return result;
 }

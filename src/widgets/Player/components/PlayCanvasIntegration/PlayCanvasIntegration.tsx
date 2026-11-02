@@ -2130,10 +2130,9 @@ export const PlayCanvasIntegration = ({
         }
 
         // The handle already chosen: nothing to send (Urban Duplex and Lame offer one handle).
-        if (handleType === selectedProductConfig?.Handle) return;
 
         // A change that waits for confirmation takes its undo step when it is confirmed.
-        const request: AttributeChange = { attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId };
+        const request: AttributeChange = { userInitiated: true, attributeId: "Handle", value: handleType, scope: "cabinet", cabinetId };
         const evaluation = evaluateAttributeChange(request);
         const appliesAtOnce = evaluation.kind === "planned" && evaluation.confirmation.length === 0;
         reportHandleChangeResult(
@@ -2179,7 +2178,8 @@ export const PlayCanvasIntegration = ({
       try {
         const result = await runStep(() =>
           changeAttributeValue({
-            attributeId,
+          userInitiated: true,
+          attributeId,
             value,
             scope: "cabinet",
             cabinetId: selectedCabinetKey,
@@ -2296,7 +2296,8 @@ export const PlayCanvasIntegration = ({
           // The binding clears the towel bar before placing the remaining side; no side left
           // also clears its colour.
           const result = await changeAttributeValue({
-            attributeId: "TowelBarOption",
+          userInitiated: true,
+          attributeId: "TowelBarOption",
             value: nextOption,
             scope: "global",
           });
@@ -3789,6 +3790,7 @@ export const PlayCanvasIntegration = ({
 
       const result = await runStep(() =>
         changeAttributeValue({
+          userInitiated: true,
           attributeId: "Thickness",
           value: `${thickness}`,
           scope: "countertop",
