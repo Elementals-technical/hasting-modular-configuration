@@ -752,7 +752,7 @@
         "name": "Sink-Cabinet",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 40,
+        "Width": 60,
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
@@ -762,7 +762,7 @@
         "name": "Sink-Base",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 120,
+        "Width": 100,
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
@@ -929,17 +929,17 @@
         "name": "Sink-Base",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 60,
+        "Width": 80,
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
         "Handle": "G57"
       },
       {
-        "name": "Sink-Base",
+        "name": "Sink-Cabinet",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 80,
+        "Width": 60,
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
@@ -957,7 +957,7 @@
       }
     ],
     "size": "70_79",
-    "style": ["1_drawer", "double_basin", "asymmetrical"]
+    "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
   {
     "id": 33,
@@ -1108,7 +1108,7 @@
     "isProductModel": true,
     "presetProducts": [
       {
-        "name": "Sink-Cabinet",
+        "name": "Sink-Base",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
         "Width": 60,
@@ -1118,7 +1118,7 @@
         "Handle": "G57"
       },
       {
-        "name": "Sink-Base",
+        "name": "Sink-Cabinet",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
         "Width": 100,
@@ -1128,7 +1128,7 @@
         "Handle": "G57"
       },
       {
-        "name": "Sink-Cabinet",
+        "name": "Sink-Base",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
         "Width": 60,
@@ -1139,7 +1139,7 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "single_basin"]
+    "style": ["1_drawer", "double_basin"]
   },
   {
     "id": 38,
@@ -1231,17 +1231,17 @@
         "name": "Sink-Base",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 100,
+        "Width": 120,
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
         "Handle": "G57"
       },
       {
-        "name": "Sink-Base",
+        "name": "Sink-Cabinet",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 120,
+        "Width": 100,
         "Height": 26,
         "Depth": 52,
         "Drawers": "1D",
@@ -1249,7 +1249,7 @@
       }
     ],
     "size": "80_89",
-    "style": ["1_drawer", "double_basin", "asymmetrical"]
+    "style": ["1_drawer", "single_basin", "asymmetrical"]
   },
   {
     "id": 41,
@@ -1261,17 +1261,17 @@
         "name": "Sink-Base",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 100,
+        "Width": 120,
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
         "Handle": "G57"
       },
       {
-        "name": "Sink-Base",
+        "name": "Sink-Cabinet",
         "CabinetColor": "Antracite 400 MT",
         "HandleColor": "Antracite 400 MT",
-        "Width": 120,
+        "Width": 100,
         "Height": 52,
         "Depth": 52,
         "Drawers": "2D",
@@ -1279,7 +1279,7 @@
       }
     ],
     "size": "80_89",
-    "style": ["2_drawer", "double_basin", "asymmetrical"]
+    "style": ["2_drawer", "single_basin", "asymmetrical"]
   },
   {
     "id": 42,
