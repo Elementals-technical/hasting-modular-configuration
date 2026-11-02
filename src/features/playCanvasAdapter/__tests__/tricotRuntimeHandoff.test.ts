@@ -43,7 +43,7 @@ const NOT_SENT = ["SidePanels", "DrawerPanelFluting"];
 // The basin, as Class sends it: the authored sub-product of its LB/VA/LV name, on the sink base only.
 const expectBasinOnSinkBaseOnly = (product: Record<string, unknown>) =>
   product.name === "Tricot-sink-cabinet" || product.productType === "Tricot-sink-cabinet"
-    ? expect(product).toMatchObject({ sinkType: "Top_LB440" })
+    ? expect(product).toMatchObject({ sinkType: "Top_VA024" })
     : expect(product).not.toHaveProperty("sinkType");
 const fakeScene = () =>
   ({
@@ -165,8 +165,8 @@ describe("Tricot production composition handoff through the adapter", () => {
         expect(product).toMatchObject({
           CabinetColor: "Rovere Oro 932",
           CabinetPattern: "Satin",
-          HandleGrooveColor: "Nero 433 Lacquered MT",
-          CountertopColor: "Solid Surface Matte White",
+          HandleGrooveColor: "Agata 407 Lacquered MT",
+          CountertopColor: "Bianco Kos 250",
         });
         expect(Object.keys(product).filter((key) => NOT_SENT.includes(key))).toEqual([]);
         expectBasinOnSinkBaseOnly(product);
@@ -191,9 +191,9 @@ describe("Tricot production composition handoff through the adapter", () => {
         Width: config.Width,
         CabinetColor: "Rovere Oro 932",
         CabinetPattern: "Satin",
-        HandleGrooveColor: "Nero 433 Lacquered MT",
-        CountertopColor: "Solid Surface Matte White",
-        sinkType: "Top_LB440",
+        HandleGrooveColor: "Agata 407 Lacquered MT",
+        CountertopColor: "Bianco Kos 250",
+        sinkType: "Top_VA024",
       });
       expect(Object.keys(sent).filter((key) => NOT_SENT.includes(key))).toEqual([]);
     }
