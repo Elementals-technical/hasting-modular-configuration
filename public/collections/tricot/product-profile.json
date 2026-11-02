@@ -185,8 +185,8 @@
       "attributeId": "HandleGrooveColor",
       "scope": "global",
       "optionsSource": "configurator:Select Handle Groove Color",
-      "initialValue": "Nero 433 MT",
-      "defaultValue": "Nero 433 MT"
+      "initialValue": "Agata 407 MT",
+      "defaultValue": "Agata 407 MT"
     },
     {
       "attributeId": "SidePanels",
@@ -211,8 +211,8 @@
       "attributeId": "CountertopColor",
       "scope": "countertop",
       "optionsSource": "configurator:Select Countertop Color",
-      "initialValue": "Matte White",
-      "defaultValue": "Matte White"
+      "initialValue": "BIANCO KOS 250",
+      "defaultValue": "BIANCO KOS 250"
     },
     {
       "attributeId": "Thickness",
@@ -342,8 +342,8 @@
         }
       ],
       "noneValue": "None",
-      "initialValue": "LB440",
-      "defaultValue": "LB440"
+      "initialValue": "VA024",
+      "defaultValue": "VA024"
     },
     {
       "attributeId": "CountertopStyle",
