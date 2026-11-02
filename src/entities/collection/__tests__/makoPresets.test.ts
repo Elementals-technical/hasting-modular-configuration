@@ -8,6 +8,7 @@ import { makoRuntimeBindings } from "../lib/runtimeBindings/__tests__/makoRuntim
 import { presetsSchema } from "../model/schemas";
 
 import { makoProfile } from "./makoProfileFixture";
+import clientLayouts from "./fixtures/mako-client-layouts-2026-10-28.json";
 
 /**
  * The 42 Mako models with their compositions (MAKO_MODEL_PRESET_MODULES): Sink Base and Side
@@ -26,6 +27,48 @@ const titleOf = (title: string) => {
 };
 
 describe("mako model compositions", () => {
+  it.each(clientLayouts)("matches the observed client module order and basin positions of $title", (client) => {
+    const preset = presets.find(({ id }) => id === client.presetId)!;
+
+    expect(preset.presetProducts).toHaveLength(client.moduleWidthsIn.length);
+    preset.presetProducts.forEach((product, index) => {
+      // The client's one-decimal labels differ slightly from exact cm conversion.
+      expect(Math.abs((product.Width ?? 0) / 2.54 - client.moduleWidthsIn[index])).toBeLessThan(0.15);
+      expect(product.name).toBe(client.basinPositions.includes(index + 1) ? "Sink-Base" : "Sink-Cabinet");
+      expect(product.Drawers).toBe(`${client.drawersPerModule[index]}D`);
+    });
+  });
+
+  // Ticket #103 confirms the nominal cm widths; the independent client capture is
+  // ../../data-modular-configuration/Mako/input/client-presets-2026-10-28/registry.json.
+  // In particular, preset index 20 (screenshots/20.jpg) has 23.6" + 31.5", two
+  // drawers per module and basins on both modules, as recorded in clientLayouts.
+  it.each([
+    { presetId: 20, widths: [60, 80], drawers: "2D", height: 52, basinPositions: [1, 2] },
+    { presetId: 27, widths: [60, 100], drawers: "1D", height: 26, basinPositions: [2] },
+    { presetId: 32, widths: [80, 60, 60], drawers: "1D", height: 26, basinPositions: [1] },
+    { presetId: 37, widths: [60, 100, 60], drawers: "1D", height: 26, basinPositions: [1, 3] },
+    { presetId: 40, widths: [120, 100], drawers: "1D", height: 26, basinPositions: [1] },
+    { presetId: 41, widths: [120, 100], drawers: "2D", height: 52, basinPositions: [1] },
+  ])("preserves the confirmed #103 composition and basin tags of id$presetId", (client) => {
+    const preset = presets.find(({ id }) => id === client.presetId)!;
+
+    expect(preset.presetProducts.map(({ name, Width, Drawers, Height }) => ({ name, Width, Drawers, Height }))).toEqual(
+      client.widths.map((Width, index) => ({
+        name: client.basinPositions.includes(index + 1) ? "Sink-Base" : "Sink-Cabinet",
+        Width,
+        Drawers: client.drawers,
+        Height: client.height,
+      })),
+    );
+    expect(preset.presetProducts.flatMap(({ name }, index) => (name === "Sink-Base" ? [index + 1] : []))).toEqual(
+      client.basinPositions,
+    );
+    expect(preset.style.filter((tag) => tag === "single_basin" || tag === "double_basin")).toEqual([
+      client.basinPositions.length === 2 ? "double_basin" : "single_basin",
+    ]);
+  });
+
   it("gives every model a composition of Mako cabinet types", () => {
     const cabinetTypes = selectOptionValues(makoProfile, "CabinetType");
 
