@@ -108,3 +108,10 @@ TC-TRICOT-HANDLE-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-
 TC-LAME-HANDLE-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-local-lame/06-panel.txt
 TC-UD-HANDLE-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-local-urban-duplex/06-panel.txt
 TC-USH-HANDLE-BASELINE,PASS,docs/ai/qa/evidence/2026-11-02/TC-TRICOT-HANDLE/after-local-ush-control/06-panel.txt
+TC-TRICOT-T3-REPRO,FAIL,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/before-p98qb-tricot/20-f-text.txt
+TC-CLASS-C15-REPRO,FAIL,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/before-p98qb-class/20-f-text.txt
+TC-ULH-ULH4-REPRO,FAIL,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/before-p98qb-ulh/20-f-text.txt
+TC-TRICOT-T3-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-tricot/14-style-list.txt
+TC-CLASS-C15-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-class/14-style-list.txt
+TC-ULH-ULH4-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-ulh/14-style-list.txt
+TC-UD-PRESET-FILTERS-BASELINE,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-urban-duplex/14-style-list.txt

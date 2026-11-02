@@ -83,3 +83,59 @@ describe("ModelPage against a non-USH collection", () => {
     ]);
   });
 });
+
+describe("ModelPage filters", () => {
+  const presetOf = (id: number, size: string, style: string[]) => ({
+    id,
+    img: "images/fixture-ui.svg",
+    title: `Model ${id}`,
+    isProductModel: true,
+    presetProducts: [{ name: "Fixture-Cabinet", Width: 79 }],
+    size,
+    style,
+  });
+  const PRESETS = [presetOf(901, "30_39", ["1_drawer", "single_basin"]), presetOf(902, "40_49", ["2_drawer"])];
+
+  const openFilter = (name: string) => fireEvent.click(screen.getByRole("button", { name }));
+  const optionNamed = (label: string) => screen.getAllByRole("option").find((option) => option.textContent === label);
+  const optionLabels = () => screen.getAllByRole("option").map((option) => option.textContent);
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+  });
+
+  afterEach(cleanup);
+
+  it("offers only the sizes and styles the collection's models have", () => {
+    renderModelPage({ presetsDocument: PRESETS });
+
+    openFilter("Size");
+    expect(optionLabels()).toEqual(["All", "30–39″", "40–49″"]);
+    openFilter("Size");
+
+    openFilter("Style");
+    expect(optionLabels()).toEqual(["All", "1 Drawer", "2 Drawer", "Single Basin"]);
+  });
+
+  it("disables a value that leaves no model with the other filter, so no choice ends empty", () => {
+    renderModelPage({ presetsDocument: PRESETS });
+
+    openFilter("Size");
+    fireEvent.click(optionNamed("30–39″") as HTMLElement);
+    expect(screen.getAllByText("Product Details")).toHaveLength(1);
+
+    openFilter("Style");
+    expect(optionNamed("1 Drawer")?.getAttribute("aria-disabled")).toBe("false");
+    expect(optionNamed("2 Drawer")?.getAttribute("aria-disabled")).toBe("true");
+    expect(optionNamed("All")?.getAttribute("aria-disabled")).not.toBe("true");
+  });
+
+  it("shows no filter for a collection without models", async () => {
+    renderModelPage({ presetsDocument: [] });
+
+    await screen.findByText("No preset compositions available for Fixture UI Collection");
+    expect(screen.queryByRole("button", { name: "Size" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Style" })).toBeNull();
+  });
+});

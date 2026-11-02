@@ -16,6 +16,7 @@ import {
   resolvePrebuiltModelTransferableOverrides,
   type PrebuiltModelTransferableOverrides,
 } from "@/entities/product/lib/prebuiltModelTransferableFields";
+import { buildPresetFilterOptions, matchesPresetFilters } from "@/entities/product/lib/presetFilters";
 import { resolveActivePrebuiltPresetId } from "@/entities/product/lib/resolveActivePrebuiltPresetId";
 import { type PresetProduct, type ProductSize, type ProductStyle } from "@/entities/product/types";
 import { FilterRow } from "@/shared/ui/Filter/FilterRow";
@@ -346,13 +347,14 @@ export const ModelPage = () => {
   const defaultPresetId = Number(activeCollection.manifest.defaultPresetId);
   const defaultPreset = presets.find((preset) => preset.id === defaultPresetId) ?? presets[0] ?? null;
 
-  const filteredData = useMemo(() => {
-    return presets.filter((preset) => {
-      if (sizeFilter !== "all" && preset.size !== sizeFilter) return false;
-      if (styleFilter !== "all" && !preset.style.includes(styleFilter)) return false;
-      return true;
-    });
-  }, [presets, sizeFilter, styleFilter]);
+  const filteredData = useMemo(
+    () => presets.filter((preset) => matchesPresetFilters(preset, { size: sizeFilter, style: styleFilter })),
+    [presets, sizeFilter, styleFilter],
+  );
+  const filterOptions = useMemo(
+    () => buildPresetFilterOptions(presets, { size: sizeFilter, style: styleFilter }),
+    [presets, sizeFilter, styleFilter],
+  );
 
   const presetIdFromUrl = useMemo(() => {
     const rawPresetId = searchParams.get("preset");
@@ -1433,33 +1435,14 @@ export const ModelPage = () => {
               <FilterItem
                 label="Size"
                 value={sizeFilter === "all" ? undefined : sizeFilter}
-                options={[
-                  { label: "All", value: "all" },
-                  { label: "24–29″", value: "24_29" },
-                  { label: "30–39″", value: "30_39" },
-                  { label: "40–49″", value: "40_49" },
-                  { label: "50–59″", value: "50_59" },
-                  { label: "60–69″", value: "60_69" },
-                  { label: "70–79″", value: "70_79" },
-                  { label: "80–89″", value: "80_89" },
-                  { label: "90″+", value: "90_plus" },
-                ]}
+                options={filterOptions.size}
                 onSelect={handleSizeFilter}
               />
 
               <FilterItem
                 label="Style"
                 value={styleFilter === "all" ? undefined : styleFilter}
-                options={[
-                  { label: "All", value: "all" },
-                  { label: "1 Drawer", value: "1_drawer" },
-                  { label: "2 Drawer", value: "2_drawer" },
-                  { label: "Single Basin", value: "single_basin" },
-                  { label: "Double Basin", value: "double_basin" },
-                  { label: "Asymmetrical", value: "asymmetrical" },
-                  { label: "Open Shelving", value: "open_shelving" },
-                  { label: "Multi-level", value: "multi_level" },
-                ]}
+                options={filterOptions.style}
                 onSelect={handleStyleFilter}
               />
 
