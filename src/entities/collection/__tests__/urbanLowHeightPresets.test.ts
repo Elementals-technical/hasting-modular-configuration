@@ -9,13 +9,15 @@ import { normalizeOptionValue, selectOptionValues } from "../lib/productProfileS
 import { resolveProductConfig } from "../lib/runtimeBindings/resolveProductConfig";
 import { ulhRuntimeBindings } from "../lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
 import { collectionSkuProfileSchema, presetsSchema } from "../model/schemas";
+import ulhClientPresets from "./fixtures/ulh-client-presets-2026-10-30.json";
 
 /**
  * The 59 Urban Low Height models with their compositions (URBAN_LOW_HEIGHT_MODEL_PRESET_MODULES):
  * Sink Base, Side Cabinet and Open Shelf modules left to right, the price-list inches in the map's
- * centimetres (§3). Every module stands at 38 cm with the upper groove and 46 cm deep until the product
- * names each model's height and handle. The six Multi-Level models hang at two wall heights, which the
- * scene cannot place yet, so they keep no composition.
+ * centimetres (§3). Client Dimensions distinguish the 26 low linear models from the 27 standard
+ * ones; the six Multi-Level recipes carry two rows of 28 cm modules. Presets use the deeper ULH
+ * option requested by the product owner: 50 cm (19.7"). Compact row offsets are the approved nominal
+ * reconstruction from rounded client labels, not exact client mesh measurements.
  */
 
 const presets = presetsSchema.parse(ulhPresetsDocument);
@@ -36,6 +38,12 @@ const inchesOf = (title: string) => {
 };
 
 const isMultiLevel = (title: string) => title.endsWith("Multi-Level");
+
+const presetOf = (id: number) => {
+  const preset = presets.find((candidate) => candidate.id === id);
+  if (!preset) throw new Error(`Missing Urban Low Height preset ${id}`);
+  return preset;
+};
 
 // Cabinet table 580 (§3); an Open Shelf reaches 70 cm at 38 cm high.
 const WIDTHS: Record<string, number[]> = {
@@ -74,10 +82,10 @@ describe("urban-low-height model compositions", () => {
     }
   });
 
-  it("stands every module at 38 cm with the upper groove, 46 cm deep, with the one drawer on cabinets", () => {
+  it('uses the upper groove and the requested 19.7" depth on flat cabinets', () => {
     for (const { title, presetProducts } of presets) {
       for (const product of presetProducts) {
-        expect(product, title).toMatchObject({ Height: 38, Depth: 46 });
+        expect(product.Depth, title).toBe(50);
 
         if (product.name === "Open-Shelf") {
           expect(product.Handle, title).toBeUndefined();
@@ -88,6 +96,64 @@ describe("urban-low-height model compositions", () => {
       }
     }
   });
+
+  it.each(ulhClientPresets.linearPresets)("matches the client module order and nominal sizes of $title", (source) => {
+    const preset = presetOf(source.id);
+    expect(preset.title).toBe(source.title);
+    expect(preset.presetProducts.map(({ name, Width, Height, Depth }) => ({ name, Width, Height, Depth }))).toEqual(
+      source.products.map(({ name, widthCm }) => ({
+        name,
+        Width: widthCm,
+        Height: source.heightCm,
+        Depth: source.depthCm,
+      })),
+    );
+  });
+
+  it.each(ulhClientPresets.multiLevelPresets)(
+    "matches the client modules and approved nominal row placement of $title",
+    (source) => {
+      const preset = presetOf(source.id);
+      expect(preset.title).toBe(source.title);
+      expect(preset.shared).toMatchObject({ Height: source.heightCm, Depth: source.depthCm });
+      expect(preset.shared).not.toHaveProperty("Width");
+
+      expect(
+        preset.rows?.map((row) => ({
+          elevationCm: row.elevation ?? 0,
+          offsetXCm: row.offsetX ?? 0,
+          products: row.products.map(({ name, Width }) => ({ name, widthCm: Width })),
+        })),
+      ).toEqual(source.rows);
+
+      for (const row of preset.rows ?? []) {
+        for (const product of row.products) {
+          expect(resolveProductConfig(ulhRuntimeBindings, { ...preset.shared, ...product })).toMatchObject({
+            Width: product.Width,
+            Height: source.heightCm,
+            Depth: source.depthCm,
+          });
+        }
+      }
+    },
+  );
+
+  it.each(presets.filter(({ title }) => isMultiLevel(title)))(
+    'sets the requested 19.7" depth explicitly on every compact module of $title',
+    ({ title, shared, rows }) => {
+      // Compact recipes otherwise inherit the scene product's shallower default depth.
+      expect(shared, title).toMatchObject({ Depth: 50 });
+      expect(rows?.length, title).toBeGreaterThan(0);
+
+      for (const row of rows ?? []) {
+        for (const product of row.products) {
+          const config = { ...shared, ...product };
+          expect(config.Depth, title).toBe(50);
+          expect(resolveProductConfig(ulhRuntimeBindings, config).Depth, title).toBe(50);
+        }
+      }
+    },
+  );
 
   it("paints every module of the models in Rox Black TKQ, an HPL colour the collection prices by its code", () => {
     for (const { title, presetProducts } of presets) {
@@ -116,7 +182,8 @@ describe("urban-low-height model compositions", () => {
   });
 
   it("reaches the scene as ULH products with the keys the ULH scene reads", () => {
-    for (const { title, presetProducts } of presets) {
+    for (const source of ulhClientPresets.linearPresets) {
+      const { title, presetProducts } = presetOf(source.id);
       for (const { name, ...config } of presetProducts) {
         // C sends the drawer style as its canonical option ("1D" -> "1"), which the bindings map.
         const drawers = normalizeOptionValue(ulhProfile(), "Drawers", config.Drawers);
@@ -124,8 +191,8 @@ describe("urban-low-height model compositions", () => {
         expect(ulhRuntimeBindings.productTypes[name], title).toMatch(/^ULH-/);
         expect(resolveProductConfig(ulhRuntimeBindings, { ...config, Drawers: drawers }), title).toMatchObject({
           Width: config.Width,
-          Height: 38,
-          Depth: 46,
+          Height: source.heightCm,
+          Depth: 50,
           CabinetColor: "Rox Black TKQ",
           ...(name === "Open-Shelf" ? {} : { Handle: "handle_urban_topcut", Drawers: "1D" }),
         });
