@@ -59,6 +59,7 @@ export type {
 } from "./lib/replayValues";
 export { createCommandRunner } from "./lib/createCommandRunner";
 export type { CommandRunner, CommandRunnerDeps } from "./lib/createCommandRunner";
+export { setupSceneStateListener } from "./lib/sceneStateSync";
 export { useChangeAttribute } from "./hooks/useChangeAttribute";
 export type { UseChangeAttributeOptions } from "./hooks/useChangeAttribute";
 export { useChangeDimension } from "./hooks/useChangeDimension";

@@ -1,5 +1,5 @@
 import type { AppDispatch } from "@/app/store";
-import { parseTarget, restoreConfigurationFragment } from "@/entities/configuration";
+import { parseTarget, requestSceneStateSync, restoreConfigurationFragment } from "@/entities/configuration";
 import type { CabinetEntry, SceneRestoreMatch, ScopedValue } from "@/entities/configuration";
 
 import type { RestorePlan } from "./buildRestorePlan";
@@ -75,6 +75,8 @@ export const applyRestoredIdentity = (
       values: toRestoredValues(plan, new Set(cabinets.map(({ stableKey }) => stableKey)), restoredSinkBaseKeys),
     }),
   );
+  // Rekeying drops the sizes recorded under the session's keys, and the action above triggers no scene read.
+  dispatch(requestSceneStateSync());
 
   return true;
 };

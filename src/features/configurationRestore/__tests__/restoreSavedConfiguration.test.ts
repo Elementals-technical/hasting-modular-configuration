@@ -1,17 +1,25 @@
+import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
+import { rootReducer } from "@/app/store/reducer";
 import {
   clearRestore,
   getAttributeValue,
+  getCabinetDimensions,
   getCabinetEntries,
+  getDimensionsByCabinet,
   getRestoreState,
+  requestSceneStateSync,
   resetConfiguration,
   setActiveCollectionId,
+  syncCabinets,
 } from "@/entities/configuration";
 import type { ConfigurationRecord, SceneRestoreMatch } from "@/entities/configuration";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import { addProductId, reset, resetProducts } from "@/entities/product/model/store/slice";
+import { setupSceneStateListener } from "@/features/configurationCommands";
+import { createTestSceneReader } from "@/features/playCanvasAdapter";
 import { createTestSceneRestorer } from "@/features/playCanvasAdapter/lib/testSceneRestorer";
 import { isRestoreBlockingSave } from "@/features/saveConfiguration/lib/restoreSaveGuard";
 
@@ -245,5 +253,46 @@ describe("restoreSavedConfiguration", () => {
     await restore();
 
     expect("layout" in scene.requests[0]).toBe(false);
+  });
+});
+
+describe("restoreSavedConfiguration with a scene reader", () => {
+  const LOW = { width: 60, height: 50, depth: 46 };
+  const HIGH = { width: 80, height: 56, depth: 50.5 };
+
+  it("reads the sizes again when the saved keys differ from the session's", async () => {
+    const reader = createTestSceneReader();
+    reader.setScene(["new-Sink-Base-aaa111", "new-Sink-Cabinet-bbb222"], {
+      "new-Sink-Base-aaa111": LOW,
+      "new-Sink-Cabinet-bbb222": HIGH,
+    });
+
+    // Its own store: the app store's listener reads the real scene, not this one.
+    const listener = createListenerMiddleware();
+    setupSceneStateListener(listener.startListening, { reader: reader.reader, settleMs: 0 });
+    const isolated = configureStore({
+      reducer: rootReducer,
+      middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware({ serializableCheck: false, immutableCheck: false }).prepend(listener.middleware),
+    });
+    isolated.dispatch(setActiveCollectionId(USH));
+
+    const result = await restoreSavedConfiguration(CONFIG_ID, {
+      dispatch: isolated.dispatch,
+      getState: isolated.getState,
+      loadRecord: async () => savedRecord(),
+      restorer: createTestSceneRestorer().restorer,
+      // Like a page: the rebuilt products get session keys, and their sizes are read under those.
+      applyPage: async (_plan, matches) => {
+        isolated.dispatch(syncCabinets(matches.map(({ runtimeId }) => runtimeId)));
+        isolated.dispatch(requestSceneStateSync());
+        await vi.waitFor(() => expect(getCabinetDimensions(isolated.getState(), "cab-2")).toEqual(HIGH));
+      },
+    });
+
+    expect(result.status).toBe("restored");
+    await vi.waitFor(() =>
+      expect(getDimensionsByCabinet(isolated.getState())).toEqual({ "cab-4": LOW, "cab-7": HIGH }),
+    );
   });
 });
