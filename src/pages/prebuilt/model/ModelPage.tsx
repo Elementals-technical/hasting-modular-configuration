@@ -101,6 +101,7 @@ import {
   isGrooveType,
   reapplySidePanelsForPreset,
   restoreSidePanelState,
+  settleSavedSideStatuses,
   type SidePanelStatus,
 } from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
@@ -1287,13 +1288,16 @@ export const ModelPage = () => {
         const restoredSidePanelRight =
           typeof uiStateValues?.SidePanelRight === "string" ? (uiStateValues.SidePanelRight as string) : undefined;
         if (restoredSidePanels && isGrooveType(restoredSidePanels) && effectivePresets.length) {
-          const leftStatus = (restoredSidePanelLeft ?? "active") as SidePanelStatus;
-          const rightStatus = (restoredSidePanelRight ?? "active") as SidePanelStatus;
+          const { left: leftStatus, right: rightStatus } = await settleSavedSideStatuses(
+            activeProfileRef.current,
+            (restoredSidePanelLeft ?? "active") as SidePanelStatus,
+            (restoredSidePanelRight ?? "active") as SidePanelStatus,
+          );
           await restoreSidePanelState(
             dispatch,
             restoredSidePanels,
-            restoredSidePanelLeft,
-            restoredSidePanelRight,
+            leftStatus,
+            rightStatus,
             effectivePresets.length,
             { panels: restoredSidePanels, left: leftStatus, right: rightStatus },
           );

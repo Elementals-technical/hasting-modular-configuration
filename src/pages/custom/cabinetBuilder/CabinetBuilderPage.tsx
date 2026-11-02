@@ -136,7 +136,13 @@ import type { RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { clearHistory } from "@/entities/history/model/store/slice";
-import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
+import {
+  autoRemoveSide,
+  isGrooveType,
+  restoreSidePanelState,
+  settleSavedSideStatuses,
+  type SidePanelStatus,
+} from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { store } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
@@ -1766,8 +1772,11 @@ export const CabinetBuilderPage = () => {
 
       const sidePanel = uiSidePanels || sidePanelValue;
       if (sidePanel && isGrooveType(sidePanel)) {
-        const leftStatus = resolveSidePanelStatus(uiSidePanelLeft, "active");
-        const rightStatus = resolveSidePanelStatus(uiSidePanelRight, "active");
+        const { left: leftStatus, right: rightStatus } = await settleSavedSideStatuses(
+          getActiveProductProfile(store.getState()),
+          resolveSidePanelStatus(uiSidePanelLeft, "active"),
+          resolveSidePanelStatus(uiSidePanelRight, "active"),
+        );
         await restoreSidePanelState(dispatch, sidePanel, leftStatus, rightStatus, orderedIds.length, {
           panels: sidePanel,
           left: leftStatus,

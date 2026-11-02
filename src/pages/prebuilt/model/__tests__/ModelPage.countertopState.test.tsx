@@ -63,6 +63,7 @@ import {
   setAttributeValue,
   type ConfigurationRecord,
 } from "@/entities/configuration";
+import type { ConfigurationSidePanelPort } from "@/entities/configuration";
 import { clearHistory } from "@/entities/history/model/store/slice";
 import type { ProductDatatable } from "@/entities/product/api";
 import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
@@ -72,18 +73,25 @@ import {
   getDrawerPanelFluting,
   getGrainDirection,
   getProductsPresets,
+  getSidePanelLeftStatus,
+  getSidePanelRightStatus,
   getSinkType,
   getTowelBarColor,
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { reset, setActiveBasinStyle, setActiveProfile } from "@/entities/product/model/store/slice";
 import { recordValues, type AttributeChange } from "@/features/configurationCommands";
-import { createTestCompositionPort, createTestRuntimePort } from "@/features/playCanvasAdapter";
+import {
+  createTestCompositionPort,
+  createTestRuntimePort,
+  createTestSidePanelPort,
+} from "@/features/playCanvasAdapter";
 import type { UseChangeAttributeOptions } from "@/features/configurationCommands/hooks/useChangeAttribute";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { FieldsStepPage } from "@/pages/fieldsStep/FieldsStepPage";
 import { ModelPage } from "@/pages/prebuilt/model/ModelPage";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
+import type { EdgeCabinets } from "@/utils/functions/playcanvas/getEdgeCabinets";
 
 /**
  * The model page keeps the countertop the configuration prices in step with the one it shows, for
@@ -98,6 +106,8 @@ const mocks = vi.hoisted(() => ({
   changes: [] as AttributeChange[],
   sceneReady: true,
   ports: null as UseChangeAttributeOptions | null,
+  sidePanelPort: null as ConfigurationSidePanelPort | null,
+  edgeCabinets: { leftCabinetId: null, rightCabinetId: null } as EdgeCabinets,
 }));
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => mocks.sceneReady }));
@@ -134,6 +144,11 @@ vi.mock("@/utils/functions/playcanvas/getOrderedProductIds", () => ({
   getOrderedProductIds: (fallback: string[] = []) => fallback,
 }));
 vi.mock("@/utils/functions/playcanvas/getConfig", () => ({ getConfig: vi.fn(async () => null) }));
+vi.mock("@/utils/functions/playcanvas/getEdgeCabinets", () => ({ getEdgeCabinets: () => mocks.edgeCabinets }));
+vi.mock("@/features/playCanvasAdapter/lib/createSidePanelPort", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/playCanvasAdapter/lib/createSidePanelPort")>();
+  return { createSidePanelPort: () => mocks.sidePanelPort ?? actual.createSidePanelPort() };
+});
 // The page's own command service; the changes a field sends are recorded.
 vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/configurationCommands/hooks/useChangeAttribute")>();
@@ -158,6 +173,8 @@ vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (impo
 afterEach(() => {
   cleanup();
   mocks.ports = null;
+  mocks.sidePanelPort = null;
+  mocks.edgeCabinets = { leftCabinetId: null, rightCabinetId: null };
 });
 
 const parsedClassProfile = parseProductProfile(classProfileDocument);
@@ -641,6 +658,24 @@ describe("tricot: a Prebuilt order opened from its link", () => {
     expect(runtime.calls.flat().filter(({ attributeId }) => attributeId.startsWith("TowelBar"))).toEqual([]);
     expect(getTowelBarOption(store.getState())).toBe(optionBefore);
     expect(getTowelBarColor(store.getState())).toBe("");
+  });
+
+  it("comes back without the panel of a side saved without it, on an edge that could hold one", async () => {
+    const sidePanels = createTestSidePanelPort();
+    mocks.sidePanelPort = sidePanels.port;
+    // The scene names a rebuilt product after its scene type.
+    mocks.edgeCabinets = {
+      leftCabinetId: "Tricot-sink-cabinet-rebuilt0",
+      rightCabinetId: "Tricot-side-cabinet-rebuilt1",
+    };
+
+    await restore("7503", { SidePanels: "NoG", SidePanelLeft: "active", SidePanelRight: "auto-removed" });
+
+    expect(getSidePanelLeftStatus(store.getState())).toBe("active");
+    expect(getSidePanelRightStatus(store.getState())).toBe("none");
+    expect(sidePanels.calls.flatMap(({ placements }) => placements).filter(({ panel }) => panel !== "None")).toEqual([
+      { panel: "NoG", side: "left" },
+    ]);
   });
 });
 

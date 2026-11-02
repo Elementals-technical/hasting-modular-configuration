@@ -16,6 +16,7 @@ export {
   type SidePanelStatus,
   type GrooveType,
 } from "./lib/sidePanelService";
+export { settleSavedSideStatuses } from "./lib/sidePanelEnforce";
 
 // Hooks
 export { useSidePanelActions } from "./hooks/useSidePanelActions";
