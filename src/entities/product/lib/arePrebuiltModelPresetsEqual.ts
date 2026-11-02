@@ -8,6 +8,12 @@ const getComparablePresetKeys = (preset: PresetProduct): Array<keyof PresetProdu
     (key): key is keyof PresetProduct => !PREBUILT_MODEL_TRANSFERABLE_FIELD_SET.has(key as keyof PresetProduct),
   );
 
+/**
+ * A value the preset leaves out and one recorded empty mean the same: selecting a model records ""
+ * for what it doesn't have (the legs of a model without them). `0` is a value like any other.
+ */
+const toComparableValue = (value: PresetProduct[keyof PresetProduct]) => (value === "" ? null : (value ?? null));
+
 export const arePrebuiltModelPresetsEqual = (left: PresetProduct[] = [], right: PresetProduct[] = []) => {
   if (left.length !== right.length) return false;
 
@@ -18,7 +24,7 @@ export const arePrebuiltModelPresetsEqual = (left: PresetProduct[] = [], right: 
     const keys = new Set<keyof PresetProduct>([...getComparablePresetKeys(item), ...getComparablePresetKeys(compare)]);
 
     for (const key of keys) {
-      if ((item[key] ?? null) !== (compare[key] ?? null)) {
+      if (toComparableValue(item[key]) !== toComparableValue(compare[key])) {
         return false;
       }
     }
