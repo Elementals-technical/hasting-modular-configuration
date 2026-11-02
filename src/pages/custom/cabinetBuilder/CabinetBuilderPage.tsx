@@ -39,6 +39,7 @@ import {
   setCountertopColorSku,
   setHasBootstrappedCabinetBuilder,
   setSelectedDimensions,
+  syncSelectedDimensionsFromScene,
   setSelectedProductConfig,
   setSelectedSceneProduct,
   setDrawerProduct,
@@ -84,6 +85,8 @@ import {
   perCabinetAttributeId,
   resolveCabinetTypeOfRuntimeId,
   selectDefaultValue,
+  selectAttribute,
+  semanticValueOf,
   selectEffectiveFallback,
   selectMessageOr,
   selectOption,
@@ -96,9 +99,12 @@ import {
   getActiveRuntimeBindings,
   getCabinetEntries,
   getDimensionsByCabinet,
+  isSinkBase,
 } from "@/entities/configuration/model/store/selectors";
-import { selectOwnCabinetValues, useChangeAttribute } from "@/features/configurationCommands";
-import { ensureCabinetHeights, restoreCountertopConfigs } from "@/features/playCanvasAdapter";
+import { TYPED_COMMIT_ATTRIBUTE_IDS } from "@/features/configurationCommands/lib/commitChange";
+import type { AttributeValue } from "@/entities/configuration";
+import { NOT_CARRIED_ATTRIBUTE_IDS, selectOwnCabinetValues, useChangeAttribute } from "@/features/configurationCommands";
+import { ensureCabinetHeights, restoreCountertopConfigs, readCountertopConfig } from "@/features/playCanvasAdapter";
 import { clearDividerZones } from "@/features/dividers";
 import {
   formatCompositionLengthReachedReason,
@@ -758,6 +764,7 @@ export const CabinetBuilderPage = () => {
       if (cabinetId) {
         // The prompt the user just approved is the confirmation, so a preview is confirmed at once.
         const asked = await changeAttributeValue({
+          userInitiated: true,
           attributeId: "Handle",
           value: nonGrooveHandle,
           scope: "cabinet",
@@ -960,6 +967,7 @@ export const CabinetBuilderPage = () => {
           // Drawers, the handle the new drawers require and the forced height go to the scene as one
           // set and are recorded once. The mixing prompt was the confirmation, so a preview is confirmed.
           const asked = await changeAttributeValue({
+          userInitiated: true,
             attributeId: "Drawers",
             value: drawerRawValue,
             scope: "cabinet",
@@ -1372,7 +1380,6 @@ export const CabinetBuilderPage = () => {
     dispatch(setHasBootstrappedCabinetBuilder(true));
 
     const run = async () => {
-      dispatch(resetProducts());
       const existingIds = getOrderedProductIds();
       const [firstPreset] = productsPresets;
       const preferredCabinetColor = firstPreset?.CabinetColor ?? cabinetColor ?? collectionDefaults.CabinetColor;
@@ -1387,6 +1394,7 @@ export const CabinetBuilderPage = () => {
       };
 
       if (!existingIds.length) {
+        dispatch(resetProducts());
         const mergedPresets = productsPresets.map((preset) => ({
           ...preset,
           CabinetColor: preset.CabinetColor ?? preferredCabinetColor,
@@ -1405,25 +1413,36 @@ export const CabinetBuilderPage = () => {
           return;
         }
       } else {
-        // The scene kept the products of the preset: they are recorded as they are, then shown
-        // with the colours Custom starts from. The cabinet pattern (Tricot) is only recorded: the
-        // scene shows it already, and adopting records no value with a typed projection.
-        await composition.adopt({
-          runtimeIds: existingIds,
-          products: productsPresets.map((preset) => ({ productType: preset.name, config: { ...preset } })),
-          record: {
-            ...startingColors,
-            ...(firstPreset?.DrawerPanelFluting ? { DrawerPanelFluting: firstPreset.DrawerPanelFluting } : {}),
-          },
-        });
-
-        const replayed = await replay({
-          send: { ...startingColors, ...(countertopStyle ? { CountertopStyle: countertopStyle } : {}) },
-          record: false,
-        });
-        if (replayed.status !== "applied" || replayed.skipped.length > 0) {
-          console.warn("[Custom] The colours did not all reach the scene", replayed);
+        // Adopt the actual scene; replaying the first preset's palette would erase per-cabinet choices.
+        const products = await Promise.all(existingIds.map(async (runtimeId, index) => {
+          const snapshot = await getConfig(runtimeId);
+          const raw = typeof snapshot?.getAll === "function" ? snapshot.getAll() : snapshot;
+          const config: Record<string, unknown> = raw && typeof raw === "object" ? raw : {};
+          const preset = productsPresets[index];
+          const productType = typeof config.productType === "string" ? config.productType
+            : typeof config.ProductType === "string" ? config.ProductType : preset?.name ?? runtimeId;
+          const selection: Record<string, unknown> = { ...preset, ...config, ...selectOwnCabinetValues(getCommandState(), runtimeId, { sentToOne: true }) };
+          return { productType, config: selection };
+        }));
+        const shared: Record<string, AttributeValue> = {};
+        for (const attributeId of TYPED_COMMIT_ATTRIBUTE_IDS) {
+          const scope = selectAttribute(activeProfile, attributeId)?.scope;
+          if (!scope || scope === "countertop" || scope === "basin" || NOT_CARRIED_ATTRIBUTE_IDS.has(attributeId)) continue;
+          const values = products.map(({ config }) => config[attributeId]);
+          const first = values[0];
+          if (typeof first !== "string" && typeof first !== "number" && typeof first !== "boolean") continue;
+          if (values.every((value) => value === first)) shared[attributeId] = typeof first === "string" ? semanticValueOf(runtimeBindings, attributeId, first) : first;
         }
+        const top = await readCountertopConfig();
+        for (const attributeId of ["Thickness", "CountertopColor", "CountertopStyle"] as const) {
+          const value = top?.[attributeId];
+          if (typeof value === "string" || typeof value === "number") shared[attributeId] = semanticValueOf(runtimeBindings, attributeId, String(value));
+        }
+        const hosts = products.filter((_product, index) => isSinkBase(getCommandState(), existingIds[index]));
+        const basins = hosts.map(({ config }) => config.sinkType).map((value) => typeof value === "string" ? semanticValueOf(runtimeBindings, "sinkType", value) : undefined);
+        if (basins.length && typeof basins[0] === "string" && basins.every((value) => value === basins[0])) shared.sinkType = basins[0];
+        await composition.adopt({ runtimeIds: existingIds, products, record: shared });
+
       }
 
       if (firstPreset?.name) {
@@ -1432,14 +1451,17 @@ export const CabinetBuilderPage = () => {
 
       dispatch(setSelectedProductConfig(firstPreset ?? null));
 
-      const nextDimensions: Partial<typeof selectedDimensions> = {};
-
-      if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
-      if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
-      if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
-
-      if (Object.keys(nextDimensions).length) {
-        dispatch(setSelectedDimensions(nextDimensions));
+      if (existingIds.length) {
+        const state = getCommandState();
+        const firstCabinet = getCabinetEntries(state)[0];
+        const actualDimensions = firstCabinet ? getDimensionsByCabinet(state)[firstCabinet.stableKey] : undefined;
+        dispatch(syncSelectedDimensionsFromScene(actualDimensions ?? { width: null, height: null, depth: null }));
+      } else {
+        const nextDimensions: Partial<typeof selectedDimensions> = {};
+        if (typeof firstPreset?.Width === "number") nextDimensions.width = firstPreset.Width;
+        if (typeof firstPreset?.Height === "number") nextDimensions.height = firstPreset.Height;
+        if (typeof firstPreset?.Depth === "number") nextDimensions.depth = firstPreset.Depth;
+        if (Object.keys(nextDimensions).length) dispatch(setSelectedDimensions(nextDimensions));
       }
 
       const cabinetTypeId = resolveCabinetTypeId(firstPreset?.name);
@@ -1451,8 +1473,12 @@ export const CabinetBuilderPage = () => {
     run();
   }, [
     canvasReady,
+    activeProfile,
+    runtimeBindings,
     collectionDefaults,
     composition,
+    getCommandState,
+    record,
     dispatch,
     hasBootstrappedCabinetBuilder,
     productsPresets,

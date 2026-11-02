@@ -18,6 +18,7 @@ import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__
 import { parseRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/parseRuntimeBindings";
 import {
   resetConfiguration,
+  setExplicitUserChoice,
   setActiveCollectionId,
   setActiveRuntimeBindings,
   setAttributeValue,
@@ -156,13 +157,32 @@ describe("selectPlacedWithValues", () => {
     store.dispatch(setActiveCollectionId(collectionId));
     store.dispatch(setActiveRuntimeBindings(bindings));
   };
-  const choose = (attributeId: string, value: string) =>
+  const choose = (attributeId: string, value: string) => {
     store.dispatch(setAttributeValue({ attributeId, target: { scope: "global" }, value }));
+    store.dispatch(setExplicitUserChoice({ attributeId, chosen: true }));
+  };
 
   beforeEach(() => {
     store.dispatch(reset());
     store.dispatch(resetConfiguration());
     open(urbanDuplexProfile, "urban-duplex", urbanDuplexBindings);
+  });
+
+  it("never carries automatic records, but carries an explicit choice even equal to the default across families", () => {
+    for (const [profile, bindings, attributeId, value] of [
+      [urbanDuplexProfile, urbanDuplexBindings, "BasePanelColor", "Bianco Calce DA ST"],
+      [profileOf(classProfileDocument), classRuntimeBindings, "FrameColor", "Nero 433 MT"],
+      [profileOf(lameProfileDocument), bindingsOf(lameBindingsDocument), "CabinetPattern", "Satin"],
+    ] as const) {
+      open(profile, profile.collectionId, bindings);
+      store.dispatch(setAttributeValue({ attributeId, target: { scope: "global" }, value }));
+      expect(selectPlacedWithValues(store.getState(), { chosenOnly: true })).not.toHaveProperty(attributeId);
+      store.dispatch(setExplicitUserChoice({ attributeId, chosen: true }));
+      expect(selectPlacedWithValues(store.getState(), { chosenOnly: true })[attributeId]).toBe(value);
+      expect(selectPlacedWithValues(store.getState())[attributeId]).toBe(value);
+    }
+    store.dispatch(resetConfiguration());
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
   });
 
   it("starts an Urban Duplex product in the collection's own panel colours", () => {
@@ -200,7 +220,7 @@ describe("selectPlacedWithValues", () => {
     open(profileOf(classProfileDocument), "class", classRuntimeBindings);
 
     expect(selectPlacedWithValues(store.getState())).toEqual({
-      CabinetSideColor: "Nero 433 MT",
+      CabinetSideColor: "Latte 417 MT",
       FrameColor: "Nero 433 MT",
     });
   });

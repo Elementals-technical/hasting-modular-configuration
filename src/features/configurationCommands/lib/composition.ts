@@ -12,11 +12,14 @@ import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import {
   getActiveProductProfile,
+  restoreExplicitUserChoices,
+  setActivePrebuiltPresetId,
   getActiveRuntimeBindings,
   getCabinetEntries,
   getValuesByAttributeId,
   isSameTarget,
   markRuntimeOutOfSync,
+  recordSceneState,
   requestSceneStateSync,
   resolveStableKey,
 } from "@/entities/configuration";
@@ -39,6 +42,7 @@ import {
   NOT_CARRIED_ATTRIBUTE_IDS,
   selectBroadcastValues,
   selectPlacedWithValues,
+  selectPlacedWithDefaults,
 } from "./compositionValues";
 import { recordValues, replayValues, type ReplayValues } from "./replayValues";
 import { toSceneValue } from "./sceneValue";
@@ -226,7 +230,8 @@ const carriedValues = (
       if (selectAttribute(profile, attributeId)?.scope !== "cabinet") return;
       if (!isAttributeValue(raw) || raw === null || raw === "") return;
 
-      const value = normalizeOptionValue(profile, attributeId, raw) ?? raw;
+      const semantic = typeof raw === "string" ? semanticValueOf(getActiveRuntimeBindings(state), attributeId, raw) : raw;
+      const value = normalizeOptionValue(profile, attributeId, semantic) ?? semantic;
 
       if (TYPED_COMMIT_ATTRIBUTE_IDS.includes(attributeId)) {
         compositionValues.set(attributeId, (compositionValues.get(attributeId) ?? new Set()).add(value));
@@ -410,6 +415,8 @@ const recordResult = (
   placedCabinetStyles: Record<string, string>,
 ): CompositionResult => {
   dispatch(recordComposition({ productIds, placedCabinetStyles }));
+  // The receipt already contains the scene reader's actual sizes for the new stable identities.
+  if (result.status === "applied" && result.scene.status === "ready" && result.scene.cabinets.length > 0) dispatch(recordSceneState(result.scene));
 
   if (result.status === "partial") {
     dispatch(markRuntimeOutOfSync());
@@ -436,7 +443,7 @@ const settleValues = async (
 
   if (!afterPlacement || recorded.status !== "applied") return recorded;
 
-  const replayed = await replayValues({ send: afterPlacement, record: false }, deps);
+  const replayed = await replayValues({ send: afterPlacement, record: true }, deps);
   if (replayed.status === "applied") return recorded;
 
   deps.dispatch(markRuntimeOutOfSync());
@@ -466,10 +473,8 @@ export const applyPreset = async (
   // A colour the configuration holds goes on the model too, as the price already reads it:
   // the model's own colours stand only while nothing was chosen.
   const chosen = preserveSelections ? selectPlacedWithValues(state, { chosenOnly: true }) : {};
-  const placedProducts =
-    Object.keys(chosen).length > 0
-      ? products.map((product) => ({ ...product, config: { ...product.config, ...chosen } }))
-      : products;
+  const defaults = selectPlacedWithDefaults(state);
+  const placedProducts = products.map((product) => ({ ...product, config: { ...defaults, ...product.config, ...chosen } }));
 
   const result = await deps.composition.replace({
     products: toSceneProducts(profile, bindings, placedProducts),
@@ -485,8 +490,13 @@ export const applyPreset = async (
     drawerStyles(profile, result.placed, products),
   );
   // A value the caller records is its own choice; it wins over the one the products carry.
-  const carried = recordCarriedValues(deps, result.placed, products);
-  const values = Object.keys(carried).length > 0 ? { ...carried, ...record } : record;
+  const carried = recordCarriedValues(deps, result.placed, placedProducts);
+  const agreeing = Object.fromEntries(Object.keys(defaults).flatMap((attributeId) => {
+    const values = placedProducts.map(({ config }) => config[attributeId]);
+    const first = values[0];
+    return isAttributeValue(first) && values.every((value) => value === first) ? [[attributeId, first]] : [];
+  }));
+  const values = { ...agreeing, ...carried, ...record };
 
   return settleValues(deps, recorded, { afterPlacement, record: values });
 };
@@ -595,6 +605,8 @@ export const clearComposition = async (
   const result = await deps.composition.clear();
   if (!isSceneChange(result)) return stoppedResult(result);
 
+  deps.dispatch(restoreExplicitUserChoices({}));
+  deps.dispatch(setActivePrebuiltPresetId(null));
   return recordResult(deps, result, [], {});
 };
 

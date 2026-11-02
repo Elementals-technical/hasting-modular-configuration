@@ -72,7 +72,7 @@ export const useVesselCountertop = () => {
   /** The countertop and every Sink Base on it take the vessel cutout, as one undo step. */
   const switchToVessel = useCallback(async (): Promise<boolean> => {
     const switched = await runStep(() =>
-      change({ attributeId: "CountertopStyle", value: "vessel", scope: "countertop" }),
+      change({ userInitiated: true, attributeId: "CountertopStyle", value: "vessel", scope: "countertop" }),
     );
     if (switched.status === "applied" || switched.status === "partial") return true;
 

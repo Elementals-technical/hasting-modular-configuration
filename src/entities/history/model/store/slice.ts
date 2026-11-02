@@ -10,6 +10,9 @@ export type SceneSnapshot = {
   cabinetKeys?: Record<string, StableCabinetKey>;
   /** Scoped choices at capture time; absent on snapshots created by older clients. */
   configuration?: ConfigurationSnapshot;
+  /** Session carry intent, deliberately outside the serialized configuration fragment. */
+  explicitUserChoices?: Record<string, true>;
+  activePrebuiltPresetId?: number | null;
   /** Where the products stood, for collections whose cabinets stand in rows; absent otherwise. */
   sceneLayout?: SceneLayout;
   productsPresets?: PresetProduct[];

@@ -38,6 +38,7 @@ import {
   setActiveCountertopThickness,
   setActiveProfile,
   setBookMatching,
+  setFaucetHolesAmount,
   setCabinetCatalog,
   setCabinetColorMaterial,
   setSelectedProductConfig,
@@ -205,6 +206,37 @@ describe("useAttributeChangeHandler", () => {
     expect(status).toBe("applied");
     expect(getFaucetHolesAmount(store.getState())).toBe("3");
     expect(sceneCalls).toHaveLength(0);
+  });
+});
+
+describe("explicit field intent", () => {
+  it("records an accepted default/no-op inside the history transaction, not an automatic default", async () => {
+    store.dispatch(setFaucetHolesAmount("3"));
+    const { result } = renderHook(() => useAttributeChangeHandler("FaucetHolesAmount", { runtime: createUnloadedScenePort().port }), { wrapper });
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+    await act(async () => { await result.current.onChange("3"); });
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({ FaucetHolesAmount: true });
+    expect(runStepMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not carry a cancelled, failed or partial choice, but records a fully confirmed choice", async () => {
+    const runtime = createTestRuntimePort();
+    const { result } = renderHook(() => useAttributeChangeHandler("Handle", { runtime: runtime.port }), { wrapper });
+    await act(async () => { await result.current.onChange("handle_pto"); });
+    expect(result.current.preview).not.toBeNull();
+    act(() => result.current.onCancel());
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+    await act(async () => { await result.current.onChange("handle_pto"); });
+    runtime.failNext(() => true);
+    await act(async () => { expect((await result.current.onConfirm())?.status).toBe("error"); });
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+    await act(async () => { await result.current.onChange("handle_pto"); });
+    runtime.failNext(({ attributeId }) => attributeId === "Height");
+    await act(async () => { expect((await result.current.onConfirm())?.status).toBe("partial"); });
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
+    await act(async () => { await result.current.onChange("handle_urban_topcut"); });
+    await act(async () => { await result.current.onConfirm(); });
+    expect(store.getState().rootStateUI.configuration.explicitUserChoices.Handle).toBe(true);
   });
 });
 

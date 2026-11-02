@@ -1,7 +1,7 @@
 import { formatTarget } from "@/entities/configuration";
 
 import { applyPlan } from "./applyPlan";
-import type { ChangeAttributeDeps } from "./changeAttribute";
+import { recordAcceptedUserChoice, type ChangeAttributeDeps } from "./changeAttribute";
 import { evaluateChange, toStoppedResult } from "./evaluateChange";
 import type { ChangePreview, ChangeResult, PlannedChange } from "../model/types";
 
@@ -37,7 +37,7 @@ export const confirmAttributeChange = async (
     };
   }
 
-  return applyPlan(evaluation.plan, {
+  const result = await applyPlan(evaluation.plan, {
     state,
     dispatch,
     runtime,
@@ -45,4 +45,6 @@ export const confirmAttributeChange = async (
     collectionId: evaluation.collectionId,
     configurator,
   });
+  recordAcceptedUserChoice(preview.change, result, dispatch);
+  return result;
 };
