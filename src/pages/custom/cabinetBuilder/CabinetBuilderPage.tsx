@@ -131,11 +131,18 @@ import { getConfig } from "@/utils/functions/playcanvas/getConfig";
 import { isSteppedSceneConfig } from "@/utils/functions/playcanvas/steppedSceneProducts";
 import { collectPlacedDividersFromConfig } from "@/utils/functions/playcanvas/dividers";
 import type { SceneRestoreMatch } from "@/entities/configuration";
-import { useRestoreSavedConfiguration, type RestorePlan } from "@/features/configurationRestore";
+import { resolveTowelBarOption, useRestoreSavedConfiguration } from "@/features/configurationRestore";
+import type { RestorePlan } from "@/features/configurationRestore";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { useHistoryStep } from "@/entities/history/lib/useHistoryStep";
 import { clearHistory } from "@/entities/history/model/store/slice";
-import { autoRemoveSide, isGrooveType, restoreSidePanelState, type SidePanelStatus } from "@/features/sidePanel";
+import {
+  autoRemoveSide,
+  isGrooveType,
+  restoreSidePanelState,
+  settleSavedSideStatuses,
+  type SidePanelStatus,
+} from "@/features/sidePanel";
 import { enforceSidePanelEligibility } from "@/features/sidePanel/lib/sidePanelEnforce";
 import { store } from "@/app/store";
 import { showEmptyButton, hideEmptyButton } from "@/utils/functions/playcanvas/emptyButton";
@@ -205,20 +212,6 @@ const stripRuntimeSuffix = (value: string) => {
 
 const isSameRuntimeProduct = (left: string, right: string) =>
   left === right || stripRuntimeSuffix(left) === stripRuntimeSuffix(right);
-
-const TOWEL_BAR_OPTIONS = ["None", "Left", "Right", "Both"];
-
-/**
- * The towel bar option of a saved configuration. A legacy save names the scene's towel bar
- * ("TowelBar40_R") and its side instead of the option; the side then gives the option.
- */
-const resolveTowelBarOption = (option: string | undefined, side: string | undefined): string | undefined => {
-  if (option && TOWEL_BAR_OPTIONS.includes(option)) return option;
-  if (!option || !side) return undefined;
-
-  const fromSide = side.charAt(0).toUpperCase() + side.slice(1).toLowerCase();
-  return TOWEL_BAR_OPTIONS.includes(fromSide) ? fromSide : undefined;
-};
 
 const mapDrawerValueToConfig = (value?: string) => {
   if (value === "1") return "1D";
@@ -1779,8 +1772,11 @@ export const CabinetBuilderPage = () => {
 
       const sidePanel = uiSidePanels || sidePanelValue;
       if (sidePanel && isGrooveType(sidePanel)) {
-        const leftStatus = resolveSidePanelStatus(uiSidePanelLeft, "active");
-        const rightStatus = resolveSidePanelStatus(uiSidePanelRight, "active");
+        const { left: leftStatus, right: rightStatus } = await settleSavedSideStatuses(
+          getActiveProductProfile(store.getState()),
+          resolveSidePanelStatus(uiSidePanelLeft, "active"),
+          resolveSidePanelStatus(uiSidePanelRight, "active"),
+        );
         await restoreSidePanelState(dispatch, sidePanel, leftStatus, rightStatus, orderedIds.length, {
           panels: sidePanel,
           left: leftStatus,
