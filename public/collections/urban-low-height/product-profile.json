@@ -450,6 +450,7 @@
     {
       "attributeId": "TowelBarColor",
       "scope": "global",
+      "defaultValue": "Carbone 43 MT",
       "optionsSource": "configurator:Select Towel Bar Color"
     }
   ],

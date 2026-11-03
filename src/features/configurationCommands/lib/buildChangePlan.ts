@@ -40,6 +40,7 @@ export const REASON_DEPENDENT_HEIGHT = "handle.requiredHeight";
 export const REASON_GROOVE_NOT_SUPPORTED = "handle.grooveColorCleared";
 export const REASON_HANDLE_CHANGED_FOR_DRAWERS = "drawers.handleChanged";
 export const REASON_TOWEL_BAR_COLOR_CLEARED = "towelBar.colorCleared";
+export const REASON_TOWEL_BAR_COLOR_STARTED = "towelBar.colorStarted";
 export const REASON_GROOVE_FOLLOWS_CABINET_COLOR = "cabinetColor.grooveFollows";
 
 export type BuildChangePlanArgs = {
@@ -245,17 +246,38 @@ export const buildChangePlan = ({
     return { ok: true, plan };
   }
 
-  // Removing the towel bar clears its colour, as the accessory pages do.
+  // Removing the towel bar clears its colour and hanging one gives it the collection's starting
+  // colour, as the accessory pages do. The two are deliberately symmetric: the colour is cleared on
+  // every removal, so it has to be given again on every hang — the starting values the slice applies
+  // at bootstrap are not re-applied afterwards, and a bar hung after a removal would carry none.
   if (attributeId === "TowelBarOption") {
     const noneValue = selectAttribute(profile, "TowelBarOption")?.noneValue;
+    const removed = noneValue !== undefined && value === noneValue;
+    // The attribute's own `defaultValue`, not the collection's `defaults`: a value there is applied
+    // to the store at bootstrap, which would put a colour on a configuration that has no towel bar
+    // and, worse, leave this set with nothing to send the scene on the first hang.
+    const startingColor = selectAttribute(profile, "TowelBarColor")?.defaultValue;
 
-    if (noneValue !== undefined && value === noneValue && towelBarColor?.trim()) {
+    if (removed && towelBarColor?.trim()) {
       plan.push({
         attributeId: "TowelBarColor",
         target: configurationTarget(),
         value: "",
         origin: "dependency",
         reasonCode: REASON_TOWEL_BAR_COLOR_CLEARED,
+      });
+    }
+
+    // A collection that declares no starting colour hangs the bar without one, as before. The colour
+    // belongs in the set rather than in the store alone: I sends only what the plan carries, so a
+    // colour merely held in state would never reach the scene and the bar would stay unpainted.
+    if (!removed && value.trim() && !towelBarColor?.trim() && startingColor) {
+      plan.push({
+        attributeId: "TowelBarColor",
+        target: configurationTarget(),
+        value: startingColor,
+        origin: "dependency",
+        reasonCode: REASON_TOWEL_BAR_COLOR_STARTED,
       });
     }
 
