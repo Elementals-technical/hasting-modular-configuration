@@ -21,16 +21,19 @@ export const buildTowelBarColorOptions = (groups: ConfiguratorAvailableOption[])
           .filter((variant) => variant.enabled)
           .map((variant) => {
             const meta = (variant.metadata ?? {}) as Record<string, unknown>;
+            const material = text(meta.Material) ?? option.name ?? group.proxyName;
             return {
               id: variant.id,
               title: text(meta.label) ?? text(meta.Label) ?? variant.name,
               name: variant.name,
-              desc: text(meta.Material) ?? option.name ?? group.proxyName,
+              desc: material,
               isShortDesc: false,
               metadata: {
                 image: text(meta.image) ?? variant.image ?? undefined,
                 value: text(meta.value) ?? variant.name,
                 hex: text(meta.hex),
+                // Makes the card a material with its Preview: the metallics have a picture and no hex.
+                materials: [material],
               },
             };
           })

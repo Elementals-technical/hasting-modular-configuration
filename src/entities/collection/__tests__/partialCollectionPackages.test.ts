@@ -35,6 +35,7 @@ import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 import configurator4 from "./fixtures/remote/configurator-4.json";
 import configurator8 from "./fixtures/remote/configurator-8.json";
 import configurator9 from "./fixtures/remote/configurator-9.json";
+import configurator10 from "./fixtures/remote/configurator-10.json";
 import configurator11 from "./fixtures/remote/configurator-11.json";
 import configurator13 from "./fixtures/remote/configurator-13.json";
 import datatable438 from "./fixtures/remote/datatable-438.json";
@@ -124,6 +125,7 @@ const configurators: Record<string, unknown> = {
   4: configurator4,
   8: configurator8,
   9: configurator9,
+  10: configurator10,
   11: configurator11,
   13: configurator13,
 };
@@ -156,7 +158,7 @@ describe("partial production collection packages", () => {
     const data = await loadResolvedCollection(resolution, dependencies, abortSignal);
 
     expect(remote.loadConfigurator).toHaveBeenCalledTimes(1);
-    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 4, view: "full", serialize: true }, abortSignal);
+    expect(remote.loadConfigurator).toHaveBeenCalledWith({ id: 10, view: "full", serialize: true }, abortSignal);
     expect(remote.loadCountertopTable).toHaveBeenCalledTimes(1);
     expect(remote.loadCountertopTable).toHaveBeenCalledWith(589, abortSignal);
     expect(remote.loadCabinetTable).toHaveBeenCalledTimes(1);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import configurator10 from "@/entities/collection/__tests__/fixtures/remote/configurator-10.json";
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
@@ -20,6 +21,9 @@ import tricotManifest from "../../../../public/collections/tricot/manifest.json"
 import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
 import urbanDuplexManifest from "../../../../public/collections/urban-duplex/manifest.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
+import urbanLowHeightPresets from "../../../../public/collections/urban-low-height/presets.json";
+import urbanLowHeightProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanFreestandingManifest from "../../../../public/collections/urban-freestanding/manifest.json";
 import urbanFreestandingPresets from "../../../../public/collections/urban-freestanding/presets.json";
 import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
@@ -29,8 +33,8 @@ import { extractColorCode } from "@/shared/lib/sku";
 import { resolveConfiguratorOptions } from "../lib/resolveSectionState";
 
 /**
- * Urban Freestanding, Tricot, Urban Duplex and Lame read their colours from their own material
- * configurators, 11 to 14, recorded as Render Admin returns them.
+ * Urban Low Height, Urban Freestanding, Tricot, Urban Duplex and Lame read their colours from their own
+ * material configurators, 10 to 14, recorded as Render Admin returns them.
  */
 
 const parseProfile = (document: unknown): ProductProfile => {
@@ -77,9 +81,16 @@ const COLLECTIONS = [
     profile: parseProfile(lameProfileDocument),
     configurator: catalogOf(configurator14),
   },
+  {
+    collection: "urban-low-height",
+    configuratorId: 10,
+    manifest: urbanLowHeightManifest,
+    profile: parseProfile(urbanLowHeightProfileDocument),
+    configurator: catalogOf(configurator10),
+  },
 ];
 
-const [URBAN_FREESTANDING, , URBAN_DUPLEX] = COLLECTIONS;
+const [URBAN_FREESTANDING, , URBAN_DUPLEX, , URBAN_LOW_HEIGHT] = COLLECTIONS;
 
 describe.each(COLLECTIONS)("$collection colours", ({ configuratorId, manifest, profile, configurator }) => {
   const sourced = profile.attributes.filter(({ optionsSource }) => optionsSource);
@@ -105,6 +116,35 @@ describe.each(COLLECTIONS)("$collection colours", ({ configuratorId, manifest, p
         resolveConfiguratorOptions(profile, attributeId, configurator).map(({ value }) => value),
         attributeId,
       ).toContain(initial);
+    }
+  });
+});
+
+describe("urban low height colours", () => {
+  const { profile, configurator } = URBAN_LOW_HEIGHT;
+  const offered = (attributeId: string) => resolveConfiguratorOptions(profile, attributeId, configurator);
+
+  it("offer the 89 countertop colours with a SKU, none lacquered or glass: Gloss White has none", () => {
+    const colours = offered("CountertopColor");
+
+    expect(colours).toHaveLength(89);
+    expect(colours.map(({ value }) => value)).not.toContain("Gloss White");
+    expect(new Set(colours.flatMap(({ traits }) => traits?.materials ?? []))).toEqual(
+      new Set(["Porcelain", "HPL", "Fenix", "Solid Surface"]),
+    );
+  });
+
+  it("hold every colour its models are built in", () => {
+    const presets = JSON.stringify(urbanLowHeightPresets);
+
+    for (const attributeId of ["CabinetColor", "CountertopColor"]) {
+      const colours = new Set(offered(attributeId).map(({ value }) => value));
+      const used = new Set(
+        [...presets.matchAll(new RegExp(`"${attributeId}":"([^"]+)"`, "g"))].map(([, value]) => value),
+      );
+
+      expect(used.size, attributeId).toBeGreaterThan(0);
+      expect([...used].filter((value) => !colours.has(value)), attributeId).toEqual([]);
     }
   });
 });

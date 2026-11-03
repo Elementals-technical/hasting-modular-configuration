@@ -68,7 +68,7 @@ vi.mock("@/features/configurationCommands", async (original) => ({
 
 const group: ConfiguratorAvailableOption = {
   id: 1,
-  proxyName: "Countertop Color",
+  proxyName: "Select Countertop Color",
   proxyType: "material",
   enabled: true,
   metadata: {},
@@ -117,7 +117,7 @@ const collection = {
     ...base.catalog,
     configurator: {
       groups: [group, cabinetGroup],
-      groupsByName: { "Countertop Color": group, "Cabinet Color": cabinetGroup },
+      groupsByName: { "Select Countertop Color": group, "Select Cabinet Color": cabinetGroup },
     },
     skuProfile: collectionSkuProfileSchema.parse(skuDocument),
     countertops: parseCountertopMatrix(datatable589 as unknown as CountertopDatatable),
