@@ -118,6 +118,20 @@ describe.each(COLLECTIONS)("$collection colours", ({ configuratorId, manifest, p
       ).toContain(initial);
     }
   });
+
+  // A colour a collection may only hold once its accessory exists declares its starting value on the
+  // attribute instead of in `defaults`, which the store applies at bootstrap (TowelBarColor). Every
+  // collection that offers the towel bar declares one, so adding the accessory to a collection cannot
+  // leave the bar unpainted and its SKU without a colour code (ULH-14, UF-2).
+  it("give the towel bar a starting colour the section offers, where the collection offers one", () => {
+    const towelBarColor = profile.attributes.find(({ attributeId }) => attributeId === "TowelBarColor");
+    if (!towelBarColor) return;
+
+    expect(towelBarColor.defaultValue, "TowelBarColor.defaultValue").toBeTruthy();
+    expect(resolveConfiguratorOptions(profile, "TowelBarColor", configurator).map(({ value }) => value)).toContain(
+      towelBarColor.defaultValue,
+    );
+  });
 });
 
 describe("urban low height colours", () => {
