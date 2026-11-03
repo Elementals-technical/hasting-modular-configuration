@@ -73,10 +73,17 @@ public/collections/registry.json
 USH і ULH ділять один configurator, але не countertop table, cabinet table, product profile, UI чи
 runtime bindings. Спільний remote id не означає успадкування правил.
 
-Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex вимикають стиль стільниці Vessel
-(причина `countertop.vesselSinkBaseMin`, з мінімумом у підказці), коли Sink Base вужчий за `min_vsl_cm` countertop
-table (80 cm). Ту саму причину мають vessel basins, тож композиція не може отримати vessel cutout без basin.
-Integrated лишається доступним за своїми правилами table.
+Кожен стиль стільниці (Integrated, Vessel) отримує один вердикт із причиною від rule core
+(`buildCountertopRuleState`, `styleAvailability`). Поле `CountertopStyle` показує його через
+`availabilityRef: "CountertopStyle.allowed"` (прив'язано в `ui.json` кожної колекції), а vessel basins беруть
+той самий вердикт, тож обидва шляхи UI дають однакові причини і композиція не може отримати vessel cutout без basin.
+
+Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex вимикають Vessel (причина
+`countertop.vesselSinkBaseMin`, з мінімумом у підказці), коли жоден vessel-рядок countertop table не сягає Sink Base:
+рядок діє від свого `min_vsl_cm` (80 cm), і thickness під Vessel йдуть за цими самими рядками. Integrated лишається
+доступним за своїми правилами table. Коли `restrictedIntegratedDepthsCm` і `restrictedIntegratedMaterialTokens`
+профілю збігаються з активними глибиною та матеріалом (46 cm), відмову Integrated пояснює
+`countertop.integratedDepthRestricted` замість причини рядка.
 
 Коли стиль уже Vessel, а Sink Base стає вужчим за цей мінімум (наприклад, Resize у custom flow), стиль
 скидається на перший дозволений правилами з будь-якого кроку, а басейн — на default басейн матеріалу, якщо

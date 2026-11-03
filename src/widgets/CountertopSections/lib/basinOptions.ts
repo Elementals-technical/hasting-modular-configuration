@@ -5,6 +5,7 @@ import {
   isVisibleVesselSinkStyle,
   normalizeBasinKey,
   parseThicknessValue,
+  REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN,
 } from "@/features/configurator-rule-core/countertop";
 import { cmToInches } from "@/shared/lib/sku";
 
@@ -24,13 +25,17 @@ export const matchesThickness = (thicknesses: string[], activeThickness: number 
     .filter((value): value is number => value !== null)
     .some((value) => Math.abs(value - activeThickness) < 0.001);
 
-/** The vessels the profile shows, all disabled with one reason while the rules refuse a vessel. */
+/**
+ * The vessels the profile shows, all disabled with one reason while the rules refuse a vessel. None is shown
+ * while the vessel style is refused for anything but the Sink Base minimum, which only disables them.
+ */
 export const resolveVesselBasinOptions = (
   catalog: ProductOptionData[],
   context: Pick<CountertopContext, "activeProfile" | "ruleState">,
 ): ProductOptionData[] => {
-  const { allowedStyles, vesselSinkAvailability } = context.ruleState;
-  if (allowedStyles.size && !allowedStyles.has("vessel")) return [];
+  const { styleAvailability, vesselSinkAvailability } = context.ruleState;
+  const vesselStyle = styleAvailability.vessel;
+  if (!vesselStyle.isAvailable && vesselStyle.reasonCode !== REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN) return [];
 
   const vessels = catalog
     .filter((option) => isVisibleVesselSinkStyle(option.name ?? "", context.activeProfile))

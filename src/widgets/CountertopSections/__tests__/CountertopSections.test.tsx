@@ -1,21 +1,28 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, renderHook, screen, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import { ReadyCollectionContext } from "@/entities/collection";
+import type { ProductProfile } from "@/entities/collection";
+import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { configuratorSchema } from "@/entities/collection/model/schemas";
 import { clearHistory, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import {
   addProductId,
   reset,
+  setActiveCountertopColor,
   setActiveCountertopThickness,
   setActiveProfile,
   setCountertopStyle,
+  setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
+import { ReasonTextProvider, useCustomizationStepSections } from "@/features/collectionCustomization";
 import { readyCollectionFixture } from "@/features/configurationCommands/__tests__/readyCollectionFixture";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
@@ -155,5 +162,114 @@ describe("the countertop step's resets", () => {
     });
 
     expect(thicknessChanges().length).toBeGreaterThan(0);
+  });
+});
+
+// USH's configurator 4, recorded with its HPL colours, so the active colour reaches the matrix by its material.
+const ushGroups = configuratorSchema.parse(configurator4).availableOptions;
+const withUshColors = {
+  ...withCountertopRules,
+  catalog: {
+    ...withCountertopRules.catalog,
+    configurator: {
+      groups: ushGroups,
+      groupsByName: Object.fromEntries(ushGroups.map((group) => [group.proxyName, group])),
+    },
+  },
+};
+
+// Table 438 makes a vessel top from an 80 cm Sink Base and an integrated HPL one from 60 or 70 cm.
+describe("the countertop step's styles follow CountertopStyle.allowed", () => {
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("integrated"));
+    changeMock.mockClear();
+  });
+
+  const renderStyles = () => {
+    render(
+      <ReadyCollectionContext.Provider value={withUshColors}>
+        <Provider store={store}>
+          <ReasonTextProvider>
+            <MemoryRouter initialEntries={["/prebuilt/countertop"]}>
+              <CountertopPage stepId="countertop" />
+            </MemoryRouter>
+          </ReasonTextProvider>
+        </Provider>
+      </ReadyCollectionContext.Provider>,
+    );
+    return within(screen.getByRole("region", { name: "Countertop Style" }));
+  };
+  const isEnabled = (button: HTMLElement) => button.getAttribute("aria-disabled") !== "true";
+  const shownStyles = () =>
+    renderStyles()
+      .getAllByRole("button")
+      .map((button) => [button.getAttribute("aria-label"), isEnabled(button)]);
+  const hoverOption = (style: ReturnType<typeof renderStyles>, label: string) => {
+    fireEvent.mouseEnter(style.getByRole("button", { name: label }).closest("div") as HTMLElement);
+  };
+
+  it("offers both styles on an 80 cm Sink Base", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+
+    expect(shownStyles()).toEqual([
+      ["Integrated", true],
+      ["Vessel", true],
+    ]);
+  });
+
+  it("refuses the vessel style on a Sink Base below the vessel minimum, saying the minimum", () => {
+    store.dispatch(setSelectedDimensions({ width: 70, depth: 50.5 }));
+    const style = renderStyles();
+
+    expect(isEnabled(style.getByRole("button", { name: "Integrated" }))).toBe(true);
+    expect(isEnabled(style.getByRole("button", { name: "Vessel" }))).toBe(false);
+    hoverOption(style, "Vessel");
+    expect(
+      screen.getByText('Not available for selected sink base cabinet width. Minimum width required 80cm (31.5")'),
+    ).toBeTruthy();
+  });
+
+  // The USH fallbacks restrict Tekormud and Solid Surface tops, which the recorded configurator does not list: the
+  // profile here restricts HPL instead, so that the HPL colour reaches the check. HPL is made from a 60 cm Sink Base.
+  it("refuses the integrated style at 46 cm for a restricted material, in the profile's words for the depth", () => {
+    const fallbacks = ushProfile.ruleData.countertopFallbacks;
+    if (!fallbacks) throw new Error("The USH profile declares no countertop fallbacks");
+    const restrictingHpl: ProductProfile = {
+      ...ushProfile,
+      ruleData: {
+        ...ushProfile.ruleData,
+        countertopFallbacks: { ...fallbacks, restrictedIntegratedMaterialTokens: ["hpl"] },
+      },
+    };
+    // The profile's defaults replace the colour, so it is chosen again.
+    store.dispatch(setActiveProfile(restrictingHpl));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setSelectedDimensions({ width: 50, depth: 46 }));
+    const style = renderStyles();
+
+    expect(isEnabled(style.getByRole("button", { name: "Integrated" }))).toBe(false);
+    hoverOption(style, "Integrated");
+    expect(screen.getByText('Integrated basin style not available for 46cm (18.1") depth configurations')).toBeTruthy();
+  });
+
+  it.each([
+    ["an 80 cm Sink Base", 80, 50.5],
+    ["a 70 cm Sink Base", 70, 50.5],
+    ["a 50 cm Sink Base at 46 cm", 50, 46],
+  ])("shows the styles as CountertopStyle.allowed resolves them on %s", (_case, width, depth) => {
+    store.dispatch(setSelectedDimensions({ width, depth }));
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <ReadyCollectionContext.Provider value={withUshColors}>
+        <Provider store={store}>{children}</Provider>
+      </ReadyCollectionContext.Provider>
+    );
+    const resolved = renderHook(() => useCustomizationStepSections("countertop"), { wrapper })
+      .result.current.flatMap(({ fields }) => fields)
+      .find(({ definition }) => definition.attributeId === "CountertopStyle")?.field;
+
+    expect(resolved?.options.map(({ label, enabled }) => [label, enabled])).toEqual(shownStyles());
   });
 });
