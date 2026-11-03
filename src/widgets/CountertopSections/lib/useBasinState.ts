@@ -24,8 +24,7 @@ import type { CountertopContext } from "./useCountertopContext";
 import type { FieldRuntimeState } from "@/entities/collection";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
-const INTEGRATED_DEPTH_46_DISABLED_REASON =
-  'Integrated basin style not available for 46cm (18.1") depth configurations';
+const NO_STYLE_OPTIONS: FieldRuntimeState["options"] = [];
 
 type BasinStateArgs = {
   context: CountertopContext;
@@ -56,7 +55,6 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
     activeMaterialTokens,
     activeThickness,
     countertopRules,
-    isDepth46VesselOnly,
     messages,
     ruleState,
     sceneTotalWidth,
@@ -82,30 +80,8 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
     };
   }, [selectedProducts]);
 
-  const styleOptions = useMemo(
-    () =>
-      (styleField?.options ?? []).map((option) => {
-        const style = option.value.trim().toLowerCase();
-        const availability =
-          style === "integrated" || style === "vessel" || style === "undermount"
-            ? ruleState.styleAvailability[style]
-            : null;
-        const blockedByRules = availability ? !availability.isAvailable : false;
-        const blockedByDepth = isDepth46VesselOnly && style === "integrated" && availability?.isAvailable !== true;
-
-        return {
-          ...option,
-          image: option.image,
-          enabled: !(blockedByDepth || blockedByRules),
-          reason: blockedByDepth
-            ? INTEGRATED_DEPTH_46_DISABLED_REASON
-            : blockedByRules
-              ? availability?.disabledReason
-              : undefined,
-        };
-      }),
-    [isDepth46VesselOnly, ruleState.styleAvailability, styleField],
-  );
+  // The style field as `CountertopStyle.allowed` resolves it: the matrix's verdict and reason for each style.
+  const styleOptions = styleField?.options ?? NO_STYLE_OPTIONS;
 
   const activeStyleValue = (activeCountertopStyle ?? "").trim().toLowerCase();
   const isActiveStyleAvailable = styleOptions.some(
@@ -229,7 +205,6 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
 
   return {
     hasSinkBase,
-    styleOptions,
     activeStyleValue,
     isActiveStyleAvailable,
     isBasinSelectionVesselStyle,

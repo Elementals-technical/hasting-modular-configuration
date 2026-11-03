@@ -79,6 +79,7 @@ export {
   selectMessage,
   selectMessageOr,
   selectBasinOptions,
+  selectHasChoice,
   selectOption,
   selectOptionValues,
   selectOptions,

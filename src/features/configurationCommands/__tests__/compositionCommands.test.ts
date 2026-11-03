@@ -10,6 +10,7 @@ import { parseProductProfile, parseRuntimeBindings, resolveProductConfig } from 
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
+import { lameRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/lameRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
@@ -24,6 +25,7 @@ import {
   setAttributeValue,
   setExplicitUserChoice,
 } from "@/entities/configuration";
+import type { CabinetDimensions } from "@/entities/configuration";
 import {
   getCabinetColor,
   getDrawerPanelFluting,
@@ -50,7 +52,7 @@ import {
   type SceneBridge,
 } from "@/features/playCanvasAdapter/lib/createPlayCanvasRuntimePort";
 import { buildCollectionPricingLines } from "@/shared/lib/pricing";
-import { collectionPricingInput, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
+import { collectionPricingInput, LAME, MAKO } from "@/shared/lib/pricing/__tests__/fixtures/collectionPricingScenarios";
 
 import { changeAttribute } from "../lib/changeAttribute";
 import { selectOwnCabinetValues } from "../lib/compositionValues";
@@ -378,6 +380,9 @@ describe("composition commands", () => {
     const cabinetValue = (attributeId: string, cabinetId: string) =>
       getAttributeValue(store.getState(), attributeId, { scope: "cabinet", cabinetId });
 
+    const heldBy = (attributeId: string) =>
+      getCabinetEntries(store.getState()).map(({ stableKey }) => cabinetValue(attributeId, stableKey));
+
     const makoModel = [
       {
         productType: "Sink-Cabinet",
@@ -514,9 +519,6 @@ describe("composition commands", () => {
         store.dispatch(setActiveCollectionId("mako"));
         store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
       });
-
-      const heldBy = (attributeId: string) =>
-        getCabinetEntries(store.getState()).map(({ stableKey }) => cabinetValue(attributeId, stableKey));
 
       /** Cabinet SKUs without their size, which these tests do not vary. */
       const handleBlocks = () => {
@@ -825,6 +827,119 @@ describe("composition commands", () => {
         const call = lastCall(composition);
         expect(call.op === "add" && call.product.config).toEqual({ Width: 60, Drawers: "1" });
         expect(getValuesByAttributeId(store.getState())).toEqual({});
+      });
+    });
+
+    /**
+     * Duplicate places a copy with the scene config of its source, which names the handle colour as
+     * the scene's material ("… Lacquered MT"), while the catalogue and the SKU name the option.
+     */
+    describe("a copy whose config names the scene's handle colour", () => {
+      const COLLECTIONS = {
+        mako: { collection: MAKO, bindings: makoRuntimeBindings, handle: "G57", source: { Width: 60, Drawers: "2D" } },
+        lame: { collection: LAME, bindings: lameRuntimeBindings, handle: "G58", source: { Width: 60, Drawers: "1D" } },
+      };
+
+      /**
+       * Opens the collection with `bindings`, places a Sink Base, then its copy beside it with
+       * `handleColor` in the copy's config.
+       */
+      const placeWithCopy = async (
+        collectionId: keyof typeof COLLECTIONS,
+        handleColor: string,
+        bindings = COLLECTIONS[collectionId].bindings,
+      ) => {
+        const { collection, source, handle } = COLLECTIONS[collectionId];
+        store.dispatch(setActiveProfile(collection.profile));
+        store.dispatch(setActiveCollectionId(collectionId));
+        store.dispatch(setActiveRuntimeBindings(bindings));
+        // The handle the builder holds for the cabinets it places, which a complete SKU spells.
+        store.dispatch(setSelectedProductConfig({ Handle: handle }));
+
+        const { deps } = setup();
+        await addCabinet({ product: { productType: "Sink-Base", config: source }, placement: { kind: "end" } }, deps);
+
+        const [anchor] = product().productIds;
+        await addCabinet(
+          {
+            product: { productType: "Sink-Base", config: { ...source, Handle: handle, HandleColor: handleColor } },
+            placement: { kind: "beside", anchorRuntimeId: anchor, side: "right" },
+          },
+          deps,
+        );
+      };
+
+      const cabinetSkus = (collectionId: keyof typeof COLLECTIONS, size: CabinetDimensions) => {
+        const { collection } = COLLECTIONS[collectionId];
+        const state = store.getState();
+        const input = collectionPricingInput(
+          collection,
+          getCabinetEntries(state).map(({ stableKey, runtimeId }) => ({ stableKey, runtimeId, size })),
+          { ...getValuesByAttributeId(state) },
+          {
+            runtimeBindings: getActiveRuntimeBindings(state),
+            selectedProductConfig: product().selectedProductConfig,
+            placedCabinetStyles: product().placedCabinetStyles,
+            cabinetColor: collection.profile.defaults.CabinetColor,
+          },
+        );
+
+        return buildCollectionPricingLines(input)
+          .lines.filter(({ group }) => group === "cabinet")
+          .map(({ sku }) => sku);
+      };
+
+      it.each([
+        {
+          collectionId: "mako" as const,
+          sceneColor: "Antracite 400 Lacquered MT",
+          catalogColor: "Antracite 400 MT",
+          size: { width: 60, height: 52, depth: 52 },
+          sku: "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400",
+        },
+        {
+          collectionId: "lame" as const,
+          sceneColor: "Fumo 401 Lacquered MT",
+          catalogColor: "Fumo 401 MT",
+          size: { width: 60, height: 26, depth: 52 },
+          sku: "VAN-LAMEV-SB/1DW/G58/OXF-23.6W-10.2H-20.5D-CAB-LACM-401-HDL-LACM-401",
+        },
+      ])(
+        "records the catalogue's colour at a $collectionId copy, which is priced like its source",
+        async ({ collectionId, sceneColor, catalogColor, size, sku }) => {
+          await placeWithCopy(collectionId, sceneColor);
+
+          expect(heldBy("HandleColor")).toEqual([catalogColor, catalogColor]);
+          // Before, the copy held the scene's name, which no SKU spells, and was left out of the order.
+          expect(cabinetSkus(collectionId, size)).toEqual([sku, sku]);
+        },
+      );
+
+      it.each(["Moka 408 MT", "Gold"])(
+        "records a colour the copy names as the catalogue does as it is: %s",
+        async (color) => {
+          await placeWithCopy("mako", color);
+
+          expect(heldBy("HandleColor")).toEqual(["Antracite 400 MT", color]);
+        },
+      );
+
+      it("keeps a colour that is an option of its own though the scene also names another option so", async () => {
+        // No shipped binding sends one option under another option's name; this one does.
+        const reusedName = {
+          ...makoRuntimeBindings,
+          bindings: makoRuntimeBindings.bindings.map((binding) =>
+            binding.attributeId === "HandleColor" && binding.status === "bound" && binding.values.kind === "identity"
+              ? {
+                  ...binding,
+                  values: { ...binding.values, overrides: { ...binding.values.overrides, Gold: "Moka 408 MT" } },
+                }
+              : binding,
+          ),
+        };
+        await placeWithCopy("mako", "Moka 408 MT", reusedName);
+
+        expect(heldBy("HandleColor")).toEqual(["Antracite 400 MT", "Moka 408 MT"]);
       });
     });
 

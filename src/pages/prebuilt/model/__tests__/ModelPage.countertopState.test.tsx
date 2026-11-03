@@ -602,12 +602,12 @@ describe("tricot: a Prebuilt order opened from its link", () => {
       scene: { status: "ready", order: [id], cabinets: [{ runtimeId: id, dimensions: { width: 60, height: 40, depth: 52 } }] },
     });
     mocks.ports = { composition: composition.port, runtime: createTestRuntimePort().port };
-    recordValues({ HandleGrooveColor: "Agata 407 MT" }, { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" });
-    expect(getHandleGrooveColor(store.getState())).toBe("Agata 407 MT");
+    recordValues({ HandleGrooveColor: "Nero 433 MT" }, { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" });
+    expect(getHandleGrooveColor(store.getState())).toBe("Nero 433 MT");
     renderAt(tricot, "/prebuilt/model?collectionId=tricot&preset=1190388679", <ModelPage />, true);
     await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBe(1190388679));
-    expect(composition.calls[0]).toMatchObject({ op: "replace", request: { shared: { HandleGrooveColor: "Nero 433 MT" } } });
-    expect(getHandleGrooveColor(store.getState())).toBe("Nero 433 MT");
+    expect(composition.calls[0]).toMatchObject({ op: "replace", request: { shared: { HandleGrooveColor: "Agata 407 MT" } } });
+    expect(getHandleGrooveColor(store.getState())).toBe("Agata 407 MT");
     expect(store.getState().rootStateUI.configuration.explicitUserChoices).toEqual({});
   });
 

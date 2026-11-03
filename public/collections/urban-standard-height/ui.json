@@ -313,7 +313,9 @@
     },
     "countertop-styles": {
       "label": "Countertop Style",
-      "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
+      "fields": [
+        { "attributeId": "CountertopStyle", "control": "options-grid", "availabilityRef": "CountertopStyle.allowed" }
+      ]
     },
     "basin-style": {
       "label": "Basin style",
@@ -335,7 +337,9 @@
     },
     "countertop-style": {
       "label": "Countertop Style",
-      "fields": [{ "attributeId": "CountertopStyle", "control": "options-grid" }]
+      "fields": [
+        { "attributeId": "CountertopStyle", "control": "options-grid", "availabilityRef": "CountertopStyle.allowed" }
+      ]
     },
     "basin-style-custom": {
       "label": "Basin style",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import configurator4 from "./fixtures/remote/configurator-4.json";
+import configurator10 from "./fixtures/remote/configurator-10.json";
 import urbanLowHeightProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightManifest from "../../../../public/collections/urban-low-height/manifest.json";
 
@@ -97,9 +97,9 @@ describe("urban-low-height product profile", () => {
     );
 
     expect(colours.map(({ attributeId, optionsSource, options }) => [attributeId, optionsSource, options])).toEqual([
-      ["CabinetColor", "configurator:Cabinet Color", undefined],
-      ["HandleGrooveColor", "configurator:Handle Groove Color", undefined],
-      ["CountertopColor", "configurator:Countertop Color", undefined],
+      ["CabinetColor", "configurator:Select Cabinet Color", undefined],
+      ["HandleGrooveColor", "configurator:Select Handle Groove Color", undefined],
+      ["CountertopColor", "configurator:Select Countertop Color", undefined],
     ]);
   });
 
@@ -129,7 +129,7 @@ describe("urban-low-height product profile", () => {
       ["Vessel_UrbanMorris", "Vessel Urban Morris"],
       ["Vessel_Aquarius", "Vessel Acquarius"],
     ]);
-    expect(vesselColor?.optionsSource).toBe("configurator:Vessels");
+    expect(vesselColor?.optionsSource).toBe("configurator:Select Vessel Color");
   });
 
   it("inherits no Urban Standard Height value", () => {
@@ -178,10 +178,11 @@ describe("urban-low-height product profile", () => {
       });
   });
 
-  it("hides the countertop materials of configurator 4 that Urban Low Height does not offer (§11)", () => {
+  it("names the countertop materials Urban Low Height does not offer (§11)", () => {
     const countertop = profile().ruleData.countertopFallbacks;
 
-    // Tekorlux and Glass colours carry "Lacquered MT/GL" as their material, so both names are excluded.
+    // Configurator 10 lists none of them on the countertop; configurator 4 listed Tekorlux and Glass colours
+    // as "Lacquered MT/GL", hence both names.
     expect(countertop?.excludedMaterialFilterTokens).toEqual([
       "tekorlux",
       "tekormud",
@@ -239,7 +240,7 @@ describe("urban-low-height fluting (product map §4)", () => {
   });
 
   it("reads the material of a real configurator colour and refuses fluting for it", () => {
-    const configurator = { groups: configurator4.availableOptions } as unknown as ConfiguratorGroupCatalog;
+    const configurator = { groups: configurator10.availableOptions } as unknown as ConfiguratorGroupCatalog;
     const traits = resolveColorTraits("Castagno chiaro 1C1", configurator, profile());
 
     expect(traits?.material).toBe("3D");

@@ -651,7 +651,7 @@
     "cabinet.sideShelfLimit": "Vanity configurations allow a maximum of two Open Side Shelf units.",
     "handle.heightLocked": "Not available for current configuration height ({heightCm} cm / {heightIn}\" locked)",
     "handle.notAvailableForOpenCabinet": "Not available for open cabinets",
-    "countertop.integratedDepthRestricted": "Integrated basin style not available for 46cm (18.1\") depth configurations",
+    "countertop.integratedDepthRestricted": "Integrated basin style not available for {depthCm}cm ({depthIn}\") depth configurations",
     "countertop.styleUnavailable": "Not available for selected cabinet width/depth/thickness on scene",
     "countertop.maxCompatibleWidth": "Not available for current configuration width, maximum compatibility size {maxCm} cm ({maxIn}\").",
     "countertop.totalWidthAboveMax": "Not available for current total cabinets width on scene. Current {currentCm} cm ({currentIn}\"), max {maxCm} cm ({maxIn}\").",

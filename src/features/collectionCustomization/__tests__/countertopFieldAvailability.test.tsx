@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
+import { configurator10WithLacquerCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
 import configurator8 from "@/entities/collection/__tests__/fixtures/remote/configurator-8.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
@@ -33,6 +33,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import type { CountertopSinkLandingStatus, CountertopState } from "@/features/configuratorApi";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import { checkUndetermined } from "@/features/configurationCommands/lib/undeterminedGate";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import { resolveUiReasonText } from "@/shared/lib/reasonText";
 import classManifest from "../../../../public/collections/class/manifest.json";
@@ -60,9 +61,9 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
 
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
-// Configurator 4 as Urban Low Height loads it, with the live vessel and lacquered countertop colours
-// the recorded sample leaves out.
-const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveCountertops).availableOptions;
+// Configurator 10 as Urban Low Height loads it, with the lacquered countertop colours that keep table
+// 589's rules for them covered.
+const ulhConfiguratorGroups = configuratorSchema.parse(configurator10WithLacquerCountertops).availableOptions;
 
 const readyCollectionOf = (
   collectionId: string,
@@ -342,6 +343,19 @@ describe("Class countertop colours follow table 578", () => {
     expect(enabledValues("thickness")).toEqual(["3.125"]);
     expect(shownValues("basin-style")).toEqual(["VA023"]);
   });
+
+  // Matte White 8cm is Technomat (configurator 8's GBMaterial) with a row of its own in table 578: no
+  // undetermined rule keeps the command from choosing it.
+  it("lets the command choose Matte White 8cm", () => {
+    expect(
+      checkUndetermined(
+        { attributeId: "CountertopColor", scope: "countertop", value: "Matte White 8cm" },
+        { scope: "countertop" },
+        store.getState(),
+        classLive.profile,
+      ),
+    ).toBeNull();
+  });
 });
 
 // The Urban Standard Height basins name their matrix row by their label ("HPL Cover 50" is the
@@ -369,6 +383,46 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
     store.dispatch(setActiveCountertopColor("Ardesia TKF"));
 
     expect(shownValues("basin-style")).toEqual(["Top_HPLPrisma", "Top_HPLQuadra", "Top_HPLCover", "Top_HPLStrip"]);
+  });
+});
+
+// Table 589 makes a vessel top on a Sink Base of at least min_vsl_cm (80 cm): below it the cutout would be priced
+// with no basin it could hold.
+describe("Urban Low Height countertop style follows the vessel Sink Base minimum", () => {
+  const { fieldOf, enabledValues } = fieldsOf(urbanLowHeight);
+  const styleOf = (value: string) => fieldOf("countertop-style")?.options.find((option) => option.value === value);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it("refuses the vessel style on a 70 cm Sink Base with the minimum, and keeps integrated", () => {
+    store.dispatch(setSelectedDimensions({ width: 70, depth: 46 }));
+
+    expect(enabledValues("countertop-style")).toEqual(["integrated"]);
+    expect(styleOf("vessel")).toMatchObject({
+      enabled: false,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: expect.objectContaining({ minCm: 80 }),
+    });
+  });
+
+  it("offers the vessel style on an 80 cm Sink Base", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+
+    expect(enabledValues("countertop-style")).toEqual(["integrated", "vessel"]);
+  });
+
+  // Table 589 makes a glass integrated top on a Sink Base of 70 cm or more: at 60 cm both styles are refused, each
+  // for its own minimum.
+  it("says each refused style's own minimum on a 60 cm Sink Base", () => {
+    store.dispatch(setSelectedDimensions({ width: 60, depth: 50 }));
+    store.dispatch(setActiveCountertopColor("Bianco 0B GL"));
+
+    expect(styleOf("integrated")).toMatchObject({ enabled: false, reasonCode: "countertop.sinkBaseBelowMin" });
+    expect(styleOf("vessel")).toMatchObject({ enabled: false, reasonCode: "countertop.vesselSinkBaseMin" });
   });
 });
 
@@ -586,6 +640,56 @@ describe("Urban Duplex offers the thicknesses table 595 gives, by the Urban Low 
       expect(enabledValues("thickness")).toEqual(home);
     },
   );
+});
+
+// Urban Duplex carries fallbacks that restrict an integrated top at 46 cm for Tekormud and Solid Surface tops, none
+// of which its configurator offers: the profile here restricts HPL instead, so that an HPL colour reaches the check.
+describe("Urban Duplex names the restricted depth on a refused integrated style", () => {
+  const { profile } = urbanDuplex;
+  const fallbacks = profile.ruleData.countertopFallbacks;
+  if (!fallbacks) throw new Error("The Urban Duplex profile declares no countertop fallbacks");
+  const restrictingHpl: TestCollection = {
+    ...urbanDuplex,
+    profile: {
+      ...profile,
+      ruleData: {
+        ...profile.ruleData,
+        countertopFallbacks: { ...fallbacks, restrictedIntegratedMaterialTokens: ["hpl"] },
+      },
+    },
+  };
+  const { fieldOf, enabledValues } = fieldsOf(restrictingHpl);
+  const styleOf = (value: string) => fieldOf("countertop-style")?.options.find((option) => option.value === value);
+
+  beforeEach(() => {
+    startWith(restrictingHpl);
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  // Table 595 makes an integrated HPL top from a 60 cm Sink Base: on a 50 cm one the rules refuse it.
+  it("refuses the integrated style at 46 cm in the profile's words for the depth", () => {
+    store.dispatch(setSelectedDimensions({ width: 50, depth: 46 }));
+
+    expect(styleOf("integrated")).toMatchObject({
+      enabled: false,
+      reasonCode: "countertop.integratedDepthRestricted",
+      reasonParams: { depthCm: 46, depthIn: "18.1" },
+      reason: 'Integrated basin style not available for 46cm (18.1") depth configurations',
+    });
+  });
+
+  it("keeps the Sink Base minimum as the reason at 50 cm", () => {
+    store.dispatch(setSelectedDimensions({ width: 50, depth: 50 }));
+
+    expect(styleOf("integrated")).toMatchObject({ enabled: false, reasonCode: "countertop.sinkBaseBelowMin" });
+  });
+
+  it("still offers the integrated style at 46 cm where the rules allow it", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+
+    expect(enabledValues("countertop-style")).toContain("integrated");
+  });
 });
 
 // The scene cannot change a basin the lifted top hosts, and a basin field names a Sink Base: until the top is back
@@ -886,13 +990,24 @@ describe("Urban Low Height vessel colours follow the chosen vessel, as the USH c
   });
 
   it.each([
-    ["Vessel_Blade11", ["Antracite Matte OCF", "Cemento Matte OCD"]],
+    [
+      "Vessel_Blade11",
+      ["Antracite Matte OCF", "Cemento Matte OCD", "Cenere Matte OCE", "Gloss White OCB", "Matte White OCC"],
+    ],
     ["Vessel_UrbanModo", ["Matte Black T1D", "Matte White T1C"]],
     ["Vessel_UrbanMorris", ["Bianco Gloss TAL", "Bianco Matte TAM"]],
-    ["Vessel_Aquarius", ["Agata BD MT", "Bianco Gloss TAL", "Bianco Matte TAM"]],
   ])("enables the colours %s takes", (vessel, colors) => {
     store.dispatch(setActiveBasinStyle(vessel));
 
     expect(enabledValues("vessel-color")).toEqual(colors);
+  });
+
+  it("enables the 54 Tekorlux colours for Vessel_Aquarius", () => {
+    store.dispatch(setActiveBasinStyle("Vessel_Aquarius"));
+
+    expect(enabledValues("vessel-color")).toHaveLength(54);
+    expect(enabledValues("vessel-color")).toEqual(
+      expect.arrayContaining(["Agata BD MT", "Bianco Gloss TAL", "Bianco Matte TAM"]),
+    );
   });
 });

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+[{"label":"None","pressed":"false","disabled":false},{"label":"Yes","pressed":"true","disabled":false}]
+```

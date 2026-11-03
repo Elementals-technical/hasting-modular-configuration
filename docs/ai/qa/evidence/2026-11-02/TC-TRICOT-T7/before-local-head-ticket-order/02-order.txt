@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+"model>color>side-panels>countertop>faucet-holes>summary"
+```

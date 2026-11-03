@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/countertop?collectionId=urban-standard-height","price":"$4,047.00","storeFound":true,"state":{"SidePanels":"None","L":"auto-removed","R":"auto-removed","CountertopColor":"Bianco Matte TAP","CountertopColorSku":"SSSYN","Thickness":"0.5","CountertopStyle":"Integrated","sinkType":"Top_Tekorlux_Syntesi","activeCabinetType":"Sink-Base","selectedSceneProduct":"","dimH":53,"cfgName":"Sink-Base","cfgDrawers":"1D","cfgHeight":53},"sceneReady":true,"productsErr":"TypeError: api.composition.getAllProducts is not a function","sidePanelEntities":1,"sidePanelSample":["SidePanel_Point"],"dialogs":[],"notices":[],"guard":{"on":true,"blocked":[]}}
+```

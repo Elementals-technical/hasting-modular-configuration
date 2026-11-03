@@ -54,3 +54,7 @@ Pass = every step `ok`, a rendered configurator screenshot, console without appl
 
 - Chrome: "Could not connect to Chrome" → remote debugging not enabled or the prompt was not allowed; one retry after the user enables it. Managed policy `RemoteDebuggingAllowed=0` → blocker, do not work around it. Fallback (with consent only): a separate work profile started with `--user-data-dir=<dedicated dir> --remote-debugging-port=9222` and `--browser-url=http://127.0.0.1:9222`.
 - Firefox: profile lock → another Firefox uses the profile; close only the agent's Firefox window. `--connect-existing` works only if Firefox was started with `--marionette --remote-debugging-port`.
+
+Recorded [system-Chrome fallback, 2026-11-03](../qa/evidence/2026-11-03/TC-UF-18/README.md)
+(temporary profile, non-GET blocked; not an MCP smoke test):
+`REPO=<repo> OUT=<dir> RUNS='[{"label":"x","env":"staging","collection":"urban-freestanding"}]' node docs/ai/qa/evidence/2026-11-03/TC-UF-18/repro.cjs`.

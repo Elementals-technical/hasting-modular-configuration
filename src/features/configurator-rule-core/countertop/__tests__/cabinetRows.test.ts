@@ -6,6 +6,7 @@ import {
   checkPlusRow,
   fitsCabinetRow,
   maxCabinetRowWidth,
+  maxResizedCabinetWidth,
   ONE_CABINET_ROW,
   pickRowEnd,
   plusRowOf,
@@ -14,7 +15,11 @@ import {
   resolveCabinetRows,
   type CabinetRowLimits,
 } from "../cabinetRows";
-import { REASON_COMPOSITION_LENGTH_REACHED, resolveMaxAddableCabinetWidthCm } from "../lengthLimits";
+import {
+  REASON_COMPOSITION_LENGTH_REACHED,
+  resolveMaxAddableCabinetWidthCm,
+  resolveMaxResizableCabinetWidthCm,
+} from "../lengthLimits";
 
 /**
  * The client's ULH Multi-Level composition (22.10): the countertop row is 265 cm (two sinks), the lower
@@ -113,6 +118,50 @@ describe("fitsCabinetRow and maxCabinetRowWidth", () => {
 
     expect(fitsCabinetRow(unknown, "Sink-Base", 120)).toBe(true);
     expect(maxCabinetRowWidth(unknown, "Side-Cabinet")).toBeNull();
+  });
+});
+
+describe("maxResizedCabinetWidth", () => {
+  it("lets a lower-row cabinet grow by its own row's room, however full the countertop row is", () => {
+    // 270 - (165 - 70); the countertop's length would leave it 75 cm.
+    expect(maxResizedCabinetWidth(clientLimits, "lower-b", 70)).toBe(175);
+  });
+
+  it("holds a lower-row cabinet to its own row when that row is the longer one", () => {
+    const longLower = resolveCabinetRows(
+      clientRead({ cabinets: [...clientRead().cabinets, cabinet("lower-d", "layout-1", 100)] }),
+      SIDE_PANEL_CM,
+    );
+    // The lower row is 265 cm, the countertop's 100 cm; the countertop's length would leave it 195 cm.
+    const limits: CabinetRowLimits = { rows: longLower, maxCm: 270, countertopRemainingCm: 170 };
+
+    expect(maxResizedCabinetWidth(limits, "lower-a", 25)).toBe(30);
+  });
+
+  it("counts the side panels at the ends of the cabinet's row", () => {
+    const withPanels = resolveCabinetRows(clientRead({ sidePanelsByGroup: { "layout-1": 2 } }), 1);
+
+    expect(maxResizedCabinetWidth({ ...clientLimits, rows: withPanels }, "lower-b", 70)).toBe(173);
+  });
+
+  it("holds a countertop-row cabinet, or one the rows do not name, to the countertop's remaining length", () => {
+    expect(maxResizedCabinetWidth(clientLimits, "side-a", 25)).toBe(30);
+    expect(maxResizedCabinetWidth(clientLimits, "unknown", 25)).toBe(30);
+  });
+
+  it("answers as the countertop guard did for one row", () => {
+    const limits: CabinetRowLimits = { rows: ONE_CABINET_ROW, maxCm: 270, countertopRemainingCm: 5 };
+
+    expect(maxResizedCabinetWidth(limits, "lower-b", 70)).toBe(
+      resolveMaxResizableCabinetWidthCm({ maxCm: 270, currentTotalCm: 265, currentCabinetWidthCm: 70 }),
+    );
+  });
+
+  it("is unknown while the countertop cannot be judged, or the cabinet's width is not known", () => {
+    const unknown: CabinetRowLimits = { rows: clientRows, maxCm: null, countertopRemainingCm: null };
+
+    expect(maxResizedCabinetWidth(unknown, "lower-b", 70)).toBeNull();
+    expect(maxResizedCabinetWidth(clientLimits, "lower-b", null)).toBeNull();
   });
 });
 

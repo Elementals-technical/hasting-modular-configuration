@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/accessories?collectionId=lame","price":"$11,163.00","storeFound":true,"state":{"SidePanels":"NoG","L":"active","R":"active","CountertopColor":"BIANCO KOS 250","CountertopColorSku":"HPL","Thickness":"0.5","CountertopStyle":"Integrated","sinkType":"VA024","activeCabinetType":null,"selectedSceneProduct":"","dimH":26,"cfgName":null,"cfgDrawers":null,"cfgHeight":null},"sceneReady":true,"productsErr":"TypeError: api.composition.getAllProducts is not a function","sidePanelEntities":10,"sidePanelSample":["Lame-SidePanel_Left-e6d7kcla1","Lame_SidePanel_Point","Lame_SidePanel","Lame_SidePanel_Corners","Lame_SidePanel_Flut","Lame-SidePanel_Right-4240h3wwo"],"dialogs":[],"notices":[],"guard":{"on":true,"blocked":[]}}
+```

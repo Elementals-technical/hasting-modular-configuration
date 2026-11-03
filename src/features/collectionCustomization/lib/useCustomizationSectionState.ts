@@ -82,16 +82,29 @@ const useAllowedFaucetHoles = (allowedFaucetHoles: CountertopRuleState["allowedF
 
 const COUNTERTOP_STYLES = ["integrated", "vessel"] as const;
 
-// The styles the matrix allows for the current colour and sizes; the reason is the first refused style's.
-const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRuleState): FieldAvailability => {
+// A style's refusal in the field's terms, for the field and for the style's own option.
+const toStyleRefusalReason = (
+  availability: CountertopRuleState["styleAvailability"][(typeof COUNTERTOP_STYLES)[number]] | undefined,
+): Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> => ({
+  reason: availability?.disabledReason,
+  reasonCode: availability?.reasonCode,
+  reasonParams: availability?.reasonParams,
+});
+
+// The styles the matrix allows for the current colour and sizes. Each refused style says its own reason: the two
+// can be refused for different minimums of the Sink Base. The field's reason is the first refused style's.
+export const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRuleState): FieldAvailability => {
   const refused = COUNTERTOP_STYLES.map((style) => styleAvailability[style]).find(({ isAvailable }) => !isAvailable);
 
   return {
     available: true,
     allowedValues: COUNTERTOP_STYLES.filter((style) => styleAvailability[style].isAvailable),
-    reason: refused?.disabledReason,
-    reasonCode: refused?.reasonCode,
-    reasonParams: refused?.reasonParams,
+    optionReason: ({ value }) => {
+      const style = COUNTERTOP_STYLES.find((key) => key === value);
+      const availability = style ? styleAvailability[style] : undefined;
+      return availability && !availability.isAvailable ? toStyleRefusalReason(availability) : undefined;
+    },
+    ...toStyleRefusalReason(refused),
   };
 };
 
@@ -181,7 +194,7 @@ const resolveThicknessAvailability = (
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
 // cutout: the profile's noneValue, chosen until a vessel is.
-const resolveBasinAvailability = (
+export const resolveBasinAvailability = (
   profile: ProductProfile | null,
   { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
   countertopStyle: string | null | undefined,
@@ -340,8 +353,6 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       "LegColor.determined": { available: legColorDetermined, visible: legColorDetermined },
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
-      // The hosted-basin lock alone, for a style the matrix does not gate (Urban Low Height).
-      "CountertopStyle.available": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, { available: true }),
       "CountertopStyle.allowed": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, {
         ...resolveCountertopStyleAvailability(countertopRuleState),
         ...(integratedChangesSinkBases

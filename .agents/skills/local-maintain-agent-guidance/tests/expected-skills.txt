@@ -15,3 +15,6 @@ hastings-tricot
 hastings-lame
 hastings-ud
 hastings-ufs
+grill-me
+qa-collection
+vivid-tasks

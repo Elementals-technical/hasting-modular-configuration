@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
+import configurator10 from "@/entities/collection/__tests__/fixtures/remote/configurator-10.json";
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
@@ -25,6 +26,7 @@ import lameRuntimeBindingsDocument from "../../../../public/collections/lame/run
 import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
 import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
 import tricotRuntimeBindingsDocument from "../../../../public/collections/tricot/runtime-bindings.json";
+import urbanLowHeightProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightRuntimeBindingsDocument from "../../../../public/collections/urban-low-height/runtime-bindings.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
 import urbanDuplexRuntimeBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
@@ -110,8 +112,8 @@ describe.each([
  * Every colour a collection's own configurator offers, as its bindings send it: Urban Duplex's panel
  * colours under their scene keys (CabinetColor, CabinetColorLateral, the groove and the side shelf's
  * CabinetColor), Tricot's lacquers, Urban Freestanding's grooves and Lame's leg caps and undertop
- * (sent with the switch that shows them), with the countertop, vessel and
- * towel bar colours of each. Unlike Mako and Class no family is left out, so a configurator name the
+ * (sent with the switch that shows them), Urban Low Height's cabinets and grooves, with the countertop,
+ * vessel and towel bar colours of each. Unlike Mako and Class no family is left out, so a configurator name the
  * scene spells differently (Sahara Noir Silky Matte TR8, Tricot's capitals, the lacquers Urban
  * Freestanding shares with Tricot) needs an override. Values a binding declares pending
  * (`unboundValues`, Tricot's woods) are not sent and are left to its own tests.
@@ -165,6 +167,18 @@ describe.each([
     },
     switchKeys: ["ShowLegs", "ShowUndertop"],
   },
+  {
+    collection: "urban-low-height",
+    profileDocument: urbanLowHeightProfileDocument,
+    bindingsDocument: urbanLowHeightRuntimeBindingsDocument,
+    configuratorGroups: configurator10.availableOptions,
+    attributeIds: ["CabinetColor", "HandleGrooveColor", "CountertopColor", "VesselColor", "TowelBarColor"],
+    countertopOverrides: {
+      "Sahara Noir Silky Matte TR8": "Sahara Noir Silky Matte",
+      "CALACATTA 259": "Calacatta 259",
+      "Matte White": "Solid Surface Matte White",
+    },
+  },
 ])(
   "$collection colours of its configurator in the scene export",
   ({ profileDocument, bindingsDocument, configuratorGroups, attributeIds, countertopOverrides, switchKeys = [] }) => {
@@ -212,29 +226,3 @@ describe.each([
     });
   },
 );
-
-/**
- * Urban Low Height reads configurator 4, which the fixtures keep only in part, so the colours the
- * scene spells differently are named here: the porcelain Sahara Noir Silky Matte has no TR8 in the
- * export. Every other colour of configurator 4 matched an export material by its own name (v63).
- */
-describe("urban-low-height colours the scene spells differently", () => {
-  const parsedBindings = parseRuntimeBindings(urbanLowHeightRuntimeBindingsDocument);
-  if (!parsedBindings.ok) throw new Error("Urban Low Height bindings failed validation");
-  const bindings = parsedBindings.bindings;
-
-  it("sends them under the scene's material names", () => {
-    const resolution = resolveRuntimeBinding(bindings, "CountertopColor", "Sahara Noir Silky Matte TR8");
-    if (!resolution.ok || isStateOnlyResolution(resolution)) throw new Error("The countertop colour is not sent");
-
-    expect(resolution.patch).toEqual({ CountertopColor: "Sahara Noir Silky Matte" });
-    expect(SCENE_MATERIALS.has("Sahara Noir Silky Matte TR8")).toBe(false);
-    for (const binding of bindings.bindings) {
-      if (binding.status !== "bound" || binding.values.kind !== "identity") continue;
-      const missing = Object.values(binding.values.overrides ?? {}).filter(
-        (name) => !SCENE_MATERIALS.has(String(name)),
-      );
-      expect(missing, binding.attributeId).toEqual([]);
-    }
-  });
-});

@@ -137,7 +137,6 @@ describe("class product profile", () => {
       "drawerStyleGroups",
       "prebuiltModelSelection",
       "priceTiers",
-      "undeterminedRules",
       "vesselCompatibility",
     ]);
   });

@@ -10,7 +10,7 @@
 - Registry entry: `public/collections/registry.json`
 - Default collection: ні; без query parameter відкривається USH.
 
-ULH — окрема колекція, а не mode USH. Вона ділить з USH remote configurator 4, але має власні UI,
+ULH — окрема колекція, а не mode USH. Вона має власні remote configurator 10, UI,
 product profile, SKU profile, countertop table 589, cabinet table 580, presets та runtime bindings.
 
 ## Що завантажується
@@ -18,7 +18,7 @@ product profile, SKU profile, countertop table 589, cabinet table 580, presets �
 ```text
 manifest.json
   local: presets.json, ui.json, product-profile.json, sku-profile.json, runtime-bindings.json
-  remote: configurator 4, countertop table 589, cabinet table 580
+  remote: configurator 10, countertop table 589, cabinet table 580
 ```
 
 Manifest `defaults` порожній. Початкові values походять з preset або з `defaults` у
@@ -128,6 +128,14 @@ Drag to Place починає чернетку біля правого кінця
 верхнього рівня, для Side Cabinet — біля обох; Duplicate Sink Base — лише біля верхнього. Urban Duplex
 і Urban Standard Height показують ті самі «+», що й сцена.
 
+`Resize ▸ Width` у плеєрі рахує межу за рядом самої шафи (`maxResizedCabinetWidth` у `cabinetRows.ts`):
+для нижнього рівня це максимум мінус решта його власного ряду, а не довжина стільниці. Перевірено в браузері
+02.11.2026 на моделі 61″ Multi-Level у Custom: при максимумі 270 см, верхньому рівні 260 см і нижньому 150 см
+нижня шафа 90 см отримує ширини до 47.2″ (до зміни було до 35.4″). Межа 27.6″ в Open Shelf не залежить від
+довжини: так само і в Builder, і в плеєрі, бо код читає лише `widths_cm` table 580 (див. обмеження про
+`widths_cm_by_height` нижче). Відомо: після додавання шафи через «+» Undo ресайзу збирає всі шафи в один ряд,
+бо знімок історії не має `sceneLayout` (так само без цієї зміни).
+
 ## Cabinet catalog
 
 Table 580 описує:
@@ -193,11 +201,12 @@ Push-to-Open, side panels втрачають upper groove. Handle і Height ід
 - Handles: `handle_urban_topcut`, `handle_pto`.
 - Heights: 38, 35, 28, 25 cm.
 - Fluting: None + Vertical/Horizontal A/B; доступність залежить від Lacquer Matte.
-- Cabinet/Countertop colors читаються з configurator 4 через `optionsSource`.
+- Cabinet/Countertop colors читаються з configurator 10 через `optionsSource`.
 - Countertop styles: integrated/vessel; `CountertopStyle` є `state-only` для сцени ULH. Поле стилю бере
-  `CountertopStyle.available`: матриця стиль не обмежує (Urban Duplex бере `CountertopStyle.allowed`), а поки
-  стільниця тримає basin, стиль заблокований разом із basin і vessel color
-  ([countertop-position-ui.md](../countertop-position-ui.md)).
+  `CountertopStyle.allowed`: стиль обмежує матриця table 589 (як в Urban Duplex), зокрема Vessel не
+  пропонується, коли Sink Base вужчий за `min_vsl_cm` кожного vessel-рядка (причина
+  `countertop.vesselSinkBaseMin`); поки стільниця тримає basin, стиль заблокований разом із basin і
+  vessel color ([countertop-position-ui.md](../countertop-position-ui.md)).
 - Basin catalog тимчасово повторює Urban values і фільтрується table 589; це не підтверджена
   власна ULH product map семантика.
 
@@ -220,7 +229,7 @@ FaucetHolesSpacing, BookMatching, LedOption.
 
 ### Handle Groove Color: дослідження flow (2026-10-12)
 
-1. `/custom/cabinet-builder?collectionId=urban-low-height&preset=1` завантажує ULH package і configurator 4.
+1. `/custom/cabinet-builder?collectionId=urban-low-height&preset=1` завантажує ULH package і configurator 10.
    Builder записує preset, його handle і початкові кольори; composition adapter розміщує ULH scene products.
 2. Color step бере секцію `handle-groove` з `ui.json`, кольори — з profile `optionsSource`;
    секція доступна для `Handle.supportsGrooveColor` (Upper Groove).
@@ -247,7 +256,7 @@ side panels і dividers. Не надсилати state-only/unbound value нап
 cabinet несе ще й елемент handle groove. Countertop, towel bar і side panel цінуються за граматикою USH
 (`pricedAs: urban-standard-height`), а розмір і товщину countertop дає countertop table з manifest. ULH
 немає в `SKU_SERIES_BY_COLLECTION`: pricing іде лише через `sku-profile.json`. Не можна використовувати
-URSTD SKU лише тому, що ULH ділить configurator 4 з USH.
+URSTD SKU лише тому, що countertop ULH ціниться за граматикою USH.
 
 ### Lower / CoverCountertop: колір, SKU і pricing (2026-10-12)
 

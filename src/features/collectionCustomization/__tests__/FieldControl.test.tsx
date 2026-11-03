@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import type { FieldRuntimeState } from "@/entities/collection";
+import { ReasonTextContextProvider } from "@/shared/lib/reasonText";
+import type { ReasonTextResolver } from "@/shared/lib/reasonText";
 
 import { FieldControl } from "../ui/FieldControl";
 
@@ -49,6 +51,36 @@ describe("FieldControl", () => {
     fireEvent.click(screen.getByText("Vertical Asymmetrical"));
 
     expect(onChange).toHaveBeenCalledWith("FlutingVerticalA");
+  });
+
+  it("hints a disabled options-grid item with its reason code and values", () => {
+    const resolver: ReasonTextResolver = ({ code, params }) =>
+      code === "countertop.vesselSinkBaseMin" ? `Minimum ${params?.minCm} cm` : code;
+    const vesselField: FieldRuntimeState = {
+      ...baseField,
+      attributeId: "CountertopStyle",
+      value: "Integrated",
+      options: [
+        { value: "Integrated", label: "Integrated", enabled: true },
+        {
+          value: "Vessel",
+          label: "Vessel",
+          enabled: false,
+          reason: "Not available for selected sink base cabinet width.",
+          reasonCode: "countertop.vesselSinkBaseMin",
+          reasonParams: { minCm: 80, minIn: "31.5" },
+        },
+      ],
+    };
+
+    renderField(
+      <ReasonTextContextProvider value={resolver}>
+        <FieldControl control="options-grid" field={vesselField} onChange={vi.fn()} />
+      </ReasonTextContextProvider>,
+    );
+    fireEvent.mouseEnter(screen.getByText("Vessel").closest("div") as HTMLElement);
+
+    expect(screen.getByText("Minimum 80 cm")).toBeTruthy();
   });
 
   it("filters out disabled options for swatches", () => {

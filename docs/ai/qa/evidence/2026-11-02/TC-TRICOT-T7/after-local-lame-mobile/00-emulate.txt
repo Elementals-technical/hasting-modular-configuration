@@ -1,0 +1,2 @@
+Emulation configured successfully
+Emulating viewport: {"deviceScaleFactor":3,"isMobile":true,"hasTouch":true,"isLandscape":false,"width":390,"height":844}

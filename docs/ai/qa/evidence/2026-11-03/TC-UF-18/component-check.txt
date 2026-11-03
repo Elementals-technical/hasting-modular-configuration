@@ -1,0 +1,25 @@
+== UF as is (5 options)
+{"color":"Bianco 0B MT","desc":"Lacquered MT","hex":"#fffffe","image":false,"previewButton":true}
+{"color":"Carbone 43 MT","desc":"Lacquered MT","hex":"#4f5050","image":false,"previewButton":true}
+{"color":"Metallizzato Copper M7 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":false}
+{"color":"Metallizzato Creta M6 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":false}
+{"color":"Nero 03 MT","desc":"Lacquered MT","hex":"#1c1c1d","image":false,"previewButton":true}
+== UD as is (5 options)
+{"color":"Bianco 0B MT","desc":"Lacquered MT","hex":"#fffffe","image":false,"previewButton":true}
+{"color":"Carbone 43 MT","desc":"Lacquered MT","hex":"#4f5050","image":false,"previewButton":true}
+{"color":"Metallizzato Copper M7 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":false}
+{"color":"Metallizzato Creta M6 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":false}
+{"color":"Nero 03 MT","desc":"Lacquered MT","hex":"#1c1c1d","image":false,"previewButton":true}
+== USH/ULH as is (5 options)
+{"color":"Bianco 0B MT","desc":"Lacquered MT","hex":"#fffffe","image":false,"previewButton":true}
+{"color":"Carbone 43 MT","desc":"Lacquered MT","hex":"#4f5050","image":false,"previewButton":true}
+{"color":"Metallizzato Copper M7 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":false}
+{"color":"Metallizzato Creta M6 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":false}
+{"color":"Nero 03 MT","desc":"Lacquered MT","hex":"#1c1c1d","image":false,"previewButton":true}
+== UF with materials (5 options)
+{"color":"Bianco 0B MT","desc":"Lacquered MT","hex":"#fffffe","image":false,"previewButton":true}
+{"color":"Carbone 43 MT","desc":"Lacquered MT","hex":"#4f5050","image":false,"previewButton":true}
+{"color":"Metallizzato Copper M7 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":true}
+{"color":"Metallizzato Creta M6 MT","desc":"Lacquered MT","hex":null,"image":true,"previewButton":true}
+{"color":"Nero 03 MT","desc":"Lacquered MT","hex":"#1c1c1d","image":false,"previewButton":true}
+modal img: ["https://preview.threekit.com/api/files/hash/sha256-8c57c1bc9f512b2bc1eecd1c52fffb5d85b43994fa309eccc42942ab53442c7e"]
