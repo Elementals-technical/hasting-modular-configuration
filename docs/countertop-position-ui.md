@@ -67,8 +67,7 @@ Cabinet. A Sink Base added while the top is remote is not refused.
   `.vesselColor`: "Lower the countertop onto a sink cabinet to change …"). Scene v79 does not rebuild a basin the
   top hosts: a new `CountertopSinkType` stays in the top's config and shows only once the basin lands. A basin
   field also needs a Sink Base to name (`resolveChangeRequest`). The basin list keeps the countertop's basins.
-  Urban Low Height's style field takes the lock alone (`CountertopStyle.available`); the other collections take the
-  matrix's styles under it (`CountertopStyle.allowed`).
+  Every collection's style field takes the matrix's styles under that lock (`CountertopStyle.allowed`).
 
 ## Modes
 
