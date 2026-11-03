@@ -40,7 +40,8 @@ CabinetColor, CountertopStyle, HandleGrooveColor, FaucetHolesAmount, FaucetHoles
 ## Стільниця і thickness
 
 - Table 595: HPL, Fenix і Tekorlux мають `1/2|4|5-1/8`, Porcelain — `1/2|2-3/8|4|5-1/2`; глибини 50 і 46 cm;
-  vessel від 80 cm (`min_vsl_cm`).
+  vessel від 80 cm (`min_vsl_cm`): на вужчому Sink Base Vessel вимкнено з `countertop.vesselSinkBaseMin`, а
+  thickness під Vessel беруться лише з рядків, що сягають Sink Base.
 - Thickness options 0.5, 2.4, 4, 5.125 (label 5.1″) і 5.5 мають ті самі `capabilities`, що в Urban Low Height:
   2.4″ ковзає; 4″ ковзає, тримає vessel і має Length; 5⅛″ і 5½″ ковзають, піднімаються і мають Length.
   Правила ті самі (client rules 22.10 і 27.10), див. [countertop-position-ui.md](../countertop-position-ui.md).
