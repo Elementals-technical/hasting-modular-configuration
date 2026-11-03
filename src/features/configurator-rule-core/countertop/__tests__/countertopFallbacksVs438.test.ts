@@ -4,8 +4,9 @@ import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import type { ProductProfile } from "@/entities/collection";
 
+import { isIntegratedCountertopDepthRestrictedByMaterial } from "../integratedDepthRestrictions";
 import { materialMatchesRule, normalizeBasinKey, parseCountertopMatrix, selectMaterialAliasTable } from "../parse";
-import { filterDepthValuesByCountertopRules, isIntegratedCountertopDepthRestrictedByMaterial } from "../sizeFilters";
+import { filterDepthValuesByCountertopRules } from "../sizeFilters";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
 
 /**

@@ -642,6 +642,56 @@ describe("Urban Duplex offers the thicknesses table 595 gives, by the Urban Low 
   );
 });
 
+// Urban Duplex carries fallbacks that restrict an integrated top at 46 cm for Tekormud and Solid Surface tops, none
+// of which its configurator offers: the profile here restricts HPL instead, so that an HPL colour reaches the check.
+describe("Urban Duplex names the restricted depth on a refused integrated style", () => {
+  const { profile } = urbanDuplex;
+  const fallbacks = profile.ruleData.countertopFallbacks;
+  if (!fallbacks) throw new Error("The Urban Duplex profile declares no countertop fallbacks");
+  const restrictingHpl: TestCollection = {
+    ...urbanDuplex,
+    profile: {
+      ...profile,
+      ruleData: {
+        ...profile.ruleData,
+        countertopFallbacks: { ...fallbacks, restrictedIntegratedMaterialTokens: ["hpl"] },
+      },
+    },
+  };
+  const { fieldOf, enabledValues } = fieldsOf(restrictingHpl);
+  const styleOf = (value: string) => fieldOf("countertop-style")?.options.find((option) => option.value === value);
+
+  beforeEach(() => {
+    startWith(restrictingHpl);
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  // Table 595 makes an integrated HPL top from a 60 cm Sink Base: on a 50 cm one the rules refuse it.
+  it("refuses the integrated style at 46 cm in the profile's words for the depth", () => {
+    store.dispatch(setSelectedDimensions({ width: 50, depth: 46 }));
+
+    expect(styleOf("integrated")).toMatchObject({
+      enabled: false,
+      reasonCode: "countertop.integratedDepthRestricted",
+      reasonParams: { depthCm: 46, depthIn: "18.1" },
+      reason: 'Integrated basin style not available for 46cm (18.1") depth configurations',
+    });
+  });
+
+  it("keeps the Sink Base minimum as the reason at 50 cm", () => {
+    store.dispatch(setSelectedDimensions({ width: 50, depth: 50 }));
+
+    expect(styleOf("integrated")).toMatchObject({ enabled: false, reasonCode: "countertop.sinkBaseBelowMin" });
+  });
+
+  it("still offers the integrated style at 46 cm where the rules allow it", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+
+    expect(enabledValues("countertop-style")).toContain("integrated");
+  });
+});
+
 // The scene cannot change a basin the lifted top hosts, and a basin field names a Sink Base: until the top is back
 // over a sink cabinet the style, the basin and the vessel colour stay as they are, each saying why.
 describe.each([

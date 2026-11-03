@@ -14,13 +14,13 @@ import { countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 
 import { resolveCountertopCabinetCompositionConstraint } from "../compositionConstraints";
-import { evaluateCountertopMaterial } from "../materialAvailability";
-import { getMaterialAliases, materialMatchesRule, parseCountertopMatrix } from "../parse";
-import { buildCountertopRuleState, resolveDefaultThicknessFromRules } from "../rules";
 import {
   isIntegratedCountertopDepthRestrictedByBasin,
   isIntegratedCountertopDepthRestrictedByMaterial,
-} from "../sizeFilters";
+} from "../integratedDepthRestrictions";
+import { evaluateCountertopMaterial } from "../materialAvailability";
+import { getMaterialAliases, materialMatchesRule, parseCountertopMatrix } from "../parse";
+import { buildCountertopRuleState, resolveDefaultThicknessFromRules } from "../rules";
 import { findSyntesiCountertopUiValue, isSyntesiCountertopMaterialSku } from "../syntesiOptions";
 import {
   getAllowedVesselMaterialTokens,
@@ -204,6 +204,99 @@ describe("integrated countertop depth restrictions", () => {
     expect(
       isIntegratedCountertopDepthRestrictedByBasin({ activeBasinStyle: "Top_Ocritech_Oly55", depth: 46, profile }),
     ).toBe(false);
+  });
+});
+
+// The collection restricts an integrated top at 46 cm for some materials: where the rules refuse the integrated
+// style there, it names the depth instead of the rule; where they allow it, the style stays available.
+describe("the integrated style at a depth the collection restricts", () => {
+  // An integrated row from a 60 cm Sink Base up to 200 cm, at every depth.
+  const integratedRow = (material: string): CountertopMatrixRule => ({
+    material,
+    topThicknesses: ["1/2"],
+    depths: [],
+    depthsByStyle: {},
+    basinStyle: "",
+    minSbCm: 60,
+    minVesselCm: null,
+    maxIntegratedCm: 200,
+    maxVesselCm: null,
+    maxUndermountCm: null,
+    faucetHoles: [],
+    depthOnlyCm: [],
+    allowedFinishes: [],
+    allowMultiCabinet: null,
+    sidePanelsAction: null,
+    integratedAllowedSizesOnly: [],
+  });
+  const integratedAt = ({
+    rowMaterial,
+    material = rowMaterial,
+    depth,
+    sinkBaseWidth,
+    profile = ushProfile,
+  }: {
+    rowMaterial: string;
+    material?: string;
+    depth: number;
+    sinkBaseWidth: number;
+    profile?: ProductProfile;
+  }) =>
+    buildCountertopRuleState({
+      rules: [integratedRow(rowMaterial)],
+      activeMaterialTokens: [material],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth: sinkBaseWidth,
+      depth,
+      activeCountertopStyle: "integrated",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile,
+    }).styleAvailability.integrated;
+
+  it("names the restricted depth for a restricted material the rules refuse, keeping the rules' maximum", () => {
+    expect(integratedAt({ rowMaterial: "Tekormud", depth: 46, sinkBaseWidth: 50 })).toEqual({
+      isAvailable: false,
+      maxCompatibleWidthCm: 200,
+      reasonCode: "countertop.integratedDepthRestricted",
+      reasonParams: { depthCm: 46, depthIn: "18.1" },
+      disabledReason: 'Integrated basin style not available for 46cm (18.1") depth configurations',
+    });
+  });
+
+  it("names the depth where no row is made for the material at all", () => {
+    expect(integratedAt({ rowMaterial: "HPL", material: "Tekormud", depth: 46, sinkBaseWidth: 80 })).toMatchObject({
+      isAvailable: false,
+      reasonCode: "countertop.integratedDepthRestricted",
+    });
+  });
+
+  it.each([
+    ["an unrestricted material at 46 cm", "HPL", 46],
+    ["a restricted material at 50 cm", "Tekormud", 50],
+  ])("keeps the rules' own reason for %s", (_case, rowMaterial, depth) => {
+    expect(integratedAt({ rowMaterial, depth, sinkBaseWidth: 50 })).toMatchObject({
+      isAvailable: false,
+      maxCompatibleWidthCm: 200,
+      reasonCode: "countertop.sinkBaseBelowMin",
+      reasonParams: { currentCm: 50, minCm: 60 },
+    });
+  });
+
+  it("leaves the integrated style available where the rules allow it at the restricted depth", () => {
+    expect(integratedAt({ rowMaterial: "Tekormud", depth: 46, sinkBaseWidth: 80 })).toEqual({
+      isAvailable: true,
+      maxCompatibleWidthCm: 200,
+    });
+  });
+
+  it("restricts nothing in a collection without fallbacks", () => {
+    const profile = withRuleData({ countertopFallbacks: undefined });
+
+    expect(integratedAt({ rowMaterial: "Tekormud", depth: 46, sinkBaseWidth: 50, profile })).toMatchObject({
+      reasonCode: "countertop.sinkBaseBelowMin",
+    });
   });
 });
 

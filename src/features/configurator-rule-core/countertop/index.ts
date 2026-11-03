@@ -3,6 +3,10 @@ export * from "./parse";
 export * from "./thicknessCapabilities";
 export * from "./rules";
 export * from "./sizeFilters";
+export {
+  isIntegratedCountertopDepthRestrictedByBasin,
+  isIntegratedCountertopDepthRestrictedByMaterial,
+} from "./integratedDepthRestrictions";
 export * from "./lengthLimits";
 export * from "./compositionConstraints";
 export * from "./cabinetRows";

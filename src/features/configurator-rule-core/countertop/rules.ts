@@ -2,6 +2,7 @@ import type { CountertopMatrixRule } from "./types";
 import type { MessageParams, ProductProfile } from "@/entities/collection";
 import { selectMessageOr } from "@/entities/collection";
 import { cmToInches } from "@/shared/lib/sku";
+import { isIntegratedCountertopDepthRestrictedByMaterial } from "./integratedDepthRestrictions";
 import {
   normalizeBasinKey,
   materialMatchesRule,
@@ -103,6 +104,7 @@ export const REASON_COUNTERTOP_SINK_BASE_BELOW_MIN = "countertop.sinkBaseBelowMi
 export const REASON_COUNTERTOP_SINK_BASE_WIDTH_NOT_ALLOWED = "countertop.sinkBaseWidthNotAllowed";
 export const REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN = "countertop.vesselSinkBaseMin";
 export const REASON_COUNTERTOP_MATERIAL_NOT_AVAILABLE_FOR_SELECTION = "countertop.materialNotAvailableForSelection";
+export const REASON_COUNTERTOP_INTEGRATED_DEPTH_RESTRICTED = "countertop.integratedDepthRestricted";
 
 /**
  * Builds a reason from its code. The text comes from the collection's `messages`; the
@@ -158,6 +160,14 @@ const vesselSinkBaseMinReason = (profile: ProductProfile | null | undefined, min
     REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN,
     `Not available for selected sink base cabinet width. Minimum width required ${minWidth}cm (${cmToInches(minWidth)}")`,
     { minCm: minWidth, minIn: cmToInches(minWidth) },
+  );
+
+const integratedDepthRestrictedReason = (profile: ProductProfile | null | undefined, depth: number) =>
+  ruleReason(
+    profile,
+    REASON_COUNTERTOP_INTEGRATED_DEPTH_RESTRICTED,
+    `Integrated basin style not available for ${depth}cm (${cmToInches(depth)}") depth configurations`,
+    { depthCm: depth, depthIn: cmToInches(depth) },
   );
 
 const totalWidthAboveMaxReason = (profile: ProductProfile | null | undefined, currentWidth: number, maxWidth: number) =>
@@ -331,8 +341,23 @@ export const buildCountertopRuleState = ({
   const allowedBasinTokens = new Set<string>();
   const allowedBasinKeys = new Set<string>();
   const allowedFaucetHoles = new Set<string>();
+  // At a depth the collection restricts for the active material, a refused integrated style names that depth
+  // rather than the rule that refused it; the verdict and its maximum stay the rules' own.
+  const integratedDepthRefusal =
+    depth !== null &&
+    isIntegratedCountertopDepthRestrictedByMaterial({ activeMaterialTokens, depth, profile: profile ?? null })
+      ? integratedDepthRestrictedReason(profile, depth)
+      : null;
+  const withIntegratedDepthRefusal = (availability: CountertopStyleAvailability): CountertopStyleAvailability =>
+    availability.isAvailable || !integratedDepthRefusal
+      ? availability
+      : { isAvailable: false, maxCompatibleWidthCm: availability.maxCompatibleWidthCm, ...integratedDepthRefusal };
   const styleAvailability: Record<CountertopStyleKey, CountertopStyleAvailability> = {
-    integrated: { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) },
+    integrated: withIntegratedDepthRefusal({
+      isAvailable: false,
+      maxCompatibleWidthCm: null,
+      ...styleUnavailableReason(profile),
+    }),
     vessel: { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) },
     undermount: { isAvailable: false, maxCompatibleWidthCm: null, ...styleUnavailableReason(profile) },
   };
@@ -595,7 +620,7 @@ export const buildCountertopRuleState = ({
     };
   };
 
-  styleAvailability.integrated = buildStyleAvailabilityState("integrated");
+  styleAvailability.integrated = withIntegratedDepthRefusal(buildStyleAvailabilityState("integrated"));
   styleAvailability.vessel = buildStyleAvailabilityState("vessel");
   styleAvailability.undermount = buildStyleAvailabilityState("undermount");
 
