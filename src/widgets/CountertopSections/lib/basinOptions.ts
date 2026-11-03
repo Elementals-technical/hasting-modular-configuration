@@ -37,13 +37,7 @@ export const resolveVesselBasinOptions = (
     .map((option) =>
       vesselSinkAvailability.isAvailable
         ? option
-        : {
-            ...option,
-            isAvailable: false,
-            disabledReason: vesselSinkAvailability.disabledReason,
-            disabledReasonCode: vesselSinkAvailability.reasonCode,
-            disabledReasonParams: vesselSinkAvailability.reasonParams,
-          },
+        : { ...option, isAvailable: false, disabledReason: vesselSinkAvailability.disabledReason },
     );
   return [VESSEL_SINK_NONE_OPTION, ...vessels];
 };

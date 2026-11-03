@@ -82,6 +82,15 @@ const useAllowedFaucetHoles = (allowedFaucetHoles: CountertopRuleState["allowedF
 
 const COUNTERTOP_STYLES = ["integrated", "vessel"] as const;
 
+// A style's refusal in the field's terms, for the field and for the style's own option.
+const toStyleRefusalReason = (
+  availability: CountertopRuleState["styleAvailability"][(typeof COUNTERTOP_STYLES)[number]] | undefined,
+): Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> => ({
+  reason: availability?.disabledReason,
+  reasonCode: availability?.reasonCode,
+  reasonParams: availability?.reasonParams,
+});
+
 // The styles the matrix allows for the current colour and sizes. Each refused style says its own reason: the two
 // can be refused for different minimums of the Sink Base. The field's reason is the first refused style's.
 const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRuleState): FieldAvailability => {
@@ -93,17 +102,9 @@ const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRul
     optionReason: ({ value }) => {
       const style = COUNTERTOP_STYLES.find((key) => key === value);
       const availability = style ? styleAvailability[style] : undefined;
-      return availability && !availability.isAvailable
-        ? {
-            reason: availability.disabledReason,
-            reasonCode: availability.reasonCode,
-            reasonParams: availability.reasonParams,
-          }
-        : undefined;
+      return availability && !availability.isAvailable ? toStyleRefusalReason(availability) : undefined;
     },
-    reason: refused?.disabledReason,
-    reasonCode: refused?.reasonCode,
-    reasonParams: refused?.reasonParams,
+    ...toStyleRefusalReason(refused),
   };
 };
 

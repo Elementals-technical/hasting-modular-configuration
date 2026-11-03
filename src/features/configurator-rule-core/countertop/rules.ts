@@ -438,9 +438,7 @@ export const buildCountertopRuleState = ({
 
   // A vessel basin needs a sink base of at least the table's vessel minimum. Below it the vessel style is
   // refused as well: the cutout would be priced with no basin it could hold.
-  const vesselSinkRules = getThicknessScopedRulesForStyle("vessel").filter((rule) =>
-    matchesDepthForStyle(rule, depth, "vessel"),
-  );
+  const vesselSinkRules = getThicknessScopedRulesForStyle("vessel");
   const vesselSinkMinWidth = vesselSinkRules
     .map((rule) => rule.minVesselCm)
     .filter((value): value is number => value !== null)
@@ -448,11 +446,11 @@ export const buildCountertopRuleState = ({
       (currentMin, value) => (currentMin === null || value < currentMin ? value : currentMin),
       null,
     );
-  const currentSinkBaseWidth = integratedWidthContext.sinkBaseWidth;
+  const vesselSinkBaseWidth = integratedWidthContext.sinkBaseWidth;
   const vesselSinkBaseRefusal =
-    typeof currentSinkBaseWidth === "number" &&
+    typeof vesselSinkBaseWidth === "number" &&
     vesselSinkMinWidth !== null &&
-    !vesselSinkRules.some((rule) => isRuleWidthEligibleForVesselSinkContext(rule, currentSinkBaseWidth))
+    !vesselSinkRules.some((rule) => isRuleWidthEligibleForVesselSinkContext(rule, vesselSinkBaseWidth))
       ? vesselSinkBaseMinReason(profile, vesselSinkMinWidth)
       : null;
 
@@ -588,18 +586,11 @@ export const buildCountertopRuleState = ({
   styleAvailability.vessel = buildStyleAvailabilityState("vessel");
   styleAvailability.undermount = buildStyleAvailabilityState("undermount");
 
-  if (vesselSinkBaseRefusal) {
-    vesselSinkAvailability = {
-      isAvailable: false,
-      minSinkBaseWidthCm: vesselSinkMinWidth,
-      ...vesselSinkBaseRefusal,
-    };
-  } else {
-    vesselSinkAvailability = {
-      isAvailable: true,
-      minSinkBaseWidthCm: vesselSinkMinWidth,
-    };
-  }
+  vesselSinkAvailability = {
+    isAvailable: !vesselSinkBaseRefusal,
+    minSinkBaseWidthCm: vesselSinkMinWidth,
+    ...vesselSinkBaseRefusal,
+  };
 
   const faucetHoleRules = scopeCountertopRulesByBasinStyle(
     thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules,
