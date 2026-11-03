@@ -12,8 +12,7 @@ import {
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
 } from "./parse";
-
-const WIDTH_EPSILON = 0.01;
+import { isRuleWidthEligibleForVesselSinkContext } from "./rules";
 
 const toNumericDimension = (value: string | number): number | null => {
   if (typeof value === "number") {
@@ -97,9 +96,7 @@ export const isCountertopRuleWidthAllowed = ({
     style === "vessel" && context === "sink-base" && isVesselBasin(profile, activeBasinStyle);
 
   if (isIntegratedSinkBaseContext && rule.minSbCm !== null && width < rule.minSbCm) return false;
-  if (isActiveVesselSinkBaseContext && rule.minVesselCm !== null && width + WIDTH_EPSILON < rule.minVesselCm) {
-    return false;
-  }
+  if (isActiveVesselSinkBaseContext && !isRuleWidthEligibleForVesselSinkContext(rule, width)) return false;
 
   const maxLimits = getCountertopRuleMaxWidthsForStyle(rule, style);
   if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;

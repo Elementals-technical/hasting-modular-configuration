@@ -16,7 +16,7 @@ import ulhProfileDocument from "../../../../../public/collections/urban-low-heig
 import { resolveCountertopCabinetCompositionConstraint } from "../compositionConstraints";
 import { evaluateCountertopMaterial } from "../materialAvailability";
 import { getMaterialAliases, materialMatchesRule, parseCountertopMatrix } from "../parse";
-import { buildCountertopRuleState } from "../rules";
+import { buildCountertopRuleState, resolveDefaultThicknessFromRules } from "../rules";
 import {
   isIntegratedCountertopDepthRestrictedByBasin,
   isIntegratedCountertopDepthRestrictedByMaterial,
@@ -28,6 +28,8 @@ import {
   isPreferredVesselFinish,
   isVisibleVesselSinkStyle,
 } from "../vesselCompatibility";
+
+import type { CountertopMatrixRule } from "../types";
 
 /**
  * Countertop product rules on the USH profile must behave as the constants they replaced did:
@@ -491,5 +493,123 @@ describe("the vessel style on a narrow Sink Base", () => {
       isAvailable: true,
       maxCompatibleWidthCm: 270,
     });
+  });
+
+  it("keeps the vessel-basin verdict on a 70 and an 80 cm Sink Base", () => {
+    expect(ruleStateAt(70).vesselSinkAvailability).toEqual({
+      isAvailable: false,
+      minSinkBaseWidthCm: 80,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: { minCm: 80, minIn: "31.5" },
+      disabledReason: 'Not available for selected sink base cabinet width. Minimum width required 80cm (31.5")',
+    });
+    expect(ruleStateAt(80).vesselSinkAvailability).toEqual({ isAvailable: true, minSinkBaseWidthCm: 80 });
+  });
+
+  const vesselStateAt = (sinkBaseWidth: number) =>
+    buildCountertopRuleState({
+      rules,
+      activeMaterialTokens: ["HPL"],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth: sinkBaseWidth,
+      depth: 50,
+      activeCountertopStyle: "vessel",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile: ulhProfile,
+    });
+
+  it("offers no thickness under a vessel top below the vessel minimum, and the table's from it", () => {
+    expect([...vesselStateAt(70).allowedThicknesses]).toEqual([]);
+    expect([...vesselStateAt(80).allowedThicknesses].sort((left, right) => left - right)).toEqual([0.5, 4, 5.125]);
+  });
+
+  it("gives a vessel top no default thickness below the vessel minimum", () => {
+    const defaultAt = (width: number) =>
+      resolveDefaultThicknessFromRules({
+        rules,
+        activeMaterialTokens: ["HPL"],
+        depth: 50,
+        activeCountertopStyle: "vessel",
+        width,
+        profile: ulhProfile,
+      });
+
+    expect(defaultAt(70)).toBe(null);
+    expect(defaultAt(80)).toBe("0.5");
+  });
+});
+
+// Rows whose vessel minimums differ: a vessel top takes only the rows its Sink Base reaches, for its thickness as
+// for its maximum width.
+describe("the vessel style judged by the rows its Sink Base reaches", () => {
+  const vesselRow = (row: Partial<CountertopMatrixRule>): CountertopMatrixRule => ({
+    material: "HPL",
+    topThicknesses: [],
+    depths: [],
+    depthsByStyle: {},
+    basinStyle: "",
+    minSbCm: null,
+    minVesselCm: null,
+    maxIntegratedCm: null,
+    maxVesselCm: null,
+    maxUndermountCm: null,
+    faucetHoles: [],
+    depthOnlyCm: [],
+    allowedFinishes: [],
+    allowMultiCabinet: null,
+    sidePanelsAction: null,
+    integratedAllowedSizesOnly: [],
+    ...row,
+  });
+  // A thin top from a 60 cm Sink Base up to 200 cm, a 4" one from 80 cm up to 270 cm.
+  const rules = [
+    vesselRow({ topThicknesses: ["1/2"], minVesselCm: 60, maxVesselCm: 200 }),
+    vesselRow({ topThicknesses: ["4"], minVesselCm: 80, maxVesselCm: 270 }),
+  ];
+  const vesselStateAt = (sinkBaseWidth: number, totalWidth = sinkBaseWidth) =>
+    buildCountertopRuleState({
+      rules,
+      activeMaterialTokens: ["HPL"],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth,
+      depth: null,
+      activeCountertopStyle: "vessel",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile: ushProfile,
+    });
+
+  it("offers only the thicknesses of the rows the Sink Base reaches", () => {
+    expect([...vesselStateAt(70).allowedThicknesses]).toEqual([0.5]);
+    expect([...vesselStateAt(80).allowedThicknesses].sort((left, right) => left - right)).toEqual([0.5, 4]);
+  });
+
+  it("takes the maximum width from the rows the Sink Base reaches", () => {
+    expect(vesselStateAt(70).styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 200 });
+    expect(vesselStateAt(80).styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 270 });
+  });
+
+  it("refuses a vessel top wider than the reachable rows allow, with their maximum", () => {
+    expect(vesselStateAt(70, 240).styleAvailability.vessel).toMatchObject({
+      isAvailable: false,
+      maxCompatibleWidthCm: 200,
+      reasonCode: "countertop.maxCompatibleWidth",
+      reasonParams: { maxCm: 200 },
+    });
+    expect(vesselStateAt(80, 240).styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 270 });
+  });
+
+  it("names the vessel minimum below every row's, with the maximum of all rows", () => {
+    expect(vesselStateAt(50).styleAvailability.vessel).toMatchObject({
+      isAvailable: false,
+      maxCompatibleWidthCm: 270,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: { minCm: 60 },
+    });
+    expect(vesselStateAt(50).vesselSinkAvailability).toMatchObject({ isAvailable: false, minSinkBaseWidthCm: 60 });
+    expect(vesselStateAt(70).vesselSinkAvailability).toEqual({ isAvailable: true, minSinkBaseWidthCm: 60 });
   });
 });
