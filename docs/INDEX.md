@@ -33,6 +33,8 @@ These links use the current portfolio layout; the maps live outside this Git rep
 
 ## Records
 
+- [`composition.importPreset` needs frames handoff, 2026-11-03](ai/qa/handoffs/HO-013-import-preset-needs-frames.md) — a restore never settles while the tab is unpainted, leaving the whole rule layer on zero cabinets; the command resumes the moment frames resume.
+
 - [`records/plans/`](records/plans/) — Closed PRDs kept as decision records; the live rule they produced lives in `ai/rules/*`. First entry: [Lucide icon unification](records/plans/2026-10-12-svg-icon-unification.prd.md) (closed 2026-10-12).
 
 - [Зведення проблем пресетів усіх п’яти колекцій, 31.10.2026](qa/preset-findings-2026-10-31/README.md) — компонування, суттєві та малі розміри, переходи й інші findings; для кожної спільної роботи вказано ефект за колекціями. [Окремий Multi-Level звіт](qa/preset-findings-2026-10-31/multi-level.md) — усі 11 ULH/UD моделей, client matching, rules і статуси.
