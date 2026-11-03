@@ -54,6 +54,22 @@ describe("plus placement", () => {
     expect(shown(plusFilterFor("Sink-Base", typeOf, { columns: true }))).not.toContain("bottom");
   });
 
+  it("offers a '+' at a joint to an ordinary cabinet, and to none that stands at an end", () => {
+    const atJoint: ScenePlus = {
+      id: "left:UD-side-cabinet-1",
+      kind: "left",
+      cabinetId: "UD-side-cabinet-1",
+      joint: true,
+    };
+
+    expect(plusFilterFor("Sink-Cabinet", typeOf, { columns: false })(atJoint)).toBe(true);
+    // A short cabinet (`endOnly`) and a side shelf stand at an end: between two cabinets they would not.
+    expect(plusFilterFor("Sink-Cabinet", typeOf, { columns: false, endOnly: true })(atJoint)).toBe(false);
+    expect(plusFilterFor("Side-Shelf", typeOf, { columns: false })(atJoint)).toBe(false);
+    // The row ends are unaffected by `endOnly`.
+    expect(shown(plusFilterFor("Sink-Cabinet", typeOf, { columns: false, endOnly: true }))).toEqual(["left", "right"]);
+  });
+
   it("also hides a '+' whose row has no room, and never shows one the placement rules hide", () => {
     const onlyBottom = (candidate: ScenePlus) => candidate.kind === "bottom" || candidate.kind === "top";
 

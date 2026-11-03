@@ -18,20 +18,24 @@ Product rules the code encodes (Andriy, 13.10.2026):
   stands on the floor (`full`). The first cabinet of a row is therefore a `top` when it is low.
 - **R2** — a shifted column (`bottomOffsetM ≠ 0`) is made only by drag & drop; "+" adds aligned; presets reproduce
   what was saved (`bottom.offsetX` in the compact preset).
+- **Reposition** ("Move Left" / "Move Right", `CompositionManager.swapProducts` → `reflow(…, 'swap', …)`) trades two
+  PLACES of one row, so the row packs again from `leftM` and everything right of the pair follows. Only places that
+  hold one cabinet, which is every place of a row without columns (Andriy 03.11). A column, the two cabinets of one
+  place and a pair in two rows are refused with `COLUMN_SWAP_UNSUPPORTED`: how a column moves is still open.
 - A column is not a second tier: the placement kernel (`../kernel/placement-checks.mjs`) counts a place once.
 
 ## Modules
 
 | File | Role | Called by |
 |---|---|---|
-| `cabinet-columns.mjs` | The engine: `layoutColumnRow` (X/Y of every member), `columnRowFromBoxes` (boxes → row; a pair is a column only when the upper stands on the lower on the row level, else it throws and callers read one row per cabinet), `insertPlace` / `addToColumn` / `removeCabinet` / `findCabinetPlace`, R1 (`isLowerThanTier`, `placeForHeight`), `boxFromPivot`, `columnSlotFor` | `../adapters/cabinet-columns-layout.mjs`, `../compact-preset.mjs`, `../placement-slots.mjs`, the runtime |
+| `cabinet-columns.mjs` | The engine: `layoutColumnRow` (X/Y of every member), `columnRowFromBoxes` (boxes → row; a pair is a column only when the upper stands on the lower on the row level, else it throws and callers read one row per cabinet), `insertPlace` / `addToColumn` / `removeCabinet` / `findCabinetPlace` / `swapPlaces` (with `placeSwapRefusal`), R1 (`isLowerThanTier`, `placeForHeight`), `boxFromPivot`, `columnSlotFor` | `../adapters/cabinet-columns-layout.mjs`, `../compact-preset.mjs`, `../placement-slots.mjs`, the runtime |
 | `connect-points.mjs` | A **connect point** is one X face of one node with its Y range (`{ xM, side, node, yMinM, yMaxM }`). Faces of a box are its edges; a cabinet may carry extra faces (the Duplex handle panels). `alignments` / `nearestAlignment` pair a draft face with a target face. | `column-snap.mjs`, `../adapters/connect-points-adapter.mjs` |
 | `column-snap.mjs` | Where a dragged cabinet lands: within 3 cm (`COLUMN_SNAP_M`) of a free column slot (centred, on a panel face, or shifted when it rests on ≥ 10 cm — `MIN_OVERLAP_M`), a row end (hanging or on the floor, face to face with the end cabinet's panels when they overlap in Y) or the floor. Returns `{ positionM, kind }`. | runtime `snappedIntoColumn` (every `updateDraft`) |
 | `column-plus-anchors.mjs` | The "+" buttons of column rows: kinds `left` / `right` (row ends), `top` / `bottom` (free slots), `left-top` / `right-top`; each probed against obstacles. | `scene-manager._setColumnPlusButtons` |
 
 Related, outside this folder: `../placement-slots.mjs` (the options `getPlacementOptions` returns, with the same kinds),
 `../compact-preset.mjs` (format `urban-compact-v2`, `{ top, bottom: { …, offsetX } }`), `../adapters/cabinet-columns-layout.mjs`
-(the layout policy, Apply after a drag, "+" placement, support groups `~under`), `../adapters/connect-points-adapter.mjs`
+(the layout policy, Apply after a drag, "+" placement, support groups `~under`, the Reposition swap guard `assertColumnSwap`), `../adapters/connect-points-adapter.mjs`
 (measures the named nodes on the live entity through an injected `bounds`).
 
 ## Boxes: two sources, on purpose

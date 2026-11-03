@@ -6,11 +6,18 @@ import { sideShelvesAtRowEnds, wallAfterDraft, type WallCabinet } from "../lib/s
 
 const SHELF = "UD-open-shelves-side";
 const isSideShelf = (definitionId: string) => definitionId === SHELF;
-const cabinet = (id: string, centreXM: number, widthCm: number, definitionId = "UD-side-cabinet"): WallCabinet => ({
+const cabinet = (
+  id: string,
+  centreXM: number,
+  widthCm: number,
+  definitionId = "UD-side-cabinet",
+  levelYM = 0,
+): WallCabinet => ({
   id,
   definitionId,
   centreXM,
   widthCm,
+  levelYM,
 });
 
 describe("side shelves at row ends", () => {
@@ -46,8 +53,8 @@ describe("side shelves at row ends", () => {
   it("reads the composition a draft would leave: the moved cabinet at its draft place", () => {
     const state: CabinetsState = {
       cabinets: [
-        { id: "a", definitionId: "UD-sink-cabinet", selection: { Width: 60 }, positionM: { x: 0.3, y: 0, z: 0 } },
-        { id: "shelf", definitionId: SHELF, selection: { Width: 15 }, positionM: { x: 0.6755, y: 0, z: 0 } },
+        { id: "a", definitionId: "UD-sink-cabinet", selection: { Width: 60 }, positionM: { x: 0.3, y: 0.56, z: 0 } },
+        { id: "shelf", definitionId: SHELF, selection: { Width: 15 }, positionM: { x: 0.6755, y: 0.56, z: 0 } },
       ],
       connections: [],
       selectedCabinetId: null,
@@ -64,13 +71,14 @@ describe("side shelves at row ends", () => {
         definitionId: SHELF,
         selection: { Width: 15 },
         productId: "shelf",
-        effectivePlacement: { positionM: { x: 0.3, y: 0, z: 0 } },
+        effectivePlacement: { positionM: { x: 0.3, y: 0.56, z: 0 } },
       },
     } satisfies CabinetDraftState;
 
     const wall = wallAfterDraft(state, move);
 
-    expect(wall).toEqual([cabinet("a", 0.3, 60, "UD-sink-cabinet"), cabinet("shelf", 0.3, 15, SHELF)]);
+    // The level of each cabinet comes with it, so the rows of a multi-level composition stay apart.
+    expect(wall).toEqual([cabinet("a", 0.3, 60, "UD-sink-cabinet", 0.56), cabinet("shelf", 0.3, 15, SHELF, 0.56)]);
     expect(wall && sideShelvesAtRowEnds(wall, isSideShelf)).toBe(false);
     expect(wallAfterDraft(state, { ...move, candidate: { ...move.candidate, selection: {} } })).toBeNull();
   });

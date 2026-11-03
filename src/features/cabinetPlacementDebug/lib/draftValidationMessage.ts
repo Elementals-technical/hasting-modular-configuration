@@ -7,6 +7,7 @@ export const DRAFT_HINTS = {
   belowFloor: "This cabinet goes below the floor. Move it up to apply.",
   generic: "This position is not valid. Move the cabinet to apply.",
   sideShelfAtRowEnd: "A side shelf stands at an end of the row. Move it to an end to apply.",
+  sinkBasesInOneRow: "All sink bases must be in one row.",
   /** Prefix for a placement the engine cannot decide yet (an open product question). */
   unsupported: "Awaiting a product decision: ",
   pending: "Checking this position…",
