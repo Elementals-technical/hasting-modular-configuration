@@ -1,0 +1,13 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "isolated": true,
+    "launchOptions": {
+      "headless": true,
+      "args": ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist"]
+    },
+    "contextOptions": {
+      "viewport": { "width": 1440, "height": 900 }
+    }
+  }
+}

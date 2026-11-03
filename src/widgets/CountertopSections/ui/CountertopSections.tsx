@@ -216,11 +216,13 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
         );
 
       case "CountertopStyle":
+        // The stored style may be in the scene's spelling ("Integrated"): it is marked as the option the basins
+        // follow, matched case-insensitively.
         return (
           <FieldControl
             key={definition.attributeId}
             control={definition.control}
-            field={{ ...field, value: basinState.activeStyleValue, options: basinState.styleOptions }}
+            field={{ ...field, value: basinState.activeStyleValue }}
             onChange={(value) => void changeCountertopStyle(value)}
           />
         );

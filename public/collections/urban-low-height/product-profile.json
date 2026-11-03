@@ -585,6 +585,7 @@
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
     "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
     "countertop.materialNotAvailableOffSinkBase": "Not available when the basin is not over a sink base",
+    "countertop.vesselSinkBaseMin": "Not available for selected sink base cabinet width. Minimum width required {minCm}cm ({minIn}\")",
     "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {

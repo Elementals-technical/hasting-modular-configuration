@@ -1,19 +1,21 @@
 import type { ProductProfile } from "@/entities/collection";
-import { isVesselBasin, selectRuleData } from "@/entities/collection";
+import { isVesselBasin } from "@/entities/collection";
 
 import type { CountertopMatrixRule } from "./types";
+import {
+  isIntegratedCountertopDepthRestrictedByBasin,
+  isIntegratedCountertopDepthRestrictedByMaterial,
+} from "./integratedDepthRestrictions";
 import {
   getCountertopRuleDepthsForStyle,
   materialMatchesRule,
   selectMaterialAliasTable,
   matchesDepthForStyle,
   normalizeBasinKey,
-  normalizeMaterialToken,
   parseThicknessValue,
   scopeCountertopRulesByBasinStyle,
 } from "./parse";
-
-const WIDTH_EPSILON = 0.01;
+import { isRuleWidthEligibleForVesselSinkContext } from "./rules";
 
 const toNumericDimension = (value: string | number): number | null => {
   if (typeof value === "number") {
@@ -97,9 +99,7 @@ export const isCountertopRuleWidthAllowed = ({
     style === "vessel" && context === "sink-base" && isVesselBasin(profile, activeBasinStyle);
 
   if (isIntegratedSinkBaseContext && rule.minSbCm !== null && width < rule.minSbCm) return false;
-  if (isActiveVesselSinkBaseContext && rule.minVesselCm !== null && width + WIDTH_EPSILON < rule.minVesselCm) {
-    return false;
-  }
+  if (isActiveVesselSinkBaseContext && !isRuleWidthEligibleForVesselSinkContext(rule, width)) return false;
 
   const maxLimits = getCountertopRuleMaxWidthsForStyle(rule, style);
   if (maxLimits.length > 0 && !maxLimits.some((limit) => width <= limit)) return false;
@@ -199,49 +199,6 @@ type FilterDepthValuesParams = {
 type FilterThicknessValuesParams = {
   values: Array<string | number>;
   allowedThicknesses: Set<number>;
-};
-
-/**
- * Integrated-countertop depths the collection restricts for some materials and basins when the
- * countertop table lists no depths (`ruleData.countertopFallbacks`). Without that section nothing
- * is restricted.
- */
-const isRestrictedIntegratedDepth = (depth: number | null, profile: ProductProfile | null): depth is number => {
-  if (depth === null || !Number.isFinite(depth)) return false;
-
-  const restrictedDepths = selectRuleData(profile, "countertopFallbacks")?.restrictedIntegratedDepthsCm ?? [];
-  return restrictedDepths.some((restrictedDepth) => Math.abs(restrictedDepth - depth) < 0.01);
-};
-
-export const isIntegratedCountertopDepthRestrictedByMaterial = ({
-  activeMaterialTokens,
-  depth,
-  profile,
-}: {
-  activeMaterialTokens: string[];
-  depth: number | null;
-  profile: ProductProfile | null;
-}): boolean => {
-  if (!isRestrictedIntegratedDepth(depth, profile)) return false;
-
-  const restrictedMaterials = selectRuleData(profile, "countertopFallbacks")?.restrictedIntegratedMaterialTokens ?? [];
-  return activeMaterialTokens.some((token) => restrictedMaterials.includes(normalizeMaterialToken(token)));
-};
-
-export const isIntegratedCountertopDepthRestrictedByBasin = ({
-  activeBasinStyle,
-  depth,
-  profile,
-}: {
-  activeBasinStyle?: string | null;
-  depth: number | null;
-  profile: ProductProfile | null;
-}): boolean => {
-  if (!isRestrictedIntegratedDepth(depth, profile)) return false;
-  if (!activeBasinStyle) return false;
-
-  const restrictedBasins = selectRuleData(profile, "countertopFallbacks")?.restrictedIntegratedBasinKeys ?? [];
-  return restrictedBasins.includes(normalizeBasinKey(activeBasinStyle));
 };
 
 export const filterDepthValuesByCountertopRules = ({

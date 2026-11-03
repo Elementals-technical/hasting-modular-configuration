@@ -14,7 +14,6 @@ import {
 } from "@/entities/product/model/store/selectors";
 import { useCountertopRuleState } from "@/features/collectionCustomization";
 import {
-  isIntegratedCountertopDepthRestrictedByMaterial,
   REASON_SYNTESI_SINGLE_CABINET,
   REASON_VESSEL_COLOR_UNAVAILABLE,
   useCountertopLength,
@@ -55,16 +54,6 @@ export const useCountertopContext = () => {
   const sinkBaseDims = useSinkBaseDimensions(selectedProducts, useIsSinkBase());
   const { activeMaterialTokens, ...ruleState } = useCountertopRuleState();
 
-  const isDepth46VesselOnly = useMemo(
-    () =>
-      isIntegratedCountertopDepthRestrictedByMaterial({
-        activeMaterialTokens,
-        depth: sinkBaseDims.depth ?? selectedDimensions.depth ?? null,
-        profile: activeProfile,
-      }),
-    [activeMaterialTokens, activeProfile, selectedDimensions.depth, sinkBaseDims.depth],
-  );
-
   const messages = useMemo(
     () => ({
       size: selectMessageOr(activeProfile, REASON_MATERIAL_SIZE, FALLBACK_MATERIAL_SIZE),
@@ -96,7 +85,6 @@ export const useCountertopContext = () => {
     countertopRules,
     ruleState,
     activeMaterialTokens,
-    isDepth46VesselOnly,
     excludedMaterialFilterTokens:
       activeProfile?.ruleData.countertopFallbacks?.excludedMaterialFilterTokens ?? NO_EXCLUDED_MATERIAL_FILTERS,
     syntesiMaterial: activeProfile?.ruleData.syntesi?.material ?? null,

@@ -24,6 +24,12 @@ Runtime має 16 bound attributes, включно з handles, dimensions, cabin
 vessel, towel bar і countertop style. Cabinet types `Side-Cabinet` і `Sink-Cabinet` можуть обидва
 потрапляти в scene product `Sink-Cabinet`; це свідомий runtime mapping.
 
+Обидві секції стилю стільниці (`countertop-styles`, `countertop-style`) прив'язані до
+`CountertopStyle.allowed`, тож поле показує вердикт rule core, як в інших колекціях. USH не має
+`sink.hosted` і `ruleData.countertopCompatibility`, тому блокування за посадженим basin і обмеження
+integrated drawers тут не діють. Глибина 46 cm з обмеженим матеріалом вимикає Integrated з причиною
+`countertop.integratedDepthRestricted`.
+
 ## Pricing
 
 USH не має collection `sku-profile.json`. Його pricing працює через legacy

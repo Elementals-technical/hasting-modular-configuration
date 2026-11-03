@@ -59,16 +59,16 @@ public/collections/registry.json
 
 ## Матриця підключення
 
-| Product | `collectionId` | Configurator | Countertop DT | Cabinet DT | Presets | Presets with composition | SKU source |
-|---|---|---:|---:|---:|---:|---:|---|
-| USH | `urban-standard-height` | 4 | 438 | 439 | 54 | 54 | legacy mappings + code series |
-| ULH | `urban-low-height` | 10 | 589 | 580 | 59 | 53 | `sku-profile.json`, partial |
-| Class | `class` | 8 | 578 | 579 | 24 | 24 | `sku-profile.json`, partial |
-| Mako | `mako` | 9 | 577 | 581 | 42 | 42 | `sku-profile.json`, partial |
-| Urban Freestanding | `urban-freestanding` | 11 | 591 | 590 | 54 | 54 | `sku-profile.json`, partial |
-| Tricot | `tricot` | 12 | 593 | 592 | 41 | 41 | `sku-profile.json`, partial |
-| Urban Duplex | `urban-duplex` | 13 | 595 | 594 | 71 | 66 | `sku-profile.json`, partial |
-| Lame | `lame` | 14 | 597 | 596 | 43 | 43 | `sku-profile.json`, partial |
+| Product            | `collectionId`          | Configurator | Countertop DT | Cabinet DT | Presets | Presets with composition | SKU source                    |
+| ------------------ | ----------------------- | -----------: | ------------: | ---------: | ------: | -----------------------: | ----------------------------- |
+| USH                | `urban-standard-height` |            4 |           438 |        439 |      54 |                       54 | legacy mappings + code series |
+| ULH                | `urban-low-height`      |           10 |           589 |        580 |      59 |                       53 | `sku-profile.json`, partial   |
+| Class              | `class`                 |            8 |           578 |        579 |      24 |                       24 | `sku-profile.json`, partial   |
+| Mako               | `mako`                  |            9 |           577 |        581 |      42 |                       42 | `sku-profile.json`, partial   |
+| Urban Freestanding | `urban-freestanding`    |           11 |           591 |        590 |      54 |                       54 | `sku-profile.json`, partial   |
+| Tricot             | `tricot`                |           12 |           593 |        592 |      41 |                       41 | `sku-profile.json`, partial   |
+| Urban Duplex       | `urban-duplex`          |           13 |           595 |        594 |      71 |                       66 | `sku-profile.json`, partial   |
+| Lame               | `lame`                  |           14 |           597 |        596 |      43 |                       43 | `sku-profile.json`, partial   |
 
 USH читає configurator 4. ULH читала його до 2026-11-03, а правил USH не успадковувала: власний remote id
 цього не змінює.
@@ -82,16 +82,16 @@ Urban Duplex і Lame — material configurators 11–14 (`modular-config-phase-2
 
 ## Ролі файлів collection package
 
-| Файл | Відповідальність |
-|---|---|
-| `manifest.json` | Composition root: label, defaults, локальні файли та remote ids. |
-| `presets.json` | Model cards і `presetProducts`, які реально створюють композицію. |
-| `ui.json` | Prebuilt/custom flows, routes, sections, controls, image references. |
-| `product-profile.json` | Attribute catalog, aliases, defaults, capabilities, rule data, reason messages. |
-| `runtime-bindings.json` | Product type mapping і переклад attribute values у scene patches; `state-only` та `unbound` межі; `retiredSceneValues` — перейменований scene-токен, який збережені конфігурації ще містять, → значення, що його замінило. |
-| `sku-profile.json` | Data-driven SKU grammar для ULH/Class/Mako; `status: partial` і pricing gaps. |
-| `cabinet-sku-mappings.json` | Legacy USH SKU mappings. |
-| `static-options.json` / `navigation.json` | Legacy USH data; для нових колекцій відповідні дані вже походять з profile/UI. |
+| Файл                                      | Відповідальність                                                                                                                                                                                                           |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.json`                           | Composition root: label, defaults, локальні файли та remote ids.                                                                                                                                                           |
+| `presets.json`                            | Model cards і `presetProducts`, які реально створюють композицію.                                                                                                                                                          |
+| `ui.json`                                 | Prebuilt/custom flows, routes, sections, controls, image references.                                                                                                                                                       |
+| `product-profile.json`                    | Attribute catalog, aliases, defaults, capabilities, rule data, reason messages.                                                                                                                                            |
+| `runtime-bindings.json`                   | Product type mapping і переклад attribute values у scene patches; `state-only` та `unbound` межі; `retiredSceneValues` — перейменований scene-токен, який збережені конфігурації ще містять, → значення, що його замінило. |
+| `sku-profile.json`                        | Data-driven SKU grammar для ULH/Class/Mako; `status: partial` і pricing gaps.                                                                                                                                              |
+| `cabinet-sku-mappings.json`               | Legacy USH SKU mappings.                                                                                                                                                                                                   |
+| `static-options.json` / `navigation.json` | Legacy USH data; для нових колекцій відповідні дані вже походять з profile/UI.                                                                                                                                             |
 
 ## Необхідні перевірки при зміні продукту
 
