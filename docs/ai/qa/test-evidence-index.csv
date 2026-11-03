@@ -117,3 +117,11 @@ TC-ULH-ULH4-FIX,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-loca
 TC-UD-PRESET-FILTERS-BASELINE,PASS,docs/ai/qa/evidence/2026-11-02/TC-PRESET-FILTERS/after-local-urban-duplex/14-style-list.txt
 TC-ULH-CAB-010-RESIZE,PASS,docs/ai/qa/evidence/2026-11-02/TC-ULH-CAB-010-RESIZE/README.md
 TC-ULH-HISTORY-LAYOUT,FAIL,docs/ai/qa/evidence/2026-11-02/TC-ULH-CAB-010-RESIZE/05-undo-collapse-on-head-without-fix.png
+TC-UFS-UF18-REPRO,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-uf-desktop/result.json
+TC-UFS-UF18-REPRO,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-uf-desktop/03-hover-copper.png
+TC-UFS-UF18-REPRO,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-uf-mobile/01-towel-colours.png
+TC-UFS-UF18-REPRO,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/p98qb-uf-desktop/result.json
+TC-UFS-UF18-REPRO,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/component-check.txt
+TC-URBAN-UF18-SCOPE,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-ush-desktop/result.json
+TC-URBAN-UF18-SCOPE,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-ulh-desktop/result.json
+TC-URBAN-UF18-SCOPE,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-ud-desktop/result.json

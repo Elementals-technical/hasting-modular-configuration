@@ -20,7 +20,7 @@ import ulhUiDocument from "../../../../public/collections/urban-low-height/ui.js
 import { store } from "@/app/store";
 import { parseProductProfile, ReadyCollectionContext } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
+import { configurator10WithLacquerCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
@@ -111,7 +111,7 @@ const urbanLowHeight = readyCollectionOf(
   "urban-low-height",
   ulhManifestDocument,
   ulhUiDocument,
-  configurator4WithLiveCountertops,
+  configurator10WithLacquerCountertops,
   datatable589,
 );
 const mako = readyCollectionOf("mako", makoManifestDocument, makoUiDocument, configurator9, datatable577);
@@ -229,7 +229,7 @@ describe("the Urban Low Height countertop step keeps its thickness and basin on 
 });
 
 // Mako and Class stand 52 cm deep, the depth of their countertop tables.
-// Configurator 4 lists an MT lacquer twice under one value, as Tekorlux and as Glass MT, and table 589
+// A configurator can list an MT lacquer twice under one value, as Tekorlux and as Glass MT, and table 589
 // makes glass 50 cm deep only: the swatch picked decides the material, by the SKU recorded with it.
 describe("an Urban Low Height lacquer listed as Tekorlux and as Glass MT", () => {
   // As a placed model leaves it: the colour picked, the SKU still that of the model's own colour.

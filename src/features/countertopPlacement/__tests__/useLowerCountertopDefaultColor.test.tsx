@@ -12,7 +12,7 @@ import {
   ReadyCollectionContext,
 } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
+import configurator10 from "@/entities/collection/__tests__/fixtures/remote/configurator-10.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
 import { resetConfiguration, setActiveRuntimeBindings, setAttributeValue } from "@/entities/configuration";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
@@ -51,7 +51,7 @@ const collectionOf = (id: string, manifest: unknown, ui: unknown, skuDocument: u
   };
 };
 const DUPLEX = collectionOf("urban-duplex", duplexManifest, duplexUi, duplexSkuDocument, configurator13);
-const LOW_HEIGHT = collectionOf("urban-low-height", ulhManifest, ulhUi, ulhSkuDocument, configurator4);
+const LOW_HEIGHT = collectionOf("urban-low-height", ulhManifest, ulhUi, ulhSkuDocument, configurator10);
 const duplexProfile = parseProductProfile(duplexProfileDocument);
 if (!duplexProfile.ok) throw new Error("Invalid Urban Duplex profile");
 const ulhProfile = parseProductProfile(ulhProfileDocument);
@@ -191,7 +191,7 @@ describe("the Lower in the Upper's colours", () => {
     act(() => {
       store.dispatch(setActiveProfile(ulhProfile.profile));
     });
-    // Configurator 4's countertop colours here: Ardesia TKF and Brera Brown TKN.
+    // Configurator 10's countertop colours here: Ardesia TKF and Brera Brown TKN.
     record("CountertopColor", "countertop", "Ardesia TKF");
     render(LOW_HEIGHT);
     layCover();
