@@ -38,5 +38,6 @@ Python: use `/usr/bin/python3` on this Mac — Homebrew `python3` lacks `pyexpat
 | `node $S/validate-guidance.mjs` / `test-routing.mjs` / `test-tooling.mjs` / `qa-coverage.mjs` | see final report |
 | `gh api repos/Elementals-technical/hasting-data-modular-review/branches` | branch is `analysis/products-data` (not `analysis`); `contents/…?ref=<sha>` with `Accept: application/vnd.github.raw` fetches files read-only |
 | `curl -sI https://<staging>/collections/urban-low-height/sku-profile.json` | `cache-control: no-cache`, `last-modified: 1980` (HO-001) |
+| 2026-11-03: `REPO=<repo> OUT=<dir> RUNS='[{"label":"x","env":"staging","collection":"urban-freestanding"}]' node docs/ai/qa/evidence/2026-11-03/TC-UF-18/repro.cjs` | Playwright with the system Chrome (`channel: "chrome"`, temporary profile, non-GET blocked): no Playwright browser install and no Chrome approval; scene and price load with software WebGL. Firefox DevTools MCP on the same page: the accordion stayed visually closed, swatch clicks had no effect |
 
 zsh pitfalls met: `path` is tied to `PATH` (never use it as a variable); a bare `===` word is `=`-expanded (quote it); use `pipestatus`, not `PIPESTATUS`.

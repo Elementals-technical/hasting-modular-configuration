@@ -1,0 +1,73 @@
+{
+  "label": "staging-uf-desktop",
+  "host": "hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app",
+  "collection": "urban-freestanding",
+  "viewport": {
+    "width": 1600,
+    "height": 900
+  },
+  "steps": [
+    "walkthrough skipped",
+    "preset clicked: Urban Freestanding · 24_ 2-Drawer.png",
+    "price loaded: true",
+    "url: /prebuilt/accessories",
+    "Towel Bar: Left"
+  ],
+  "bundle": "index-CctCEjO9.js",
+  "preset": "Urban%20Freestanding%20%C2%B7%2024_%202-Drawer.png",
+  "priceLoaded": true,
+  "cards": [
+    {
+      "colour": "Bianco 0B MT",
+      "card": true,
+      "previewButton": true,
+      "visual": "hex",
+      "imageLoaded": null,
+      "materialClass": true,
+      "titleVisible": true,
+      "box": "148x148"
+    },
+    {
+      "colour": "Carbone 43 MT",
+      "card": true,
+      "previewButton": true,
+      "visual": "hex",
+      "imageLoaded": null,
+      "materialClass": true,
+      "titleVisible": true,
+      "box": "148x148"
+    },
+    {
+      "colour": "Metallizzato Copper M7 MT",
+      "card": true,
+      "previewButton": false,
+      "visual": "image",
+      "imageLoaded": true,
+      "materialClass": false,
+      "titleVisible": true,
+      "box": "148x148"
+    },
+    {
+      "colour": "Metallizzato Creta M6 MT",
+      "card": true,
+      "previewButton": false,
+      "visual": "image",
+      "imageLoaded": true,
+      "materialClass": false,
+      "titleVisible": true,
+      "box": "148x148"
+    },
+    {
+      "colour": "Nero 03 MT",
+      "card": true,
+      "previewButton": true,
+      "visual": "hex",
+      "imageLoaded": null,
+      "materialClass": true,
+      "titleVisible": true,
+      "box": "148x148"
+    }
+  ],
+  "blockedWrites": [],
+  "pageErrors": []
+}
