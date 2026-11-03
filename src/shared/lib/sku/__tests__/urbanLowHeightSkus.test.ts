@@ -3,13 +3,14 @@ import { describe, expect, it } from "vitest";
 import urbanLowHeightProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightSkuProfileDocument from "../../../../../public/collections/urban-low-height/sku-profile.json";
 
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
+import configurator10 from "@/entities/collection/__tests__/fixtures/remote/configurator-10.json";
 import { collectionSkuProfileSchema, parseProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
 
-import { buildCollectionCabinetSku, type CollectionValueReader } from "../buildCollectionSkus";
+import { buildCollectionCabinetSku, resolveCollectionColorCode, type CollectionValueReader } from "../buildCollectionSkus";
 import { createConfiguratorColorReader } from "../configuratorColors";
+import { extractColorCode } from "../extractColorCode";
 
 /**
  * Urban Low Height SKUs from its `sku-profile.json`. Each expected SKU is a form of the price
@@ -24,46 +25,11 @@ if (!parsed.ok) throw new Error("Urban Low Height profile failed validation");
 const profile = parsed.profile;
 const skuProfile = collectionSkuProfileSchema.parse(urbanLowHeightSkuProfileDocument);
 
-/** Cabinet colours of configurator 4 beyond the two 3D ones the frozen fixture keeps, as it carries them. */
-const CONFIGURATOR_4_CABINET_COLORS: readonly { value: string; sku: string; material: string }[] = [
-  { value: "Cemento Cenere 1A1", sku: "3D", material: "3D" },
-  { value: "Ardesia TKF", sku: "HPL", material: "HPL" },
-  { value: "Arancio Zucca 09 MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Bianco 0B MT", sku: "LACM", material: "Lacquered MT" },
-  { value: "Rosso Rubino 19 ST", sku: "ST", material: "Soft-Touch" },
-  { value: "Rovere Eucalipto 01A", sku: "ESS", material: "Essenze" },
-  { value: "Metal acciaio 2MA", sku: "BM", material: "Brushed Metal" },
-];
-
-const configurator: ConfiguratorGroupCatalog = (() => {
-  const groups = (configurator4.availableOptions as unknown as ConfiguratorAvailableOption[]).map((group) =>
-    group.proxyName === "Cabinet Color"
-      ? {
-          ...group,
-          options: [
-            ...group.options,
-            ...CONFIGURATOR_4_CABINET_COLORS.map(({ value, sku, material }, position) => ({
-              ...group.options[0],
-              id: 90_000 + position,
-              name: material,
-              variants: [
-                {
-                  id: 90_000 + position,
-                  name: value,
-                  image: null,
-                  enabled: true,
-                  description: "",
-                  metadata: { value, label: value, sku, Material: material },
-                },
-              ],
-            })),
-          ],
-        }
-      : group,
-  );
-
-  return { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) };
-})();
+const configuratorGroups = configurator10.availableOptions as unknown as ConfiguratorAvailableOption[];
+const configurator: ConfiguratorGroupCatalog = {
+  groups: configuratorGroups,
+  groupsByName: Object.fromEntries(configuratorGroups.map((group) => [group.proxyName, group])),
+};
 
 const readConfiguratorColor = createConfiguratorColorReader(profile, configurator);
 
@@ -102,8 +68,8 @@ describe("Urban Low Height cabinet SKU", () => {
     ).toBe("VAN-URLH-SB/1DW/PTO/X-35.4W-13.8H-19.7D-CAB-HPL-TKF");
   });
 
-  it("gives every groove colour of configurator 4 a material and a code", () => {
-    const grooveColors = configurator.groupsByName["Handle Groove Color"].options.flatMap(({ variants }) =>
+  it("gives every groove colour of configurator 10 a material and a code", () => {
+    const grooveColors = configurator.groupsByName["Select Handle Groove Color"].options.flatMap(({ variants }) =>
       variants.map(({ name }) => name),
     );
 
@@ -113,6 +79,35 @@ describe("Urban Low Height cabinet SKU", () => {
       expect(missing).toEqual([]);
       expect(sku).toMatch(/-HDL-[A-Z0-9]+-[A-Z0-9]+$/);
     });
+  });
+
+  /** The colours whose code differs from the one configurator 10 gives them, without its finish. */
+  const wrongCodes = (section: string, codeOf: (name: string) => string | null) =>
+    configurator.groupsByName[section].options.flatMap(({ variants }) =>
+      variants.flatMap(({ name, metadata }) => {
+        const given = metadata?.codeColor;
+        if (typeof given !== "string") return [];
+        const expected = given.split(" ")[0];
+        const code = codeOf(name);
+        return code === expected ? [] : [`${name}: ${code}, not ${expected}`];
+      }),
+    );
+
+  // The profile names some codes and the number in a colour's name gives the rest: only this keeps that honest.
+  it.each(["Select Cabinet Color", "Select Handle Groove Color", "Select Towel Bar Color"])(
+    "spells every colour of %s with the code configurator 10 gives it",
+    (section) => {
+      expect(wrongCodes(section, (name) => resolveCollectionColorCode(skuProfile, name))).toEqual([]);
+    },
+  );
+
+  // Priced as Urban Standard Height's, these read the code off the end of the name.
+  it("reads the code of every vessel colour of configurator 10 off its name", () => {
+    expect(wrongCodes("Select Vessel Color", extractColorCode)).toEqual([]);
+  });
+
+  it("reads the code of every countertop colour off its name but Matte White's, which ends in no code", () => {
+    expect(wrongCodes("Select Countertop Color", extractColorCode)).toEqual(["Matte White: White, not MW"]);
   });
 
   it("spells push-to-open and fluting, and the lacquer code without its finish", () => {

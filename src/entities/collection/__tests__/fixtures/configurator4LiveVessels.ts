@@ -1,4 +1,5 @@
 import configurator4 from "./remote/configurator-4.json";
+import configurator10 from "./remote/configurator-10.json";
 
 const variant = (id: number, name: string, sku: string, codeColor: string, metadata: Record<string, string> = {}) => ({
   id,
@@ -55,25 +56,27 @@ const lacquer = (id: number, name: string, sku: string, codeColor: string, mater
   variant(id, name, sku, codeColor, { Material: material, label: name, value: name });
 
 /**
- * Configurator 4 with lacquered countertop colours the recorded sample leaves out, as the live
- * configurator gives them (2026-09-30): an MT lacquer is listed twice under one value, as Tekorlux
- * (SSTKR) and as Glass MT (GLSM); a GL lacquer as Glass GL (GLSG).
+ * Configurator 10, Urban Low Height's own, with lacquered countertop colours of the kind configurator 4
+ * lists and it does not: an MT lacquer under one value as Tekorlux (SSTKR) and as Glass MT (GLSM), a GL
+ * lacquer as Glass GL (GLSG). No Urban Low Height user sees them; they keep table 589's rules for such
+ * colours covered.
  */
-export const configurator4WithLiveCountertops = {
-  ...configurator4WithLiveVessels,
-  availableOptions: configurator4WithLiveVessels.availableOptions.map((group) =>
-    group.proxyName === "Countertop Color"
+export const configurator10WithLacquerCountertops = {
+  ...configurator10,
+  availableOptions: configurator10.availableOptions.map((group) =>
+    group.proxyName === "Select Countertop Color"
       ? {
           ...group,
-          options: [
-            ...group.options,
-            option(289, "Tekorlux", [
-              lacquer(3094, "Agata BD MT", "SSTKR", "BD MT", "Lacquered MT"),
-              lacquer(3099, "Bianco 0B MT", "SSTKR", "0B MT", "Lacquered MT"),
-            ]),
-            option(290, "Glass MT", [lacquer(3153, "Bianco 0B MT", "GLSM", "0B MT", "Lacquered MT")]),
-            option(291, "Glass GL", [lacquer(3211, "Bianco 0B GL", "GLSG", "0B GL", "Lacquered GL")]),
-          ],
+          options: group.options.map((countertopOption) => ({
+            ...countertopOption,
+            variants: [
+              ...countertopOption.variants,
+              lacquer(90_094, "Agata BD MT", "SSTKR", "BD MT", "Tekorlux"),
+              lacquer(90_099, "Bianco 0B MT", "SSTKR", "0B MT", "Tekorlux"),
+              lacquer(90_153, "Bianco 0B MT", "GLSM", "0B MT", "Glass MT"),
+              lacquer(90_211, "Bianco 0B GL", "GLSG", "0B GL", "Glass GL"),
+            ],
+          })),
         }
       : group,
   ),

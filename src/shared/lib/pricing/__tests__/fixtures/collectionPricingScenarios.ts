@@ -11,7 +11,7 @@ import urbanDuplexSkuProfileDocument from "../../../../../../public/collections/
 import urbanLowHeightProfileDocument from "../../../../../../public/collections/urban-low-height/product-profile.json";
 import urbanLowHeightSkuProfileDocument from "../../../../../../public/collections/urban-low-height/sku-profile.json";
 
-import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
+import configurator10 from "@/entities/collection/__tests__/fixtures/remote/configurator-10.json";
 import configurator8 from "@/entities/collection/__tests__/fixtures/remote/configurator-8.json";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import configurator11 from "@/entities/collection/__tests__/fixtures/remote/configurator-11.json";
@@ -89,15 +89,15 @@ export const LAME = {
   cabinetCatalog: buildCabinetCatalogFromMatrix(cabinetTable596 as ProductDatatable, lameProfile),
 };
 
-/** Configurator 4: the colours Urban Low Height shares with Urban Standard Height. */
-const configurator4Groups = configurator4.availableOptions as unknown as ConfiguratorAvailableOption[];
+/** Configurator 10, Urban Low Height's own. */
+const configurator10Groups = configurator10.availableOptions as unknown as ConfiguratorAvailableOption[];
 
 export const URBAN_LOW_HEIGHT = {
   profile: parseProfile(urbanLowHeightProfileDocument),
   skuProfile: collectionSkuProfileSchema.parse(urbanLowHeightSkuProfileDocument),
   configurator: {
-    groups: configurator4Groups,
-    groupsByName: Object.fromEntries(configurator4Groups.map((group) => [group.proxyName, group])),
+    groups: configurator10Groups,
+    groupsByName: Object.fromEntries(configurator10Groups.map((group) => [group.proxyName, group])),
   },
 };
 

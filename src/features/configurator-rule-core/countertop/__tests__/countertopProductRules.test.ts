@@ -14,13 +14,13 @@ import { countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import ulhProfileDocument from "../../../../../public/collections/urban-low-height/product-profile.json";
 
 import { resolveCountertopCabinetCompositionConstraint } from "../compositionConstraints";
-import { evaluateCountertopMaterial } from "../materialAvailability";
-import { getMaterialAliases, materialMatchesRule, parseCountertopMatrix } from "../parse";
-import { buildCountertopRuleState } from "../rules";
 import {
   isIntegratedCountertopDepthRestrictedByBasin,
   isIntegratedCountertopDepthRestrictedByMaterial,
-} from "../sizeFilters";
+} from "../integratedDepthRestrictions";
+import { evaluateCountertopMaterial } from "../materialAvailability";
+import { getMaterialAliases, materialMatchesRule, parseCountertopMatrix } from "../parse";
+import { buildCountertopRuleState, resolveDefaultThicknessFromRules } from "../rules";
 import { findSyntesiCountertopUiValue, isSyntesiCountertopMaterialSku } from "../syntesiOptions";
 import {
   getAllowedVesselMaterialTokens,
@@ -28,6 +28,8 @@ import {
   isPreferredVesselFinish,
   isVisibleVesselSinkStyle,
 } from "../vesselCompatibility";
+
+import type { CountertopMatrixRule } from "../types";
 
 /**
  * Countertop product rules on the USH profile must behave as the constants they replaced did:
@@ -202,6 +204,99 @@ describe("integrated countertop depth restrictions", () => {
     expect(
       isIntegratedCountertopDepthRestrictedByBasin({ activeBasinStyle: "Top_Ocritech_Oly55", depth: 46, profile }),
     ).toBe(false);
+  });
+});
+
+// The collection restricts an integrated top at 46 cm for some materials: where the rules refuse the integrated
+// style there, it names the depth instead of the rule; where they allow it, the style stays available.
+describe("the integrated style at a depth the collection restricts", () => {
+  // An integrated row from a 60 cm Sink Base up to 200 cm, at every depth.
+  const integratedRow = (material: string): CountertopMatrixRule => ({
+    material,
+    topThicknesses: ["1/2"],
+    depths: [],
+    depthsByStyle: {},
+    basinStyle: "",
+    minSbCm: 60,
+    minVesselCm: null,
+    maxIntegratedCm: 200,
+    maxVesselCm: null,
+    maxUndermountCm: null,
+    faucetHoles: [],
+    depthOnlyCm: [],
+    allowedFinishes: [],
+    allowMultiCabinet: null,
+    sidePanelsAction: null,
+    integratedAllowedSizesOnly: [],
+  });
+  const integratedAt = ({
+    rowMaterial,
+    material = rowMaterial,
+    depth,
+    sinkBaseWidth,
+    profile = ushProfile,
+  }: {
+    rowMaterial: string;
+    material?: string;
+    depth: number;
+    sinkBaseWidth: number;
+    profile?: ProductProfile;
+  }) =>
+    buildCountertopRuleState({
+      rules: [integratedRow(rowMaterial)],
+      activeMaterialTokens: [material],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth: sinkBaseWidth,
+      depth,
+      activeCountertopStyle: "integrated",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile,
+    }).styleAvailability.integrated;
+
+  it("names the restricted depth for a restricted material the rules refuse, keeping the rules' maximum", () => {
+    expect(integratedAt({ rowMaterial: "Tekormud", depth: 46, sinkBaseWidth: 50 })).toEqual({
+      isAvailable: false,
+      maxCompatibleWidthCm: 200,
+      reasonCode: "countertop.integratedDepthRestricted",
+      reasonParams: { depthCm: 46, depthIn: "18.1" },
+      disabledReason: 'Integrated basin style not available for 46cm (18.1") depth configurations',
+    });
+  });
+
+  it("names the depth where no row is made for the material at all", () => {
+    expect(integratedAt({ rowMaterial: "HPL", material: "Tekormud", depth: 46, sinkBaseWidth: 80 })).toMatchObject({
+      isAvailable: false,
+      reasonCode: "countertop.integratedDepthRestricted",
+    });
+  });
+
+  it.each([
+    ["an unrestricted material at 46 cm", "HPL", 46],
+    ["a restricted material at 50 cm", "Tekormud", 50],
+  ])("keeps the rules' own reason for %s", (_case, rowMaterial, depth) => {
+    expect(integratedAt({ rowMaterial, depth, sinkBaseWidth: 50 })).toMatchObject({
+      isAvailable: false,
+      maxCompatibleWidthCm: 200,
+      reasonCode: "countertop.sinkBaseBelowMin",
+      reasonParams: { currentCm: 50, minCm: 60 },
+    });
+  });
+
+  it("leaves the integrated style available where the rules allow it at the restricted depth", () => {
+    expect(integratedAt({ rowMaterial: "Tekormud", depth: 46, sinkBaseWidth: 80 })).toEqual({
+      isAvailable: true,
+      maxCompatibleWidthCm: 200,
+    });
+  });
+
+  it("restricts nothing in a collection without fallbacks", () => {
+    const profile = withRuleData({ countertopFallbacks: undefined });
+
+    expect(integratedAt({ rowMaterial: "Tekormud", depth: 46, sinkBaseWidth: 50, profile })).toMatchObject({
+      reasonCode: "countertop.sinkBaseBelowMin",
+    });
   });
 });
 
@@ -439,5 +534,175 @@ describe("a basin with no Sink Base under it", () => {
     // Tekorund lifts (5-1/8"), but an integrated Tekorund top is 50 cm deep only.
     expect(colourOf("Tekorund", 46)).toEqual({ isCompatible: false, failedBy: "depth" });
     expect(colourOf("Tekorund", 46, true)).toEqual({ isCompatible: false, failedBy: "depth" });
+  });
+});
+
+// A vessel needs a Sink Base of at least the table's `min_vsl_cm`; below it the vessel style is refused too, so
+// no composition is priced with a vessel cutout and no basin.
+describe("the vessel style on a narrow Sink Base", () => {
+  const rules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable589));
+  const ulhProfile: ProductProfile = (() => {
+    const parsed = parseProductProfile(ulhProfileDocument);
+    if (!parsed.ok) throw new Error("The Urban Low Height profile failed validation");
+    return parsed.profile;
+  })();
+  const ruleStateAt = (sinkBaseWidth: number) =>
+    buildCountertopRuleState({
+      rules,
+      activeMaterialTokens: ["HPL"],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth: sinkBaseWidth,
+      depth: 50,
+      activeCountertopStyle: "integrated",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile: ulhProfile,
+    });
+
+  // Table 589: HPL takes a vessel from an 80 cm Sink Base, an integrated basin from 60 or 70 cm, both up to 270 cm.
+  it("refuses the vessel style below the vessel minimum, with the minimum in its reason", () => {
+    const { styleAvailability, vesselSinkAvailability } = ruleStateAt(70);
+
+    expect(styleAvailability.vessel).toEqual({
+      isAvailable: false,
+      maxCompatibleWidthCm: 270,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: { minCm: 80, minIn: "31.5" },
+      disabledReason: 'Not available for selected sink base cabinet width. Minimum width required 80cm (31.5")',
+    });
+    expect(vesselSinkAvailability).toMatchObject({ isAvailable: false, reasonCode: "countertop.vesselSinkBaseMin" });
+  });
+
+  it("offers the vessel style from the vessel minimum", () => {
+    const { styleAvailability, vesselSinkAvailability } = ruleStateAt(80);
+
+    expect(styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 270 });
+    expect(vesselSinkAvailability).toEqual({ isAvailable: true, minSinkBaseWidthCm: 80 });
+  });
+
+  it.each([70, 80])("leaves the integrated style alone on a %i cm Sink Base", (sinkBaseWidth) => {
+    expect(ruleStateAt(sinkBaseWidth).styleAvailability.integrated).toEqual({
+      isAvailable: true,
+      maxCompatibleWidthCm: 270,
+    });
+  });
+
+  it("keeps the vessel-basin verdict on a 70 and an 80 cm Sink Base", () => {
+    expect(ruleStateAt(70).vesselSinkAvailability).toEqual({
+      isAvailable: false,
+      minSinkBaseWidthCm: 80,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: { minCm: 80, minIn: "31.5" },
+      disabledReason: 'Not available for selected sink base cabinet width. Minimum width required 80cm (31.5")',
+    });
+    expect(ruleStateAt(80).vesselSinkAvailability).toEqual({ isAvailable: true, minSinkBaseWidthCm: 80 });
+  });
+
+  const vesselStateAt = (sinkBaseWidth: number) =>
+    buildCountertopRuleState({
+      rules,
+      activeMaterialTokens: ["HPL"],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth: sinkBaseWidth,
+      depth: 50,
+      activeCountertopStyle: "vessel",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile: ulhProfile,
+    });
+
+  it("offers no thickness under a vessel top below the vessel minimum, and the table's from it", () => {
+    expect([...vesselStateAt(70).allowedThicknesses]).toEqual([]);
+    expect([...vesselStateAt(80).allowedThicknesses].sort((left, right) => left - right)).toEqual([0.5, 4, 5.125]);
+  });
+
+  it("gives a vessel top no default thickness below the vessel minimum", () => {
+    const defaultAt = (width: number) =>
+      resolveDefaultThicknessFromRules({
+        rules,
+        activeMaterialTokens: ["HPL"],
+        depth: 50,
+        activeCountertopStyle: "vessel",
+        width,
+        profile: ulhProfile,
+      });
+
+    expect(defaultAt(70)).toBe(null);
+    expect(defaultAt(80)).toBe("0.5");
+  });
+});
+
+// Rows whose vessel minimums differ: a vessel top takes only the rows its Sink Base reaches, for its thickness as
+// for its maximum width.
+describe("the vessel style judged by the rows its Sink Base reaches", () => {
+  const vesselRow = (row: Partial<CountertopMatrixRule>): CountertopMatrixRule => ({
+    material: "HPL",
+    topThicknesses: [],
+    depths: [],
+    depthsByStyle: {},
+    basinStyle: "",
+    minSbCm: null,
+    minVesselCm: null,
+    maxIntegratedCm: null,
+    maxVesselCm: null,
+    maxUndermountCm: null,
+    faucetHoles: [],
+    depthOnlyCm: [],
+    allowedFinishes: [],
+    allowMultiCabinet: null,
+    sidePanelsAction: null,
+    integratedAllowedSizesOnly: [],
+    ...row,
+  });
+  // A thin top from a 60 cm Sink Base up to 200 cm, a 4" one from 80 cm up to 270 cm.
+  const rules = [
+    vesselRow({ topThicknesses: ["1/2"], minVesselCm: 60, maxVesselCm: 200 }),
+    vesselRow({ topThicknesses: ["4"], minVesselCm: 80, maxVesselCm: 270 }),
+  ];
+  const vesselStateAt = (sinkBaseWidth: number, totalWidth = sinkBaseWidth) =>
+    buildCountertopRuleState({
+      rules,
+      activeMaterialTokens: ["HPL"],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth,
+      depth: null,
+      activeCountertopStyle: "vessel",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile: ushProfile,
+    });
+
+  it("offers only the thicknesses of the rows the Sink Base reaches", () => {
+    expect([...vesselStateAt(70).allowedThicknesses]).toEqual([0.5]);
+    expect([...vesselStateAt(80).allowedThicknesses].sort((left, right) => left - right)).toEqual([0.5, 4]);
+  });
+
+  it("takes the maximum width from the rows the Sink Base reaches", () => {
+    expect(vesselStateAt(70).styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 200 });
+    expect(vesselStateAt(80).styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 270 });
+  });
+
+  it("refuses a vessel top wider than the reachable rows allow, with their maximum", () => {
+    expect(vesselStateAt(70, 240).styleAvailability.vessel).toMatchObject({
+      isAvailable: false,
+      maxCompatibleWidthCm: 200,
+      reasonCode: "countertop.maxCompatibleWidth",
+      reasonParams: { maxCm: 200 },
+    });
+    expect(vesselStateAt(80, 240).styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 270 });
+  });
+
+  it("names the vessel minimum below every row's, with the maximum of all rows", () => {
+    expect(vesselStateAt(50).styleAvailability.vessel).toMatchObject({
+      isAvailable: false,
+      maxCompatibleWidthCm: 270,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: { minCm: 60 },
+    });
+    expect(vesselStateAt(50).vesselSinkAvailability).toMatchObject({ isAvailable: false, minSinkBaseWidthCm: 60 });
+    expect(vesselStateAt(70).vesselSinkAvailability).toEqual({ isAvailable: true, minSinkBaseWidthCm: 60 });
   });
 });

@@ -10,7 +10,7 @@
     "warning": "Only facts the product map marks as confirmed. Urban Standard Height values are not inherited: what is missing stays missing until the product side confirms it. Exception, added on request: CountertopStyle, sinkType and VesselColor take the Urban Standard Height options."
   },
   "sourceRefs": {
-    "configuratorId": 4,
+    "configuratorId": 10,
     "countertopMatrixTableId": 589,
     "cabinetMatrixTableId": 580
   },
@@ -120,18 +120,18 @@
     {
       "attributeId": "CabinetColor",
       "scope": "global",
-      "optionsSource": "configurator:Cabinet Color"
+      "optionsSource": "configurator:Select Cabinet Color"
     },
     {
       "attributeId": "HandleGrooveColor",
       "scope": "cabinet",
       "resetValue": "None",
-      "optionsSource": "configurator:Handle Groove Color"
+      "optionsSource": "configurator:Select Handle Groove Color"
     },
     {
       "attributeId": "CountertopColor",
       "scope": "countertop",
-      "optionsSource": "configurator:Countertop Color"
+      "optionsSource": "configurator:Select Countertop Color"
     },
     {
       "attributeId": "Thickness",
@@ -422,7 +422,7 @@
     {
       "attributeId": "VesselColor",
       "scope": "basin",
-      "optionsSource": "configurator:Vessels"
+      "optionsSource": "configurator:Select Vessel Color"
     },
     {
       "attributeId": "SidePanels",
@@ -450,7 +450,7 @@
     {
       "attributeId": "TowelBarColor",
       "scope": "global",
-      "optionsSource": "configurator:Towel Bar Color"
+      "optionsSource": "configurator:Select Towel Bar Color"
     }
   ],
   "ruleData": {
@@ -585,13 +585,14 @@
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
     "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
     "countertop.materialNotAvailableOffSinkBase": "Not available when the basin is not over a sink base",
+    "countertop.vesselSinkBaseMin": "Not available for selected sink base cabinet width. Minimum width required {minCm}cm ({minIn}\")",
     "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed."
   },
   "excludedFromThisProfile": {
     "openShelfWidthByHeight": "Confirmed: Open Shelf widths reach 70 cm at 38/35 cm and 120 cm at 28/25 cm (§3, §6). The cabinet table keeps widths and heights as independent lists, so this needs either split table rows or a new rule.",
     "openSideShelfSizes": "Confirmed: Open Side Shelf is 15 cm wide, 35 or 25 cm high, 50 or 46 cm deep (§7). Belongs in the cabinet table, which has no Urban Low Height rows yet.",
     "basinAndCountertopOptions": "The map names the basins Rectangular, Strip, Cover, Prisma and Quadra by material (§12) and knows countertop thickness by display names only (§11); neither is confirmed as scene tokens or rules. On request, sinkType and VesselColor take the Urban Standard Height basins and vessel colours instead, filtered by the countertop table. Thickness takes the Urban Standard Height values, offered as the countertop table gives them for the colour and depth (team, 28.09.2026). The table is 589 since 2026-09-30: the rows of the shared 438 with the Urban Low Height depths, 50 and 46 cm.",
-    "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White; configurator 4 has them in both Mineralmarmo and Ocritech, so neither is excluded until the product side names one (§11).",
+    "countertopSolidSurface": "The product map lists Solid-Surface Gloss White / Matte White (§11). Configurator 10 has Matte White with a SKU; its Gloss White has none, so it is not offered until the product side names one.",
     "countertopIntegratedRestrictions": "countertopFallbacks declares no depth, material or basin restriction: none is confirmed for Urban Low Height (§11).",
     "accessories": "Faucet holes, hole cutouts, dividers, towel bars and book matching reuse Urban Standard Height SKUs, but their rules for the 38/35/28/25 cm heights are not confirmed (§13).",
     "composition": "Module counts, maximum composition length, mixing of handles, heights and depths are not described (§1, §2, §14)."

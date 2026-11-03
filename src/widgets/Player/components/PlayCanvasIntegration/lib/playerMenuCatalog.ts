@@ -1,6 +1,7 @@
 import {
   PLAYER_MENU_ITEM_IDS,
   selectAttribute,
+  selectHasChoice,
   type CustomizationFlowId,
   type CustomizationSchema,
   type CustomizationScreenId,
@@ -27,6 +28,8 @@ type PlayerMenuItemSpec = {
   leadsTo?: ({ attributeId: string } | { screen: CustomizationScreenId }) & { flowId?: CustomizationFlowId };
   /** An attribute the profile must declare, for an item that changes it in place. */
   attributeId?: string;
+  /** The item chooses between the attribute's options, so it needs more than one. */
+  requiresChoice?: boolean;
 };
 
 const PLAYER_MENU_ITEMS: Record<PlayerMenuItemId, PlayerMenuItemSpec> = {
@@ -36,7 +39,7 @@ const PLAYER_MENU_ITEMS: Record<PlayerMenuItemId, PlayerMenuItemSpec> = {
   // In Prebuilt both ask to customize first and continue in the custom flow.
   add: { leadsTo: { attributeId: "CabinetType", flowId: "custom" } },
   "cabinet-style": { leadsTo: { attributeId: "Drawers", flowId: "custom" } },
-  "handle-style": { attributeId: "Handle" },
+  "handle-style": { attributeId: "Handle", requiresChoice: true },
   accessories: { leadsTo: { screen: "accessories" } },
   duplicate: {},
   open: {},
@@ -91,10 +94,15 @@ export const resolvePlayerMenuSupport = (
   const targets: Partial<Record<PlayerMenuItemId, CustomizationTarget>> = {};
 
   for (const itemId of PLAYER_MENU_ITEM_IDS) {
-    const { leadsTo, attributeId } = PLAYER_MENU_ITEMS[itemId];
+    const { leadsTo, attributeId, requiresChoice } = PLAYER_MENU_ITEMS[itemId];
     const target = leadsTo ? resolveSpecTarget(schema, flowId, leadsTo) : null;
 
-    if (hidden.has(itemId) || (leadsTo && !target) || (attributeId && !selectAttribute(profile, attributeId))) {
+    if (
+      hidden.has(itemId) ||
+      (leadsTo && !target) ||
+      (attributeId && !selectAttribute(profile, attributeId)) ||
+      (attributeId && requiresChoice && !selectHasChoice(profile, attributeId))
+    ) {
       continue;
     }
 

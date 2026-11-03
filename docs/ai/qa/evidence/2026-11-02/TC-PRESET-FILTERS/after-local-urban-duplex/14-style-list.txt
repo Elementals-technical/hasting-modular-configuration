@@ -1,0 +1,19 @@
+Snapshot [selector: [role=listbox]]
+
+uid=e211 listbox "Style" tag=div
+  uid=e196 option tag=button
+    uid=e195 span text="All"
+  uid=e198 option tag=button
+    uid=e197 span text="1 Drawer"
+  uid=e200 option tag=button
+    uid=e199 span text="2 Drawer"
+  uid=e202 option tag=button
+    uid=e201 span text="Single Basin"
+  uid=e204 option tag=button
+    uid=e203 span text="Double Basin"
+  uid=e206 option tag=button
+    uid=e205 span text="Asymmetrical"
+  uid=e208 option tag=button
+    uid=e207 span text="Open Shelving"
+  uid=e210 option tag=button
+    uid=e209 span text="Multi-level"

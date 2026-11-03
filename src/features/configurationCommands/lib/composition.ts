@@ -3,9 +3,9 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/app/store";
 import {
   normalizeOptionValue,
-  resolveRuntimeBinding,
   selectAttribute,
   selectDefaultValue,
+  selectRuntimeBinding,
   semanticValueOf,
 } from "@/entities/collection";
 import type { ProductProfile, RuntimeBindingSet, RuntimeFlow } from "@/entities/collection";
@@ -157,6 +157,21 @@ const isAttributeValue = (value: unknown): value is AttributeValue =>
   value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 
 /**
+ * Whether the binding names a value as an option of its own: a key of its value map (Class's "1D"
+ * drawers, though the scene also names "1" so), or of its renames when any name passes as it is.
+ * A scene name the binding only retired is not one.
+ */
+const isBoundOption = (bindings: RuntimeBindingSet | null, attributeId: string, value: string): boolean => {
+  const binding = bindings ? selectRuntimeBinding(bindings, attributeId) : null;
+  if (binding?.status !== "bound") return false;
+
+  return Object.hasOwn(
+    binding.values.kind === "identity" ? (binding.values.overrides ?? {}) : binding.values.patches,
+    value,
+  );
+};
+
+/**
  * The products with each value their collection maps in its canonical option ("2D" -> "2"), as
  * the port looks it up; every other value stays as the product carries it.
  */
@@ -172,15 +187,34 @@ const toSceneProducts = (
         if (!isAttributeValue(value)) return [attributeId, value];
         const canonical = toSceneValue(profile, bindings, attributeId, value);
         // A copied scene config may name the material asset rather than the catalogue option.
-        // Keep an already accepted option: some collections reuse an asset name for another option.
+        // Keep an option of the binding's own: some collections reuse an asset name for another option.
         const placedValue =
-          typeof canonical === "string" && bindings && !resolveRuntimeBinding(bindings, attributeId, canonical).ok
+          typeof canonical === "string" && canonical !== "" && !isBoundOption(bindings, attributeId, canonical)
             ? semanticValueOf(bindings, attributeId, canonical)
             : canonical;
         return [attributeId, placedValue];
       }),
     ),
   }));
+
+/**
+ * A carried value as the configuration records it. A config copied from a placed cabinet names
+ * the scene's material where the catalogue names the option (Mako's "Antracite 400 Lacquered MT"
+ * for "Antracite 400 MT"), and a SKU spells only the option. A value that already is an option,
+ * of the profile or of the binding, is kept as it is.
+ */
+const carriedOptionValue = (
+  profile: ProductProfile | null,
+  bindings: RuntimeBindingSet | null,
+  attributeId: string,
+  value: AttributeValue,
+): AttributeValue => {
+  const option = normalizeOptionValue(profile, attributeId, value);
+  if (option !== null) return option;
+  if (typeof value !== "string" || value === "" || isBoundOption(bindings, attributeId, value)) return value;
+
+  return semanticValueOf(bindings, attributeId, value);
+};
 
 /** Drawer styles of the placed products; product `i` of the request became `placed[i]`. */
 const drawerStyles = (
@@ -217,6 +251,7 @@ const carriedValues = (
   products: readonly SceneCompositionProduct[],
 ): CarriedValues => {
   const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
   const cabinets = getCabinetEntries(state);
   const isComplete = placed.length === products.length;
   const perCabinet: PlannedChange[] = [];
@@ -230,8 +265,7 @@ const carriedValues = (
       if (selectAttribute(profile, attributeId)?.scope !== "cabinet") return;
       if (!isAttributeValue(raw) || raw === null || raw === "") return;
 
-      const semantic = typeof raw === "string" ? semanticValueOf(getActiveRuntimeBindings(state), attributeId, raw) : raw;
-      const value = normalizeOptionValue(profile, attributeId, semantic) ?? semantic;
+      const value = carriedOptionValue(profile, bindings, attributeId, raw);
 
       if (TYPED_COMMIT_ATTRIBUTE_IDS.includes(attributeId)) {
         compositionValues.set(attributeId, (compositionValues.get(attributeId) ?? new Set()).add(value));
@@ -324,6 +358,7 @@ const recordInherited = (
   if (!cabinetId) return;
 
   const profile = getActiveProductProfile(state);
+  const bindings = getActiveRuntimeBindings(state);
   const placedWith = withInherited(config, inherited);
   const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => {
     const own = placedWith[attributeId];
@@ -331,7 +366,7 @@ const recordInherited = (
     return {
       attributeId,
       target: { scope: "cabinet", cabinetId },
-      value: isAttributeValue(own) ? (normalizeOptionValue(profile, attributeId, own) ?? own) : value,
+      value: isAttributeValue(own) ? carriedOptionValue(profile, bindings, attributeId, own) : value,
       origin: "requested",
     };
   });
@@ -365,7 +400,7 @@ const recordOwnValues = (deps: CompositionDeps, runtimeId: string, config: Reado
       const placedWith = isNew ? config[attributeId] : undefined;
       const value =
         isAttributeValue(placedWith) && placedWith !== null && placedWith !== ""
-          ? (normalizeOptionValue(profile, attributeId, placedWith) ?? placedWith)
+          ? carriedOptionValue(profile, bindings, attributeId, placedWith)
           : selectDefaultValue(profile, attributeId);
 
       return value === "" ? [] : [{ attributeId, target, value, origin: "requested" }];

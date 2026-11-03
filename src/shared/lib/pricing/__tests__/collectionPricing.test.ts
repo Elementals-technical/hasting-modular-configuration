@@ -52,7 +52,6 @@ import classDefaultOrder from "./fixtures/prices/class-default-model.json";
 import classOrder from "./fixtures/prices/class-porcelain-integrated.json";
 import makoDefaultOrder from "./fixtures/prices/mako-default-model.json";
 import makoOrder from "./fixtures/prices/mako-vessel-with-legs.json";
-import { ulhCoverConfigurator } from "./fixtures/ulhCoverConfigurator";
 
 const duplexBindingsResult = parseRuntimeBindings(duplexRuntimeBindingsDocument);
 if (!duplexBindingsResult.ok) throw new Error("Urban Duplex bindings failed validation");
@@ -756,7 +755,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
           CountertopStyle: [at(countertop, "integrated")],
           ...values,
         },
-        { countertopRules, cabinetColor: "Castagno chiaro 1C1", configurator: ulhCoverConfigurator, ...overrides },
+        { countertopRules, cabinetColor: "Castagno chiaro 1C1", configurator: URBAN_LOW_HEIGHT.configurator, ...overrides },
       ),
     );
   const skusOf = (lines: PricingLine[], group: PricingLine["group"]) =>
