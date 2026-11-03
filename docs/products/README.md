@@ -73,6 +73,11 @@ public/collections/registry.json
 USH і ULH ділять один configurator, але не countertop table, cabinet table, product profile, UI чи
 runtime bindings. Спільний remote id не означає успадкування правил.
 
+Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex вимикають стиль стільниці Vessel
+(причина `countertop.vesselSinkBaseMin`, з мінімумом у підказці), коли Sink Base вужчий за `min_vsl_cm` countertop
+table (80 cm). Ту саму причину мають vessel basins, тож композиція не може отримати vessel cutout без basin.
+Integrated лишається доступним за своїми правилами table.
+
 Urban Freestanding, Tricot, Urban Duplex і Lame мають власні material configurators 11–14
 (`modular-config-phase-2-materials-(…)`), лише з кольорами своєї колекції. Групи там звуться
 `Select … Color`, а не як у configurator 4 (`Cabinet Color`, `Vessels`); код, якому потрібен вид групи

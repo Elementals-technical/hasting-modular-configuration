@@ -436,6 +436,24 @@ export const buildCountertopRuleState = ({
 
   const thicknessScopedRules = matchingRules.filter((rule) => matchesActiveThickness(rule));
 
+  // A vessel basin needs a sink base of at least the table's vessel minimum. Below it the vessel style is
+  // refused as well: the cutout would be priced with no basin it could hold.
+  const vesselSinkRules = getThicknessScopedRulesForStyle("vessel");
+  const vesselSinkMinWidth = vesselSinkRules
+    .map((rule) => rule.minVesselCm)
+    .filter((value): value is number => value !== null)
+    .reduce<number | null>(
+      (currentMin, value) => (currentMin === null || value < currentMin ? value : currentMin),
+      null,
+    );
+  const vesselSinkBaseWidth = integratedWidthContext.sinkBaseWidth;
+  const vesselSinkBaseRefusal =
+    typeof vesselSinkBaseWidth === "number" &&
+    vesselSinkMinWidth !== null &&
+    !vesselSinkRules.some((rule) => isRuleWidthEligibleForVesselSinkContext(rule, vesselSinkBaseWidth))
+      ? vesselSinkBaseMinReason(profile, vesselSinkMinWidth)
+      : null;
+
   const buildStyleAvailabilityState = (style: CountertopStyleKey): CountertopStyleAvailability => {
     const styleThicknessScopedRules = getThicknessScopedRulesForStyle(style);
     if (!styleThicknessScopedRules.length) {
@@ -551,6 +569,9 @@ export const buildCountertopRuleState = ({
     }
 
     if (styleWidth === null || styleWidth <= maxCompatibleWidthCm + STYLE_WIDTH_EPSILON) {
+      if (style === "vessel" && vesselSinkBaseRefusal) {
+        return { isAvailable: false, maxCompatibleWidthCm, ...vesselSinkBaseRefusal };
+      }
       return { isAvailable: true, maxCompatibleWidthCm };
     }
 
@@ -565,31 +586,11 @@ export const buildCountertopRuleState = ({
   styleAvailability.vessel = buildStyleAvailabilityState("vessel");
   styleAvailability.undermount = buildStyleAvailabilityState("undermount");
 
-  const vesselSinkRules = getThicknessScopedRulesForStyle("vessel").filter((rule) =>
-    matchesDepthForStyle(rule, depth, "vessel"),
-  );
-  const vesselSinkMinWidth = vesselSinkRules
-    .map((rule) => rule.minVesselCm)
-    .filter((value): value is number => value !== null)
-    .reduce<number | null>((currentMin, value) => (currentMin === null || value < currentMin ? value : currentMin), null);
-  const currentSinkBaseWidth = integratedWidthContext.sinkBaseWidth;
-
-  if (
-    typeof currentSinkBaseWidth === "number" &&
-    vesselSinkMinWidth !== null &&
-    !vesselSinkRules.some((rule) => isRuleWidthEligibleForVesselSinkContext(rule, currentSinkBaseWidth))
-  ) {
-    vesselSinkAvailability = {
-      isAvailable: false,
-      minSinkBaseWidthCm: vesselSinkMinWidth,
-      ...vesselSinkBaseMinReason(profile, vesselSinkMinWidth),
-    };
-  } else {
-    vesselSinkAvailability = {
-      isAvailable: true,
-      minSinkBaseWidthCm: vesselSinkMinWidth,
-    };
-  }
+  vesselSinkAvailability = {
+    isAvailable: !vesselSinkBaseRefusal,
+    minSinkBaseWidthCm: vesselSinkMinWidth,
+    ...vesselSinkBaseRefusal,
+  };
 
   const faucetHoleRules = scopeCountertopRulesByBasinStyle(
     thicknessScopedRules.length > 0 ? thicknessScopedRules : matchingRules,

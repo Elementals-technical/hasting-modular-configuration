@@ -287,7 +287,7 @@
         {
           "attributeId": "CountertopStyle",
           "control": "options-grid",
-          "availabilityRef": "CountertopStyle.available"
+          "availabilityRef": "CountertopStyle.allowed"
         }
       ]
     },
