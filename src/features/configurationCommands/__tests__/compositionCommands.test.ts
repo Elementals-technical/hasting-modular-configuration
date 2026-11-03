@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import classProfileDocument from "../../../../public/collections/class/product-profile.json";
-import lameBindingsDocument from "../../../../public/collections/lame/runtime-bindings.json";
 import tricotProfileDocument from "../../../../public/collections/tricot/product-profile.json";
 import tricotBindingsDocument from "../../../../public/collections/tricot/runtime-bindings.json";
 import urbanDuplexProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
@@ -11,6 +10,7 @@ import { parseProductProfile, parseRuntimeBindings, resolveProductConfig } from 
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
+import { lameRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/lameRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
 import {
@@ -25,6 +25,7 @@ import {
   setAttributeValue,
   setExplicitUserChoice,
 } from "@/entities/configuration";
+import type { CabinetDimensions } from "@/entities/configuration";
 import {
   getCabinetColor,
   getDrawerPanelFluting,
@@ -379,6 +380,9 @@ describe("composition commands", () => {
     const cabinetValue = (attributeId: string, cabinetId: string) =>
       getAttributeValue(store.getState(), attributeId, { scope: "cabinet", cabinetId });
 
+    const heldBy = (attributeId: string) =>
+      getCabinetEntries(store.getState()).map(({ stableKey }) => cabinetValue(attributeId, stableKey));
+
     const makoModel = [
       {
         productType: "Sink-Cabinet",
@@ -515,9 +519,6 @@ describe("composition commands", () => {
         store.dispatch(setActiveCollectionId("mako"));
         store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
       });
-
-      const heldBy = (attributeId: string) =>
-        getCabinetEntries(store.getState()).map(({ stableKey }) => cabinetValue(attributeId, stableKey));
 
       /** Cabinet SKUs without their size, which these tests do not vary. */
       const handleBlocks = () => {
@@ -834,45 +835,28 @@ describe("composition commands", () => {
      * the scene's material ("… Lacquered MT"), while the catalogue and the SKU name the option.
      */
     describe("a copy whose config names the scene's handle colour", () => {
-      const lameBindings = (() => {
-        const parsed = parseRuntimeBindings(lameBindingsDocument);
-        if (!parsed.ok) throw new Error("the packaged Lame bindings must parse");
-        return parsed.bindings;
-      })();
-
       const COLLECTIONS = {
-        mako: {
-          collection: MAKO,
-          bindings: makoRuntimeBindings,
-          handle: "G57",
-          source: { Width: 60, Drawers: "2D" },
-          size: { width: 60, height: 52, depth: 52 },
-        },
-        lame: {
-          collection: LAME,
-          bindings: lameBindings,
-          handle: "G58",
-          source: { Width: 60, Drawers: "1D" },
-          size: { width: 60, height: 26, depth: 52 },
-        },
+        mako: { collection: MAKO, bindings: makoRuntimeBindings, handle: "G57", source: { Width: 60, Drawers: "2D" } },
+        lame: { collection: LAME, bindings: lameRuntimeBindings, handle: "G58", source: { Width: 60, Drawers: "1D" } },
       };
 
-      const useCollection = (collectionId: keyof typeof COLLECTIONS, bindings = COLLECTIONS[collectionId].bindings) => {
-        const { collection, handle } = COLLECTIONS[collectionId];
+      /**
+       * Opens the collection with `bindings`, places a Sink Base, then its copy beside it with
+       * `handleColor` in the copy's config.
+       */
+      const placeWithCopy = async (
+        collectionId: keyof typeof COLLECTIONS,
+        handleColor: string,
+        bindings = COLLECTIONS[collectionId].bindings,
+      ) => {
+        const { collection, source, handle } = COLLECTIONS[collectionId];
         store.dispatch(setActiveProfile(collection.profile));
         store.dispatch(setActiveCollectionId(collectionId));
         store.dispatch(setActiveRuntimeBindings(bindings));
         // The handle the builder holds for the cabinets it places, which a complete SKU spells.
         store.dispatch(setSelectedProductConfig({ Handle: handle }));
-      };
 
-      const heldBy = (attributeId: string) =>
-        getCabinetEntries(store.getState()).map(({ stableKey }) => cabinetValue(attributeId, stableKey));
-
-      /** Places a Sink Base, then its copy beside it with `handleColor` in the copy's config. */
-      const placeWithCopy = async (collectionId: keyof typeof COLLECTIONS, handleColor: string) => {
         const { deps } = setup();
-        const { source, handle } = COLLECTIONS[collectionId];
         await addCabinet({ product: { productType: "Sink-Base", config: source }, placement: { kind: "end" } }, deps);
 
         const [anchor] = product().productIds;
@@ -885,15 +869,15 @@ describe("composition commands", () => {
         );
       };
 
-      const cabinetSkus = (collectionId: keyof typeof COLLECTIONS) => {
-        const { collection, bindings, size } = COLLECTIONS[collectionId];
+      const cabinetSkus = (collectionId: keyof typeof COLLECTIONS, size: CabinetDimensions) => {
+        const { collection } = COLLECTIONS[collectionId];
         const state = store.getState();
         const input = collectionPricingInput(
           collection,
           getCabinetEntries(state).map(({ stableKey, runtimeId }) => ({ stableKey, runtimeId, size })),
           { ...getValuesByAttributeId(state) },
           {
-            runtimeBindings: bindings,
+            runtimeBindings: getActiveRuntimeBindings(state),
             selectedProductConfig: product().selectedProductConfig,
             placedCabinetStyles: product().placedCabinetStyles,
             cabinetColor: collection.profile.defaults.CabinetColor,
@@ -910,32 +894,30 @@ describe("composition commands", () => {
           collectionId: "mako" as const,
           sceneColor: "Antracite 400 Lacquered MT",
           catalogColor: "Antracite 400 MT",
+          size: { width: 60, height: 52, depth: 52 },
           sku: "VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400",
         },
         {
           collectionId: "lame" as const,
           sceneColor: "Fumo 401 Lacquered MT",
           catalogColor: "Fumo 401 MT",
+          size: { width: 60, height: 26, depth: 52 },
           sku: "VAN-LAMEV-SB/1DW/G58/OXF-23.6W-10.2H-20.5D-CAB-LACM-401-HDL-LACM-401",
         },
       ])(
         "records the catalogue's colour at a $collectionId copy, which is priced like its source",
-        async ({ collectionId, sceneColor, catalogColor, sku }) => {
-          useCollection(collectionId);
-
+        async ({ collectionId, sceneColor, catalogColor, size, sku }) => {
           await placeWithCopy(collectionId, sceneColor);
 
           expect(heldBy("HandleColor")).toEqual([catalogColor, catalogColor]);
           // Before, the copy held the scene's name, which no SKU spells, and was left out of the order.
-          expect(cabinetSkus(collectionId)).toEqual([sku, sku]);
+          expect(cabinetSkus(collectionId, size)).toEqual([sku, sku]);
         },
       );
 
       it.each(["Moka 408 MT", "Gold"])(
         "records a colour the copy names as the catalogue does as it is: %s",
         async (color) => {
-          useCollection("mako");
-
           await placeWithCopy("mako", color);
 
           expect(heldBy("HandleColor")).toEqual(["Antracite 400 MT", color]);
@@ -955,9 +937,7 @@ describe("composition commands", () => {
               : binding,
           ),
         };
-        useCollection("mako", reusedName);
-
-        await placeWithCopy("mako", "Moka 408 MT");
+        await placeWithCopy("mako", "Moka 408 MT", reusedName);
 
         expect(heldBy("HandleColor")).toEqual(["Antracite 400 MT", "Moka 408 MT"]);
       });
