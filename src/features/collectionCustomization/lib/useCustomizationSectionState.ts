@@ -82,13 +82,25 @@ const useAllowedFaucetHoles = (allowedFaucetHoles: CountertopRuleState["allowedF
 
 const COUNTERTOP_STYLES = ["integrated", "vessel"] as const;
 
-// The styles the matrix allows for the current colour and sizes; the reason is the first refused style's.
+// The styles the matrix allows for the current colour and sizes. Each refused style says its own reason: the two
+// can be refused for different minimums of the Sink Base. The field's reason is the first refused style's.
 const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRuleState): FieldAvailability => {
   const refused = COUNTERTOP_STYLES.map((style) => styleAvailability[style]).find(({ isAvailable }) => !isAvailable);
 
   return {
     available: true,
     allowedValues: COUNTERTOP_STYLES.filter((style) => styleAvailability[style].isAvailable),
+    optionReason: ({ value }) => {
+      const style = COUNTERTOP_STYLES.find((key) => key === value);
+      const availability = style ? styleAvailability[style] : undefined;
+      return availability && !availability.isAvailable
+        ? {
+            reason: availability.disabledReason,
+            reasonCode: availability.reasonCode,
+            reasonParams: availability.reasonParams,
+          }
+        : undefined;
+    },
     reason: refused?.disabledReason,
     reasonCode: refused?.reasonCode,
     reasonParams: refused?.reasonParams,
@@ -340,8 +352,6 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       "LegColor.determined": { available: legColorDetermined, visible: legColorDetermined },
       "Countertop.isVesselStyle": { available: isVesselStyle, visible: isVesselStyle },
       "FaucetHolesAmount.allowed": { available: true, allowedValues: allowedFaucetHoles },
-      // The hosted-basin lock alone, for a style the matrix does not gate (Urban Low Height).
-      "CountertopStyle.available": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, { available: true }),
       "CountertopStyle.allowed": unlessSinkHosted(sinkHosted, HOSTED_SINK_REASON.style, {
         ...resolveCountertopStyleAvailability(countertopRuleState),
         ...(integratedChangesSinkBases

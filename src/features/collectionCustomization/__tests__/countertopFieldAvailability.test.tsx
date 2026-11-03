@@ -386,6 +386,46 @@ describe("Urban Low Height integrated basins follow the countertop matrix as the
   });
 });
 
+// Table 589 makes a vessel top on a Sink Base of at least min_vsl_cm (80 cm): below it the cutout would be priced
+// with no basin it could hold.
+describe("Urban Low Height countertop style follows the vessel Sink Base minimum", () => {
+  const { fieldOf, enabledValues } = fieldsOf(urbanLowHeight);
+  const styleOf = (value: string) => fieldOf("countertop-style")?.options.find((option) => option.value === value);
+
+  beforeEach(() => {
+    startWith(urbanLowHeight);
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setCountertopStyle("integrated"));
+  });
+
+  it("refuses the vessel style on a 70 cm Sink Base with the minimum, and keeps integrated", () => {
+    store.dispatch(setSelectedDimensions({ width: 70, depth: 46 }));
+
+    expect(enabledValues("countertop-style")).toEqual(["integrated"]);
+    expect(styleOf("vessel")).toMatchObject({
+      enabled: false,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: expect.objectContaining({ minCm: 80 }),
+    });
+  });
+
+  it("offers the vessel style on an 80 cm Sink Base", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+
+    expect(enabledValues("countertop-style")).toEqual(["integrated", "vessel"]);
+  });
+
+  // Table 589 makes a glass integrated top on a Sink Base of 70 cm or more: at 60 cm both styles are refused, each
+  // for its own minimum.
+  it("says each refused style's own minimum on a 60 cm Sink Base", () => {
+    store.dispatch(setSelectedDimensions({ width: 60, depth: 50 }));
+    store.dispatch(setActiveCountertopColor("Bianco 0B GL"));
+
+    expect(styleOf("integrated")).toMatchObject({ enabled: false, reasonCode: "countertop.sinkBaseBelowMin" });
+    expect(styleOf("vessel")).toMatchObject({ enabled: false, reasonCode: "countertop.vesselSinkBaseMin" });
+  });
+});
+
 /** The scene's top carrying the sink: hosting it, over another cabinet, beside the row or back home. */
 const carried = (status: CountertopSinkLandingStatus, hosted: boolean): CountertopState => ({
   readiness: "ready",
