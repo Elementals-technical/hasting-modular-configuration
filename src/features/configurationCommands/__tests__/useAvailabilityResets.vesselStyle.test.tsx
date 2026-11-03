@@ -33,7 +33,9 @@ import {
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
+import type { CountertopState } from "@/features/configuratorApi";
 import { createTestRuntimePort } from "@/features/playCanvasAdapter";
+import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
 import udManifest from "../../../../public/collections/urban-duplex/manifest.json";
 import udProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
@@ -248,5 +250,117 @@ describe("useAvailabilityResets on an Urban Standard Height vessel countertop", 
     expect(
       commandsOf(runtime).filter((batch) => batch.some((command) => /^(CountertopStyle|sinkType)=/.test(command))),
     ).toEqual([["CountertopStyle=integrated"], ["sinkType=Top_HPLPrisma"]]);
+  });
+});
+
+/** The scene's top hosting the basin off its Sink Base, as a lift leaves it. */
+const HOSTED_SINK: CountertopState = {
+  readiness: "ready",
+  productId: "top",
+  sink: {
+    owner: "countertop",
+    shiftM: 0,
+    landing: { status: "fits", cabinetId: null, fromCabinetId: null, reason: null, snapDxM: 0 },
+    pending: null,
+    hosted: true,
+  },
+};
+
+// Table 595 makes the HPL Strip 48 and Cover 50 basins from a 70 cm Sink Base and the other HPL basins from 60 cm;
+// the HPL default basin is Strip, so a 60 cm Sink Base takes the first HPL basin the matrix allows.
+describe("useAvailabilityResets on an integrated countertop", () => {
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(parsedProfile.profile));
+    store.dispatch(setActiveCollectionId("urban-duplex"));
+    store.dispatch(setActiveRuntimeBindings(parsedBindings.bindings));
+    store.dispatch(syncCabinets(["UD-sink-cabinet-a1"]));
+    store.dispatch(setActiveCountertopColor("Pulpis Chiaro TKH"));
+    store.dispatch(setCountertopStyle("integrated"));
+    store.dispatch(setActiveBasinStyle("Top_HPLStrip"));
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50 }));
+  });
+  afterEach(() => setCountertopRuntimeState(null));
+
+  it("keeps an allowed basin on an 80 cm Sink Base", async () => {
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper: wrapperOf() });
+    await act(async () => Promise.resolve());
+
+    expect(getSinkType(store.getState())).toBe("Top_HPLStrip");
+    expect(callsOf(runtime, "sinkType")).toEqual([]);
+  });
+
+  it("sets an allowed basin on a Sink Base placed at 60 cm", async () => {
+    store.dispatch(setSelectedDimensions({ width: 60 }));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper: wrapperOf() });
+
+    await waitFor(() => expect(getSinkType(store.getState())).toBe("Top_HPLPrisma"));
+    expect(getCountertopStyle(store.getState())).toBe("integrated");
+    expect(commandsOf(runtime).filter((batch) => batch.some((command) => command.startsWith("sinkType=")))).toEqual([
+      ["sinkType=Top_HPLPrisma"],
+    ]);
+  });
+
+  it("sets an allowed basin once the Sink Base shrinks to 60 cm", async () => {
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper: wrapperOf() });
+    await act(async () => Promise.resolve());
+
+    act(() => {
+      store.dispatch(setSelectedDimensions({ width: 60 }));
+    });
+
+    await waitFor(() => expect(getSinkType(store.getState())).toBe("Top_HPLPrisma"));
+    expect(commandsOf(runtime).filter((batch) => batch.some((command) => command.startsWith("sinkType=")))).toEqual([
+      ["sinkType=Top_HPLPrisma"],
+    ]);
+  });
+
+  it("waits for a restore to finish before resetting the basin", async () => {
+    store.dispatch(startRestore("saved-1"));
+    store.dispatch(setSelectedDimensions({ width: 60 }));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper: wrapperOf() });
+    await act(async () => Promise.resolve());
+
+    expect(getSinkType(store.getState())).toBe("Top_HPLStrip");
+    expect(callsOf(runtime, "sinkType")).toEqual([]);
+
+    act(() => {
+      store.dispatch(finishRestore({ status: "restored", reason: null, message: null }));
+    });
+
+    await waitFor(() => expect(getSinkType(store.getState())).toBe("Top_HPLPrisma"));
+  });
+
+  it("keeps the basin while the top hosts it off its Sink Base", async () => {
+    setCountertopRuntimeState(HOSTED_SINK);
+    store.dispatch(setSelectedDimensions({ width: 60 }));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper: wrapperOf() });
+    await act(async () => Promise.resolve());
+
+    expect(getSinkType(store.getState())).toBe("Top_HPLStrip");
+    expect(callsOf(runtime, "sinkType")).toEqual([]);
+  });
+
+  it("keeps the basin while no Sink Base is placed", async () => {
+    store.dispatch(syncCabinets(["UD-side-cabinet-b2"]));
+    store.dispatch(setSelectedDimensions({ width: 60 }));
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper: wrapperOf() });
+    await act(async () => Promise.resolve());
+
+    expect(getSinkType(store.getState())).toBe("Top_HPLStrip");
+    expect(callsOf(runtime, "sinkType")).toEqual([]);
   });
 });
