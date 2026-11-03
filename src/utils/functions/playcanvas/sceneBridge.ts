@@ -574,10 +574,15 @@ export type ScenePlus = {
   /** The cabinet the "+" stands by: the end cabinet of a row end, the lone cabinet of a column. */
   cabinetId: string;
   rowId?: string;
+  /**
+   * A `left` "+" standing at a joint inside a row rather than at its end: it inserts the cabinet between
+   * `cabinetId` and the one before it, and the rest of the row moves right (`leftIsJoint` of the scene).
+   */
+  joint?: boolean;
 };
 
 /** A "+" as the scene's PlusButtonManager keeps it: a row-end one has no `plus`, only its side and cabinet. */
-type ScenePlusButton = { plus?: unknown; side?: unknown; parentEntity?: unknown };
+type ScenePlusButton = { plus?: unknown; side?: unknown; parentEntity?: unknown; joint?: unknown };
 
 /** The "+" managers whose row-end "+" already go through the filter. */
 const rowEndPlusFiltered = new WeakSet<object>();
@@ -586,7 +591,8 @@ const rowEndPlusFiltered = new WeakSet<object>();
  * The scene asks the filter only about a "+" that carries its place, so the row-end "+" of a composition in
  * rows (Urban Low Height Multi-Level) were all shown, a Sink Base's by the lower level too (client, 22.10).
  * Until the scene asks about them as well, the bridge does, naming each "+" as the scene names its own
- * (`left:<cabinet>`). One row and columns keep the scene's answer.
+ * (`left:<cabinet>`). The "+" at a joint inside a row goes through it too, marked `joint`. One row and
+ * columns keep the scene's answer.
  */
 const filterRowEndPlus = (app: Record<string, unknown>) => {
   const sceneManager = app.sceneManager;
@@ -603,7 +609,7 @@ const filterRowEndPlus = (app: Record<string, unknown>) => {
     const inRows = isRecord(compositionManager) && layoutOf(compositionManager as SceneLayoutManager) === "rows";
     if (button.plus || !cabinetId || !kind || typeof filter !== "function" || !inRows) return isPlusVisible(button);
 
-    return Boolean(filter({ id: `${kind}:${cabinetId}`, kind, cabinetId }));
+    return Boolean(filter({ id: `${kind}:${cabinetId}`, kind, cabinetId, joint: button.joint === true }));
   };
   // A manager that cannot take it keeps the scene's answer.
   if (Reflect.set(manager, "_isPlusVisible", filteredIsPlusVisible)) rowEndPlusFiltered.add(manager);
