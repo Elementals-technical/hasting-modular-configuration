@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
-import { configurator4WithLiveCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
+import { configurator10WithLacquerCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator12 from "@/entities/collection/__tests__/fixtures/remote/configurator-12.json";
 import configurator8 from "@/entities/collection/__tests__/fixtures/remote/configurator-8.json";
 import configurator13 from "@/entities/collection/__tests__/fixtures/remote/configurator-13.json";
@@ -61,9 +61,9 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
 
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
-// Configurator 4 as Urban Low Height loads it, with the live vessel and lacquered countertop colours
-// the recorded sample leaves out.
-const ulhConfiguratorGroups = configuratorSchema.parse(configurator4WithLiveCountertops).availableOptions;
+// Configurator 10 as Urban Low Height loads it, with the lacquered countertop colours that keep table
+// 589's rules for them covered.
+const ulhConfiguratorGroups = configuratorSchema.parse(configurator10WithLacquerCountertops).availableOptions;
 
 const readyCollectionOf = (
   collectionId: string,
@@ -900,13 +900,24 @@ describe("Urban Low Height vessel colours follow the chosen vessel, as the USH c
   });
 
   it.each([
-    ["Vessel_Blade11", ["Antracite Matte OCF", "Cemento Matte OCD"]],
+    [
+      "Vessel_Blade11",
+      ["Antracite Matte OCF", "Cemento Matte OCD", "Cenere Matte OCE", "Gloss White OCB", "Matte White OCC"],
+    ],
     ["Vessel_UrbanModo", ["Matte Black T1D", "Matte White T1C"]],
     ["Vessel_UrbanMorris", ["Bianco Gloss TAL", "Bianco Matte TAM"]],
-    ["Vessel_Aquarius", ["Agata BD MT", "Bianco Gloss TAL", "Bianco Matte TAM"]],
   ])("enables the colours %s takes", (vessel, colors) => {
     store.dispatch(setActiveBasinStyle(vessel));
 
     expect(enabledValues("vessel-color")).toEqual(colors);
+  });
+
+  it("enables the 54 Tekorlux colours for Vessel_Aquarius", () => {
+    store.dispatch(setActiveBasinStyle("Vessel_Aquarius"));
+
+    expect(enabledValues("vessel-color")).toHaveLength(54);
+    expect(enabledValues("vessel-color")).toEqual(
+      expect.arrayContaining(["Agata BD MT", "Bianco Gloss TAL", "Bianco Matte TAM"]),
+    );
   });
 });

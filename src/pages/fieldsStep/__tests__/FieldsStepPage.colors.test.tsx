@@ -47,7 +47,7 @@ if (!parsedProfile.ok) throw new Error("Urban Low Height profile must parse");
 
 const cabinetColors: ConfiguratorAvailableOption = {
   id: 15,
-  proxyName: "Cabinet Color",
+  proxyName: "Select Cabinet Color",
   proxyType: "material",
   enabled: true,
   metadata: {},
@@ -72,7 +72,7 @@ const cabinetColors: ConfiguratorAvailableOption = {
   ],
 };
 
-const grooveColors: ConfiguratorAvailableOption = { ...cabinetColors, id: 16, proxyName: "Handle Groove Color" };
+const grooveColors: ConfiguratorAvailableOption = { ...cabinetColors, id: 16, proxyName: "Select Handle Groove Color" };
 
 const renderColorStep = () => {
   const collection = buildReadyCollection("urban-low-height", ulhManifestDocument, ulhUiDocument);
@@ -87,7 +87,7 @@ const renderColorStep = () => {
               ...collection.catalog,
               configurator: {
                 groups: [cabinetColors, grooveColors],
-                groupsByName: { "Cabinet Color": cabinetColors, "Handle Groove Color": grooveColors },
+                groupsByName: { "Select Cabinet Color": cabinetColors, "Select Handle Groove Color": grooveColors },
               },
             },
           }}

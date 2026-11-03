@@ -62,7 +62,7 @@ public/collections/registry.json
 | Product | `collectionId` | Configurator | Countertop DT | Cabinet DT | Presets | Presets with composition | SKU source |
 |---|---|---:|---:|---:|---:|---:|---|
 | USH | `urban-standard-height` | 4 | 438 | 439 | 54 | 54 | legacy mappings + code series |
-| ULH | `urban-low-height` | 4 | 589 | 580 | 59 | 53 | `sku-profile.json`, partial |
+| ULH | `urban-low-height` | 10 | 589 | 580 | 59 | 53 | `sku-profile.json`, partial |
 | Class | `class` | 8 | 578 | 579 | 24 | 24 | `sku-profile.json`, partial |
 | Mako | `mako` | 9 | 577 | 581 | 42 | 42 | `sku-profile.json`, partial |
 | Urban Freestanding | `urban-freestanding` | 11 | 591 | 590 | 54 | 54 | `sku-profile.json`, partial |
@@ -70,11 +70,12 @@ public/collections/registry.json
 | Urban Duplex | `urban-duplex` | 13 | 595 | 594 | 71 | 66 | `sku-profile.json`, partial |
 | Lame | `lame` | 14 | 597 | 596 | 43 | 43 | `sku-profile.json`, partial |
 
-USH і ULH ділять один configurator, але не countertop table, cabinet table, product profile, UI чи
-runtime bindings. Спільний remote id не означає успадкування правил.
+USH читає configurator 4. ULH читала його до 2026-11-03, а правил USH не успадковувала: власний remote id
+цього не змінює.
 
-Urban Freestanding, Tricot, Urban Duplex і Lame мають власні material configurators 11–14
-(`modular-config-phase-2-materials-(…)`), лише з кольорами своєї колекції. Групи там звуться
+Urban Low Height має власний configurator 10 (`modular-config-phase-2 (ULH)`), а Urban Freestanding, Tricot,
+Urban Duplex і Lame — material configurators 11–14 (`modular-config-phase-2-materials-(…)`), лише з кольорами
+своєї колекції. Групи там звуться
 `Select … Color`, а не як у configurator 4 (`Cabinet Color`, `Vessels`); код, якому потрібен вид групи
 (столешниця, towel bar, swatch order, Summary), визначає його через
 `src/entities/configurator/lib/configuratorGroupKind.ts`, а не за іменем.
