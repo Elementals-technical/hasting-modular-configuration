@@ -441,3 +441,55 @@ describe("a basin with no Sink Base under it", () => {
     expect(colourOf("Tekorund", 46, true)).toEqual({ isCompatible: false, failedBy: "depth" });
   });
 });
+
+// A vessel needs a Sink Base of at least the table's `min_vsl_cm`; below it the vessel style is refused too, so
+// no composition is priced with a vessel cutout and no basin.
+describe("the vessel style on a narrow Sink Base", () => {
+  const rules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable589));
+  const ulhProfile: ProductProfile = (() => {
+    const parsed = parseProductProfile(ulhProfileDocument);
+    if (!parsed.ok) throw new Error("The Urban Low Height profile failed validation");
+    return parsed.profile;
+  })();
+  const ruleStateAt = (sinkBaseWidth: number) =>
+    buildCountertopRuleState({
+      rules,
+      activeMaterialTokens: ["HPL"],
+      width: sinkBaseWidth,
+      sinkBaseWidth,
+      totalWidth: sinkBaseWidth,
+      depth: 50,
+      activeCountertopStyle: "integrated",
+      activeBasinStyle: null,
+      activeThickness: null,
+      profile: ulhProfile,
+    });
+
+  // Table 589: HPL takes a vessel from an 80 cm Sink Base, an integrated basin from 60 or 70 cm, both up to 270 cm.
+  it("refuses the vessel style below the vessel minimum, with the minimum in its reason", () => {
+    const { styleAvailability, vesselSinkAvailability } = ruleStateAt(70);
+
+    expect(styleAvailability.vessel).toEqual({
+      isAvailable: false,
+      maxCompatibleWidthCm: 270,
+      reasonCode: "countertop.vesselSinkBaseMin",
+      reasonParams: { minCm: 80, minIn: "31.5" },
+      disabledReason: 'Not available for selected sink base cabinet width. Minimum width required 80cm (31.5")',
+    });
+    expect(vesselSinkAvailability).toMatchObject({ isAvailable: false, reasonCode: "countertop.vesselSinkBaseMin" });
+  });
+
+  it("offers the vessel style from the vessel minimum", () => {
+    const { styleAvailability, vesselSinkAvailability } = ruleStateAt(80);
+
+    expect(styleAvailability.vessel).toEqual({ isAvailable: true, maxCompatibleWidthCm: 270 });
+    expect(vesselSinkAvailability).toEqual({ isAvailable: true, minSinkBaseWidthCm: 80 });
+  });
+
+  it.each([70, 80])("leaves the integrated style alone on a %i cm Sink Base", (sinkBaseWidth) => {
+    expect(ruleStateAt(sinkBaseWidth).styleAvailability.integrated).toEqual({
+      isAvailable: true,
+      maxCompatibleWidthCm: 270,
+    });
+  });
+});

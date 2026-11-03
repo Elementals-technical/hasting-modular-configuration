@@ -92,6 +92,8 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
             : null;
         const blockedByRules = availability ? !availability.isAvailable : false;
         const blockedByDepth = isDepth46VesselOnly && style === "integrated" && availability?.isAvailable !== true;
+        // The hint names the rule's own reason; without its code the option shows the generic one.
+        const ruleRefusal = blockedByRules && !blockedByDepth ? availability : null;
 
         return {
           ...option,
@@ -102,6 +104,7 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
             : blockedByRules
               ? availability?.disabledReason
               : undefined,
+          ...(ruleRefusal ? { reasonCode: ruleRefusal.reasonCode, reasonParams: ruleRefusal.reasonParams } : {}),
         };
       }),
     [isDepth46VesselOnly, ruleState.styleAvailability, styleField],
