@@ -641,6 +641,11 @@ export const PlayCanvasIntegration = ({
     (definitionId: string) => definitionId === runtimeBindings?.productTypes["Side-Shelf"],
     [runtimeBindings],
   );
+  // The sink bases stay in one row in Drag & Drop as they do under the builder's "+".
+  const isSinkBaseSceneType = useCallback(
+    (definitionId: string) => definitionId === runtimeBindings?.productTypes["Sink-Base"],
+    [runtimeBindings],
+  );
   const getCountertopApi = useCallback((): CountertopApi | null => {
     const runtimeWindow = containerRef.current?.contentWindow as
       | (Window & { ConfiguratorAPI?: { countertop?: Partial<CountertopApi> } })
@@ -2409,6 +2414,8 @@ export const PlayCanvasIntegration = ({
     setScenePlusFilter(
       plusFilterFor(cabinetTypeOf(sourceId), cabinetTypeOf, {
         columns: cabinetPlacementDebugEnabled,
+        // A copy that stands at an end of the composition takes no "+" at a joint inside a row.
+        endOnly: isSteppedSceneConfig(sourceConfig),
         fits: (plus) => rowCapacity.allowsPlus(plus, cabinetTypeOf(sourceId), copyWidths),
       }),
     );
@@ -4027,6 +4034,7 @@ export const PlayCanvasIntegration = ({
           onCompositionChangeAbandoned={abandonCabinetPlacement}
           showDebugTools={cabinetPlacementDebugTools}
           isSideShelfType={isSideShelfSceneType}
+          isSinkBaseType={isSinkBaseSceneType}
         />
       )}
 

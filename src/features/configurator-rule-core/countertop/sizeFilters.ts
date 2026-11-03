@@ -86,6 +86,7 @@ export const isCountertopRuleWidthAllowed = ({
   context,
   activeBasinStyle,
   profile,
+  shouldApplyBasinMinimum = true,
 }: {
   rule: CountertopMatrixRule;
   width: number;
@@ -93,12 +94,18 @@ export const isCountertopRuleWidthAllowed = ({
   context: CountertopWidthRuleContext;
   activeBasinStyle?: string | null;
   profile: ProductProfile | null;
+  /**
+   * Whether the integrated basin's Sink Base minimum (`min_sb_cm`) refuses a narrower width. A width list
+   * leaves it out: the basin follows the cabinet, so a narrower Sink Base gets a basin that fits it.
+   */
+  shouldApplyBasinMinimum?: boolean;
 }): boolean => {
   const isIntegratedSinkBaseContext = style === "integrated" && context === "sink-base";
   const isActiveVesselSinkBaseContext =
     style === "vessel" && context === "sink-base" && isVesselBasin(profile, activeBasinStyle);
 
-  if (isIntegratedSinkBaseContext && rule.minSbCm !== null && width < rule.minSbCm) return false;
+  if (shouldApplyBasinMinimum && isIntegratedSinkBaseContext && rule.minSbCm !== null && width < rule.minSbCm)
+    return false;
   if (isActiveVesselSinkBaseContext && !isRuleWidthEligibleForVesselSinkContext(rule, width)) return false;
 
   const maxLimits = getCountertopRuleMaxWidthsForStyle(rule, style);
@@ -165,7 +172,7 @@ export const filterWidthValuesByCountertopRules = ({
 
   const rulesForWidth =
     thicknessScopedRules.length > 0 ? thicknessScopedRules : basinScopedRules.length > 0 ? basinScopedRules : matchingRules;
-  const shouldEnforceMinSb =
+  const isSinkBaseContext =
     Boolean(isSinkBaseCabinet) ||
     (activeCabinetCode ? /(^|[-_\s])sink[-_\s]?base($|[-_\s])|^sb$/i.test(activeCabinetCode) : false);
 
@@ -175,9 +182,10 @@ export const filterWidthValuesByCountertopRules = ({
         rule,
         width,
         style: widthRuleStyle,
-        context: shouldEnforceMinSb ? "sink-base" : "generic",
+        context: isSinkBaseContext ? "sink-base" : "generic",
         activeBasinStyle,
         profile,
+        shouldApplyBasinMinimum: false,
       });
     });
 

@@ -15,6 +15,7 @@ import {
 import { DRAFT_HINTS, draftInvalidHint, draftValidationStatus } from "../lib/draftValidationMessage";
 import { createPlacementOverlayStore, visibleOverlayFrame } from "../lib/placementOverlayStore";
 import { sideShelvesAtRowEnds, wallAfterDraft } from "../lib/sideShelfEdges";
+import { sinkBasesInOneRow } from "../lib/sinkBaseRow";
 import { CabinetDraftOverlay } from "./CabinetDraftOverlay";
 import { MoveIcon } from "./placementIcons";
 import s from "./CabinetPlacementDebug.module.scss";
@@ -56,6 +57,8 @@ type Props = {
   showDebugTools?: boolean;
   /** The scene type of a side shelf, which stays at an end of its row: a draft that leaves one inward is not applied. */
   isSideShelfType?: (definitionId: string) => boolean;
+  /** The scene type of a sink base: a draft that would leave the sink bases in two rows is not applied. */
+  isSinkBaseType?: (definitionId: string) => boolean;
 };
 
 export type CabinetPlacementControls = {
@@ -110,6 +113,7 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     onRepositionAvailabilityChange,
     showDebugTools = false,
     isSideShelfType,
+    isSinkBaseType,
   },
   ref,
 ) {
@@ -534,6 +538,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
   // A side shelf the draft would leave inward or in a column (the scene does not check it).
   const draftWall = draft && draftStart?.sessionId === draft.sessionId ? wallAfterDraft(draftStart.state, draft) : null;
   const sideShelfInward = Boolean(isSideShelfType && draftWall && !sideShelvesAtRowEnds(draftWall, isSideShelfType));
+  // Sink bases the draft would leave in two rows (the scene does not check it either).
+  const sinkBasesSplit = Boolean(isSinkBaseType && draftWall && !sinkBasesInOneRow(draftWall, isSinkBaseType));
   const applyDisabled =
     !connected ||
     capabilitiesRefreshing ||
@@ -541,7 +547,8 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     !supported.includes("cabinetPlacement.apply") ||
     draft?.canApply !== true ||
     (draftValidationStatus(draft) ?? "valid") !== "valid" ||
-    sideShelfInward;
+    sideShelfInward ||
+    sinkBasesSplit;
   const cancelDisabled =
     !connected ||
     capabilitiesRefreshing ||
@@ -549,7 +556,10 @@ export const CabinetPlacementDebug = forwardRef<CabinetPlacementControls, Props>
     !supported.includes("cabinetPlacement.cancel") ||
     draft?.canCancel !== true;
   const anchored = Boolean(sessionId) && anchoredSessionId === sessionId;
-  const collisionHint = draftInvalidHint(draft) ?? (sideShelfInward ? DRAFT_HINTS.sideShelfAtRowEnd : null);
+  const collisionHint =
+    draftInvalidHint(draft) ??
+    (sideShelfInward ? DRAFT_HINTS.sideShelfAtRowEnd : null) ??
+    (sinkBasesSplit ? DRAFT_HINTS.sinkBasesInOneRow : null);
 
   return (
     <>

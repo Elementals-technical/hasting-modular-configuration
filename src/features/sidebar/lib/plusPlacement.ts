@@ -52,6 +52,11 @@ export type PlusFilterOptions = {
    */
   columns: boolean;
   /**
+   * Whether the cabinet being added stands at an end of the composition (a short one, an open side
+   * shelf): it takes no "+" at a joint inside a row, which would leave it between two cabinets.
+   */
+  endOnly?: boolean;
+  /**
    * Whether the row the "+" adds to has room for the cabinet, and may take its type (the length rule row
    * by row). Asked after the placement rules; without it every "+" those rules keep is shown.
    */
@@ -62,8 +67,11 @@ const fitsPlacement = (
   cabinetType: string | null,
   cabinetTypeOf: (runtimeId: string) => string | null,
   columns: boolean,
+  endOnly: boolean,
   plus: ScenePlus,
 ): boolean => {
+  // A side shelf, like any cabinet that stands at an end, never goes between two cabinets of a row.
+  if (plus.joint && (endOnly || cabinetType === SIDE_SHELF)) return false;
   if (!columns || cabinetType === SIDE_SHELF) return plus.kind === "left" || plus.kind === "right";
   if (cabinetType === OPEN_SHELF && rowEndSideOf(plus.kind) === null) return false;
   if (cabinetType === SINK_BASE && plus.kind === "bottom") return false;
@@ -74,6 +82,7 @@ const fitsPlacement = (
  * The "+" that fit the cabinet about to be added, by its type as the collection names it:
  * - a shelf never goes in a column, and a Side-Shelf only at a row end, standing;
  * - nothing goes on a sink base, so not over a lone one, and a sink base never goes under a cabinet;
+ * - with `endOnly`, no "+" at a joint inside a row;
  * - with `fits`, only a row with room for it.
  * The scene checks the rest when it places the cabinet.
  */
@@ -81,7 +90,7 @@ export const plusFilterFor =
   (
     cabinetType: string | null,
     cabinetTypeOf: (runtimeId: string) => string | null,
-    { columns, fits }: PlusFilterOptions,
+    { columns, endOnly = false, fits }: PlusFilterOptions,
   ) =>
   (plus: ScenePlus): boolean =>
-    fitsPlacement(cabinetType, cabinetTypeOf, columns, plus) && (fits?.(plus) ?? true);
+    fitsPlacement(cabinetType, cabinetTypeOf, columns, endOnly, plus) && (fits?.(plus) ?? true);

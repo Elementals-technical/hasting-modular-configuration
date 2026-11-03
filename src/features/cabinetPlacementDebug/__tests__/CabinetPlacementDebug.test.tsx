@@ -1059,6 +1059,57 @@ describe("Cabinet drag and drop with a collection whose rows hold columns", () =
     emit("cabinetPlacement.change", shelfAt(1.2765));
     expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false);
   });
+
+  it("keeps every sink base in one row before Apply", async () => {
+    const { client, emit } = fixture();
+    // The countertop's row at 0.56 m holds a sink base; the lower row at 0.28 m a side cabinet.
+    const rows = {
+      cabinets: [
+        {
+          id: "sink",
+          definitionId: "ULH-sink-cabinet",
+          selection: { Width: 60 },
+          positionM: { x: 0.3, y: 0.56, z: 0 },
+        },
+        { id: "low", definitionId: "ULH-side-cabinet", selection: { Width: 60 }, positionM: { x: 0.3, y: 0.28, z: 0 } },
+      ],
+      connections: [],
+      selectedCabinetId: null,
+    };
+    const rowsClient = { ...client, getCabinetsState: vi.fn(async () => rows) };
+    render(
+      <CabinetPlacementDebug
+        offerAdd
+        ready
+        selection={{ definitionId: "ULH-sink-cabinet", selection: { Width: 60 } }}
+        selectedProductId={null}
+        createClient={() => rowsClient as unknown as ConfiguratorClient}
+        isSinkBaseType={(definitionId) => definitionId === "ULH-sink-cabinet"}
+      />,
+    );
+    const add = screen.getByRole("button", { name: "Drag to Place" }) as HTMLButtonElement;
+    await waitFor(() => expect(add.disabled).toBe(false));
+    fireEvent.click(add);
+    await screen.findByRole("button", { name: "Apply" });
+    const sinkAt = (x: number, y: number) => ({
+      ...preview,
+      candidate: {
+        definitionId: "ULH-sink-cabinet",
+        selection: { Width: 60 },
+        productId: null,
+        effectivePlacement: { positionM: { x, y, z: 0 } },
+      },
+    });
+
+    // Beside the lower row's cabinet: the scene allows it, the sink base rule does not.
+    emit("cabinetPlacement.change", sinkAt(0.9005, 0.28));
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText("All sink bases must be in one row.")).toBeTruthy();
+
+    // Beside the sink base already under the countertop.
+    emit("cabinetPlacement.change", sinkAt(0.9005, 0.56));
+    expect((screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement).disabled).toBe(false);
+  });
 });
 
 describe("Drag to Place", () => {

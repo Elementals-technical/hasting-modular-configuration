@@ -31,6 +31,8 @@ These links use the current portfolio layout; the maps live outside this Git rep
 
 ## Records
 
+- [`composition.importPreset` needs frames handoff, 2026-11-03](ai/qa/handoffs/HO-013-import-preset-needs-frames.md) — a restore never settles while the tab is unpainted, leaving the whole rule layer on zero cabinets; the command resumes the moment frames resume.
+
 - [Lamè: Side Panels UI, SKU, pricing та history](qa/lame-ui-side-panels-2026-10-29/index.html) — нові знімки prebuilt/custom; [звіт](qa/lame-ui-side-panels-2026-10-29/test-record.uk.md).
 
 - [`ecosystem-map.md`](ecosystem-map.md) — Карта чотирьох робочих папок Hastings: відповідальність, інтеграції, передача даних, runtime/export boundaries та підтверджені розбіжності версій. Знімок локального стану на 2026-10-22.
