@@ -91,6 +91,18 @@ Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex ви
 виконується, поки vessel стоїть поза своїм Sink Base, і під час restore/undo; воно не додає крок undo. Це
 спільна поведінка всіх колекцій; якщо матриця не дозволяє жодного іншого стилю, Vessel лишається.
 
+Той самий хук скидає й integrated basin, який правила відмовляють, з будь-якого кроку: після скидання стилю і
+після Resize чи «+» Sink Base. Приклад — Urban Duplex: HPL Strip і Cover вимагають Sink Base від 70 cm
+(`min_sb_cm`), тож 60 cm Sink Base, поставлений через «+» або змінений у сцені, отримує default басейн
+матеріалу, якщо матриця його дозволяє, інакше перший дозволений (Prisma). Вердикт дає лише `allowedBasinKeys`
+rule core; хук мінімум не перераховує. Якщо жоден басейн не дозволений, басейн лишається. Умови ті самі, що в
+скидання стилю: Sink Base поставлений, sink не винесений, не restore/undo.
+
+Списки ширин Sink Base у Cabinet Builder, «+» і Resize у сцені не відкидають ширини нижче `min_sb_cm` басейну:
+басейн підлаштовується під шафу, а не навпаки (Urban Duplex пропонує 60–120 cm). Матеріал і модель, навпаки,
+відмовляються за `min_sb_cm` у availability. «+» лишає обрану ширину, лише якщо вона є серед запропонованих
+ширин, що вміщуються, інакше бере найширшу з них.
+
 Urban Freestanding, Tricot, Urban Duplex і Lame мають власні material configurators 11–14
 (`modular-config-phase-2-materials-(…)`), лише з кольорами своєї колекції. Групи там звуться
 `Select … Color`, а не як у configurator 4 (`Cabinet Color`, `Vessels`); код, якому потрібен вид групи
