@@ -78,6 +78,12 @@ Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex ви
 table (80 cm). Ту саму причину мають vessel basins, тож композиція не може отримати vessel cutout без basin.
 Integrated лишається доступним за своїми правилами table.
 
+Коли стиль уже Vessel, а Sink Base стає вужчим за цей мінімум (наприклад, Resize у custom flow), стиль
+скидається на перший дозволений правилами з будь-якого кроку, а басейн — на default басейн матеріалу, якщо
+матриця його дозволяє, інакше на перший дозволений. Скидання чекає, поки Sink Base поставлений, не
+виконується, поки vessel стоїть поза своїм Sink Base, і під час restore/undo; воно не додає крок undo. Це
+спільна поведінка всіх колекцій; якщо матриця не дозволяє жодного іншого стилю, Vessel лишається.
+
 Urban Freestanding, Tricot, Urban Duplex і Lame мають власні material configurators 11–14
 (`modular-config-phase-2-materials-(…)`), лише з кольорами своєї колекції. Групи там звуться
 `Select … Color`, а не як у configurator 4 (`Cabinet Color`, `Vessels`); код, якому потрібен вид групи
