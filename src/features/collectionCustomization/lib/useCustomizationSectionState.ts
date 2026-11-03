@@ -93,7 +93,7 @@ const toStyleRefusalReason = (
 
 // The styles the matrix allows for the current colour and sizes. Each refused style says its own reason: the two
 // can be refused for different minimums of the Sink Base. The field's reason is the first refused style's.
-const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRuleState): FieldAvailability => {
+export const resolveCountertopStyleAvailability = ({ styleAvailability }: CountertopRuleState): FieldAvailability => {
   const refused = COUNTERTOP_STYLES.map((style) => styleAvailability[style]).find(({ isAvailable }) => !isAvailable);
 
   return {
@@ -194,7 +194,7 @@ const resolveThicknessAvailability = (
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
 // cutout: the profile's noneValue, chosen until a vessel is.
-const resolveBasinAvailability = (
+export const resolveBasinAvailability = (
   profile: ProductProfile | null,
   { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
   countertopStyle: string | null | undefined,

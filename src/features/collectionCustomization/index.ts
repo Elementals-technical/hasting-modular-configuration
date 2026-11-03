@@ -15,7 +15,11 @@ export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigat
 export { useCollectionNavigate } from "./lib/useCollectionNavigate";
 export { withPreservedEntrySearch } from "./lib/withPreservedEntrySearch";
 export { resolveSectionFields } from "./lib/resolveSectionState";
-export { useCustomizationStepSections } from "./lib/useCustomizationSectionState";
+export {
+  resolveBasinAvailability,
+  resolveCountertopStyleAvailability,
+  useCustomizationStepSections,
+} from "./lib/useCustomizationSectionState";
 export { buildConfiguratorOptions, fromCsv, pick } from "./lib/buildConfiguratorOptions";
 export { useCountertopRuleState } from "./lib/useCountertopRuleState";
 export { selectOptionLabel, useOptionLabel } from "./lib/selectOptionLabel";
