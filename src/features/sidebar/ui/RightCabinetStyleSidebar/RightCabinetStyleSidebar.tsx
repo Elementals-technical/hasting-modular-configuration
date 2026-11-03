@@ -834,9 +834,12 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
             (id) => resolveCabinetTypeOfRuntimeId(activeProfile, runtimeBindings, id),
             {
               columns: placesInColumns,
-              fits: selectedProducts.length
-                ? (plus) => rowCapacity.allowsPlus(plus, activeDrawerProduct, widthValues)
-                : undefined,
+              // A cabinet that stands at an end of the composition takes no "+" at a joint inside a row.
+              endOnly: placesAtEnd,
+              // Asked for every "+" the scene stands by a cabinet, whether or not the composition has
+              // reached the state yet: a Sink Base belongs in one row, and a "+" of another row never
+              // adds one. An empty composition has no such "+", and the rows are judged permissively.
+              fits: (plus) => rowCapacity.allowsPlus(plus, activeDrawerProduct, widthValues),
             },
           )
         : null,
@@ -934,7 +937,8 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
 
       // The row the "+" adds to decides: the countertop's by its remaining length, a row the countertop
       // does not rest on by its own length, a column's bottom place (under a hanging cabinet) by none.
-      const check = selectedProducts.length
+      // The "+" of an empty scene stands by no cabinet, so there is no row to judge.
+      const check = entityId
         ? rowCapacity.checkPlus({ cabinetId: entityId, kind: side }, activeDrawerProduct, availableAddWidths)
         : null;
       if (check?.status === "refused") {

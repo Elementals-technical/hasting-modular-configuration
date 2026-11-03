@@ -123,10 +123,20 @@ const clientGroups = (): SceneSupportGroups => ({
   sidePanelsByGroup: {},
 });
 
-const plus = (cabinetId: string, kind: ScenePlusKind = "right"): ScenePlus => ({
+/** The same two rows with room under the countertop: upper 120 + 25 = 145 cm, lower 165 cm. */
+const roomyGroups = (): SceneSupportGroups => ({
+  ...clientGroups(),
+  cabinets: [
+    ...widthsOf(UPPER.slice(0, 2), [120, 25]).map(([id, widthCm]) => ({ id, supportGroupId: "group-1", widthCm })),
+    ...widthsOf(LOWER, [25, 70, 70]).map(([id, widthCm]) => ({ id, supportGroupId: "layout-lower", widthCm })),
+  ],
+});
+
+const plus = (cabinetId: string, kind: ScenePlusKind = "right", joint = false): ScenePlus => ({
   id: `${kind}:${cabinetId}`,
   kind,
   cabinetId,
+  ...(joint ? { joint: true } : {}),
 });
 
 const renderUlhSidebar = () =>
@@ -234,5 +244,57 @@ describe("the style sidebar's + with the countertop row full", () => {
 
     expect(addedWidths()).toEqual([]);
     expect(scene.refusals).toEqual([{ code: "cabinet.sinkBaseInCountertopRow" }]);
+  });
+});
+
+/** Client, Cabinet Builder SB Placement: every sink base stands in one row, so the lower row offers none. */
+describe("the style sidebar's + for a Sink Base while both rows have room", () => {
+  beforeEach(() => {
+    scene.groups = roomyGroups();
+    store.dispatch(recordComposition({ productIds: [...UPPER.slice(0, 2), ...LOWER] }));
+    store.dispatch(syncCabinets([...UPPER.slice(0, 2), ...LOWER]));
+    // The countertop covers its own row alone: 145 cm of the 270 cm maximum.
+    act(() =>
+      setCountertopRuntimeState({
+        readiness: "ready",
+        productId: "Top_Solid-1",
+        compositionId: "c-1",
+        autoLength: 1.45,
+      }),
+    );
+    addingCabinet("Sink-Base", 60);
+  });
+
+  it("shows the + of the countertop's row only, at its ends and at its joints", async () => {
+    renderUlhSidebar();
+
+    await waitFor(() => expect(scene.filter).not.toBeNull());
+    expect(scene.filter?.(plus(UPPER[0], "left"))).toBe(true);
+    expect(scene.filter?.(plus(UPPER[1], "right"))).toBe(true);
+    expect(scene.filter?.(plus(UPPER[1], "left", true))).toBe(true);
+    // The lower row: none of its +, whichever end or joint it stands at.
+    expect(scene.filter?.(plus(LOWER[0], "left"))).toBe(false);
+    expect(scene.filter?.(plus(LOWER[2], "right"))).toBe(false);
+    expect(scene.filter?.(plus(LOWER[1], "left", true))).toBe(false);
+  });
+
+  it("keeps the lower row's + away from a Sink Base before the composition reaches the state", async () => {
+    // The scene holds both rows while the state is still empty (a restore that has not finished).
+    store.dispatch(recordComposition({ productIds: [] }));
+    store.dispatch(syncCabinets([]));
+    renderUlhSidebar();
+
+    await waitFor(() => expect(scene.filter).not.toBeNull());
+    expect(scene.filter?.(plus(UPPER[1], "right"))).toBe(true);
+    expect(scene.filter?.(plus(LOWER[2], "right"))).toBe(false);
+  });
+
+  it("still shows both rows to a Side Cabinet", async () => {
+    addingCabinet("Side-Cabinet", 60);
+    renderUlhSidebar();
+
+    await waitFor(() => expect(scene.filter).not.toBeNull());
+    expect(scene.filter?.(plus(UPPER[1], "right"))).toBe(true);
+    expect(scene.filter?.(plus(LOWER[2], "right"))).toBe(true);
   });
 });
