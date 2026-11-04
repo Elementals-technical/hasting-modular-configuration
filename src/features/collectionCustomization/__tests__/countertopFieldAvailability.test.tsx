@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
-import { renderHook } from "@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
 import { ReadyCollectionContext, selectMessage, type ProductProfile } from "@/entities/collection";
@@ -20,13 +20,18 @@ import datatable593 from "@/entities/collection/__tests__/fixtures/remote/datata
 import datatable595 from "@/entities/collection/__tests__/fixtures/remote/datatable-595.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
+import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
+import { parseRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/parseRuntimeBindings";
+import type { RuntimeBindingSet } from "@/entities/collection/model/runtimeBindings";
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
-import { resetConfiguration } from "@/entities/configuration";
+import { resetConfiguration, setActiveRuntimeBindings } from "@/entities/configuration";
 import type { ConfiguratorVariant } from "@/entities/configurator/api";
 import {
+  addProductId,
   reset,
   setActiveBasinStyle,
   setActiveCountertopColor,
+  setActiveCountertopThickness,
   setActiveProfile,
   setCountertopStyle,
   setSelectedDimensions,
@@ -46,6 +51,7 @@ import tricotProfileDocument from "../../../../public/collections/tricot/product
 import tricotUi from "../../../../public/collections/tricot/ui.json";
 import udManifest from "../../../../public/collections/urban-duplex/manifest.json";
 import udProfileDocument from "../../../../public/collections/urban-duplex/product-profile.json";
+import udBindingsDocument from "../../../../public/collections/urban-duplex/runtime-bindings.json";
 import udUi from "../../../../public/collections/urban-duplex/ui.json";
 import ulhManifest from "../../../../public/collections/urban-low-height/manifest.json";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
@@ -58,6 +64,15 @@ import { useCustomizationStepSections } from "../lib/useCustomizationSectionStat
  * style and basin fields only through their availabilityRef, and the vessel choice follows the USH
  * countertop step.
  */
+
+/** The size the scene reads for a placed cabinet; with one not listed it answers as with no scene. */
+const sceneSizes = vi.hoisted(() => new Map<string, { Width: number; Depth: number }>());
+vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
+  getConfig: async (runtimeId: string) => sceneSizes.get(runtimeId) ?? null,
+}));
+
+// A rendered step keeps polling the scene until it is unmounted.
+afterEach(cleanup);
 
 const configuratorGroups = configuratorSchema.parse(configurator9).availableOptions;
 
@@ -118,6 +133,8 @@ const urbanLowHeight = {
 
 const parsedUdProfile = parseProductProfile(udProfileDocument);
 if (!parsedUdProfile.ok) throw new Error("Packaged Urban Duplex profile failed validation");
+const parsedUdBindings = parseRuntimeBindings(udBindingsDocument);
+if (!parsedUdBindings.ok) throw new Error("Packaged Urban Duplex runtime bindings failed validation");
 
 // Urban Duplex takes its countertop colours from its own material configurator 13 and its rows from table 595.
 const urbanDuplex = {
@@ -145,6 +162,7 @@ const fieldsOf = ({ ready }: TestCollection) => {
     )?.fields[0]?.field;
 
   return {
+    wrapper,
     fieldOf,
     shownValues: (sectionId: string) => fieldOf(sectionId)?.options.map(({ value }) => value),
     enabledValues: (sectionId: string) =>
@@ -355,6 +373,121 @@ describe("Class countertop colours follow table 578", () => {
         classLive.profile,
       ),
     ).toBeNull();
+  });
+});
+
+/**
+ * The step on Sink Bases of these widths, as the scene reads them. They arrive after the first render, so this is one
+ * render to wait on, where `fieldOf` renders afresh.
+ */
+const stepOnSinkBases = (collection: TestCollection, bindings: RuntimeBindingSet, widths: number[], depth: number) => {
+  store.dispatch(setActiveRuntimeBindings(bindings));
+  widths.forEach((Width, index) => {
+    const runtimeId = `${bindings.productTypes?.["Sink-Base"]}-${index}`;
+    sceneSizes.set(runtimeId, { Width, Depth: depth });
+    store.dispatch(addProductId(runtimeId));
+  });
+  const { result } = renderHook(() => useCustomizationStepSections("countertop"), {
+    wrapper: fieldsOf(collection).wrapper,
+  });
+  const optionsOf = (sectionId: string) =>
+    result.current.find((section) => section.sectionId === sectionId)?.fields[0]?.field.options;
+
+  return {
+    optionOf: (sectionId: string, value: string) => optionsOf(sectionId)?.find((option) => option.value === value),
+    enabledValues: (sectionId: string) =>
+      optionsOf(sectionId)
+        ?.filter(({ enabled }) => enabled)
+        .map(({ value }) => value),
+  };
+};
+
+// The store's selected size stands for the cabinet the user last picked: the scene's read is what changes the verdict.
+describe("the countertop step judges a composition by its narrowest Sink Base", () => {
+  afterEach(() => {
+    sceneSizes.clear();
+    store.dispatch(setActiveRuntimeBindings(null));
+  });
+
+  describe("on Class", () => {
+    const classOn = (...widths: number[]) => stepOnSinkBases(classLive, classRuntimeBindings, widths, 52);
+
+    beforeEach(() => {
+      startWith(classLive);
+      store.dispatch(setCountertopStyle("integrated"));
+    });
+
+    // Technomat's one row, VA023 from 80 cm, has no basin for the 60.
+    it("refuses Matte White 8cm on an 80 and a 60 cm one, in the collection's words", async () => {
+      const step = classOn(80, 60);
+
+      await waitFor(() =>
+        expect(step.optionOf("countertop-color", "Matte White 8cm")).toMatchObject({
+          enabled: false,
+          reasonCode: "countertop.materialNotAvailableForWidth",
+        }),
+      );
+      expect(selectMessage(classLive.profile, "countertop.materialNotAvailableForWidth")).toBe(
+        "Not available for current cabinet width",
+      );
+    });
+
+    it("offers Matte White 8cm and VA023 on two 80 cm ones, with a 60 cm cabinet selected", async () => {
+      store.dispatch(setSelectedDimensions({ width: 60 }));
+      store.dispatch(setActiveCountertopColor("Matte White 8cm"));
+      store.dispatch(setActiveCountertopThickness("3.125"));
+      const step = classOn(80, 80);
+
+      await waitFor(() => expect(step.optionOf("countertop-color", "Matte White 8cm")?.enabled).toBe(true));
+      expect(step.enabledValues("basin-style")).toEqual(["VA023"]);
+    });
+
+    // The table names no Technolite, so Matte White keeps the Solid Surface rows, which make the LB basins from 60 cm.
+    it("keeps Matte White and its LB basins on an 80 and a 60 cm one, where Matte White 8cm is refused", async () => {
+      store.dispatch(setActiveCountertopColor("Matte White"));
+      store.dispatch(setActiveCountertopThickness("0.5"));
+      const step = classOn(80, 60);
+
+      await waitFor(() => expect(step.optionOf("countertop-color", "Matte White 8cm")?.enabled).toBe(false));
+      expect(step.optionOf("countertop-color", "Matte White")?.enabled).toBe(true);
+      expect(step.enabledValues("basin-style")).toEqual(["LB440", "LB175", "LB575", "LB856"]);
+    });
+  });
+
+  // Table 595 makes the HPL Strip 48 and Cover 50 basins from a 70 cm Sink Base, Prisma 50 and Quadra 50 from 60 cm,
+  // and a vessel top on HPL from 80 cm.
+  describe("on Urban Duplex", () => {
+    const udOn = (...widths: number[]) => stepOnSinkBases(urbanDuplex, parsedUdBindings.bindings, widths, 50);
+
+    beforeEach(() => {
+      startWith(urbanDuplex);
+      store.dispatch(setSelectedDimensions({ width: 80, depth: 50 }));
+      store.dispatch(setCountertopStyle("integrated"));
+      store.dispatch(setActiveCountertopColor("Pulpis Chiaro TKH"));
+      store.dispatch(setActiveCountertopThickness("0.5"));
+    });
+
+    it("keeps an HPL colour on an 80 and a 60 cm one, without the basins the 60 cm one cannot take", async () => {
+      const step = udOn(80, 60);
+
+      await waitFor(() => expect(step.optionOf("basin-style", "Top_HPLStrip")?.enabled).toBe(false));
+      expect(step.optionOf("basin-style", "Top_HPLCover")?.enabled).toBe(false);
+      expect(step.optionOf("basin-style", "Top_HPLPrisma")?.enabled).toBe(true);
+      expect(step.optionOf("countertop-color", "Pulpis Chiaro TKH")?.enabled).toBe(true);
+    });
+
+    it("refuses the vessel style on an 80 and a 60 cm one, for its 80 cm minimum", async () => {
+      const step = udOn(80, 60);
+
+      await waitFor(() =>
+        expect(step.optionOf("countertop-style", "vessel")).toMatchObject({
+          enabled: false,
+          reasonCode: "countertop.vesselSinkBaseMin",
+          reasonParams: expect.objectContaining({ minCm: 80 }),
+        }),
+      );
+      expect(step.optionOf("countertop-style", "integrated")?.enabled).toBe(true);
+    });
   });
 });
 

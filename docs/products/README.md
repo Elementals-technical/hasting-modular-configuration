@@ -91,11 +91,18 @@ Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex ви
 виконується, поки vessel стоїть поза своїм Sink Base, і під час restore/undo; воно не додає крок undo. Це
 спільна поведінка всіх колекцій; якщо матриця не дозволяє жодного іншого стилю, Vessel лишається.
 
+Композиція має один басейн. Правила стільниці (кольори, thickness, басейни, vessel) судять її за найвужчим
+поставленим Sink Base: ширину й глибину для них дає `useSinkBaseDimensions`, і це найвужчий Sink Base, а не
+найширший. Тому на SB 80 + SB 60 Urban Duplex відмовляє HPL Strip і Cover, лишає Prisma і Quadra та відмовляє
+Vessel з мінімумом у підказці; Class відмовляє Matte White 8cm (єдиний його басейн VA023 починається з 80 cm)
+з «Not available for current cabinet width».
+
 Той самий хук скидає й integrated basin, який правила відмовляють, з будь-якого кроку: після скидання стилю і
 після Resize чи «+» Sink Base. Приклад — Urban Duplex: HPL Strip і Cover вимагають Sink Base від 70 cm
-(`min_sb_cm`), тож 60 cm Sink Base, поставлений через «+» або змінений у сцені, отримує default басейн
-матеріалу, якщо матриця його дозволяє, інакше перший дозволений (Prisma). Вердикт дає лише `allowedBasinKeys`
-rule core; хук мінімум не перераховує. Якщо жоден басейн не дозволений, басейн лишається. Умови ті самі, що в
+(`min_sb_cm`), тож Strip на SB 80 після «+» 60 cm Sink Base (або зміни в сцені) отримує default басейн
+матеріалу, якщо матриця його дозволяє, інакше перший дозволений (Prisma), на обох Sink Base. Вердикт дає лише
+`allowedBasinKeys` rule core; хук мінімум не перераховує. Якщо жоден басейн не дозволений, басейн лишається:
+Class, Matte White 8cm на SB 80, потім SB 60 — VA023 лишається, а колір показано відмовленим. Умови ті самі, що в
 скидання стилю: Sink Base поставлений, sink не винесений, не restore/undo.
 
 Вибраний vessel бере колір у тій самій команді, у всіх 8 колекціях.

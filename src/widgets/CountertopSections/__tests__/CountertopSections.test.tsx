@@ -33,6 +33,9 @@ import type { CountertopDatatable } from "@/entities/countertop/api/types";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { CountertopPage } from "@/pages/countertop/CountertopPage";
 
+import { useCountertopColorState } from "../lib/useCountertopColorState";
+import { useCountertopContext } from "../lib/useCountertopContext";
+
 // The countertop step reads its sections from ui.json and its options from the profile; the pick goes to the command.
 
 /** The set the command answers a basin pick with; every other pick changes nothing else. */
@@ -51,9 +54,12 @@ vi.mock("@/features/configurationCommands", async (importOriginal) => {
 
 vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion");
 vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport", () => ({ useCompactAccordionViewport: () => false }));
+/** The size the scene reads for a placed Sink Base; one not listed here answers without a size. */
+let sinkBaseSizes: Record<string, { Width: number; Depth: number }> = {};
 // The basins are offered once the scene reads a Sink Base among the placed products.
 vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
-  getConfig: async (runtimeId: string) => (runtimeId.startsWith("Sink-Base") ? { ProductType: "Sink-Base" } : null),
+  getConfig: async (runtimeId: string) =>
+    runtimeId.startsWith("Sink-Base") ? { ProductType: "Sink-Base", ...sinkBaseSizes[runtimeId] } : null,
 }));
 
 afterEach(cleanup);
@@ -395,5 +401,116 @@ describe("the countertop step's vessel picks", () => {
       userInitiated: true,
     });
     expect(vesselColors().getByRole("button", { name: "Clear All" })).toBeTruthy();
+  });
+});
+
+// Table 438 makes Mineralmarmo's one basin, Diamond, from a 70 cm Sink Base, and HPL Prisma from a 60 cm one.
+describe("the countertop step's colours under an integrated top on every Sink Base", () => {
+  // Configurator 4 with the Mineralmarmo option the recorded sample leaves out, as the live one gives it (2026-11-04).
+  const mineralmarmo = {
+    id: 286,
+    name: "Mineralmarmo",
+    resource: null,
+    paramString: "",
+    playcanvasString: "",
+    variants: [
+      {
+        id: 3085,
+        name: "Gloss White TMO",
+        image: null,
+        enabled: true,
+        sort: 0,
+        description: "",
+        metadata: { sku: "SSMMO", codeColor: "TMO" },
+      },
+    ],
+  };
+  const groups = configuratorSchema.parse({
+    ...configurator4,
+    availableOptions: configurator4.availableOptions.map((group) =>
+      group.proxyName === "Countertop Color" ? { ...group, options: [...group.options, mineralmarmo] } : group,
+    ),
+  }).availableOptions;
+  const withMineralmarmo = {
+    ...withCountertopRules,
+    catalog: {
+      ...withCountertopRules.catalog,
+      configurator: {
+        groups,
+        groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])),
+      },
+    },
+  };
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(setCountertopStyle("integrated"));
+    changeMock.mockClear();
+  });
+
+  afterEach(() => {
+    sinkBaseSizes = {};
+  });
+
+  /** Places a Sink Base of each width, at the 50.5 cm depth. */
+  const placeSinkBases = (...widths: number[]) => {
+    const placed = widths.map((Width, index) => ({ id: `Sink-Base-${index}`, size: { Width, Depth: 50.5 } }));
+    sinkBaseSizes = Object.fromEntries(placed.map(({ id, size }) => [id, size]));
+    placed.forEach(({ id }) => store.dispatch(addProductId(id)));
+    store.dispatch(syncCabinets(placed.map(({ id }) => id)));
+  };
+
+  const isColorRefused = async (name: string) => {
+    renderStep("/prebuilt/countertop", "countertop", withMineralmarmo);
+    await act(async () => {});
+    const tile = within(screen.getByRole("region", { name: "Countertop Color" })).getByRole("button", { name });
+    return tile.getAttribute("aria-disabled") === "true";
+  };
+
+  /** The colour as the step hands it to its tile, with the reason the step resolved for it. */
+  const colorOption = async (name: string) => {
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <ReadyCollectionContext.Provider value={withMineralmarmo}>
+        <Provider store={store}>{children}</Provider>
+      </ReadyCollectionContext.Provider>
+    );
+    const { result } = renderHook(() => useCountertopColorState(useCountertopContext()), { wrapper });
+    await act(async () => {});
+    return result.current.visibleOptions.find((option) => option.name === name);
+  };
+
+  // A lone Sink Base has judged a colour all along: this says the sizes reach the step at all.
+  it("refuses a colour on a lone Sink Base below its basin, for the cabinet width", async () => {
+    placeSinkBases(60);
+
+    expect(await isColorRefused("Gloss White TMO")).toBe(true);
+    expect(await colorOption("Gloss White TMO")).toMatchObject({
+      isAvailable: false,
+      disabledReason: "Not available for current cabinet width",
+    });
+  });
+
+  it("refuses a colour with no basin for the narrower Sink Base, for the cabinet width", async () => {
+    placeSinkBases(80, 60);
+
+    expect(await isColorRefused("Gloss White TMO")).toBe(true);
+    expect(await colorOption("Gloss White TMO")).toMatchObject({
+      isAvailable: false,
+      disabledReason: "Not available for current cabinet width",
+    });
+  });
+
+  it("offers the same colour when its basin fits every Sink Base", async () => {
+    placeSinkBases(80, 80);
+
+    expect(await isColorRefused("Gloss White TMO")).toBe(false);
+  });
+
+  it("offers a colour with a basin for the narrower Sink Base", async () => {
+    placeSinkBases(80, 60);
+
+    expect(await isColorRefused("Ardesia TKF")).toBe(false);
   });
 });
