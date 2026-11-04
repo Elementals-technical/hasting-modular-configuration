@@ -80,6 +80,8 @@ Summary обох потоків включає ці самі SKU, кількіс
 | `length-340` | cabinet-only total = 340 cm |
 | `exceeds-max-length`, `unsupported-groove`, `select-edge-cabinet` | зарезервовано (поки не прив'язано до option-level/notice) |
 
+`reasonCode` — код правила, а не ключ `messages` колекції. Коли результат availability несе `messageCode` (Syntesi: `syntesi.sidePanelsUnavailable`), саме він іде в `disabledReasonCode` відхиленого groove option, щоб grid показав текст профілю, а не загальне `ui.optionUnavailable`. Текст `reason` лишається fallback. Відмова за max length кладе в `disabledReasonCode` код `countertop.sidePanelsExceedMaxLength` з `disabledReasonParams`.
+
 Реалізовано тут:
 
 - [SidePanelReasonCode + reasonCode](../src/features/configurator-rule-core/options/types.ts)
@@ -343,7 +345,7 @@ Edge state читається не під час рендеру, а в effect-і
 
 ### `Syntesi is not available with side panels.`
 
-Тип: hard-stop warning. `reasonCode`: `syntesi-countertop` (сторінки перевіряють саме код, не рядок).
+Тип: hard-stop warning. `reasonCode`: `syntesi-countertop` (сторінки перевіряють саме код, не рядок), `messageCode`: `syntesi.sidePanelsUnavailable`.
 
 Показується, коли:
 
@@ -386,11 +388,13 @@ Edge state читається не під час рендеру, а в effect-і
 
 - option залишається видимою
 - option стає disabled
-- reason кладеться в `disabledReason`
+- reason кладеться в `disabledReason`, його код і params — у `disabledReasonCode` / `disabledReasonParams`
 
 Реалізовано тут:
 
 - [formatSidePanelsExceedMaxReason](../src/features/configurator-rule-core/countertop/lengthLimits.ts)
+- [sidePanelsExceedMaxReason](../src/features/configurator-rule-core/countertop/lengthLimits.ts)
+- [buildSidePanelOptions](../src/widgets/AccessoriesSections/lib/sidePanelOptions.ts)
 - [Custom option disabling](../src/pages/custom/accessories/index.tsx)
 - [Prebuilt option disabling](../src/pages/prebuilt/accessories/AccessoriesPage.tsx)
 
