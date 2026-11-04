@@ -1,0 +1,7 @@
+Snapshot [selector: [role=listbox]]
+
+uid=e320 listbox "Material" tag=div
+  uid=e317 option tag=button
+    uid=e316 span text="Show all"
+  uid=e319 option tag=button
+    uid=e318 span text="Metal"

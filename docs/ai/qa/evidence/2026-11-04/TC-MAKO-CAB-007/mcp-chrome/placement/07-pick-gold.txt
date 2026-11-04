@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"picked":true,"before":"Total List Price $5,371.00","price":"Total List Price $5,371.00","configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Gold","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}],"skus":["VAN-MAKOV-SB/2DW/G50-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-GLD"],"field":{"swatches":["Gold","Silver"],"selected":["Gold"],"groups":[{"group":"Metal","n":2}],"filters":["Material","Price"]}}
+```

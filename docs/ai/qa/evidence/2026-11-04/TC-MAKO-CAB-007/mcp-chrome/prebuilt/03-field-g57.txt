@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"next":"Next: Countertop & Basin","url":"/prebuilt/color?collectionId=mako","n":22,"selected":["Antracite 400 MT"],"groups":[{"group":"Lacquered MT","n":20},{"group":"Metal","n":2}]}
+```
+Page navigated to http://localhost:5173/prebuilt/color?collectionId=mako.

@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"r":{"w":{"offered":["23.6\"","27.6\"","31.5\"","35.4\"","41.3\"","47.2\""],"chose":"31.5\""},"placed":true},"before":{"secs":["Countertop Color","Material","Color","Look","Price","Thickness","Countertop Style","Basin Style"],"style":[{"n":"Integrated","off":false,"on":true},{"n":"Vessel","off":false,"on":false}],"basin":[{"n":"HPL Strip 48","off":false,"on":true},{"n":"HPL Cover 50","off":false,"on":false},{"n":"HPL Prisma 50","off":false,"on":false},{"n":"HPL Quadra 50","off":false,"on":false}],"vesselColor":false},"vesselOff":false,"popup":null,"after":{"secs":["Countertop Color","Thickness","Countertop Style","Vessel Sink Style"],"style":[{"n":"Integrated","off":false,"on":false},{"n":"Vessel","off":false,"on":true}],"basin":null,"vesselColor":false},"configs":[{"id":"UD-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Vessel"}],"ct":["CT-URHPL-VES-31.5W-.5H-18.1D-HPL-TKH","CT-URHPL-HCUT"],"price":"Total List Price $6,337.00"}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=urban-duplex.

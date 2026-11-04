@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"next":"Next: Countertop & Basin","n":2,"swatches":["Gold","Silver"],"selected":["Silver"],"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"},{"id":"Mako-side-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF"},{"id":"Mako-side-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF"}]}
+```
+Page navigated to http://localhost:5173/custom/color?collectionId=mako.
