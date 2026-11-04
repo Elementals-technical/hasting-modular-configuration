@@ -1,4 +1,4 @@
-<!-- Urban Duplex · specification revision 2026-10-28 · part of docs/products/urban-duplex/ · statuses: ../_shared/status-legend.md -->
+<!-- Urban Duplex · specification revision 2026-11-03 · part of docs/products/urban-duplex/ · statuses: ../_shared/status-legend.md -->
 
 ## 4. Матеріали
 Звірка: списки Base Panel, Lateral Panel і Countertop Color збігаються з Master File клієнта 1:1 (ті самі назви й категорії; порядок у конфігураторі алфавітний). Vessel Color і Towel Bar Color у 2D немає.
@@ -68,4 +68,4 @@
 
 ### 4.6 Towel Bar Color (5) — Provisional
 * **Lacquered MT (5):** Bianco 0B MT; Carbone 43 MT; Metallizzato Copper M7 MT; Metallizzato Creta M6 MT; Nero 03 MT.
-* Клієнт (USH): "5 colours" без назв; дефолту немає
+* Клієнт (USH): "5 colours" без назв; дефолт Carbone 43 MT — рішення команди 2026-11-03, у клієнта його немає (§7.4 п. 24)

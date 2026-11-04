@@ -1,4 +1,4 @@
-<!-- Urban Freestanding · specification revision 2026-10-28 · part of docs/products/urban-freestanding/ · statuses: ../_shared/status-legend.md -->
+<!-- Urban Freestanding · specification revision 2026-11-03 · part of docs/products/urban-freestanding/ · statuses: ../_shared/status-legend.md -->
 
 ## 6. Аксесуари
 ### 6.1 Доступно: бокові панелі (на тесті, backlog #73)
@@ -23,7 +23,7 @@
 | :---- | :---- |
 | Де | крок "Accessories", блок "Towel Bar" |
 | Опції | None, Left, Right, Both |
-| Колір | 5 кольорів Lacquered MT (§4.7); при None колір скидається |
+| Колір | 5 кольорів Lacquered MT (§4.7); блок видимий лише коли рушникотримач вибрано; рушникотримач стартує в Carbone 43 MT і отримує цей колір при кожному додаванні, при None колір скидається |
 | 3D | бічний рушникотримач на крайній тумбі, вирівняний по її верху; враховує бокову панель (backlog #31 — Done) |
 | Ціна | як у USH: VAN-URTWLBR-STB/<L/R>-15.7W-1.4H-2D-<колір>, $380 за бік (Provisional) |
 

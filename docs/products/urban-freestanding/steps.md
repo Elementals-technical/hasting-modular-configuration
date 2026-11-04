@@ -1,4 +1,4 @@
-<!-- Urban Freestanding · specification revision 2026-10-28 · part of docs/products/urban-freestanding/ · statuses: ../_shared/status-legend.md -->
+<!-- Urban Freestanding · specification revision 2026-11-03 · part of docs/products/urban-freestanding/ · statuses: ../_shared/status-legend.md -->
 
 ## 3. Кроки і секції
 Обидва сценарії мають шість кроків. Кроки 2–6 однакові в обох [code: urban-freestanding/ui.json].
@@ -42,7 +42,7 @@
 | Vessel Color | свотчі | конфігуратор 11 (49, фільтр за стилем vessel) | лише коли вибрано vessel |
 | Side Panels | картки | None, No groove, 1 groove (upper) | §6.1 |
 | Dividers | опція + стиль | None / Customize; A, B, C | секція видима, але **Not implemented** (§6.3) |
-| Towel Bar | опція (свотчі) + колір (картки options-grid) | None, Left, Right, Both; 5 кольорів | колір — коли рушникотримач вибрано |
+| Towel Bar | опція (свотчі) + колір (картки options-grid) | None, Left, Right, Both; 5 кольорів | колір — коли рушникотримач вибрано, дефолт Carbone 43 MT (§6.2) |
 | Faucet Holes | свотчі | 0, 1, 2, 3 | завжди; дефолт 0 |
 
 Відхилена опція лишається видимою й вимкненою з текстом причини; Thickness і Basin Style показують лише доступні значення [code: UI FieldControl].

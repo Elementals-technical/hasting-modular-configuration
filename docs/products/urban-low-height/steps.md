@@ -1,4 +1,4 @@
-<!-- Urban Low Height · specification revision 2026-10-28 · part of docs/products/urban-low-height/ · statuses: ../_shared/status-legend.md -->
+<!-- Urban Low Height · specification revision 2026-11-03 · part of docs/products/urban-low-height/ · statuses: ../_shared/status-legend.md -->
 
 ## 3. Кроки і секції
 Обидва сценарії мають п'ять кроків. Кроки 2–5 однакові в обох [code: urban-low-height/ui.json]. Колекція відкривається з ?collectionId=urban-low-height (за замовчуванням застосунок відкриває USH).
@@ -43,7 +43,7 @@
 | Basin style | картки з картинками | інтегровані раковини матеріалу стільниці або None / 5 vessel | §5; блокується, поки стільниця несе раковину |
 | Vessel Color | свотчі | конфігуратор 4, група Vessels | лише з vessel; кольори, які приймає вибраний vessel |
 | Side Panels | картки з картинками | None, No groove, 1 groove (upper) | §6.1 |
-| Towel Bar | свотчі + картки кольору | None, Left, Right, Both; група Towel Bar Color | колір — лише коли рушник вибрано |
+| Towel Bar | свотчі + картки кольору | None, Left, Right, Both; група Towel Bar Color | колір — лише коли рушник вибрано, дефолт Carbone 43 MT (§6.2) |
 
 Відхилена опція лишається видимою й вимкненою з текстом причини. Виняток — Basin style: ховаються раковини іншого стилю (Integrated / Vessel) та інтегровані раковини, яких немає в таблиці 589 для вибраного кольору; раковини, що не підходять за товщиною чи шириною Sink Base, лишаються видимими й вимкненими. У Thickness завжди видно всі 6 значень, недоступні — вимкнені.
 

@@ -1,4 +1,4 @@
-<!-- Urban Duplex · specification revision 2026-10-28 · part of docs/products/urban-duplex/ · statuses: ../_shared/status-legend.md -->
+<!-- Urban Duplex · specification revision 2026-11-03 · part of docs/products/urban-duplex/ · statuses: ../_shared/status-legend.md -->
 
 ## 3. Кроки і секції
 Обидва сценарії мають шість кроків. Кроки 2–6 однакові в обох [code: urban-duplex/ui.json].
@@ -14,7 +14,7 @@
 | 6 | Summary | ціна і список позицій | – | – |
 
 * Фільтри: Size {24-29", 30-39", 40-49", 50-59", 60-69", 70-79", 80-89", 90"+}; Style {1-Drawer, 2-Drawer, Single basin, Double basin, Asymmetrical, Open Shelving, Multi-level}. Кількість моделей у кожному розмірі й теги збігаються з 2D (1-Drawer 47, 2-Drawer 24, Single 54, Double 17, Asymmetrical 37, Open Shelving 13, Multi-level 5)
-* Усі моделі: Base Panel Bianco Calce DA ST, Lateral Panel і стільниця Pulpis Chiaro TKH, раковина HPL Strip 48 (там, де є Sink Base); глибина 46 см, крім 5 моделей Multi-level (у даних 50.5, див. §2.4)
+* Усі моделі: Base Panel Bianco Calce DA ST, Lateral Panel і стільниця Pulpis Chiaro TKH, раковина HPL Strip 48 (там, де є Sink Base); глибина 46 см, крім 5 моделей Multi-level (номінальні 50 см; фізична геометрія потребує узгодження, див. §2.4)
 * Склад моделей: для 24 моделей клієнт дав склад (аркуш "Pre-Render | Hybrid Models"), наш склад з ним здебільшого збігається; для інших 47 склад наш → **Provisional**. Розбіжності — у внутрішніх нотатках
 * 28 моделей гібридні (Side Cabinet URSTD / URLH)
 * Модель "89'' 2-Drawer" клієнт позначив "Doesn't belong in Duplex", але вона є і в 2D, і в збірці — UNKNOWN — clarify
@@ -42,7 +42,7 @@
 | Countertop Style | картки з картинками | Integrated, Vessel | Vessel — лише для HPL і Porcelain (не Fenix) і Sink Base від 80 см |
 | Basin Style | картки з картинками | інтегровані раковини матеріалу стільниці або None + 5 vessel | §5; автоматично перша дозволена |
 | Vessel Color | свотчі | список кольорів vessel (9) | лише коли вибрано vessel; лише кольори, дозволені для стилю vessel |
-| Towel Bar | свотчі + сітка кольорів | None, Left, Right, Both; 5 кольорів | колір — лише коли рушникотримач вибрано |
+| Towel Bar | свотчі + сітка кольорів | None, Left, Right, Both; 5 кольорів | колір — лише коли рушникотримач вибрано, дефолт Carbone 43 MT (§7.4 п. 24) |
 | Faucet Holes | свотчі | 0, 1, 2, 3 | для 1–3 підказка "Faucet hole placement … to be specified at time of order." |
 
 Відхилена опція лишається видимою й вимкненою з текстом причини; Thickness і Basin Style показують лише доступні значення [code: UI FieldControl].

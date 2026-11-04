@@ -1,6 +1,6 @@
 # Urban Freestanding — специфікація колекції
 
-Ревізія **2026-10-28** (імпорт з Google Docs 2026-11-01). `collectionId=urban-freestanding` · SKU URFS / CT-UR (полиці UROS, UROSS) · конфігуратор 11 · таблиці 591 (стільниця), 590 (тумби) · пакет `public/collections/urban-freestanding/`. Статуси фактів — [`../_shared/status-legend.md`](../_shared/status-legend.md). Це рівень 3 за старшинством: при конфлікті з `docs/ai/hastings/*.csv` виграє цей документ, розбіжність записується в `conflicts-and-decisions.md`.
+Ревізія **2026-11-03** (імпорт з Google Docs 2026-11-01). `collectionId=urban-freestanding` · SKU URFS / CT-UR (полиці UROS, UROSS) · конфігуратор 11 · таблиці 591 (стільниця), 590 (тумби) · пакет `public/collections/urban-freestanding/`. Статуси фактів — [`../_shared/status-legend.md`](../_shared/status-legend.md). Це рівень 3 за старшинством: при конфлікті з `docs/ai/hastings/*.csv` виграє цей документ, розбіжність записується в `conflicts-and-decisions.md`.
 
 ## Що таке Urban Freestanding
 

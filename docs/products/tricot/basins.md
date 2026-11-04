@@ -1,4 +1,4 @@
-<!-- Tricot · specification revision 2026-10-28 · part of docs/products/tricot/ · statuses: ../_shared/status-legend.md -->
+<!-- Tricot · specification revision 2026-11-02 · part of docs/products/tricot/ · statuses: ../_shared/status-legend.md -->
 
 ## 5. Раковини
 * Раковини стоять лише на Sink Base, по одній на Sink Base; у тумбі одна або дві раковини (максимум 2 Sink Base)
@@ -6,6 +6,8 @@
 * **Відповідність «код → 3D-модель» нижче Provisional для всіх рядків.**
 
 ### 5.1 Інтегровані раковини (зараз на тесті, під питанням актуальність звязку до коду)
+Початкова раковина на кожній Sink Base у всіх 42 Prebuilt-моделях — VA024 зі стільницею HPL BIANCO KOS 250 (рішення користувача 2026-11-02).
+
 | Код | 3D-модель | Матеріал стільниці (кольори) | Товщина | Ширина Sink Base | Іконка | Рев'ю відповідності 27.10 |
 | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
 | LB440 | Top_HPLPrisma | Solid Surface (Matte White, Matte White 8cm) | 0.5", 4.7" | 60–120 | є | ок |

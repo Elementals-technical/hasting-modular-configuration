@@ -1,11 +1,11 @@
-<!-- Urban Duplex · specification revision 2026-10-28 · part of docs/products/urban-duplex/ · statuses: ../_shared/status-legend.md -->
+<!-- Urban Duplex · specification revision 2026-11-03 · part of docs/products/urban-duplex/ · statuses: ../_shared/status-legend.md -->
 
 ## 6. Аксесуари
 ### 6.1 Доступно: рушникотримач (Towel Bar) — Provisional
 | Пункт | Значення |
 | :---- | :---- |
 | Де | крок "Accessories", блок "Towel Bar" (обидва сценарії) |
-| Опції | None; Left; Right; Both. Колір — 5 Lacquered MT (§4.6) |
+| Опції | None; Left; Right; Both. Колір — 5 Lacquered MT (§4.6), дефолт Carbone 43 MT |
 | Розміщення | на крайній тумбі композиції, з вибраного боку (3D: TowelBar40_R) |
 | Ціна | як USH: VAN-URTWLBR-STB/<L/R>-15.7W-1.4H-2D-LACM-<код кольору> MT (напр. VAN-URTWLBR-STB/R-15.7W-1.4H-2D-LACM-43 MT); сервіс цін зіставляє базу VAN-URTWLBR-STB/<L/R>-15.7W-1.4H-2D ($380 за кожен бік) |
 | Перевірка | 3D прив'язує рушникотримач до верху крайньої тумби (модель авторизована під 56 см, зсув компенсується правилом); на Duplex 53 / 38 / 28 і в Multi-level у браузері не перевірено — перевірити на тесті |

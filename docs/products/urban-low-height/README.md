@@ -1,6 +1,6 @@
 # Urban Low Height — специфікація колекції
 
-Ревізія **2026-10-28** (імпорт з Google Docs 2026-11-01). `collectionId=urban-low-height` · SKU URLH / CT-UR (полиці UROS) · конфігуратор 4 · таблиці 589 (стільниця), 580 (тумби) · пакет `public/collections/urban-low-height/`. Статуси фактів — [`../_shared/status-legend.md`](../_shared/status-legend.md). Це рівень 3 за старшинством: при конфлікті з `docs/ai/hastings/*.csv` виграє цей документ, розбіжність записується в `conflicts-and-decisions.md`.
+Ревізія **2026-11-03** (імпорт з Google Docs 2026-11-01). `collectionId=urban-low-height` · SKU URLH / CT-UR (полиці UROS) · конфігуратор 4 · таблиці 589 (стільниця), 580 (тумби) · пакет `public/collections/urban-low-height/`. Статуси фактів — [`../_shared/status-legend.md`](../_shared/status-legend.md). Це рівень 3 за старшинством: при конфлікті з `docs/ai/hastings/*.csv` виграє цей документ, розбіжність записується в `conflicts-and-decisions.md`.
 
 ## Що таке Urban Low Height
 

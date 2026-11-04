@@ -1,4 +1,4 @@
-<!-- Tricot · specification revision 2026-10-28 · part of docs/products/tricot/ · statuses: ../_shared/status-legend.md -->
+<!-- Tricot · specification revision 2026-11-02 · part of docs/products/tricot/ · statuses: ../_shared/status-legend.md -->
 
 ## 3. Кроки і секції
 Обидва сценарії мають п'ять кроків. Кроки 2–5 однакові в обох [code: tricot/ui.json].
@@ -6,7 +6,7 @@
 ### 3.1 Сценарій Prebuilt
 | # | Крок | Блоки (по порядку) | Що налаштовується | Крок у 2D |
 | :---- | :---- | :---- | :---- | :---- |
-| 1 | Tricot Models | фільтр Size, фільтр Style, сітка моделей, деталі моделі | вибір однієї з 41 моделі; "Customize" копіює модель у конструктор тумб | 1 Select Model (Size, Style, Model) [2D L2–L55] |
+| 1 | Tricot Models | фільтр Size, фільтр Style, сітка моделей, деталі моделі | вибір однієї з 42 моделей; "Customize" копіює модель у конструктор тумб | 1 Select Model (Size, Style, Model) [2D L2–L55] |
 | 2 | Cabinet Finishes | Cabinet Color, Cabinet Pattern, Handle Groove Color | 23 кольори корпусу, 5 патернів (з обмеженням за матеріалом), 20 кольорів пазу | 2 Select Cabinet Color, 3 Select Cabinet Pattern, 4 Select Handle Groove Color |
 | 3 | Accessories | Side Panels | None / No groove | 5 Side Panels (опційно) |
 | 4 | Countertop & Basin | Countertop Color, Thickness, Countertop Style, Basin Style (заголовок "Vessel Sink Style" для vessel), Vessel Color (лише для vessel) | 71 колір, 5 товщин, Integrated / Vessel, 10 інтегрованих раковин або 3 vessel + "None", 20–40 кольорів vessel | 6 Select Countertop Color, 7 Select Countertop Basin Style (Thickness, Countertop Style і vessel у 2D немає, вони визначені в документі WebGL) |

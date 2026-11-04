@@ -1,6 +1,6 @@
 # Urban Duplex — специфікація колекції
 
-Ревізія **2026-10-28** (імпорт з Google Docs 2026-11-01). `collectionId=urban-duplex` · SKU URDPX / CT-UR (гібриди URSTD, URLH; полиці UROS, UROSS) · конфігуратор 13 · таблиці 595 (стільниця), 594 (тумби) · пакет `public/collections/urban-duplex/`. Статуси фактів — [`../_shared/status-legend.md`](../_shared/status-legend.md). Це рівень 3 за старшинством: при конфлікті з `docs/ai/hastings/*.csv` виграє цей документ, розбіжність записується в `conflicts-and-decisions.md`.
+Ревізія **2026-11-03** (джерела 2026-10-28, імпорт з Google Docs 2026-11-01; уточнено глибину Multi-level за локальним v99). `collectionId=urban-duplex` · SKU URDPX / CT-UR (гібриди URSTD, URLH; полиці UROS, UROSS) · конфігуратор 13 · таблиці 595 (стільниця), 594 (тумби) · пакет `public/collections/urban-duplex/`. Статуси фактів — [`../_shared/status-legend.md`](../_shared/status-legend.md). Це рівень 3 за старшинством: при конфлікті з `docs/ai/hastings/*.csv` виграє цей документ, розбіжність записується в `conflicts-and-decisions.md`.
 
 ## Що таке Urban Duplex
 
@@ -30,7 +30,7 @@
 
 ## Відкриті питання до клієнта (UNKNOWN — clarify)
 
-змішування висот 56H і 28H (§7.1) · глибина 50.5 у Multi-level (§2.4) · Open Side Shelf 38 см (§7.1) · vessel на Fenix (§5.2) · токен пазу HNDL / HDL (§8.1) · модель 89" 2-Drawer (§3.1). Повний список — пошуком `UNKNOWN` по теці.
+змішування висот 56H і 28H (§7.1) · номінальна / фізична глибина Multi-level: 50 / 50.5 см ([HO-011](../../ai/qa/handoffs/HO-011-urban-duplex-nominal-depth-geometry.md), §2.4) · Open Side Shelf 38 см (§7.1) · vessel на Fenix (§5.2) · токен пазу HNDL / HDL (§8.1) · модель 89" 2-Drawer (§3.1). Повний список — пошуком `UNKNOWN` по теці.
 
 ## Пов'язане
 

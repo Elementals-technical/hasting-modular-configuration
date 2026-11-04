@@ -1,4 +1,4 @@
-<!-- Tricot · specification revision 2026-10-28 · part of docs/products/tricot/ · statuses: ../_shared/status-legend.md -->
+<!-- Tricot · specification revision 2026-11-02 · part of docs/products/tricot/ · statuses: ../_shared/status-legend.md -->
 
 ## 4. Матеріали
 
@@ -35,9 +35,10 @@
 ### 4.3 Handle Groove Color (20) [2D L84–L103]
 * **Lacquered MT (20):** ті самі 20 назв, що й у лаків корпусу (Grigio Argento 403 MT … Zafferano 412 MT). Без дерева, глянцю чи металу.
 * Якщо колір пазу дорівнює кольору корпусу і колір корпусу змінюється на інший лак, паз йде за ним
-* Дефолт у конфігураторі: Nero 433 MT на моделях;
+* Початковий колір пазу для всіх 42 Prebuilt-моделей: Agata 407 MT (рішення користувача 2026-11-02).
 
 ### 4.4 Countertop Color (71)
+* Початковий колір стільниці для всіх 42 Prebuilt-моделей: BIANCO KOS 250 (HPL), разом із раковиною VA024 (§5.1); рішення користувача 2026-11-02.
 * **Solid Surface (2):** Matte White; Matte White 8cm.
 * **HPL (14):** назви — [`_shared/palettes.md`](../_shared/palettes.md) › GB корпус
 * **Porcelain (15):** назви — [`_shared/palettes.md`](../_shared/palettes.md) › GB стільниця

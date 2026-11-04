@@ -1,4 +1,4 @@
-<!-- Urban Low Height · specification revision 2026-10-28 · part of docs/products/urban-low-height/ · statuses: ../_shared/status-legend.md -->
+<!-- Urban Low Height · specification revision 2026-11-03 · part of docs/products/urban-low-height/ · statuses: ../_shared/status-legend.md -->
 
 ## 6. Аксесуари
 ### 6.1 Доступно: бокові панелі
@@ -23,7 +23,7 @@
 | Де | крок "Accessories", блок "Towel Bar" |
 | Опції | None (дефолт), Left, Right, Both |
 | 3D | TowelBar40_R, з вибраного боку або з обох |
-| Колір | група Towel Bar Color конфігуратора 4; блок кольору лише коли рушник вибрано |
+| Колір | група Towel Bar Color конфігуратора 4; блок кольору лише коли рушник вибрано; рушник стартує в Carbone 43 MT і отримує цей колір при кожному додаванні, при None колір скидається |
 | Ціна | за кожен бік, граматика USH |
 
 * Клієнт: "Accessories – Same as Urban Standard Height"; чи підходить рушник до висот 25–38 см, клієнт не підтвердив
