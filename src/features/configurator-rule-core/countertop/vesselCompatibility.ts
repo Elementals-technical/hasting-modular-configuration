@@ -11,6 +11,8 @@ import { getMaterialAliases, normalizeMaterialToken, selectMaterialAliasTable } 
  */
 
 export const REASON_VESSEL_COLOR_UNAVAILABLE = "vessel.colorUnavailable";
+/** A vessel refused because the countertop colour is one the style's `unavailableColorCodesByStyle` lists. */
+export const REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE = "vessel.countertopColorUnavailable";
 
 type VesselMaterialColorCodeRule = {
   materialTokens: Set<string>;
@@ -114,6 +116,48 @@ const getMaterialColorCodeRules = (
     .filter((rule) => rule.materialTokens.size > 0 && rule.colorCodes.size > 0);
 };
 
+const toMaterialCandidateTokens = (materialTokens: readonly string[], profile: ProductProfile | null): Set<string> => {
+  const candidateTokens = new Set<string>();
+  materialTokens.forEach((token) => {
+    getMaterialAliases(token, selectMaterialAliasTable(profile))
+      .map((alias) => normalizeMaterialToken(alias))
+      .filter(Boolean)
+      .forEach((alias) => candidateTokens.add(alias));
+  });
+  return candidateTokens;
+};
+
+/**
+ * Whether the style's `unavailableColorCodesByStyle` lists this material and colour code. The list reads both
+ * ways: a vessel colour the style refuses, and a countertop colour the style cannot stand on.
+ */
+export const isColorCodeUnavailableForVesselStyle = ({
+  vesselStyle,
+  materialTokens,
+  colorCode,
+  profile,
+}: {
+  vesselStyle?: string | null;
+  materialTokens: readonly string[];
+  colorCode?: string | null;
+  profile: ProductProfile | null;
+}): boolean => {
+  const normalizedColorCode = normalizeMaterialToken(colorCode ?? "");
+  if (!normalizedColorCode) return false;
+
+  const materialCandidateTokens = toMaterialCandidateTokens(materialTokens, profile);
+
+  return getMaterialColorCodeRules(
+    selectVesselCompatibility(profile)?.unavailableColorCodesByStyle,
+    vesselStyle,
+    profile,
+  ).some(
+    (rule) =>
+      Array.from(materialCandidateTokens).some((token) => rule.materialTokens.has(token)) &&
+      rule.colorCodes.has(normalizedColorCode),
+  );
+};
+
 export const isPreferredVesselFinish = ({
   vesselStyle,
   materialTokens,
@@ -161,17 +205,8 @@ export const isMaterialCompatibleWithVesselStyle = ({
   const allowedTokens = getAllowedVesselMaterialTokens(vesselStyle, profile);
   if (!allowedTokens) return true;
 
-  const materialCandidateTokens = new Set<string>();
-  const candidateTokens = new Set<string>();
-  materialTokens.forEach((token) => {
-    getMaterialAliases(token, selectMaterialAliasTable(profile))
-      .map((alias) => normalizeMaterialToken(alias))
-      .filter(Boolean)
-      .forEach((alias) => {
-        materialCandidateTokens.add(alias);
-        candidateTokens.add(alias);
-      });
-  });
+  const materialCandidateTokens = toMaterialCandidateTokens(materialTokens, profile);
+  const candidateTokens = new Set(materialCandidateTokens);
 
   const normalizedColorCode = normalizeMaterialToken(colorCode ?? "");
   if (normalizedColorCode) candidateTokens.add(normalizedColorCode);
@@ -184,24 +219,10 @@ export const isMaterialCompatibleWithVesselStyle = ({
   const materialMatchesRule = (rule: VesselMaterialColorCodeRule) =>
     Array.from(materialCandidateTokens).some((token) => rule.materialTokens.has(token));
 
-  const compatibility = selectVesselCompatibility(profile);
-
-  const unavailableMaterialColorCodeRules = getMaterialColorCodeRules(
-    compatibility?.unavailableColorCodesByStyle,
-    vesselStyle,
-    profile,
-  );
-  if (
-    normalizedColorCode &&
-    unavailableMaterialColorCodeRules.some(
-      (rule) => materialMatchesRule(rule) && rule.colorCodes.has(normalizedColorCode),
-    )
-  ) {
-    return false;
-  }
+  if (isColorCodeUnavailableForVesselStyle({ vesselStyle, materialTokens, colorCode, profile })) return false;
 
   const materialColorCodeRules = getMaterialColorCodeRules(
-    compatibility?.allowedColorCodesByStyle,
+    selectVesselCompatibility(profile)?.allowedColorCodesByStyle,
     vesselStyle,
     profile,
   );

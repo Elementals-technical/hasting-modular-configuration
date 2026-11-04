@@ -32,10 +32,12 @@ import {
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
   INTEGRATED_DRAWERS_REASON,
+  isColorCodeUnavailableForVesselStyle,
   normalizeBasinKey,
   REASON_COUNTERTOP_MATERIAL_BY_FAILURE,
   REASON_COUNTERTOP_MATERIAL_SELECTION,
   REASON_VESSEL_COLOR_UNAVAILABLE,
+  REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE,
   resolveCountertopRuleMaterials,
   selectMaterialAliasTable,
   selectSinkBasesUnavailableWithIntegrated,
@@ -44,6 +46,7 @@ import {
 import { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
+import { extractColorCode } from "@/shared/lib/sku";
 
 import { useCountertopRuleState } from "./useCountertopRuleState";
 import { resolveConfiguratorOptions, resolveSectionFields } from "./resolveSectionState";
@@ -111,7 +114,8 @@ export const resolveCountertopStyleAvailability = ({ styleAvailability }: Counte
 // materials list (an MT lacquer, as Tekorlux and as Glass MT) is refused where only one of them is
 // made, and says the check its own material failed, as the USH screen says it: off its Sink Base a
 // glass colour is refused for the floating top while a Tekormud one is for the depth. The field's
-// reason names the check every refused colour failed, or the selection when they differ.
+// reason names the check every refused colour failed, or the selection when they differ. A colour the
+// chosen vessel cannot stand on (its unavailableColorCodesByStyle) is refused for the vessel.
 const resolveCountertopColorAvailability = (
   profile: ProductProfile | null,
   configurator: ConfiguratorGroupCatalog | null,
@@ -141,6 +145,14 @@ const resolveCountertopColorAvailability = (
     }
     return verdict;
   };
+  // Judged per option, not per material list: the colour code is the option's own.
+  const isRefusedByVessel = ({ value, traits }: FieldOptionState) =>
+    isColorCodeUnavailableForVesselStyle({
+      vesselStyle: materialRuleInputs.activeBasinStyle,
+      materialTokens: traits?.materials ?? [],
+      colorCode: extractColorCode(value),
+      profile,
+    });
   const failures = new Set(
     resolveConfiguratorOptions(profile, "CountertopColor", configurator).flatMap(
       (option) => judge(option).failedBy ?? [],
@@ -150,12 +162,13 @@ const resolveCountertopColorAvailability = (
 
   return {
     available: true,
-    isOptionAllowed: (option) => !missingRule(option) && judge(option).isCompatible,
+    isOptionAllowed: (option) => !missingRule(option) && judge(option).isCompatible && !isRefusedByVessel(option),
     optionReason: (option) => {
       const missing = missingRule(option);
       if (missing) return { reasonCode: "product.missingData", reasonParams: { ruleId: missing.ruleId } };
       const { failedBy } = judge(option);
-      return failedBy ? { reasonCode: REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] } : undefined;
+      if (failedBy) return { reasonCode: REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] };
+      return isRefusedByVessel(option) ? { reasonCode: REASON_VESSEL_COLOR_UNAVAILABLE } : undefined;
     },
     reasonCode:
       failures.size === 1 && failure
@@ -191,7 +204,8 @@ const resolveThicknessAvailability = (
 // and Sink Base width fit it too; a vessel has no rows and follows the vessel Sink Base minimum.
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
-// cutout: the profile's noneValue, chosen until a vessel is.
+// cutout: the profile's noneValue, chosen until a vessel is. A vessel that cannot stand on the
+// countertop's colour (its unavailableColorCodesByStyle) is refused for that colour.
 export const resolveBasinAvailability = (
   profile: ProductProfile | null,
   { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
@@ -207,6 +221,15 @@ export const resolveBasinAvailability = (
   // The matrix names a basin by its label, as the USH countertop step reads it ("HPL Cover 50").
   const rowsOf = ({ value, label }: (typeof basins)[number]) =>
     findIntegratedBasinRules({ name: value, title: label }, matchingRules, activeMaterialTokens, aliasTable);
+  const countertopColorCode = extractColorCode(countertopColor);
+  const isRefusedByCountertopColor = (value: string) =>
+    value !== noneValue &&
+    isColorCodeUnavailableForVesselStyle({
+      vesselStyle: value,
+      materialTokens: activeMaterialTokens,
+      colorCode: countertopColorCode,
+      profile,
+    });
 
   return {
     available: true,
@@ -215,11 +238,18 @@ export const resolveBasinAvailability = (
     ),
     allowedValues: valuesWhere((basin) =>
       basin.category === "vessel"
-        ? isVesselStyle && (basin.value === noneValue || vesselSinkAvailability.isAvailable)
+        ? isVesselStyle &&
+          (basin.value === noneValue ||
+            (vesselSinkAvailability.isAvailable && !isRefusedByCountertopColor(basin.value)))
         : !isVesselStyle &&
           Boolean(countertopColor) &&
           rowsOf(basin).some(({ basinStyle }) => allowedBasinKeys.has(normalizeBasinKey(basinStyle))),
     ),
+    // A vessel the Sink Base refuses keeps the field's reason: another countertop colour would not bring it back.
+    optionReason: ({ value }) =>
+      vesselSinkAvailability.isAvailable && isRefusedByCountertopColor(value)
+        ? { reasonCode: REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE }
+        : undefined,
     reasonCode: "change.notAvailable",
     valueWhenEmpty: isVesselStyle ? noneValue : undefined,
   };
