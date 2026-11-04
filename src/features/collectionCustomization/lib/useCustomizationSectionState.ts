@@ -25,6 +25,7 @@ import {
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
+import { selectHandleColors } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleColorRule";
 import {
   canThicknessFloat,
   evaluateCountertopMaterial,
@@ -305,12 +306,8 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
   });
 
   const handle = selectedHandle ?? presetHandle;
-  const supportsGrooveColor = hasCapability(
-    profile,
-    "Handle",
-    typeof handle === "string" ? handle : null,
-    "supportsGrooveColor",
-  );
+  const handleValue = typeof handle === "string" ? handle : null;
+  const supportsGrooveColor = hasCapability(profile, "Handle", handleValue, "supportsGrooveColor");
   const hasTowelBar = Boolean(towelBarOption) && towelBarOption !== "None";
   const isCustomizingDividers = dividersOption === "Customize";
   const isVesselStyle = (countertopStyle ?? "").trim().toLowerCase() === "vessel";
@@ -329,6 +326,8 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
         reasonCode: bookMatching.reasonCode,
       },
       "Handle.supportsGrooveColor": { available: supportsGrooveColor, visible: supportsGrooveColor },
+      // Hidden, not refused: the Material filter is built from the field's options, and it must not offer them either.
+      "HandleColor.allowed": { available: true, visibleValues: selectHandleColors(profile, handleValue) },
       "SidePanels.available": {
         available: sidePanels.allowed.size > 0,
         reason: sidePanels.reason,
@@ -371,6 +370,7 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       countertopStyle,
       fluting,
       grainDirection,
+      handleValue,
       hasTowelBar,
       integratedChangesSinkBases,
       isCustomizingDividers,

@@ -35,6 +35,7 @@ import type {
   SceneStateResult,
 } from "@/entities/configuration";
 import { recordComposition } from "@/entities/product/model/store/slice";
+import { resolveHandleColor } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleColorRule";
 
 import { recordCarriedChanges, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
 import {
@@ -312,6 +313,20 @@ const withInherited = (
 });
 
 /**
+ * The config without a handle colour its handle does not come in, so that it counts as no value of
+ * its own: the builder's config keeps what the cabinet last clicked held, and nothing refreshes it.
+ * A colour the handle comes in stays the config's.
+ */
+const withoutRefusedHandleColor = (
+  profile: ProductProfile | null,
+  config: Readonly<Record<string, unknown>>,
+): Record<string, unknown> => {
+  const { HandleColor: color, ...others } = config;
+  const handle = typeof others.Handle === "string" ? others.Handle : null;
+  return typeof color === "string" && resolveHandleColor(profile, handle, color) !== color ? others : config;
+};
+
+/**
  * A cabinet as it joins the composition: with the values all its cabinets hold (without them the
  * scene would place it with its own defaults, and it would stand out from the rest) and the
  * configuration's own values the scene keeps per product, which go with the config unrecorded.
@@ -320,11 +335,12 @@ const cabinetToPlace = (
   state: RootState,
   product: SceneCompositionProduct,
 ): { sceneProduct: SceneCompositionProduct; inherited: Record<string, AttributeValue> } => {
-  const inherited = selectBroadcastValues(state);
+  const { Handle: handle } = product.config;
+  const inherited = selectBroadcastValues(state, typeof handle === "string" ? handle : null);
   const placedWith = selectPlacedWithValues(state);
-  const [sceneProduct] = toSceneProducts(getActiveProductProfile(state), getActiveRuntimeBindings(state), [
-    { ...product, config: withInherited(product.config, { ...placedWith, ...inherited }) },
-  ]);
+  const profile = getActiveProductProfile(state);
+  const config = withInherited(withoutRefusedHandleColor(profile, product.config), { ...placedWith, ...inherited });
+  const [sceneProduct] = toSceneProducts(profile, getActiveRuntimeBindings(state), [{ ...product, config }]);
   return { sceneProduct, inherited };
 };
 
@@ -359,7 +375,7 @@ const recordInherited = (
 
   const profile = getActiveProductProfile(state);
   const bindings = getActiveRuntimeBindings(state);
-  const placedWith = withInherited(config, inherited);
+  const placedWith = withInherited(withoutRefusedHandleColor(profile, config), inherited);
   const changes: PlannedChange[] = Object.entries(inherited).map(([attributeId, value]) => {
     const own = placedWith[attributeId];
 

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
 import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import cabinetTable580 from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
+import cabinetTable581 from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import {
   configuratorSchema,
@@ -634,5 +636,50 @@ describe("buildChangePlan: a towel bar that starts in a colour", () => {
       value: STARTING_COLOR,
       reasonCode: REASON_TOWEL_BAR_COLOR_STARTED,
     });
+  });
+});
+
+/**
+ * Mako's G50 comes in fewer colours than the field offers, so a colour it does not come in moves
+ * with the handle, in the same set. It carries no reason code: the Handle popups show the first
+ * reason only, and `toEqual` fails on one.
+ */
+describe("buildChangePlan: the colour a handle comes in", () => {
+  const parsedMako = parseProductProfile(makoProfileDocument);
+  if (!parsedMako.ok) throw new Error("Mako profile must parse");
+  const makoProfile = parsedMako.profile;
+  // The Mako cabinet table the collection loads (581).
+  const makoCatalog = buildCabinetCatalogFromMatrix(cabinetTable581 as ProductDatatable, makoProfile);
+  const fromG57 = {
+    activeProfile: makoProfile,
+    activeCatalog: makoCatalog,
+    selection: { cabinetType: "Sink-Base", width: 60, depth: 52, height: 52, drawers: "2", handle: "G57" },
+  };
+  const fromG50 = { ...fromG57, selection: { ...fromG57.selection, handle: "G50" } };
+  const noSection = { activeProfile: profile, activeCatalog: catalog, selection: baseSelection };
+  const toSilver = [{ attributeId: "HandleColor", target: cabinetTarget, value: "Silver", origin: "dependency" }];
+
+  it.each([
+    ["moves a lacquered colour to the one a G50 starts in", fromG57, "G50", "Antracite 400 MT", toSilver],
+    ["gives a G50 with no colour held the one it starts in", fromG57, "G50", null, toSilver],
+    ["keeps a colour a G50 comes in", fromG57, "G50", "Gold", []],
+    ["keeps the Silver of a G50 on the way back to a G57", fromG50, "G57", "Silver", []],
+    ["keeps a lacquered colour on a handle the map does not name", fromG50, "G57", "Antracite 400 MT", []],
+    ["keeps the colour in a profile with no section", noSection, "handle_pto", "Antracite 400 MT", []],
+  ])("%s", (_name, { activeProfile, activeCatalog, selection }, value, handleColor, expected) => {
+    const result = buildChangePlan({
+      attributeId: "Handle",
+      value,
+      target: cabinetTarget,
+      selection,
+      selectedProductIds: [],
+      catalog: activeCatalog,
+      profile: activeProfile,
+      handleGrooveColor: null,
+      handleColor,
+    });
+    if (!result.ok) throw new Error(result.reason);
+
+    expect(result.plan.filter(({ attributeId }) => attributeId === "HandleColor")).toEqual(expected);
   });
 });

@@ -275,6 +275,14 @@ export type VesselCompatibilityRuleData = {
 };
 
 /**
+ * The colours a handle comes in: handle value -> colours of the HandleColor field. The first colour of a list is
+ * the one the handle starts in. A handle the map does not name comes in every colour of the field.
+ */
+export type HandleColorsRuleData = {
+  allowedByHandle: Record<string, string[]>;
+};
+
+/**
  * The collection's own price tiers for colour fields (1 Standard $ … 4 Exclusive $$$$), read
  * before the shared table. SKU material code (upper-case) -> tier: `bySku` for every colour field
  * of the collection, `byAttribute` (field id -> code -> tier) over it for one field.
@@ -377,6 +385,7 @@ export type ProfileRuleData = {
   countertopFallbacks?: CountertopFallbacksRuleData;
   materialNormalization?: MaterialNormalizationRuleData;
   vesselCompatibility?: VesselCompatibilityRuleData;
+  handleColors?: HandleColorsRuleData;
   priceTiers?: PriceTiersRuleData;
   cabinetColorTraits?: CabinetColorTraitsRuleData;
   /** Absent = the collection does not offer the Ph2 drawer organizers. */

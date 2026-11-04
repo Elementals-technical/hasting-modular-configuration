@@ -12,6 +12,7 @@ import {
   getActiveRuntimeBindings,
   getAttributeValue,
   getCabinetEntries,
+  getCompositionValues,
   isSinkBase,
 } from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
@@ -152,6 +153,8 @@ export const evaluateChange = (
   const countertop = evaluateCountertopChange(change, targetResult.target, state, activeProfile, configurator);
   if (countertop.blocked) return { kind: "blocked", ...countertop.blocked };
 
+  const heldHandleColor = getCompositionValues(state).HandleColor;
+
   // Gate 4 for the rule selection, plus the dependent changes.
   const planResult = buildChangePlan({
     attributeId: change.attributeId,
@@ -162,6 +165,7 @@ export const evaluateChange = (
     catalog: getCabinetCatalog(state),
     profile: activeProfile,
     handleGrooveColor: state.rootStateUI.product.productOptions.HandleGrooveColor,
+    handleColor: typeof heldHandleColor === "string" ? heldHandleColor : null,
     cabinetColor: state.rootStateUI.product.productOptions.CabinetColor,
     patternValues: Object.fromEntries(
       cabinets.map(({ stableKey }) => [

@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
@@ -174,6 +174,62 @@ describe("FieldsStepPage colour fields", () => {
     const section = within(screen.getByRole("region", { name: "Handle Color" }));
     expect(section.getAllByText("Gold").some(isChosen)).toBe(true);
     expect(section.getAllByText("Silver").some(isChosen)).toBe(false);
+  });
+
+  describe("Mako handle colours", () => {
+    const handleColorSection = () => within(screen.getByRole("region", { name: "Handle Color" }));
+    const shownHandleColors = () =>
+      configurator9.availableOptions
+        .filter(({ proxyName }) => proxyName === "Select Handle Color")
+        .flatMap(({ options }) => options)
+        .flatMap(({ variants }) => variants)
+        .map(({ name }) => name)
+        .filter((color) => handleColorSection().queryAllByText(color).length > 0);
+    // The menu of a filter opens on the body, outside its section.
+    const offeredMaterials = () => {
+      fireEvent.click(handleColorSection().getByRole("button", { name: "Material" }));
+      return within(screen.getByRole("listbox", { name: "Material" }))
+        .getAllByRole("option")
+        .map((option) => option.textContent);
+    };
+
+    it("are Gold and Silver alone for a G50, and its Material filter does not offer Lacquered MT", () => {
+      store.dispatch(setSelectedProductConfig({ Handle: "G50" }));
+      renderMakoColorStep();
+
+      expect(shownHandleColors()).toEqual(["Gold", "Silver"]);
+      expect(handleColorSection().queryByText("Nebbia 402 MT")).toBe(null);
+      expect(offeredMaterials()).toEqual(["Show all", "Metal"]);
+    });
+
+    it("are all 22 for a G57, in both materials", () => {
+      store.dispatch(setSelectedProductConfig({ Handle: "G57" }));
+      renderMakoColorStep();
+
+      expect(shownHandleColors().length).toBe(22);
+      expect(offeredMaterials()).toEqual(["Show all", "Lacquered MT", "Metal"]);
+    });
+
+    // The player menu is open on every step but Summary, so a G50 can arrive under a filter chosen on a G57.
+    it.each([
+      ["Material", "Lacquered MT"],
+      ["Color", "Grey"],
+      ["Price", /Classic \$\$/],
+    ])("leave no %s filter behind when a G50 takes its colours away", (filter, value) => {
+      store.dispatch(setSelectedProductConfig({ Handle: "G57" }));
+      renderMakoColorStep();
+
+      fireEvent.click(handleColorSection().getByRole("button", { name: filter }));
+      fireEvent.click(within(screen.getByRole("listbox", { name: filter })).getByRole("option", { name: value }));
+      expect(shownHandleColors().includes("Silver")).toBe(false);
+
+      act(() => {
+        store.dispatch(setSelectedProductConfig({ Handle: "G50" }));
+      });
+
+      expect(shownHandleColors()).toEqual(["Gold", "Silver"]);
+      expect(handleColorSection().queryByRole("button", { name: "Clear All" })).toBe(null);
+    });
   });
 
   describe("Mako legs", () => {
