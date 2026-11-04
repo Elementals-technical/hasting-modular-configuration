@@ -16,6 +16,7 @@ import { useCountertopRuleState } from "@/features/collectionCustomization";
 import {
   REASON_SYNTESI_SINGLE_CABINET,
   REASON_VESSEL_COLOR_UNAVAILABLE,
+  REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE,
   useCountertopLength,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
@@ -62,6 +63,7 @@ export const useCountertopContext = () => {
       width: selectMessageOr(activeProfile, REASON_MATERIAL_WIDTH, FALLBACK_MATERIAL_WIDTH),
       selection: selectMessageOr(activeProfile, REASON_MATERIAL_SELECTION, FALLBACK_MATERIAL_SELECTION),
       vesselColorUnavailable: selectMessage(activeProfile, REASON_VESSEL_COLOR_UNAVAILABLE),
+      vesselCountertopColorUnavailable: selectMessage(activeProfile, REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE),
       syntesiSingleCabinet: selectMessage(activeProfile, REASON_SYNTESI_SINGLE_CABINET),
     }),
     [activeProfile],

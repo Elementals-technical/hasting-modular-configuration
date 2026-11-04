@@ -79,11 +79,6 @@ const PENDING_DIRECT_SCENE_CALLERS: Record<string, CountedResidue> = {
     count: 1,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
   },
-  "/src/widgets/CountertopSections/lib/useVesselColorState.ts": {
-    owner: "B",
-    count: 1,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
-  },
   "/src/widgets/CountertopSections/lib/useCountertopResets.ts": {
     owner: "B",
     count: 1,
@@ -158,11 +153,6 @@ const PENDING_DIRECT_STATE_WRITERS: Record<string, CountedResidue> = {
     reason: "C06 phase 5: dividers option and style through the command",
   },
   "/src/widgets/CountertopSections/lib/useBasinState.ts": {
-    owner: "B",
-    count: 1,
-    reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",
-  },
-  "/src/widgets/CountertopSections/lib/useVesselColorState.ts": {
     owner: "B",
     count: 1,
     reason: "C06 phase 3: basin, vessel and countertop style through useCountertopCommands",

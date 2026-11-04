@@ -948,7 +948,6 @@ export const RightCabinetStyleSidebar = ({ onProductAdded, onWidthChange }: Righ
       const widthForAddedCabinet = resolveAddedCabinetWidth(
         selectedDimensions.width,
         check?.widths ?? availableAddWidths,
-        check?.limitCm ?? null,
       );
 
       // The cabinet and the side panel a side shelf takes the place of are one undo step.

@@ -455,7 +455,6 @@ export const CabinetBuilderPage = () => {
   const addedWidth = resolveAddedCabinetWidth(
     selectedDimensions.width,
     hasProducts ? activeTypeWidths.filter((width) => rowCapacity.fits(activeCabinetType, width)) : activeTypeWidths,
-    hasProducts ? rowCapacity.maxWidth(activeCabinetType) : null,
   );
 
   const cabinetStyleOptions = useMemo(() => {

@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import ulhProfileDocument from "../../../../public/collections/urban-low-height/product-profile.json";
+import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import cabinetTable580 from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
-import { parseProductProfile, type ProductProfile } from "@/entities/collection";
+import {
+  configuratorSchema,
+  parseProductProfile,
+  type ConfiguratorGroupCatalog,
+  type ProductProfile,
+} from "@/entities/collection";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import type { CabinetEntry, ValueTarget } from "@/entities/configuration";
@@ -344,6 +350,110 @@ describe("buildChangePlan", () => {
     ])("keeps the set to the style when %s", (_label, style, sinkType) => {
       // toMatchObject compares array length, so a dependency added to the set fails here.
       expect(stylePlan(style, sinkType, "")).toMatchObject({ ok: true, plan: [{ attributeId: "CountertopStyle" }] });
+    });
+  });
+
+  describe("a picked basin", () => {
+    const { availableOptions } = configuratorSchema.parse(configurator4WithLiveVessels);
+    const configurator: ConfiguratorGroupCatalog = {
+      groups: availableOptions,
+      groupsByName: Object.fromEntries(availableOptions.map((group) => [group.proxyName, group])),
+    };
+    const basinTarget: ValueTarget = { scope: "basin" };
+
+    const basinPlan = ({
+      value = "Vessel_UrbanModo",
+      vesselColor = "",
+      sinkBaseIds = ["cab-1", "cab-2"],
+      target = basinTarget,
+      activeConfigurator = configurator,
+    }: {
+      value?: string;
+      vesselColor?: string;
+      sinkBaseIds?: string[];
+      target?: ValueTarget;
+      activeConfigurator?: ConfiguratorGroupCatalog | null;
+    } = {}) =>
+      buildChangePlan({
+        attributeId: "sinkType",
+        value,
+        target,
+        selection: baseSelection,
+        selectedProductIds: [],
+        catalog,
+        profile,
+        handleGrooveColor: null,
+        basin: { sinkBaseIds, sinkType: "", vesselColor },
+        configurator: activeConfigurator,
+      });
+
+    const colourEntries = (value: string, targets: ValueTarget[]) =>
+      targets.map((target) => ({ attributeId: "VesselColor", target, value, origin: "dependency" }));
+
+    const everyTarget: ValueTarget[] = [
+      { scope: "basin" },
+      { scope: "basin", sinkBaseId: "cab-1" },
+      { scope: "basin", sinkBaseId: "cab-2" },
+    ];
+
+    const requestedEntries = (value: string, targets: ValueTarget[]) =>
+      targets.map((target) => ({ attributeId: "sinkType", target, value, origin: "requested" }));
+
+    it("gives a vessel without a colour its default finish, on the composition and every Sink Base", () => {
+      expect(basinPlan()).toEqual({
+        ok: true,
+        plan: [...requestedEntries("Vessel_UrbanModo", everyTarget), ...colourEntries("Matte White T1C", everyTarget)],
+      });
+    });
+
+    it("keeps a colour the vessel allows", () => {
+      expect(basinPlan({ vesselColor: "Matte Black T1D" })).toEqual({
+        ok: true,
+        plan: requestedEntries("Vessel_UrbanModo", everyTarget),
+      });
+    });
+
+    it("replaces a colour the vessel refuses on every target", () => {
+      expect(basinPlan({ vesselColor: "Antracite Matte OCF" })).toEqual({
+        ok: true,
+        plan: [...requestedEntries("Vessel_UrbanModo", everyTarget), ...colourEntries("Matte White T1C", everyTarget)],
+      });
+    });
+
+    it.each([
+      ["the cutout without a vessel", "Vessel"],
+      ["an integrated basin", "Top_HPLPrisma"],
+    ])("leaves the colour alone on %s", (_label, value) => {
+      expect(basinPlan({ value, vesselColor: "Antracite Matte OCF" })).toEqual({
+        ok: true,
+        plan: requestedEntries(value, everyTarget),
+      });
+    });
+
+    it("leaves the colour alone without a placed Sink Base", () => {
+      expect(basinPlan({ sinkBaseIds: [], vesselColor: "Antracite Matte OCF" })).toEqual({
+        ok: true,
+        plan: requestedEntries("Vessel_UrbanModo", [basinTarget]),
+      });
+    });
+
+    it("leaves the colour alone before the configurator loads", () => {
+      expect(basinPlan({ activeConfigurator: null, vesselColor: "Antracite Matte OCF" })).toEqual({
+        ok: true,
+        plan: requestedEntries("Vessel_UrbanModo", everyTarget),
+      });
+    });
+
+    it("keeps a value addressed at one Sink Base on that Sink Base, colour included", () => {
+      const oneSinkBase: ValueTarget = { scope: "basin", sinkBaseId: "cab-2" };
+
+      expect(basinPlan({ target: oneSinkBase })).toEqual({
+        ok: true,
+        plan: [
+          ...requestedEntries("Vessel_UrbanModo", [oneSinkBase]),
+          ...colourEntries("Matte White T1C", [oneSinkBase]),
+        ],
+      });
     });
   });
 

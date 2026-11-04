@@ -103,12 +103,8 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
     if (!colorName || !sinkBaseCabinetId) return;
     const option = vesselState.findOptionByValue(colorName);
     if (option && !vesselState.isCompatibleWithSinkStyle(option)) return;
-    const result = await changeFromUser({
-        attributeId: "VesselColor",
-        value: colorName,
-        scope: "basin",
-        sinkBaseId: sinkBaseCabinetId,
-      });
+    // Names no Sink Base: the colour reaches every one, as the basin does.
+    const result = await changeFromUser({ attributeId: "VesselColor", value: colorName, scope: "basin" });
     if (result.status === "applied") vesselState.setActiveVesselColor(colorName);
   };
 
@@ -132,10 +128,14 @@ export const useCountertopSections = ({ stepId, flow }: CountertopSectionsArgs):
     if (option?.isAvailable === false) return;
 
     const isCutout = basinStyle === VESSEL_SINK_NONE_OPTION_VALUE || (basinStyle.startsWith("Vessel_") && activeBasinStyle === basinStyle);
-    await changeFromUser({
+    const result = await changeFromUser({
       attributeId: "sinkType", value: isCutout ? selectAttribute(activeProfile, "sinkType")?.noneValue ?? "" : basinStyle,
       scope: "basin",
     });
+    // The colour the vessel took may sit behind the active filter of the colour grid.
+    if (result.status === "applied" && result.plan.some(({ attributeId }) => attributeId === "VesselColor")) {
+      vesselState.setSelection({});
+    }
   };
 
   const changeCountertopStyle = async (styleValue: string) => {

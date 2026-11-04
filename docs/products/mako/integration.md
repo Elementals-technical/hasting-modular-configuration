@@ -28,7 +28,8 @@
 - Стартова стільниця — `Matte White` (Solid Surface, SSTL .5″) з basin `LB440`, як на картинках моделей
   (`defaults`); її отримують і моделі, і перша шафа порожнього builder. Countertop Color вимикає кольори, яких
   таблиця 577 не робить (Fenix, `Matte White 8cm`), через `availabilityRef: "CountertopColor.allowed"`.
-- CountertopStyle bound; basin і VesselColor state-only, бо Mako scene поки не має basin sub-product.
+- CountertopStyle, sinkType (basin) і VesselColor bound: назви basin перекладаються в sink sub-products під
+  `ClMa_Sink_Point`, а VesselColor фарбує vessel.
 - Drawer style groups забороняють змішувати 1- і 2-drawer cabinets.
 
 ## Presets і production стан

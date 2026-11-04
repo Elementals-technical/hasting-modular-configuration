@@ -73,6 +73,67 @@ public/collections/registry.json
 USH читає configurator 4. ULH читала його до 2026-11-03, а правил USH не успадковувала: власний remote id
 цього не змінює.
 
+Кожен стиль стільниці (Integrated, Vessel) отримує один вердикт із причиною від rule core
+(`buildCountertopRuleState`, `styleAvailability`). Поле `CountertopStyle` показує його через
+`availabilityRef: "CountertopStyle.allowed"` (прив'язано в `ui.json` кожної колекції), а vessel basins беруть
+той самий вердикт, тож обидва шляхи UI дають однакові причини і композиція не може отримати vessel cutout без basin.
+
+Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex вимикають Vessel (причина
+`countertop.vesselSinkBaseMin`, з мінімумом у підказці), коли жоден vessel-рядок countertop table не сягає Sink Base:
+рядок діє від свого `min_vsl_cm` (80 cm), і thickness під Vessel йдуть за цими самими рядками. Integrated лишається
+доступним за своїми правилами table. Коли `restrictedIntegratedDepthsCm` і `restrictedIntegratedMaterialTokens`
+профілю збігаються з активними глибиною та матеріалом (46 cm), відмову Integrated пояснює
+`countertop.integratedDepthRestricted` замість причини рядка.
+
+Коли стиль уже Vessel, а Sink Base стає вужчим за цей мінімум (наприклад, Resize у custom flow), стиль
+скидається на перший дозволений правилами з будь-якого кроку, а басейн — на default басейн матеріалу, якщо
+матриця його дозволяє, інакше на перший дозволений. Скидання чекає, поки Sink Base поставлений, не
+виконується, поки vessel стоїть поза своїм Sink Base, і під час restore/undo; воно не додає крок undo. Це
+спільна поведінка всіх колекцій; якщо матриця не дозволяє жодного іншого стилю, Vessel лишається.
+
+Той самий хук скидає й integrated basin, який правила відмовляють, з будь-якого кроку: після скидання стилю і
+після Resize чи «+» Sink Base. Приклад — Urban Duplex: HPL Strip і Cover вимагають Sink Base від 70 cm
+(`min_sb_cm`), тож 60 cm Sink Base, поставлений через «+» або змінений у сцені, отримує default басейн
+матеріалу, якщо матриця його дозволяє, інакше перший дозволений (Prisma). Вердикт дає лише `allowedBasinKeys`
+rule core; хук мінімум не перераховує. Якщо жоден басейн не дозволений, басейн лишається. Умови ті самі, що в
+скидання стилю: Sink Base поставлений, sink не винесений, не restore/undo.
+
+Вибраний vessel бере колір у тій самій команді, у всіх 8 колекціях.
+
+```mermaid
+flowchart TD
+  A[Vessel вибрано] --> B{Поточний колір дозволений vessel?}
+  B -- так --> C[Колір лишається]
+  B -- ні --> D{defaultFinishByStyle для цього vessel?}
+  D -- є --> E[Колір = default finish]
+  D -- немає --> F[Колір = перший дозволений]
+```
+
+Залежність належить плану команди `sinkType` (`buildChangePlan`): вона не переоцінює відновлені конфігурації
+(restore, undo, replay) і не спрацьовує без поставленого Sink Base або без завантаженого configurator. Колір
+отримує кожен Sink Base. Urban Duplex: Aquarius не має default finish, тож його перший сумісний колір залежить від
+порядку в configurator (на live — Agata BD MT).
+
+У колекціях Urban `ruleData.vesselCompatibility.unavailableColorCodesByStyle` читається в обидва боки. Колір
+стільниці з цього списку (для Urban Modo — Porcelain TQ2) вимкнений у Countertop Color, поки обрано цей vessel
+(`vessel.colorUnavailable`), а сам vessel вимкнений у Vessel Sink Style на такій стільниці
+(`vessel.countertopColorUnavailable`). `allowedMaterialsByStyle` і `allowedColorCodesByStyle` судять лише власний
+колір vessel. Обмеження діє тільки в UI: у Urban Freestanding, Urban Duplex і Urban Low Height його дають
+schema-driven resolvers, в Urban Standard Height — legacy віджет CountertopSections; команди нічого не відмовляють.
+У Urban Freestanding, Urban Duplex і Urban Low Height `autoSelect: "firstAllowed"` на `sinkType` переносить
+збережений vessel, який правило відмовляє (restore, preset), на перший дозволений; Urban Standard Height такого
+auto-select не має, тож збережений vessel там лишається, доки користувач його не змінить.
+
+Зміна моделі переносить колір разом із vessel: на flat-моделі колір іде в нову сцену через `shared` та
+`afterPlacement`, на compact — повторним replay. Колір, який не переноситься, очищується, щоб стан не стверджував
+колір, якого нова сцена не тримає. Колекції з `prebuiltModelSelection.resetSelections` (Class) нічого не
+переносять: модель скидається на integrated.
+
+Списки ширин Sink Base у Cabinet Builder, «+» і Resize у сцені не відкидають ширини нижче `min_sb_cm` басейну:
+басейн підлаштовується під шафу, а не навпаки (Urban Duplex пропонує 60–120 cm). Матеріал і модель, навпаки,
+відмовляються за `min_sb_cm` у availability. «+» лишає обрану ширину, лише якщо вона є серед запропонованих
+ширин, що вміщуються, інакше бере найширшу з них.
+
 Urban Low Height має власний configurator 10 (`modular-config-phase-2 (ULH)`), а Urban Freestanding, Tricot,
 Urban Duplex і Lame — material configurators 11–14 (`modular-config-phase-2-materials-(…)`), лише з кольорами
 своєї колекції. Групи там звуться

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 
 import type { RootState } from "@/app/store";
 import { selectInitialValue } from "@/entities/collection";
@@ -53,9 +53,11 @@ const hasSinkBase = (state: RootState) => findSinkBaseKey(state) !== undefined;
  *
  * A vessel is refused below the matrix's vessel Sink Base minimum, so the style resets from any
  * step once the Sink Base shrinks; otherwise the cutout would be priced with no basin it could hold.
- * A basin step picks a basin only while it is open, and not every collection's does, so the basin
- * is set here too: the material's default basin where the matrix allows it, else the first one it
- * allows for the new style. With no other style allowed (no matrix at all) the vessel stays.
+ * With no other style allowed (no matrix at all) the vessel stays. An integrated basin has a Sink
+ * Base minimum of its own, and the Sink Base may be sized below it. A basin step picks a basin only
+ * while it is open, and not every collection's does, so whenever the rules refuse the integrated
+ * basin, after the style reset or a resize, it is set here too: the material's default basin where
+ * the matrix allows it, else the first one it allows. With none allowed the basin stays.
  */
 export const useAvailabilityResets = ({ runtime }: UseChangeAttributeOptions = {}) => {
   const { change, getState } = useChangeAttribute({ runtime });
@@ -78,8 +80,6 @@ export const useAvailabilityResets = ({ runtime }: UseChangeAttributeOptions = {
   const isSinkBasePlaced = useAppSelector(hasSinkBase);
   // While the top hosts the basin off its Sink Base the scene cannot change the style or the basin.
   const isSinkHosted = useCountertopRuntimeValue((state) => state?.sink?.hosted === true);
-  // Set when the style reset is sent and taken by the basin reset once the new style is recorded.
-  const isBasinOwedRef = useRef(false);
 
   const isVesselStyle = isVessel(countertopStyle);
   const nextStyle =
@@ -136,28 +136,16 @@ export const useAvailabilityResets = ({ runtime }: UseChangeAttributeOptions = {
     const request = resolveChangeRequest(getState(), "CountertopStyle", nextStyle);
     if (!request) return;
 
-    isBasinOwedRef.current = true;
-    void change(request).then((result) => {
-      if (result.status !== "applied") isBasinOwedRef.current = false;
-      warnIfNotReset("CountertopStyle")(result);
-    });
+    void change(request).then(warnIfNotReset("CountertopStyle"));
   }, [change, getState, isRestoring, isSceneReady, isSinkBasePlaced, isSinkHosted, nextStyle, profile]);
 
   useEffect(() => {
-    if (!isBasinOwedRef.current) return;
-    if (isRestoring) {
-      isBasinOwedRef.current = false;
-      return;
-    }
-    // The basin is judged for the style the reset chose, once it is recorded.
-    if (isVesselStyle) return;
-
-    isBasinOwedRef.current = false;
-    if (!nextBasin) return;
+    // Judged by the Sink Base, as the vessel minimum is; a vessel style has no basin to judge until its reset is recorded.
+    if (!profile || isRestoring || !isSceneReady || !isSinkBasePlaced || isSinkHosted || !nextBasin) return;
 
     const request = resolveChangeRequest(getState(), "sinkType", nextBasin);
     if (!request) return;
 
     void change(request).then(warnIfNotReset("sinkType"));
-  }, [change, getState, isRestoring, isVesselStyle, nextBasin]);
+  }, [change, getState, isRestoring, isSceneReady, isSinkBasePlaced, isSinkHosted, nextBasin, profile]);
 };
