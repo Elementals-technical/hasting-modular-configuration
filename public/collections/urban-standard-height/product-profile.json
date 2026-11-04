@@ -534,6 +534,7 @@
     "grain.notAvailable": "Grain direction is not available for the selected cabinet material.",
     "drawers.handleChanged": "The handle changes to one that fits the selected drawers.",
     "towelBar.colorCleared": "The towel bar color is cleared when the towel bar is removed.",
+    "towelBar.colorStarted": "The towel bar starts in this collection's standard color.",
     "fluting.notInCollection": "Fluting is not available in this collection.",
     "grain.notInCollection": "Grain direction is not available in this collection.",
     "grain.requiresEligibleMaterial": "Grain direction is only available for {materials} materials.",

@@ -10,7 +10,13 @@ type Host = { containerRef?: unknown; playCanvasReady?: boolean };
 
 const host = window as unknown as Host;
 
-type Button = { side: string; parentEntity: { name: string } | null; plus?: ScenePlus; shown?: boolean };
+type Button = {
+  side: string;
+  parentEntity: { name: string } | null;
+  plus?: ScenePlus;
+  joint?: boolean;
+  shown?: boolean;
+};
 
 /** The scene's PlusButtonManager as far as the filter goes: a "+" without `plus` is always shown. */
 class ScenePlusManager {
@@ -54,6 +60,8 @@ const installScene = (buttons: Button[], compositionManager: Record<string, unkn
 };
 
 const rowEnd = (side: string, cabinetId: string): Button => ({ side, parentEntity: { name: cabinetId } });
+/** A "+" at a joint inside a row: the scene marks it on the cabinet to its right. */
+const joint = (cabinetId: string): Button => ({ ...rowEnd("left", cabinetId), joint: true });
 const shown = (buttons: Button[]) => buttons.map((button) => button.shown);
 /** The Sink Base rule: only the countertop's row, where "sb" stands. */
 const countertopRowOnly = (plus: ScenePlus) => plus.cabinetId === "sb";
@@ -72,8 +80,19 @@ describe("setScenePlusFilter", () => {
     expect(setScenePlusFilter(filter)).toBe(true);
 
     expect(shown(buttons)).toEqual([true, true, false, false]);
-    expect(filter).toHaveBeenCalledWith({ id: "left:lower", kind: "left", cabinetId: "lower" });
-    expect(filter).toHaveBeenCalledWith({ id: "right:shelf", kind: "right", cabinetId: "shelf" });
+    expect(filter).toHaveBeenCalledWith({ id: "left:lower", kind: "left", cabinetId: "lower", joint: false });
+    expect(filter).toHaveBeenCalledWith({ id: "right:shelf", kind: "right", cabinetId: "shelf", joint: false });
+  });
+
+  it("tells the filter which + stands at a joint inside the row", () => {
+    const buttons = [rowEnd("left", "sb"), joint("second"), rowEnd("right", "second")];
+    installScene(buttons);
+    const filter = vi.fn((plus: ScenePlus) => !plus.joint);
+
+    setScenePlusFilter(filter);
+
+    expect(shown(buttons)).toEqual([true, false, true]);
+    expect(filter).toHaveBeenCalledWith({ id: "left:second", kind: "left", cabinetId: "second", joint: true });
   });
 
   it("shows every + again without a filter", () => {

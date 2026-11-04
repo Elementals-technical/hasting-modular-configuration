@@ -6,8 +6,11 @@ import type { CabinetDraftState, CabinetsState } from "@/features/configuratorAp
  * is checked here before it is applied.
  */
 
-/** A cabinet along the wall: its scene type, the centre of its place (m) and its width (cm). */
-export type WallCabinet = { id: string; definitionId: string; centreXM: number; widthCm: number };
+/**
+ * A cabinet along the wall: its scene type, the centre of its place (m), its width (cm) and the level
+ * it stands on (m) — the level tells the rows of a multi-level composition apart (`sinkBaseRow.ts`).
+ */
+export type WallCabinet = { id: string; definitionId: string; centreXM: number; widthCm: number; levelYM: number };
 
 /** Cabinets this close (cm) stand in one row. */
 const ROW_GAP_CM = 1;
@@ -64,12 +67,23 @@ export const wallAfterDraft = (state: CabinetsState, draft: CabinetDraftState): 
   if (!candidate || typeof candidate.definitionId !== "string" || centreXM === null || widthCm === null) return null;
 
   const movedId = typeof candidate.productId === "string" ? candidate.productId : null;
+  // A scene that reports no level leaves every cabinet on one, as before levels were read.
   const placed = state.cabinets.flatMap((cabinet): WallCabinet[] => {
     const width = finite(cabinet.selection.Width);
     const centre = finite(cabinet.positionM.x);
     if (cabinet.id === movedId || width === null || centre === null) return [];
-    return [{ id: cabinet.id, definitionId: cabinet.definitionId, centreXM: centre, widthCm: width }];
+    const levelYM = finite(cabinet.positionM.y) ?? 0;
+    return [{ id: cabinet.id, definitionId: cabinet.definitionId, centreXM: centre, widthCm: width, levelYM }];
   });
 
-  return [...placed, { id: movedId ?? draft.sessionId, definitionId: candidate.definitionId, centreXM, widthCm }];
+  return [
+    ...placed,
+    {
+      id: movedId ?? draft.sessionId,
+      definitionId: candidate.definitionId,
+      centreXM,
+      widthCm,
+      levelYM: finite(positionM?.y) ?? 0,
+    },
+  ];
 };

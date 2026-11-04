@@ -19,6 +19,7 @@ import {
   REASON_GROOVE_NOT_SUPPORTED,
   REASON_HANDLE_CHANGED_FOR_DRAWERS,
   REASON_TOWEL_BAR_COLOR_CLEARED,
+  REASON_TOWEL_BAR_COLOR_STARTED,
   buildChangePlan,
 } from "../lib/buildChangePlan";
 
@@ -284,6 +285,8 @@ describe("buildChangePlan", () => {
     it.each([
       ["removing it without a colour", "None", ""],
       ["moving it to another side", "Left", "Chrome"],
+      // USH declares no starting colour for the bar, so hanging one adds nothing to the set.
+      ["hanging it where the collection declares no starting colour", "Left", ""],
     ])("keeps the set to the option when %s", (_label, value, towelBarColor) => {
       // toMatchObject compares array length, so a dependency added to the set fails here.
       expect(towelBarPlan(value, towelBarColor)).toMatchObject({ ok: true, plan: [{ attributeId: "TowelBarOption" }] });
@@ -571,5 +574,65 @@ describe("buildChangePlan: a handle that takes several heights", () => {
 
     expect(entries).toContainEqual(expect.objectContaining({ attributeId: "HandleGrooveColor", origin: "dependency" }));
     expect(heightOf(entries)).toBe(35);
+  });
+});
+
+/**
+ * Urban Low Height declares a starting towel-bar colour on the attribute, so hanging a bar carries
+ * the colour in the same set (ULH-14, UF-2): a colour only in the store would never reach the scene.
+ */
+describe("buildChangePlan: a towel bar that starts in a colour", () => {
+  const parsed = parseProductProfile(ulhProfileDocument);
+  if (!parsed.ok) throw new Error("Urban Low Height profile must parse");
+  const ulhProfile = parsed.profile;
+  const STARTING_COLOR = "Carbone 43 MT";
+
+  const towelBarPlan = (value: string, towelBarColor: string | null) => {
+    const result = buildChangePlan({
+      attributeId: "TowelBarOption",
+      value,
+      target: { scope: "global" },
+      selection: baseSelection,
+      selectedProductIds: [],
+      catalog,
+      profile: ulhProfile,
+      handleGrooveColor: null,
+      towelBarColor,
+    });
+    if (!result.ok) throw new Error(result.reason);
+
+    return result.plan;
+  };
+
+  const colorOf = (entries: ReturnType<typeof towelBarPlan>) =>
+    entries.find(({ attributeId }) => attributeId === "TowelBarColor");
+
+  it.each(["Left", "Right", "Both"])("gives the bar its starting colour when it is hung on %s", (side) => {
+    const entries = towelBarPlan(side, "");
+
+    expect(entries[0]).toMatchObject({ attributeId: "TowelBarOption", value: side, origin: "requested" });
+    expect(colorOf(entries)).toEqual({
+      attributeId: "TowelBarColor",
+      target: { scope: "global" },
+      value: STARTING_COLOR,
+      origin: "dependency",
+      reasonCode: REASON_TOWEL_BAR_COLOR_STARTED,
+    });
+  });
+
+  it("leaves a chosen colour alone when the bar moves to the other side", () => {
+    expect(colorOf(towelBarPlan("Right", "Nero 03 MT"))).toBeUndefined();
+  });
+
+  it("gives the colour again after a removal cleared it", () => {
+    // Left -> None -> Left: the removal clears the colour, so the next hang has to bring it back.
+    expect(colorOf(towelBarPlan("None", STARTING_COLOR))).toMatchObject({
+      value: "",
+      reasonCode: REASON_TOWEL_BAR_COLOR_CLEARED,
+    });
+    expect(colorOf(towelBarPlan("Left", ""))).toMatchObject({
+      value: STARTING_COLOR,
+      reasonCode: REASON_TOWEL_BAR_COLOR_STARTED,
+    });
   });
 });
