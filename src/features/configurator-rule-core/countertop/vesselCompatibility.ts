@@ -127,6 +127,9 @@ const toMaterialCandidateTokens = (materialTokens: readonly string[], profile: P
   return candidateTokens;
 };
 
+const hasRuleMaterial = (materialCandidateTokens: ReadonlySet<string>, rule: VesselMaterialColorCodeRule): boolean =>
+  Array.from(materialCandidateTokens).some((token) => rule.materialTokens.has(token));
+
 /**
  * Whether the style's `unavailableColorCodesByStyle` lists this material and colour code. The list reads both
  * ways: a vessel colour the style refuses, and a countertop colour the style cannot stand on.
@@ -151,11 +154,7 @@ export const isColorCodeUnavailableForVesselStyle = ({
     selectVesselCompatibility(profile)?.unavailableColorCodesByStyle,
     vesselStyle,
     profile,
-  ).some(
-    (rule) =>
-      Array.from(materialCandidateTokens).some((token) => rule.materialTokens.has(token)) &&
-      rule.colorCodes.has(normalizedColorCode),
-  );
+  ).some((rule) => hasRuleMaterial(materialCandidateTokens, rule) && rule.colorCodes.has(normalizedColorCode));
 };
 
 export const isPreferredVesselFinish = ({
@@ -172,13 +171,7 @@ export const isPreferredVesselFinish = ({
   const preference = getDefaultVesselFinishPreference(vesselStyle, profile);
   if (!preference) return false;
 
-  const candidateMaterialTokens = new Set<string>();
-  materialTokens.forEach((token) => {
-    getMaterialAliases(token, selectMaterialAliasTable(profile))
-      .map((alias) => normalizeMaterialToken(alias))
-      .filter(Boolean)
-      .forEach((alias) => candidateMaterialTokens.add(alias));
-  });
+  const candidateMaterialTokens = toMaterialCandidateTokens(materialTokens, profile);
 
   const normalizedColorCode = normalizeMaterialToken(colorCode ?? "");
   const matchesMaterial =
@@ -216,9 +209,6 @@ export const isMaterialCompatibleWithVesselStyle = ({
   const hasAllowedToken = Array.from(candidateTokens).some((token) => allowedTokens.has(token));
   if (!hasAllowedToken) return false;
 
-  const materialMatchesRule = (rule: VesselMaterialColorCodeRule) =>
-    Array.from(materialCandidateTokens).some((token) => rule.materialTokens.has(token));
-
   if (isColorCodeUnavailableForVesselStyle({ vesselStyle, materialTokens, colorCode, profile })) return false;
 
   const materialColorCodeRules = getMaterialColorCodeRules(
@@ -228,11 +218,15 @@ export const isMaterialCompatibleWithVesselStyle = ({
   );
   if (!materialColorCodeRules.length) return true;
 
-  const hasMaterialColorCodeRule = materialColorCodeRules.some((rule) => materialMatchesRule(rule));
+  const hasMaterialColorCodeRule = materialColorCodeRules.some((rule) =>
+    hasRuleMaterial(materialCandidateTokens, rule),
+  );
   if (!hasMaterialColorCodeRule) return true;
 
   return Boolean(
     normalizedColorCode &&
-      materialColorCodeRules.some((rule) => materialMatchesRule(rule) && rule.colorCodes.has(normalizedColorCode)),
+    materialColorCodeRules.some(
+      (rule) => hasRuleMaterial(materialCandidateTokens, rule) && rule.colorCodes.has(normalizedColorCode),
+    ),
   );
 };

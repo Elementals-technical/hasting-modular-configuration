@@ -50,7 +50,7 @@ import { extractColorCode } from "@/shared/lib/sku";
 
 import { useCountertopRuleState } from "./useCountertopRuleState";
 import { resolveConfiguratorOptions, resolveSectionFields } from "./resolveSectionState";
-import { resolveVesselColorOptions } from "./resolveVesselColor";
+import { finishOf, resolveVesselColorOptions } from "./resolveVesselColor";
 
 import type { FieldOptionState, ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -146,13 +146,8 @@ const resolveCountertopColorAvailability = (
     return verdict;
   };
   // Judged per option, not per material list: the colour code is the option's own.
-  const isRefusedByVessel = ({ value, traits }: FieldOptionState) =>
-    isColorCodeUnavailableForVesselStyle({
-      vesselStyle: materialRuleInputs.activeBasinStyle,
-      materialTokens: traits?.materials ?? [],
-      colorCode: extractColorCode(value),
-      profile,
-    });
+  const isRefusedByVessel = (option: FieldOptionState) =>
+    isColorCodeUnavailableForVesselStyle(finishOf(profile, materialRuleInputs.activeBasinStyle, option));
   const failures = new Set(
     resolveConfiguratorOptions(profile, "CountertopColor", configurator).flatMap(
       (option) => judge(option).failedBy ?? [],

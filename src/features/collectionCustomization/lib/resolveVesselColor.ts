@@ -14,7 +14,12 @@ import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types
 
 type VesselStyle = string | null | undefined;
 
-const finishOf = (profile: ProductProfile | null, vesselStyle: VesselStyle, { value, traits }: FieldOptionState) => ({
+/** One option as the vessel compatibility predicates judge it: the materials it is listed under and its colour code. */
+export const finishOf = (
+  profile: ProductProfile | null,
+  vesselStyle: VesselStyle,
+  { value, traits }: FieldOptionState,
+) => ({
   vesselStyle,
   materialTokens: traits?.materials ?? [],
   colorCode: extractColorCode(value),
