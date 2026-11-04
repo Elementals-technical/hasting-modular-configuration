@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"resized":true,"hit":true,"dropPose":{"x":0.041,"y":0},"how":"by Apply: the scene does not announce a cabinet twice at an exact pose","landed":true,"message":null,"overlay":null,"hosted":false,"pose":{"x":0.041,"y":0},"valid":"valid","cabinets":"sink-cabinet:60[Top_HPL/Fenix_Prisma_Gres] side-cabinet:60"}
+```

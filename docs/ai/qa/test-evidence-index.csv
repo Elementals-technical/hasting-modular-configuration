@@ -125,3 +125,17 @@ TC-UFS-UF18-REPRO,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/component-check.t
 TC-URBAN-UF18-SCOPE,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-ush-desktop/result.json
 TC-URBAN-UF18-SCOPE,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-ulh-desktop/result.json
 TC-URBAN-UF18-SCOPE,FAIL,docs/ai/qa/evidence/2026-11-03/TC-UF-18/staging-ud-desktop/result.json
+TC-ULH-UX-008-POS,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/acceptance-log.md
+TC-ULH-UX-008-POS,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/05-sc-width-menu.txt
+TC-ULH-UX-008-POS,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/07-refused-drop.png
+TC-ULH-UX-008-POS,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/11-refused-standard.png
+TC-ULH-UX-008-POS,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/14-gap-at-home.png
+TC-ULH-UX-008-NEG,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/acceptance-log.md
+TC-ULH-UX-008-NEG,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/06-drop-on-19.7.txt
+TC-ULH-UX-008-NEG,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/10-standard-on-9.8.txt
+TC-ULH-UX-008-TRA,UNKNOWN,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/acceptance-log.md
+TC-ULH-UX-008-TRA,UNKNOWN,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/22-refused-on-23.6-minimum-70.txt
+TC-ULH-UX-008-TRA,UNKNOWN,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/24-lands-on-27.6-minimum-70.txt
+TC-ULH-CAB-009-POS,UNKNOWN,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/acceptance-log.md
+TC-ULH-CAB-009-POS,UNKNOWN,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/03-lift-by-pointer.txt
+TC-ULH-CAB-009-POS,UNKNOWN,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome/16-allowed-landing-on-23.6.txt

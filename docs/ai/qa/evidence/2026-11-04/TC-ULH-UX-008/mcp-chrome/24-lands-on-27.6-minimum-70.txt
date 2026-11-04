@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"resized":true,"hit":true,"how":"by Apply: the scene does not announce a cabinet twice at an exact pose","landed":true,"message":null,"hosted":false,"cabinets":"sink-cabinet:70[Top_HPL/Fenix_Cover_Gres] side-cabinet:60"}
+```
