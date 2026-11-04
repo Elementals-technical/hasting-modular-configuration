@@ -7,7 +7,10 @@ import type { SidePanelEdgeState, SidePanelTargetSide } from "@/features/sidePan
 import type { FieldRuntimeState } from "@/entities/collection";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
-import { formatSidePanelsExceedMaxReason } from "@/features/configurator-rule-core/countertop";
+import {
+  formatSidePanelsExceedMaxReason,
+  sidePanelsExceedMaxReason,
+} from "@/features/configurator-rule-core/countertop";
 import {
   isGrooveType,
   mapCabinetTypeToGroup,
@@ -116,7 +119,16 @@ export const buildSidePanelOptions = ({
   return catalog.flatMap((option) => {
     const value = option.metadata?.value;
     if (value === "None") return [option];
-    if (isSyntesiBlocked) return [{ ...option, isAvailable: false, disabledReason: availability.reason }];
+    if (isSyntesiBlocked) {
+      return [
+        {
+          ...option,
+          isAvailable: false,
+          disabledReason: availability.reason,
+          disabledReasonCode: availability.messageCode,
+        },
+      ];
+    }
     if (!value || !isGrooveType(value) || value === "None" || !availability.allowed.has(value)) return [];
 
     const totalAfter = projectedTotalAfterGrooveChange(
@@ -128,11 +140,14 @@ export const buildSidePanelOptions = ({
       profile,
     );
     if (totalAfter === null || lengthGuard.max === null || lengthGuard.canAccommodateTotal(totalAfter)) return [option];
+    const lengthReason = sidePanelsExceedMaxReason(totalAfter, lengthGuard.max);
     return [
       {
         ...option,
         isAvailable: false,
         disabledReason: formatSidePanelsExceedMaxReason(totalAfter, lengthGuard.max, profile),
+        disabledReasonCode: lengthReason.code,
+        disabledReasonParams: lengthReason.params,
       },
     ];
   });
