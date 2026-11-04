@@ -98,6 +98,27 @@ Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex ви
 rule core; хук мінімум не перераховує. Якщо жоден басейн не дозволений, басейн лишається. Умови ті самі, що в
 скидання стилю: Sink Base поставлений, sink не винесений, не restore/undo.
 
+Вибраний vessel бере колір у тій самій команді, у всіх 8 колекціях.
+
+```mermaid
+flowchart TD
+  A[Vessel вибрано] --> B{Поточний колір дозволений vessel?}
+  B -- так --> C[Колір лишається]
+  B -- ні --> D{defaultFinishByStyle для цього vessel?}
+  D -- є --> E[Колір = default finish]
+  D -- немає --> F[Колір = перший дозволений]
+```
+
+Залежність належить плану команди `sinkType` (`buildChangePlan`): вона не переоцінює відновлені конфігурації
+(restore, undo, replay) і не спрацьовує без поставленого Sink Base або без завантаженого configurator. Колір
+отримує кожен Sink Base. Urban Duplex: Aquarius не має default finish, тож його перший сумісний колір залежить від
+порядку в configurator (на live — Agata BD MT).
+
+Зміна моделі переносить колір разом із vessel: на flat-моделі колір іде в нову сцену через `shared` та
+`afterPlacement`, на compact — повторним replay. Колір, який не переноситься, очищується, щоб стан не стверджував
+колір, якого нова сцена не тримає. Колекції з `prebuiltModelSelection.resetSelections` (Class) нічого не
+переносять: модель скидається на integrated.
+
 Списки ширин Sink Base у Cabinet Builder, «+» і Resize у сцені не відкидають ширини нижче `min_sb_cm` басейну:
 басейн підлаштовується під шафу, а не навпаки (Urban Duplex пропонує 60–120 cm). Матеріал і модель, навпаки,
 відмовляються за `min_sb_cm` у availability. «+» лишає обрану ширину, лише якщо вона є серед запропонованих

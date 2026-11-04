@@ -9,13 +9,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { store } from "@/app/store";
 import { ReadyCollectionContext } from "@/entities/collection";
 import type { ProductProfile } from "@/entities/collection";
+import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator4 from "@/entities/collection/__tests__/fixtures/remote/configurator-4.json";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import { configuratorSchema } from "@/entities/collection/model/schemas";
+import { resetConfiguration, syncCabinets } from "@/entities/configuration";
 import { clearHistory, setHistoryRestoring } from "@/entities/history/model/store/slice";
 import {
   addProductId,
   reset,
+  setActiveBasinStyle,
   setActiveCountertopColor,
   setActiveCountertopThickness,
   setActiveProfile,
@@ -23,6 +26,7 @@ import {
   setSelectedDimensions,
 } from "@/entities/product/model/store/slice";
 import { ReasonTextProvider, useCustomizationStepSections } from "@/features/collectionCustomization";
+import type { AttributeChange, ChangeResult, PlannedChange } from "@/features/configurationCommands";
 import { readyCollectionFixture } from "@/features/configurationCommands/__tests__/readyCollectionFixture";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
 import type { CountertopDatatable } from "@/entities/countertop/api/types";
@@ -31,7 +35,14 @@ import { CountertopPage } from "@/pages/countertop/CountertopPage";
 
 // The countertop step reads its sections from ui.json and its options from the profile; the pick goes to the command.
 
-const changeMock = vi.fn(async () => ({ status: "applied" as const, plan: [] }));
+/** The set the command answers a basin pick with; every other pick changes nothing else. */
+let basinPlan: PlannedChange[] = [];
+const changeMock = vi.fn(
+  async ({ attributeId }: AttributeChange): Promise<ChangeResult> => ({
+    status: "applied",
+    plan: attributeId === "sinkType" ? basinPlan : [],
+  }),
+);
 
 vi.mock("@/features/configurationCommands", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/features/configurationCommands")>();
@@ -40,6 +51,10 @@ vi.mock("@/features/configurationCommands", async (importOriginal) => {
 
 vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion");
 vi.mock("@/shared/ui/Accordion/useCompactAccordionViewport", () => ({ useCompactAccordionViewport: () => false }));
+// The basins are offered once the scene reads a Sink Base among the placed products.
+vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
+  getConfig: async (runtimeId: string) => (runtimeId.startsWith("Sink-Base") ? { ProductType: "Sink-Base" } : null),
+}));
 
 afterEach(cleanup);
 
@@ -121,7 +136,12 @@ describe("the countertop step from ui.json", () => {
       fireEvent.click(within(screen.getByRole("region", { name: "Thickness" })).getByRole("button", { name: '0.5"' }));
     });
 
-    expect(changeMock).toHaveBeenCalledWith({ attributeId: "Thickness", value: "0.5", scope: "countertop" });
+    expect(changeMock).toHaveBeenCalledWith({
+      attributeId: "Thickness",
+      value: "0.5",
+      scope: "countertop",
+      userInitiated: true,
+    });
   });
 });
 
@@ -271,5 +291,109 @@ describe("the countertop step's styles follow CountertopStyle.allowed", () => {
       .find(({ definition }) => definition.attributeId === "CountertopStyle")?.field;
 
     expect(resolved?.options.map(({ label, enabled }) => [label, enabled])).toEqual(shownStyles());
+  });
+});
+
+describe("the countertop step's vessel picks", () => {
+  // Configurator 4 with the vessel colours the live one offers.
+  const vesselGroups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions;
+  const withVesselColors = {
+    ...withCountertopRules,
+    catalog: {
+      ...withCountertopRules.catalog,
+      configurator: {
+        groups: vesselGroups,
+        groupsByName: Object.fromEntries(vesselGroups.map((group) => [group.proxyName, group])),
+      },
+    },
+  };
+  const SINK_BASE = "Sink-Base-placed";
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(addProductId(SINK_BASE));
+    store.dispatch(syncCabinets([SINK_BASE]));
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setActiveCountertopThickness("0.5"));
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanMorris"));
+    basinPlan = [];
+    changeMock.mockClear();
+  });
+
+  const renderVesselStep = async () => {
+    renderStep("/prebuilt/countertop", "countertop", withVesselColors);
+    await act(async () => {});
+  };
+  const vesselColors = () => within(screen.getByRole("region", { name: "Vessel Color" }));
+
+  /** Narrows the colour grid to Solid Surface, a material the Urban Morris takes. */
+  const filterVesselColors = async () => {
+    await act(async () => {
+      fireEvent.click(vesselColors().getByRole("button", { name: "Material" }));
+    });
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole("listbox", { name: "Material" })).getByRole("button", { name: "Solid Surface" }),
+      );
+    });
+  };
+
+  const pickBasin = async (label: string) => {
+    await act(async () => {
+      fireEvent.click(
+        within(screen.getByRole("region", { name: "Vessel Sink Style" })).getByRole("button", { name: label }),
+      );
+    });
+  };
+
+  it("sends a picked colour for the whole composition, naming no Sink Base", async () => {
+    await renderVesselStep();
+
+    await act(async () => {
+      fireEvent.click(vesselColors().getByRole("button", { name: "Bianco Gloss TAL" }));
+    });
+
+    expect(changeMock).toHaveBeenCalledWith({
+      attributeId: "VesselColor",
+      value: "Bianco Gloss TAL",
+      scope: "basin",
+      userInitiated: true,
+    });
+  });
+
+  it("clears the colour filter when the basin picked set a colour, which it could hide", async () => {
+    basinPlan = [
+      { attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel_UrbanModo", origin: "requested" },
+      { attributeId: "VesselColor", target: { scope: "basin" }, value: "Matte White T1C", origin: "dependency" },
+    ];
+    await renderVesselStep();
+    await filterVesselColors();
+    expect(vesselColors().getByRole("button", { name: "Clear All" })).toBeTruthy();
+
+    await pickBasin("Vessel Urban Modo");
+
+    expect(vesselColors().queryByRole("button", { name: "Clear All" })).toBeNull();
+  });
+
+  it("keeps the colour filter when the basin picked left the colour as it was", async () => {
+    basinPlan = [
+      { attributeId: "sinkType", target: { scope: "basin" }, value: "Vessel_UrbanModo", origin: "requested" },
+    ];
+    await renderVesselStep();
+    await filterVesselColors();
+
+    await pickBasin("Vessel Urban Modo");
+
+    expect(changeMock).toHaveBeenCalledWith({
+      attributeId: "sinkType",
+      value: "Vessel_UrbanModo",
+      scope: "basin",
+      userInitiated: true,
+    });
+    expect(vesselColors().getByRole("button", { name: "Clear All" })).toBeTruthy();
   });
 });

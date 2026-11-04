@@ -24,6 +24,7 @@ import { ModeSwitcher } from "@/shared/ui/ModeSwitcher/ModeSwitcher";
 
 import { ProductModelsGrid } from "@/entities/product/ui/ProductModelsGrid/ProductModelsGrid";
 import {
+  isVesselBasin,
   normalizeOptionValue,
   selectAttribute,
   selectDefaultValue,
@@ -85,7 +86,14 @@ import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
 import { AttentionPopup } from "@/shared/ui/Popups/ui/AttentionPopup/AttentionPopup";
 import { getConfig } from "@/utils/functions/playcanvas/getConfig";
-import { isExplicitUserChoice, setExplicitUserChoice, setActivePrebuiltPresetId, restoreExplicitUserChoices, type SceneRestoreMatch } from "@/entities/configuration";
+import {
+  isExplicitUserChoice,
+  markRuntimeOutOfSync,
+  setExplicitUserChoice,
+  setActivePrebuiltPresetId,
+  restoreExplicitUserChoices,
+  type SceneRestoreMatch,
+} from "@/entities/configuration";
 import { selectPlacedWithValues, selectPlacedWithDefaults } from "@/features/configurationCommands/lib/compositionValues";
 import { readCountertopConfig } from "@/features/playCanvasAdapter";
 import { NOT_CARRIED_ATTRIBUTE_IDS, useChangeAttribute, type ReplayValues } from "@/features/configurationCommands";
@@ -172,6 +180,14 @@ const countertopValuesAfterPlacement = (config: PresetSceneDefaults): ReplayValu
     CountertopColor: config.CountertopColor,
     Thickness: config.Thickness,
   });
+
+/**
+ * The colour of the vessel the placed model holds, sent after its basin. A model that refused the
+ * vessel takes none. Apart from `countertopValuesAfterPlacement`: a compact preset's `top` and a
+ * restore read that one, and neither takes this colour from it.
+ */
+const vesselColorAfterPlacement = (config: PresetSceneDefaults, profile: ProductProfile | null): ReplayValues =>
+  isVesselBasin(profile, config.sinkType) ? toConfigurationValues({ VesselColor: config.VesselColor }) : {};
 
 const toCompositionProducts = (presetProducts: PresetProduct[]) =>
   presetProducts.map((preset) => ({ productType: preset.name, config: { ...preset } }));
@@ -540,7 +556,6 @@ export const ModelPage = () => {
     const overrides: PresetSceneDefaults = {};
     const current = getCommandState().rootStateUI.product.productOptions;
     if (current.CountertopColor && isExplicitUserChoice(getCommandState(), "CountertopColor")) overrides.CountertopColor = current.CountertopColor;
-    if (current.VesselColor && isExplicitUserChoice(getCommandState(), "VesselColor")) overrides.VesselColor = current.VesselColor;
     if (current.Thickness && isExplicitUserChoice(getCommandState(), "Thickness")) overrides.Thickness = current.Thickness;
     if (isExplicitUserChoice(getCommandState(), "sinkType")) {
       const sink = current.sinkType || selectAttribute(activeProfileRef.current, "sinkType")?.noneValue;
@@ -554,6 +569,12 @@ export const ModelPage = () => {
       }
       if (normalizedStyle === "integrated") overrides.CountertopStyle = "Integrated";
     }
+    // The colour a vessel took with it is no choice of its own, but it goes where that vessel goes. The
+    // empty cutout a style alone brings holds none.
+    const carriesVesselColor =
+      isExplicitUserChoice(getCommandState(), "VesselColor") ||
+      isVesselBasin(activeProfileRef.current, overrides.sinkType);
+    if (current.VesselColor && carriesVesselColor) overrides.VesselColor = current.VesselColor;
     return overrides;
   }, [getCommandState]);
 
@@ -651,6 +672,16 @@ export const ModelPage = () => {
       dispatch(setExplicitUserChoice({ attributeId, chosen: false }));
     }
   }, [dispatch, record]);
+
+  // A colour the new model's scene does not hold must not stay recorded: a later vessel pick would find it allowed
+  // and send nothing, and the vessel would show the countertop's colour under a pressed swatch.
+  const clearVesselColorNotCarried = useCallback(
+    (globalConfig: PresetSceneDefaults) => {
+      const held = getCommandState().rootStateUI.product.productOptions.VesselColor;
+      if (held && !globalConfig.VesselColor) record({ VesselColor: "" });
+    },
+    [getCommandState, record],
+  );
 
   const resolveCompatibleCountertopSceneConfig = useCallback(
     (globalConfig: PresetSceneDefaults, presetProducts: PresetProduct[], targetThickness = resolvePresetSceneDefaults(presetProducts).Thickness, targetSink = resolvePresetSceneDefaults(presetProducts).sinkType): PresetSceneDefaults => {
@@ -791,16 +822,46 @@ export const ModelPage = () => {
         },
         { clearMissing: true },
       );
+      // The import cannot carry the colour: the merge above replaces only what a row already records. So it is sent
+      // whatever the basin, as `shared` gives it to a flat model: the scene's product holds it, and it paints nothing
+      // until a vessel is there.
+      const vesselColor = toConfigurationValues({ VesselColor: globalConfig.VesselColor });
+      if (Object.keys(vesselColor).length > 0) {
+        const replayed = await replay({ send: vesselColor, record: true });
+        if (replayed.status !== "applied" || replayed.skipped.length > 0) {
+          console.warn("[Prebuilt] The vessel colour did not reach the scene", replayed);
+        }
+        // As a flat model's values: a colour the scene refused holds Save.
+        if (replayed.status !== "applied") dispatch(markRuntimeOutOfSync());
+      }
       if (typeof config.Thickness === "string" || typeof config.Thickness === "number") {
         record({ Thickness: String(config.Thickness) });
       }
       if (overrides.sinkType && globalConfig.sinkType !== overrides.sinkType) dispatch(setExplicitUserChoice({ attributeId: "sinkType", chosen: false }));
       if (globalConfig.Thickness && parseThicknessValue(globalConfig.Thickness) !== parseThicknessValue(requestedThickness)) dispatch(setExplicitUserChoice({ attributeId: "Thickness", chosen: false }));
-      if (!preserveCountertopSelections) resetRestrictedCountertopSelections();
+      if (!preserveCountertopSelections) {
+        resetRestrictedCountertopSelections();
+      } else {
+        clearVesselColorNotCarried(globalConfig);
+      }
       if (!preserveSelections) dispatch(restoreExplicitUserChoices({}));
       return true;
     },
-    [activeCollection.id, adoptCompactCabinets, composition, dispatch, getCommandState, record, resetRestrictedCountertopSelections, resolveColorSceneOverrides, resolveCountertopSceneOverrides, resolveCompatibleCountertopSceneConfig, syncCountertopSelectionFromSceneConfig],
+    [
+      activeCollection.id,
+      adoptCompactCabinets,
+      clearVesselColorNotCarried,
+      composition,
+      dispatch,
+      getCommandState,
+      record,
+      replay,
+      resetRestrictedCountertopSelections,
+      resolveColorSceneOverrides,
+      resolveCountertopSceneOverrides,
+      resolveCompatibleCountertopSceneConfig,
+      syncCountertopSelectionFromSceneConfig,
+    ],
   );
 
   const applyPresetSelection = useCallback(
@@ -869,7 +930,10 @@ export const ModelPage = () => {
           products: toCompositionProducts(effectivePresetProducts),
           preserveSelections,
           shared: toConfigurationValues(globalConfig),
-          afterPlacement: countertopValuesAfterPlacement(globalConfig),
+          afterPlacement: {
+            ...countertopValuesAfterPlacement(globalConfig),
+            ...vesselColorAfterPlacement(globalConfig, activeProfileRef.current),
+          },
         });
         if (placed.status !== "applied") {
           console.warn("[Prebuilt] The preset was not placed", placed);
@@ -899,6 +963,8 @@ export const ModelPage = () => {
           });
         } else if (!preserveCountertopSelections) {
           resetRestrictedCountertopSelections();
+        } else {
+          clearVesselColorNotCarried(globalConfig);
         }
         await updateSelectedDimensionsFromScene(effectivePresetProducts, sceneProductIds);
 
@@ -959,6 +1025,7 @@ export const ModelPage = () => {
     [
       applyAndAdoptCompactPreset,
       activeProfile,
+      clearVesselColorNotCarried,
       getCommandState,
       composition,
       dispatch,

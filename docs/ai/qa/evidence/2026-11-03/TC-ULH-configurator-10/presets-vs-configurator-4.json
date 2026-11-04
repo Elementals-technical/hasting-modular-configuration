@@ -1,0 +1,200 @@
+[
+ {
+  "index": 0,
+  "preset": "Urban Low Height · 24_ 1-Drawer 1.png",
+  "local": {
+   "total": "Price $6,174.00",
+   "configurators": [
+    10
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "base": {
+   "total": "Price $6,174.00",
+   "configurators": [
+    4
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "sameSkus": true,
+  "localSkus": [
+   "CT-URFX-FAHO/0",
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFA",
+   "CT-URFX-PRISMA-.5H-FX-TFA",
+   "VAN-URLH-SB/1DW/UG/X-23.6W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ"
+  ]
+ },
+ {
+  "index": 12,
+  "preset": "Urban Low Height · 42_ 1-Drawer 2.png",
+  "local": {
+   "total": "Price $8,664.00",
+   "configurators": [
+    10
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "base": {
+   "total": "Price $8,664.00",
+   "configurators": [
+    4
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "sameSkus": true,
+  "localSkus": [
+   "CT-URFX-FAHO/0",
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-41.3W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-41.4W-.5H-19.7D-FX-TFA",
+   "CT-URFX-PRISMA-.5H-FX-TFA",
+   "VAN-URLH-SB/1DW/UG/X-23.6W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SB/1DW/UG/X-31.5W-11H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-UROS-1S-9.8W-11H-19.7D-CAB-HPL-TKQ"
+  ]
+ },
+ {
+  "index": 25,
+  "preset": "Urban Low Height · 59_ 1-Drawer 2.png",
+  "local": {
+   "total": "Price $11,203.00",
+   "configurators": [
+    10
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "base": {
+   "total": "Price $11,203.00",
+   "configurators": [
+    4
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "sameSkus": true,
+  "localSkus": [
+   "CT-URFX-FAHO/0",
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-59.1W-.5H-19.7D-FX-TFA",
+   "CT-URFX-PRISMA-.5H-FX-TFA",
+   "VAN-URLH-SB/1DW/UG/X-23.6W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SB/1DW/UG/X-31.5W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SC/1DW/UG/X-13.8W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-UROS-1S-13.8W-15H-19.7D-CAB-HPL-TKQ"
+  ]
+ },
+ {
+  "index": 38,
+  "preset": "Urban Low Height · 73_ 1-Drawer Multi-Level.png",
+  "local": {
+   "total": "Price $11,625.00",
+   "configurators": [
+    10
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "base": {
+   "total": "Price $11,625.00",
+   "configurators": [
+    4
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "sameSkus": true,
+  "localSkus": [
+   "CT-URFX-COVER-.5H-FX-TFA",
+   "CT-URFX-FAHO/0",
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-31.5W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-41.3W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-82.7W-.5H-19.7D-FX-TFA",
+   "CT-URFX-PRISMA-.5H-FX-TFA",
+   "VAN-URLH-SB/1DW/UG/X-23.6W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SB/1DW/UG/X-41.3W-11H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SB/1DW/UG/X-XW-XH-XD-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SC/1DW/UG/X-41.3W-11H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SC/1DW/UG/X-XW-XH-XD-CAB-HPL-TKQ-HDL-HPL-TKQ"
+  ]
+ },
+ {
+  "index": 53,
+  "preset": "Urban Low Height · 95_ 1-Drawer Double.png",
+  "local": {
+   "total": "Price $16,930.00",
+   "configurators": [
+    10
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "base": {
+   "total": "Price $16,930.00",
+   "configurators": [
+    4
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "sameSkus": true,
+  "localSkus": [
+   "CT-URFX-FAHO/0",
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-94.5W-.5H-19.7D-FX-TFA",
+   "CT-URFX-PRISMA-.5H-FX-TFA",
+   "VAN-URLH-SB/1DW/UG/X-23.6W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SB/1DW/UG/X-31.5W-11H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SC/1DW/UG/X-31.5W-11H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ"
+  ]
+ },
+ {
+  "index": 58,
+  "preset": "Urban Low Height · 99_ 1-Drawer 1.png",
+  "local": {
+   "total": "Price $15,053.00",
+   "configurators": [
+    10
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "base": {
+   "total": "Price $15,053.00",
+   "configurators": [
+    4
+   ],
+   "consoleErrors": [
+    "Warning: Encountered two children with the same key, `%s`. Keys should be unique so that c"
+   ]
+  },
+  "sameSkus": true,
+  "localSkus": [
+   "CT-URFX-FAHO/0",
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-98.4W-.5H-19.7D-FX-TFA",
+   "CT-URFX-INTG-98.5W-.5H-19.7D-FX-TFA",
+   "CT-URFX-PRISMA-.5H-FX-TFA",
+   "VAN-URLH-SB/1DW/UG/X-23.6W-15H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SB/1DW/UG/X-41.3W-11H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-URLH-SC/1DW/UG/X-23.6W-11H-19.7D-CAB-HPL-TKQ-HDL-HPL-TKQ",
+   "VAN-UROS-1S-9.8W-11H-19.7D-CAB-HPL-TKQ"
+  ]
+ }
+]

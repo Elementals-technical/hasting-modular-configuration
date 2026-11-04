@@ -35,6 +35,7 @@ import {
   type ProductProfile,
 } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
+import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import datatable577 from "@/entities/collection/__tests__/fixtures/remote/datatable-577.json";
 import datatable578 from "@/entities/collection/__tests__/fixtures/remote/datatable-578.json";
@@ -56,10 +57,12 @@ import { configuratorSchema, countertopDatatableSchema } from "@/entities/collec
 import {
   clearRestore,
   getAttributeValue,
+  getCabinetEntries,
   setExplicitUserChoice,
   getRestoreState,
   resetConfiguration,
   setActiveCollectionId,
+  setActivePrebuiltPresetId,
   setActiveRuntimeBindings,
   setAttributeValue,
   type ConfigurationRecord,
@@ -80,9 +83,15 @@ import {
   getSinkType,
   getTowelBarColor,
   getTowelBarOption,
+  getVesselColor,
 } from "@/entities/product/model/store/selectors";
 import { reset, setActiveBasinStyle, setActiveProfile } from "@/entities/product/model/store/slice";
-import { recordValues, type AttributeChange } from "@/features/configurationCommands";
+import {
+  changeAttribute,
+  recordValues,
+  resolveChangeRequest,
+  type AttributeChange,
+} from "@/features/configurationCommands";
 import {
   createTestCompositionPort,
   createTestRuntimePort,
@@ -1086,5 +1095,284 @@ describe.each(CASES)("$collectionId: Customize on a model card", (testCase) => {
     expect(getProductsPresets(store.getState())).toHaveLength(0);
     expect(getSinkType(store.getState())).toBe("VA002");
     expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBeNull();
+  });
+});
+
+// A picked vessel takes its colour from the command, so only the vessel is the user's explicit choice.
+describe("a model selected after a vessel was picked", () => {
+  const ush: Case = {
+    collectionId: "urban-standard-height",
+    profile: ushProfile,
+    bindings: ushRuntimeBindings,
+    sinkBaseSceneType: "Sink-Base",
+    manifest: ushManifestDocument,
+    ui: ushUiDocument,
+    presets: ushPresetsDocument,
+    countertopTable: datatable438,
+  };
+  const tricot: Case = {
+    collectionId: "tricot",
+    profile: tricotMatrixProfile,
+    bindings: tricotRuntimeBindings,
+    sinkBaseSceneType: "Tricot-sink-cabinet",
+    manifest: tricotManifestDocument,
+    ui: tricotUiDocument,
+    presets: tricotPresetsDocument,
+    countertopTable: datatable593,
+  };
+  const [mako] = CASES;
+  const USH_VESSEL = { countertop: "Ardesia TKF", vessel: "Vessel_UrbanModo", color: "Matte White T1C" };
+  const MAKO_VESSEL = { countertop: "Nero 433 GL", vessel: "Iris", color: "Salvia 415 MT" };
+  const TRICOT_VESSEL = { countertop: "BIANCO KOS 250", vessel: "Iris", color: "Salvia 415 MT" };
+
+  let composition = createTestCompositionPort();
+  let runtime = createTestRuntimePort();
+
+  /** The configuration with a vessel and its colour; `chosen` names what the user picked. */
+  const start = (
+    testCase: Case,
+    { countertop, vessel, color }: typeof USH_VESSEL,
+    chosen: string[],
+    style = "vessel",
+  ) => {
+    sessionStorage.clear();
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(clearHistory());
+    store.dispatch(setActiveProfile(testCase.profile));
+    store.dispatch(setActiveCollectionId(testCase.collectionId));
+    store.dispatch(setActiveRuntimeBindings(testCase.bindings));
+    // The scene is not needed yet: the page places no model by itself.
+    mocks.sceneReady = false;
+    composition = createTestCompositionPort();
+    runtime = createTestRuntimePort();
+    mocks.ports = { composition: composition.port, runtime: runtime.port };
+    recordValues(
+      { CountertopColor: countertop, CountertopStyle: style, Thickness: "0.5", sinkType: vessel, VesselColor: color },
+      { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" },
+    );
+    for (const attributeId of chosen) store.dispatch(setExplicitUserChoice({ attributeId, chosen: true }));
+  };
+
+  const selectModel = async (testCase: Case, title: string, { confirm = false } = {}) => {
+    if (!screen.queryByText(title)) {
+      renderAt(testCase, `/prebuilt/model?collectionId=${testCase.collectionId}`, <ModelPage />, true);
+    }
+    store.dispatch(setActivePrebuiltPresetId(null));
+    fireEvent.click(await screen.findByText(title));
+    if (confirm) fireEvent.click(await screen.findByRole("button", { name: "Confirm" }));
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).not.toBeNull());
+  };
+
+  const sentColors = () =>
+    runtime.calls.flat().flatMap(({ attributeId, value }) => (attributeId === "VesselColor" ? [value] : []));
+  /** The values the model was placed with. */
+  const placedWith = () =>
+    composition.calls.flatMap((call) => (call.op === "replace" ? [call.request.shared ?? {}] : []));
+
+  const expectColorKept = (color: string) => {
+    const attributeIds = runtime.calls.flat().map(({ attributeId }) => attributeId);
+    expect(attributeIds).toContain("sinkType");
+    expect(attributeIds.indexOf("VesselColor")).toBeGreaterThan(attributeIds.indexOf("sinkType"));
+    expect(sentColors()).toEqual([color]);
+    expect(getVesselColor(store.getState())).toBe(color);
+    expect(getAttributeValue(store.getState(), "VesselColor", { scope: "basin" })).toBe(color);
+    const [cabinet] = getCabinetEntries(store.getState());
+    expect(getAttributeValue(store.getState(), "VesselColor", { scope: "basin", sinkBaseId: cabinet.stableKey })).toBe(
+      color,
+    );
+  };
+
+  it.each([
+    ["urban-standard-height", ush, USH_VESSEL, 'Urban Standard · 36" 1-Drawer'],
+    ["mako", mako, MAKO_VESSEL, 'Mako Vanity · 40" 1-Drawer'],
+  ] as const)("%s: shows the vessel's colour after the vessel and keeps it", async (_id, testCase, picked, title) => {
+    start(testCase, picked, ["sinkType", "CountertopStyle"]);
+
+    await selectModel(testCase, title);
+
+    expectColorKept(picked.color);
+  });
+
+  // Tricot checks a replayed set against its matrix, so a colour it refused would stop the whole model.
+  it("tricot: shows the vessel's colour after the vessel and keeps it, past the matrix check", async () => {
+    start(tricot, TRICOT_VESSEL, ["sinkType", "CountertopStyle"]);
+    const id = "Tricot-sink-cabinet-placed";
+    composition.answerNext({
+      status: "applied",
+      placed: [id],
+      scene: {
+        status: "ready",
+        order: [id],
+        cabinets: [{ runtimeId: id, dimensions: { width: 100, height: 40, depth: 52 } }],
+      },
+    });
+
+    await selectModel(tricot, "Tricot Vanity · 40'' 2-Drawer");
+
+    expectColorKept(TRICOT_VESSEL.color);
+  });
+
+  it("carries the colour with a vessel only the chosen style brings to the model", async () => {
+    start(ush, USH_VESSEL, ["CountertopStyle"]);
+
+    await selectModel(ush, 'Urban Standard · 36" 1-Drawer');
+
+    expectColorKept(USH_VESSEL.color);
+  });
+
+  /**
+   * Placed from the model's link, which asks nothing first. A model card would: its compatibility check reads
+   * the literal "Vessel" a vessel top without a vessel holds as a basin no matrix row lists.
+   */
+  const placeFromLink = async (testCase: Case, presetId: number) => {
+    mocks.sceneReady = true;
+    renderAt(testCase, `/prebuilt/model?collectionId=${testCase.collectionId}&preset=${presetId}`, <ModelPage />, true);
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBe(presetId));
+  };
+
+  // The chosen style alone puts the literal "Vessel" on the model: the cutout in Urban, no option at all in Mako.
+  it.each([
+    ["urban-standard-height", ush, USH_VESSEL, 9],
+    ["mako", mako, MAKO_VESSEL, 6],
+  ] as const)("%s: carries no colour left on the empty cutout", async (_id, testCase, picked, presetId) => {
+    start(testCase, { ...picked, vessel: "" }, ["CountertopStyle"]);
+
+    await placeFromLink(testCase, presetId);
+
+    expect(placedWith()[0]).toMatchObject({ sinkType: "Vessel" });
+    expect(placedWith()[0]).not.toHaveProperty("VesselColor");
+    expect(sentColors()).toEqual([]);
+  });
+
+  it("places and keeps a colour the user chose on the empty cutout, but sends it to no vessel", async () => {
+    start(ush, { ...USH_VESSEL, vessel: "" }, ["CountertopStyle", "VesselColor"]);
+
+    await placeFromLink(ush, 9);
+
+    expect(placedWith()[0]).toMatchObject({ sinkType: "Vessel", VesselColor: USH_VESSEL.color });
+    expect(sentColors()).toEqual([]);
+    expect(getVesselColor(store.getState())).toBe(USH_VESSEL.color);
+  });
+
+  // Picking None keeps the colour for the next vessel, but a model placed on the empty cutout holds none.
+  const expectNoColorKept = () => {
+    expect(placedWith()[0]).toMatchObject({ sinkType: "Vessel" });
+    expect(placedWith()[0]).not.toHaveProperty("VesselColor");
+    expect(getVesselColor(store.getState())).toBe("");
+    expect(getAttributeValue(store.getState(), "VesselColor", { scope: "basin" })).toBe("");
+  };
+  const ushGroups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions;
+  const ON_THE_CUTOUT = [
+    [
+      "urban-standard-height",
+      ush,
+      USH_VESSEL,
+      9,
+      { groups: ushGroups, groupsByName: Object.fromEntries(ushGroups.map((group) => [group.proxyName, group])) },
+    ],
+    ["mako", mako, MAKO_VESSEL, 6, readyCollectionOf(mako).catalog.configurator],
+  ] as const;
+
+  it.each(ON_THE_CUTOUT)(
+    "%s: keeps no colour the vessel took with it, from a link",
+    async (_id, testCase, picked, presetId) => {
+      start(testCase, { ...picked, vessel: "" }, ["sinkType", "CountertopStyle"]);
+
+      await placeFromLink(testCase, presetId);
+
+      expectNoColorKept();
+    },
+  );
+
+  it("keeps no colour the vessel took with it, from Customize", async () => {
+    start(ush, { ...USH_VESSEL, vessel: "" }, ["sinkType", "CountertopStyle"]);
+    renderAt(ush, `/prebuilt/model?collectionId=${ush.collectionId}`, <ModelPage />, true);
+
+    fireEvent.click((await screen.findAllByText("Customize"))[0]);
+
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).not.toBeNull());
+    expectNoColorKept();
+  });
+
+  it.each(ON_THE_CUTOUT)(
+    "%s: sends the default colour with a vessel picked on that model",
+    async (_id, testCase, picked, presetId, configurator) => {
+      start(testCase, { ...picked, vessel: "" }, ["sinkType", "CountertopStyle"]);
+      await placeFromLink(testCase, presetId);
+
+      const request = resolveChangeRequest(store.getState(), "sinkType", picked.vessel);
+      if (!request) throw new Error("a placed Sink Base names the basin");
+      const result = await changeAttribute(request, {
+        getState: store.getState,
+        dispatch: store.dispatch,
+        runtime: runtime.port,
+        flow: "prebuilt",
+        configurator,
+      });
+
+      expect(result.status).toBe("applied");
+      // The composition's and the Sink Base's.
+      expect(sentColors()).toEqual([picked.color, picked.color]);
+      expect(getVesselColor(store.getState())).toBe(picked.color);
+    },
+  );
+
+  it("carries the colour again on the model after that one, the vessel still being the choice", async () => {
+    start(ush, USH_VESSEL, ["sinkType", "CountertopStyle"]);
+
+    await selectModel(ush, 'Urban Standard · 36" 1-Drawer');
+    await selectModel(ush, 'Urban Standard · 32" 1-Drawer');
+
+    expect(sentColors()).toEqual([USH_VESSEL.color, USH_VESSEL.color]);
+    expect(getVesselColor(store.getState())).toBe(USH_VESSEL.color);
+  });
+
+  it("neither sends nor places a colour while the vessel is not the user's choice", async () => {
+    start(ush, USH_VESSEL, []);
+
+    await selectModel(ush, 'Urban Standard · 36" 1-Drawer');
+
+    expect(sentColors()).toEqual([]);
+    expect(placedWith()[0]).not.toHaveProperty("VesselColor");
+  });
+
+  it("neither sends nor places a colour left over from a vessel when the choice is an integrated basin", async () => {
+    const integrated = { ...USH_VESSEL, countertop: "Cacao Orinoco FF MT", vessel: "Top_Tekorlux_Rectangular" };
+    start(ush, integrated, ["sinkType", "CountertopStyle"], "integrated");
+
+    await selectModel(ush, 'Urban Standard · 36" 1-Drawer');
+
+    expect(sentColors()).toEqual([]);
+    expect(placedWith()[0]).not.toHaveProperty("VesselColor");
+  });
+
+  it("places a colour the user chose, but sends it only with a vessel to show it on", async () => {
+    start(ush, USH_VESSEL, ["VesselColor"]);
+
+    await selectModel(ush, 'Urban Standard · 36" 1-Drawer');
+
+    expect(placedWith()[0]).toMatchObject({ VesselColor: USH_VESSEL.color });
+    expect(sentColors()).toEqual([]);
+  });
+
+  it("sends no colour to a model the user accepted clearing the vessel for", async () => {
+    start(ush, USH_VESSEL, ["sinkType", "CountertopStyle"]);
+
+    // Table 438 makes a vessel top from an 80 cm Sink Base; this model has a 60 cm one.
+    await selectModel(ush, 'Urban Standard · 24" 1-Drawer', { confirm: true });
+
+    expect(sentColors()).toEqual([]);
+    expect(getVesselColor(store.getState())).toBe("");
+  });
+
+  it("sends no colour to a model whose rules put an integrated basin in place of the vessel", async () => {
+    // Only the vessel is chosen: the style follows its name, which does not read as a vessel in Mako.
+    start(mako, MAKO_VESSEL, ["sinkType"]);
+
+    await selectModel(mako, 'Mako Vanity · 40" 1-Drawer');
+
+    expect(getSinkType(store.getState())).not.toBe(MAKO_VESSEL.vessel);
+    expect(sentColors()).toEqual([]);
   });
 });

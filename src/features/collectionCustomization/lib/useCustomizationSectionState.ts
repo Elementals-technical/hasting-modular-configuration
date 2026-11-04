@@ -32,8 +32,6 @@ import {
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
   INTEGRATED_DRAWERS_REASON,
-  isMaterialCompatibleWithVesselStyle,
-  isPreferredVesselFinish,
   normalizeBasinKey,
   REASON_COUNTERTOP_MATERIAL_BY_FAILURE,
   REASON_COUNTERTOP_MATERIAL_SELECTION,
@@ -46,10 +44,10 @@ import {
 import { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
-import { extractColorCode } from "@/shared/lib/sku";
 
 import { useCountertopRuleState } from "./useCountertopRuleState";
 import { resolveConfiguratorOptions, resolveSectionFields } from "./resolveSectionState";
+import { resolveVesselColorOptions } from "./resolveVesselColor";
 
 import type { FieldOptionState, ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -227,9 +225,7 @@ export const resolveBasinAvailability = (
   };
 };
 
-// The colours of the chosen vessel, as the USH countertop step offers them: those its compatibility
-// allows by the material a colour is listed under and its colour code, its default finish first. The
-// colour is the vessel's, so it is offered once a vessel is chosen; the empty cutout has none.
+// The colour is the vessel's, so it is offered once a vessel is chosen; the empty cutout has none.
 const resolveVesselColorAvailability = (
   profile: ProductProfile | null,
   configurator: ConfiguratorGroupCatalog | null,
@@ -237,20 +233,12 @@ const resolveVesselColorAvailability = (
 ): FieldAvailability => {
   if (!isVesselBasin(profile, vesselStyle)) return { available: false, visible: false };
 
-  const finishOf = ({ value, traits }: FieldOptionState) => ({
-    vesselStyle,
-    materialTokens: traits?.materials ?? [],
-    colorCode: extractColorCode(value),
-    profile,
-  });
-  const allowed = resolveConfiguratorOptions(profile, "VesselColor", configurator).filter((option) =>
-    isMaterialCompatibleWithVesselStyle(finishOf(option)),
-  );
+  const { allowed, preferredValue } = resolveVesselColorOptions(profile, configurator, vesselStyle);
 
   return {
     available: true,
     allowedValues: allowed.map(({ value }) => value),
-    preferredValue: allowed.find((option) => isPreferredVesselFinish(finishOf(option)))?.value,
+    preferredValue,
     reasonCode: REASON_VESSEL_COLOR_UNAVAILABLE,
   };
 };
