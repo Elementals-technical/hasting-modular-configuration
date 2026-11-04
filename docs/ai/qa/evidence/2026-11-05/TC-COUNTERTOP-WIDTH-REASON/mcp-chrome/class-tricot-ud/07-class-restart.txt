@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"walkthrough":null,"url":"/custom/cabinet-builder?collectionId=class","configs":[],"price":"Total List Price $0.00"}
+```

@@ -75,7 +75,8 @@ export const materialFilterReason = (
       return `${messages.totalWidth}. ${materialValue} max ${maxWidth} cm (${cmToInches(maxWidth)}").`;
     return messages.totalWidth;
   }
-  if (evaluations.some((item) => item.failedBy === "selected")) return messages.width;
+  const refusedForWidth = evaluations.find((item) => item.failedBy === "selected");
+  if (refusedForWidth) return refusedForWidth.widthRefusal?.disabledReason ?? messages.width;
   if (evaluations.some((item) => item.failedBy === "composition")) return messages.syntesiSingleCabinet;
   return messages.size;
 };

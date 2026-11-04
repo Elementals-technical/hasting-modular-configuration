@@ -6,8 +6,8 @@ import {
   normalizeBasinKey,
   parseThicknessValue,
   REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN,
+  resolveIntegratedWidthRefusal,
 } from "@/features/configurator-rule-core/countertop";
-import { cmToInches } from "@/shared/lib/sku";
 
 import { VESSEL_SINK_NONE_OPTION } from "./countertopColorOptions";
 
@@ -47,35 +47,6 @@ export const resolveVesselBasinOptions = (
   return [VESSEL_SINK_NONE_OPTION, ...vessels];
 };
 
-const integratedDisabledReason = (
-  basinRules: MatrixRule[],
-  { sinkBaseWidth, totalWidth }: IntegratedWidthContext,
-  fallback: string,
-): string => {
-  const maxIntegrated = basinRules.map((rule) => rule.maxIntegratedCm).filter((v): v is number => v !== null);
-  if (typeof totalWidth === "number" && maxIntegrated.length && totalWidth > Math.max(...maxIntegrated) + 0.01) {
-    const max = Math.max(...maxIntegrated);
-    return `Not available for current total cabinets width on scene. Current ${totalWidth} cm (${cmToInches(totalWidth)}"), max ${max} cm (${cmToInches(max)}").`;
-  }
-  const minSinkBase = basinRules.map((rule) => rule.minSbCm).filter((v): v is number => v !== null);
-  if (typeof sinkBaseWidth === "number" && minSinkBase.length && sinkBaseWidth + 0.01 < Math.min(...minSinkBase)) {
-    const min = Math.min(...minSinkBase);
-    return `Not available for current sink base width. Current ${sinkBaseWidth} cm (${cmToInches(sinkBaseWidth)}"), minimum ${min} cm (${cmToInches(min)}").`;
-  }
-  const allowedWidths = [...new Set(basinRules.flatMap((rule) => rule.integratedAllowedSizesOnly))].sort(
-    (a, b) => a - b,
-  );
-  if (
-    typeof sinkBaseWidth === "number" &&
-    allowedWidths.length &&
-    !allowedWidths.some((value) => Math.abs(value - sinkBaseWidth) < 0.01)
-  ) {
-    const widths = allowedWidths.map((v) => `${v} cm (${cmToInches(v)}")`).join(", ");
-    return `Not available for current sink base width. Allowed widths: ${widths}.`;
-  }
-  return fallback;
-};
-
 type IntegratedBasinArgs = {
   catalog: ProductOptionData[];
   integratedNames: ReadonlySet<string>;
@@ -85,6 +56,7 @@ type IntegratedBasinArgs = {
   activeThickness: number | null;
   widthContext: IntegratedWidthContext;
   fallbackReason: string;
+  profile: CountertopContext["activeProfile"];
 };
 
 /** Integrated basins of the chosen material, each judged by the sink base and total widths. */
@@ -97,6 +69,7 @@ export const resolveIntegratedBasinOptions = ({
   activeThickness,
   widthContext,
   fallbackReason,
+  profile,
 }: IntegratedBasinArgs): ProductOptionData[] => {
   const applicableRules = matchingRules.filter((rule) => matchesThickness(rule.topThicknesses, activeThickness));
 
@@ -126,11 +99,15 @@ export const resolveIntegratedBasinOptions = ({
     if (!basinRules.length) return [];
 
     const isAvailable = basinRules.some((rule) => isRuleWidthEligibleForIntegratedContext(rule, widthContext));
+    const refusal = isAvailable ? null : resolveIntegratedWidthRefusal({ basinRules, ...widthContext, profile });
     return [
       {
         ...option,
         isAvailable,
-        disabledReason: isAvailable ? undefined : integratedDisabledReason(basinRules, widthContext, fallbackReason),
+        disabledReason: isAvailable ? undefined : (refusal?.disabledReason ?? fallbackReason),
+        // A tile words a reason by its code: without one it says the option is unavailable and no more.
+        disabledReasonCode: refusal?.reasonCode,
+        disabledReasonParams: refusal?.reasonParams,
       },
     ];
   });

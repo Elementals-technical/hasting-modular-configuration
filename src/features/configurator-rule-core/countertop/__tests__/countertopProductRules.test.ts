@@ -706,3 +706,58 @@ describe("the vessel style judged by the rows its Sink Base reaches", () => {
     expect(vesselStateAt(70).vesselSinkAvailability).toEqual({ isAvailable: true, minSinkBaseWidthCm: 60 });
   });
 });
+
+// Table 589 makes a glass top from a 70 cm Sink Base up to 260 cm, a Syntesi one at six widths, and a vessel on HPL
+// from 80 cm; all three at 50 cm deep.
+describe("a colour its Sink Base width refuses", () => {
+  const rules = parseCountertopMatrix(countertopDatatableSchema.parse(datatable589));
+  const ulhProfile: ProductProfile = (() => {
+    const parsed = parseProductProfile(ulhProfileDocument);
+    if (!parsed.ok) throw new Error("The Urban Low Height profile failed validation");
+    return parsed.profile;
+  })();
+  const colourOn = (material: string, sinkBaseWidth: number, activeCountertopStyle = "integrated") =>
+    evaluateCountertopMaterial([material], {
+      activeBasinStyle: activeCountertopStyle === "vessel" ? "Vessel_UrbanModo" : null,
+      activeCountertopStyle,
+      activeProfile: ulhProfile,
+      cabinetCompositionCount: 1,
+      countertopRules: rules,
+      depth: 50,
+      sinkBaseWidth,
+      totalWidth: sinkBaseWidth,
+    });
+
+  it("names the width it stands on and the minimum its rows need", () => {
+    expect(colourOn("Glass", 60)).toEqual({
+      isCompatible: false,
+      failedBy: "selected",
+      widthRefusal: {
+        reasonCode: "countertop.sinkBaseBelowMin",
+        reasonParams: { currentCm: 60, currentIn: "23.6", minCm: 70, minIn: "27.6" },
+        disabledReason: 'Not available for current sink base width. Current 60 cm (23.6"), minimum 70 cm (27.6").',
+      },
+    });
+  });
+
+  it("offers the colour from that minimum", () => {
+    expect(colourOn("Glass", 70)).toEqual({ isCompatible: true, failedBy: null });
+  });
+
+  it("names the exact sizes of a material that comes in those alone", () => {
+    expect(colourOn("Syntesi", 100).widthRefusal).toMatchObject({
+      reasonCode: "countertop.sinkBaseWidthNotAllowed",
+      reasonParams: {
+        allowedWidths: '60 cm (23.6"), 70 cm (27.6"), 80 cm (31.5"), 90 cm (35.4"), 105 cm (41.3"), 120 cm (47.2")',
+      },
+    });
+  });
+
+  it("names no width above every maximum, where no minimum explains the refusal", () => {
+    expect(colourOn("Glass", 270)).toEqual({ isCompatible: false, failedBy: "selected", widthRefusal: null });
+  });
+
+  it("names no width under a vessel, whose minimum is not the rows' Sink Base minimum", () => {
+    expect(colourOn("HPL", 70, "vessel")).toEqual({ isCompatible: false, failedBy: "selected", widthRefusal: null });
+  });
+});

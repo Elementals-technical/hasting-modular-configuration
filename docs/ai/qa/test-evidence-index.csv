@@ -161,3 +161,8 @@ TC-ULH-UX-008-POS,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome-d
 TC-ULH-UX-008-NEG,PASS,docs/ai/qa/evidence/2026-11-04/TC-ULH-UX-008/mcp-chrome-d3d65a25/06-drop-on-19.7.txt
 TC-SMOKE-CHROME-001,PASS,docs/ai/qa/evidence/2026-11-04/smoke-chrome-d3d65a25/10-eval.txt
 TC-SMOKE-FIREFOX-001,PASS,docs/ai/qa/evidence/2026-11-04/smoke-firefox-d3d65a25/05-console.txt
+TC-CLASS-BAS-002-POS,PASS,docs/ai/qa/evidence/2026-11-05/TC-COUNTERTOP-WIDTH-REASON/acceptance-log.md
+TC-CLASS-BAS-002-POS,PASS,docs/ai/qa/evidence/2026-11-05/TC-COUNTERTOP-WIDTH-REASON/mcp-chrome/class-tricot-ud/02-class-sb60.txt
+TC-CLASS-BAS-002-NEG,FAIL,docs/ai/qa/evidence/2026-11-05/TC-COUNTERTOP-WIDTH-REASON/acceptance-log.md
+TC-CLASS-BAS-002-NEG,FAIL,docs/ai/qa/evidence/2026-11-05/TC-COUNTERTOP-WIDTH-REASON/mcp-chrome/class-tricot-ud/08-class-sb80-then-reverse.txt
+TC-ULH-UX-008-NEG,PASS,docs/ai/qa/evidence/2026-11-05/TC-COUNTERTOP-WIDTH-REASON/mcp-chrome/c63-control/06-drop-on-19.7.txt

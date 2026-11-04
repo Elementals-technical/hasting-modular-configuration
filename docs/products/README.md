@@ -94,8 +94,13 @@ Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex ви
 Композиція має один басейн. Правила стільниці (кольори, thickness, басейни, vessel) судять її за найвужчим
 поставленим Sink Base: ширину й глибину для них дає `useSinkBaseDimensions`, і це найвужчий Sink Base, а не
 найширший. Тому на SB 80 + SB 60 Urban Duplex відмовляє HPL Strip і Cover, лишає Prisma і Quadra та відмовляє
-Vessel з мінімумом у підказці; Class відмовляє Matte White 8cm (єдиний його басейн VA023 починається з 80 cm)
-з «Not available for current cabinet width».
+Vessel з мінімумом у підказці; Class відмовляє Matte White 8cm (єдиний його басейн VA023 починається з 80 cm).
+
+Підказка кольору чи integrated басейну, яким відмовляє ширина, називає потрібну ширину
+(`resolveIntegratedWidthRefusal`): «Not available for current sink base width. Current 60 cm (23.6"), minimum 80 cm
+(31.5").», а для рядка матриці лише з точними розмірами — їхній перелік. Колекція формулює це своїм
+`countertop.sinkBaseBelowMin`; без нього діє той самий текст rule core. Відмови за глибиною, загальною довжиною чи
+товщиною лишаються загальними.
 
 Той самий хук скидає й integrated basin, який правила відмовляють, з будь-якого кроку: після скидання стилю і
 після Resize чи «+» Sink Base. Приклад — Urban Duplex: HPL Strip і Cover вимагають Sink Base від 70 cm

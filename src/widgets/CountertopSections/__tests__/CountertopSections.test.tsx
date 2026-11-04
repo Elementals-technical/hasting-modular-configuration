@@ -481,24 +481,80 @@ describe("the countertop step's colours under an integrated top on every Sink Ba
     return result.current.visibleOptions.find((option) => option.name === name);
   };
 
+  const BELOW_70_CM = {
+    isAvailable: false,
+    disabledReason: 'Not available for current sink base width. Current 60 cm (23.6"), minimum 70 cm (27.6").',
+    disabledReasonCode: "countertop.sinkBaseBelowMin",
+    disabledReasonParams: { currentCm: 60, currentIn: "23.6", minCm: 70, minIn: "27.6" },
+  };
+
+  /** Hovers a refused tile of a section, on the step with the collection's words for its reasons. */
+  const hoverTile = async (section: string, name: string) => {
+    render(
+      <ReadyCollectionContext.Provider value={withMineralmarmo}>
+        <Provider store={store}>
+          <ReasonTextProvider>
+            <MemoryRouter initialEntries={["/prebuilt/countertop"]}>
+              <CountertopPage stepId="countertop" />
+            </MemoryRouter>
+          </ReasonTextProvider>
+        </Provider>
+      </ReadyCollectionContext.Provider>,
+    );
+    await act(async () => {});
+    const tile = within(screen.getByRole("region", { name: section })).getByRole("button", { name });
+    expect(tile.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.mouseEnter(tile.closest("div") as HTMLElement);
+  };
+
   // A lone Sink Base has judged a colour all along: this says the sizes reach the step at all.
-  it("refuses a colour on a lone Sink Base below its basin, for the cabinet width", async () => {
+  it("refuses a colour on a lone Sink Base below its basin, naming the minimum", async () => {
     placeSinkBases(60);
 
     expect(await isColorRefused("Gloss White TMO")).toBe(true);
-    expect(await colorOption("Gloss White TMO")).toMatchObject({
-      isAvailable: false,
-      disabledReason: "Not available for current cabinet width",
-    });
+    expect(await colorOption("Gloss White TMO")).toMatchObject(BELOW_70_CM);
   });
 
-  it("refuses a colour with no basin for the narrower Sink Base, for the cabinet width", async () => {
+  it("refuses a colour with no basin for the narrower Sink Base, naming that Sink Base and the minimum", async () => {
     placeSinkBases(80, 60);
 
     expect(await isColorRefused("Gloss White TMO")).toBe(true);
-    expect(await colorOption("Gloss White TMO")).toMatchObject({
-      isAvailable: false,
-      disabledReason: "Not available for current cabinet width",
+    expect(await colorOption("Gloss White TMO")).toMatchObject(BELOW_70_CM);
+  });
+
+  it("shows the minimum on the refused colour's tile", async () => {
+    placeSinkBases(60);
+
+    await hoverTile("Countertop Color", "Gloss White TMO");
+
+    expect(screen.getByText(BELOW_70_CM.disabledReason)).toBeTruthy();
+  });
+
+  it("shows the minimum on the tile of a basin the Sink Base cannot take", async () => {
+    placeSinkBases(60);
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setActiveCountertopThickness("0.5"));
+
+    await hoverTile("Basin style", "HPL Strip 48");
+
+    expect(screen.getByText(BELOW_70_CM.disabledReason)).toBeTruthy();
+  });
+
+  it("names the minimum on the material filter of a material no colour of which fits", async () => {
+    placeSinkBases(60);
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <ReadyCollectionContext.Provider value={withMineralmarmo}>
+        <Provider store={store}>{children}</Provider>
+      </ReadyCollectionContext.Provider>
+    );
+    const { result } = renderHook(() => useCountertopColorState(useCountertopContext()), { wrapper });
+    await act(async () => {});
+
+    const entries = result.current.filters.materials.flatMap((entry) => [entry, ...(entry.children ?? [])]);
+
+    expect(entries.find(({ value }) => value === "Mineralmarmo")).toMatchObject({
+      disabled: true,
+      reason: BELOW_70_CM.disabledReason,
     });
   });
 

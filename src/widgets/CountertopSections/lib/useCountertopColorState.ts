@@ -124,11 +124,16 @@ export const useCountertopColorState = (context: CountertopContext) => {
 
   const withMaterialAvailability = useCallback(
     (option: ProductOptionData) => {
-      const { isCompatible, failedBy } = evaluateMaterialOption(option, ruleInputs);
+      const { isCompatible, failedBy, widthRefusal } = evaluateMaterialOption(option, ruleInputs);
       return {
         ...option,
         isAvailable: isCompatible,
-        disabledReason: isCompatible ? undefined : reasonForFailure(failedBy, messages),
+        disabledReason: isCompatible
+          ? undefined
+          : (widthRefusal?.disabledReason ?? reasonForFailure(failedBy, messages)),
+        // A tile words a reason by its code: without one it says the option is unavailable and no more.
+        disabledReasonCode: widthRefusal?.reasonCode,
+        disabledReasonParams: widthRefusal?.reasonParams,
       };
     },
     [messages, ruleInputs],

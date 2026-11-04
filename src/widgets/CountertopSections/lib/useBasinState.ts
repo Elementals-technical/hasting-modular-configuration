@@ -125,6 +125,7 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
         totalWidth: sceneTotalWidth ?? selectedDimensions.width ?? null,
       },
       fallbackReason: messages.selection,
+      profile: context.activeProfile,
     });
   }, [
     activeMaterialTokens,

@@ -345,12 +345,15 @@ describe("Class countertop colours follow table 578", () => {
     store.dispatch(setCountertopStyle("integrated"));
   });
 
-  it("refuses Matte White 8cm on a Sink Base under 80 cm, in the collection's words, and keeps Matte White", () => {
+  it("refuses Matte White 8cm on a Sink Base under 80 cm, naming the 80 cm, and keeps Matte White", () => {
     store.dispatch(setSelectedDimensions({ width: 60, depth: 52 }));
-    const reasonCode = colorOf("Matte White 8cm")?.reasonCode ?? "";
 
-    expect(colorOf("Matte White 8cm")?.enabled).toBe(false);
-    expect(selectMessage(classLive.profile, reasonCode)).toBe("Not available for current cabinet width");
+    expect(colorOf("Matte White 8cm")).toMatchObject({
+      enabled: false,
+      reason: 'Not available for current sink base width. Current 60 cm (23.6"), minimum 80 cm (31.5").',
+      reasonCode: "countertop.sinkBaseBelowMin",
+      reasonParams: { currentCm: 60, currentIn: "23.6", minCm: 80, minIn: "31.5" },
+    });
     expect(colorOf("Matte White")?.enabled).toBe(true);
   });
 
@@ -418,17 +421,16 @@ describe("the countertop step judges a composition by its narrowest Sink Base", 
     });
 
     // Technomat's one row, VA023 from 80 cm, has no basin for the 60.
-    it("refuses Matte White 8cm on an 80 and a 60 cm one, in the collection's words", async () => {
+    it("refuses Matte White 8cm on an 80 and a 60 cm one, naming the 60 cm and the 80 cm it needs", async () => {
       const step = classOn(80, 60);
 
       await waitFor(() =>
         expect(step.optionOf("countertop-color", "Matte White 8cm")).toMatchObject({
           enabled: false,
-          reasonCode: "countertop.materialNotAvailableForWidth",
+          reason: 'Not available for current sink base width. Current 60 cm (23.6"), minimum 80 cm (31.5").',
+          reasonCode: "countertop.sinkBaseBelowMin",
+          reasonParams: { currentCm: 60, minCm: 80 },
         }),
-      );
-      expect(selectMessage(classLive.profile, "countertop.materialNotAvailableForWidth")).toBe(
-        "Not available for current cabinet width",
       );
     });
 
@@ -474,6 +476,32 @@ describe("the countertop step judges a composition by its narrowest Sink Base", 
       expect(step.optionOf("basin-style", "Top_HPLCover")?.enabled).toBe(false);
       expect(step.optionOf("basin-style", "Top_HPLPrisma")?.enabled).toBe(true);
       expect(step.optionOf("countertop-color", "Pulpis Chiaro TKH")?.enabled).toBe(true);
+    });
+
+    it("names the minimum of a basin the 60 cm one cannot take, in the collection's words", async () => {
+      const step = udOn(80, 60);
+
+      await waitFor(() =>
+        expect(step.optionOf("basin-style", "Top_HPLStrip")).toMatchObject({
+          enabled: false,
+          reason: 'Not available for current sink base width. Current 60 cm (23.6"), minimum 70 cm (27.6").',
+          reasonCode: "countertop.sinkBaseBelowMin",
+          reasonParams: { currentCm: 60, currentIn: "23.6", minCm: 70, minIn: "27.6" },
+        }),
+      );
+      expect(step.optionOf("basin-style", "Top_HPLPrisma")).toMatchObject({ enabled: true, reasonCode: undefined });
+    });
+
+    it("keeps the general reason for a basin its width does not refuse", async () => {
+      store.dispatch(setActiveCountertopThickness("9"));
+      const step = udOn(80, 80);
+
+      await waitFor(() =>
+        expect(step.optionOf("basin-style", "Top_HPLStrip")).toMatchObject({
+          enabled: false,
+          reasonCode: "change.notAvailable",
+        }),
+      );
     });
 
     it("refuses the vessel style on an 80 and a 60 cm one, for its 80 cm minimum", async () => {

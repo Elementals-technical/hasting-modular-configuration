@@ -38,6 +38,7 @@ import {
   REASON_COUNTERTOP_MATERIAL_SELECTION,
   REASON_VESSEL_COLOR_UNAVAILABLE,
   resolveCountertopRuleMaterials,
+  resolveIntegratedWidthRefusal,
   selectMaterialAliasTable,
   selectSinkBasesUnavailableWithIntegrated,
   useCountertopRules,
@@ -52,6 +53,7 @@ import { resolveVesselColorOptions } from "./resolveVesselColor";
 
 import type { FieldOptionState, ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import type { CountertopRuleReason } from "@/features/configurator-rule-core/countertop";
 
 import type { FieldAvailability, FieldAvailabilityResults, ResolvedCustomizationField } from "./resolveSectionState";
 import type { CountertopRuleState } from "./useCountertopRuleState";
@@ -81,13 +83,13 @@ const useAllowedFaucetHoles = (allowedFaucetHoles: CountertopRuleState["allowedF
 
 const COUNTERTOP_STYLES = ["integrated", "vessel"] as const;
 
-// A style's refusal in the field's terms, for the field and for the style's own option.
-const toStyleRefusalReason = (
-  availability: CountertopRuleState["styleAvailability"][(typeof COUNTERTOP_STYLES)[number]] | undefined,
+// A rule's refusal in the field's terms, for the field and for an option of its own.
+const toFieldRefusalReason = (
+  refusal: Partial<CountertopRuleReason> | undefined,
 ): Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> => ({
-  reason: availability?.disabledReason,
-  reasonCode: availability?.reasonCode,
-  reasonParams: availability?.reasonParams,
+  reason: refusal?.disabledReason,
+  reasonCode: refusal?.reasonCode,
+  reasonParams: refusal?.reasonParams,
 });
 
 // The styles the matrix allows for the current colour and sizes. Each refused style says its own reason: the two
@@ -101,9 +103,9 @@ export const resolveCountertopStyleAvailability = ({ styleAvailability }: Counte
     optionReason: ({ value }) => {
       const style = COUNTERTOP_STYLES.find((key) => key === value);
       const availability = style ? styleAvailability[style] : undefined;
-      return availability && !availability.isAvailable ? toStyleRefusalReason(availability) : undefined;
+      return availability && !availability.isAvailable ? toFieldRefusalReason(availability) : undefined;
     },
-    ...toStyleRefusalReason(refused),
+    ...toFieldRefusalReason(refused),
   };
 };
 
@@ -155,7 +157,8 @@ const resolveCountertopColorAvailability = (
     optionReason: (option) => {
       const missing = missingRule(option);
       if (missing) return { reasonCode: "product.missingData", reasonParams: { ruleId: missing.ruleId } };
-      const { failedBy } = judge(option);
+      const { failedBy, widthRefusal } = judge(option);
+      if (widthRefusal) return toFieldRefusalReason(widthRefusal);
       return failedBy ? { reasonCode: REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] } : undefined;
     },
     reasonCode:
@@ -192,10 +195,17 @@ const resolveThicknessAvailability = (
 // and Sink Base width fit it too; a vessel has no rows and follows the vessel Sink Base minimum.
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
-// cutout: the profile's noneValue, chosen until a vessel is.
+// cutout: the profile's noneValue, chosen until a vessel is. A basin its widths refuse says the
+// widths it needs.
 export const resolveBasinAvailability = (
   profile: ProductProfile | null,
-  { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
+  {
+    matchingRules,
+    allowedBasinKeys,
+    activeMaterialTokens,
+    vesselSinkAvailability,
+    materialRuleInputs,
+  }: CountertopRuleState,
   countertopStyle: string | null | undefined,
   countertopColor: string | null | undefined,
 ): FieldAvailability => {
@@ -221,6 +231,19 @@ export const resolveBasinAvailability = (
           Boolean(countertopColor) &&
           rowsOf(basin).some(({ basinStyle }) => allowedBasinKeys.has(normalizeBasinKey(basinStyle))),
     ),
+    optionReason: ({ value }) => {
+      const basin = basins.find((option) => option.value === value);
+      const refusal =
+        basin && basin.category !== "vessel"
+          ? resolveIntegratedWidthRefusal({
+              basinRules: rowsOf(basin),
+              sinkBaseWidth: materialRuleInputs.sinkBaseWidth ?? null,
+              totalWidth: materialRuleInputs.totalWidth ?? null,
+              profile,
+            })
+          : null;
+      return refusal ? toFieldRefusalReason(refusal) : undefined;
+    },
     reasonCode: "change.notAvailable",
     valueWhenEmpty: isVesselStyle ? noneValue : undefined,
   };

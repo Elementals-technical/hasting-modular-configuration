@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"r":{"w":{"offered":["23.6\"","27.6\"","31.5\"","35.4\"","41.3\"","47.2\""],"chose":"23.6\""},"placed":true},"configs":[{"id":"UD-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Top_HPLPrisma"}],"strip":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 70 cm (27.6\")."]},"cover":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 70 cm (27.6\")."]},"prisma":{"present":true,"refused":false},"vessel":{"present":true,"refused":true,"hint":["Not available for selected sink base cabinet width. Minimum width required 80cm (31.5\")"]}}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=urban-duplex.
