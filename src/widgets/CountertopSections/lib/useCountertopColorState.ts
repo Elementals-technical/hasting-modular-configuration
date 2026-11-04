@@ -2,7 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 
 import { sortCountertopOptionsByAvailability } from "@/entities/countertop";
 import { dedupeProductOptionsByValue } from "@/entities/product/lib/dedupeProductOptionsByValue";
-import { normalizeMaterialToken } from "@/features/configurator-rule-core/countertop";
+import {
+  isColorCodeUnavailableForVesselStyle,
+  normalizeMaterialToken,
+  REASON_VESSEL_COLOR_UNAVAILABLE,
+} from "@/features/configurator-rule-core/countertop";
 import {
   filterOptionsByMaterialSelection,
   groupMaterialsHierarchically,
@@ -17,6 +21,8 @@ import {
   buildCountertopMaterialFilters,
   buildDefaultMaterialFilters,
   getOptionConfigValue,
+  getVesselOptionColorCode,
+  getVesselOptionMaterialTokens,
   isVesselApiOption,
   isVesselColorOption,
   type MaterialFilterOption,
@@ -32,7 +38,7 @@ import {
 import type { CountertopContext } from "./useCountertopContext";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
-/** Countertop colours with their availability by the matrix, and the filters over them. */
+/** Countertop colours with their availability by the matrix and the chosen vessel, and the filters over them. */
 export const useCountertopColorState = (context: CountertopContext) => {
   const {
     activeProfile,
@@ -122,16 +128,35 @@ export const useCountertopColorState = (context: CountertopContext) => {
   );
   const tierOptions = useMemo(() => buildTierFilterOptions(countertopOptions), [countertopOptions]);
 
+  // A colour the chosen vessel cannot stand on (its `unavailableColorCodesByStyle`), judged by the option's own code.
+  const isRefusedByVessel = useCallback(
+    (option: ProductOptionData) =>
+      isColorCodeUnavailableForVesselStyle({
+        vesselStyle: activeBasinStyle,
+        materialTokens: getVesselOptionMaterialTokens(option),
+        colorCode: getVesselOptionColorCode(option),
+        profile: activeProfile,
+      }),
+    [activeBasinStyle, activeProfile],
+  );
+
+  // The matrix's reason comes first: another vessel would not bring such a colour back.
   const withMaterialAvailability = useCallback(
     (option: ProductOptionData) => {
       const { isCompatible, failedBy } = evaluateMaterialOption(option, ruleInputs);
+      if (!isCompatible) {
+        return { ...option, isAvailable: false, disabledReason: reasonForFailure(failedBy, messages) };
+      }
+      if (!isRefusedByVessel(option)) return { ...option, isAvailable: true, disabledReason: undefined };
+      // The code names the reason the grid shows; the profile's text is its fallback.
       return {
         ...option,
-        isAvailable: isCompatible,
-        disabledReason: isCompatible ? undefined : reasonForFailure(failedBy, messages),
+        isAvailable: false,
+        disabledReason: messages.vesselColorUnavailable,
+        disabledReasonCode: REASON_VESSEL_COLOR_UNAVAILABLE,
       };
     },
-    [messages, ruleInputs],
+    [isRefusedByVessel, messages, ruleInputs],
   );
 
   const filters = useMemo(() => {
@@ -178,9 +203,9 @@ export const useCountertopColorState = (context: CountertopContext) => {
       const option = countertopOptions.find(
         (item) => getOptionConfigValue(item) === colorName || item.title === colorName,
       );
-      return !option || evaluateMaterialOption(option, ruleInputs).isCompatible;
+      return !option || (evaluateMaterialOption(option, ruleInputs).isCompatible && !isRefusedByVessel(option));
     },
-    [countertopOptions, ruleInputs],
+    [countertopOptions, isRefusedByVessel, ruleInputs],
   );
 
   return {

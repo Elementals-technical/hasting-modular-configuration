@@ -1,13 +1,15 @@
 import {
   extractCountertopBasinMaterialScopeTokens,
   getMaterialAliases,
+  isColorCodeUnavailableForVesselStyle,
   isRuleWidthEligibleForIntegratedContext,
   isVisibleVesselSinkStyle,
   normalizeBasinKey,
   parseThicknessValue,
   REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN,
+  REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE,
 } from "@/features/configurator-rule-core/countertop";
-import { cmToInches } from "@/shared/lib/sku";
+import { cmToInches, extractColorCode } from "@/shared/lib/sku";
 
 import { VESSEL_SINK_NONE_OPTION } from "./countertopColorOptions";
 
@@ -27,23 +29,46 @@ export const matchesThickness = (thicknesses: string[], activeThickness: number 
 
 /**
  * The vessels the profile shows, all disabled with one reason while the rules refuse a vessel. None is shown
- * while the vessel style is refused for anything but the Sink Base minimum, which only disables them.
+ * while the vessel style is refused for anything but the Sink Base minimum, which only disables them. While
+ * the Sink Base takes a vessel, one that cannot stand on the countertop's colour (its
+ * `unavailableColorCodesByStyle`) is disabled for that colour; None stays enabled.
  */
 export const resolveVesselBasinOptions = (
   catalog: ProductOptionData[],
-  context: Pick<CountertopContext, "activeProfile" | "ruleState">,
+  context: Pick<
+    CountertopContext,
+    "activeCountertopColor" | "activeMaterialTokens" | "activeProfile" | "messages" | "ruleState"
+  >,
 ): ProductOptionData[] => {
   const { styleAvailability, vesselSinkAvailability } = context.ruleState;
   const vesselStyle = styleAvailability.vessel;
   if (!vesselStyle.isAvailable && vesselStyle.reasonCode !== REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN) return [];
 
+  const countertopColorCode = extractColorCode(context.activeCountertopColor);
+  const isRefusedByCountertopColor = (option: ProductOptionData) =>
+    isColorCodeUnavailableForVesselStyle({
+      vesselStyle: option.name,
+      materialTokens: context.activeMaterialTokens,
+      colorCode: countertopColorCode,
+      profile: context.activeProfile,
+    });
+
   const vessels = catalog
     .filter((option) => isVisibleVesselSinkStyle(option.name ?? "", context.activeProfile))
-    .map((option) =>
-      vesselSinkAvailability.isAvailable
-        ? option
-        : { ...option, isAvailable: false, disabledReason: vesselSinkAvailability.disabledReason },
-    );
+    .map((option) => {
+      if (!vesselSinkAvailability.isAvailable) {
+        return { ...option, isAvailable: false, disabledReason: vesselSinkAvailability.disabledReason };
+      }
+      // The code names the reason the grid shows; the profile's text is its fallback.
+      return isRefusedByCountertopColor(option)
+        ? {
+            ...option,
+            isAvailable: false,
+            disabledReason: context.messages.vesselCountertopColorUnavailable,
+            disabledReasonCode: REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE,
+          }
+        : option;
+    });
   return [VESSEL_SINK_NONE_OPTION, ...vessels];
 };
 
