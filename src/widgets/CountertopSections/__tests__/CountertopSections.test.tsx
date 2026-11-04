@@ -35,6 +35,7 @@ import { CountertopPage } from "@/pages/countertop/CountertopPage";
 
 import { useCountertopColorState } from "../lib/useCountertopColorState";
 import { useCountertopContext } from "../lib/useCountertopContext";
+import { useVesselColorState } from "../lib/useVesselColorState";
 
 // The countertop step reads its sections from ui.json and its options from the profile; the pick goes to the command.
 
@@ -540,5 +541,67 @@ describe("the countertop step keeps Urban Modo off a Porcelain TQ2 countertop", 
     await renderPorcelainStep();
 
     expect(isEnabled(regionOf("Vessel Sink Style"), "Vessel Urban Modo")).toBe(true);
+  });
+});
+
+// Without a code the grid shows the generic "not available": a refused colour names its reason by code.
+describe("the countertop step's refused colours carry their reason codes", () => {
+  const groups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions;
+  const withVesselColors = {
+    ...withCountertopRules,
+    catalog: {
+      ...withCountertopRules.catalog,
+      configurator: { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) },
+    },
+  };
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <ReadyCollectionContext.Provider value={withVesselColors}>
+      <Provider store={store}>{children}</Provider>
+    </ReadyCollectionContext.Provider>
+  );
+  const colorStates = () =>
+    renderHook(
+      () => {
+        const context = useCountertopContext();
+        const countertop = useCountertopColorState(context);
+        const vessel = useVesselColorState({
+          context,
+          vesselColorOptions: countertop.vesselColorOptions,
+          defaultMaterialFilters: countertop.defaultMaterialFilters,
+        });
+        return { countertop, vessel };
+      },
+      { wrapper },
+    ).result.current;
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setActiveCountertopThickness("0.5"));
+  });
+
+  it("refuses a countertop colour the matrix has no row for at the depth with the depth's code", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setCountertopStyle("integrated"));
+
+    expect(colorStates().countertop.fullModeOptions.find(({ title }) => title === "Bianco Gloss TAN")).toMatchObject({
+      isAvailable: false,
+      disabledReason: "Not available for current cabinet depth",
+      disabledReasonCode: "countertop.materialNotAvailableForDepth",
+    });
+  });
+
+  it("refuses a vessel colour the vessel style does not take with the vessel colour's code", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanModo"));
+
+    expect(colorStates().vessel.visibleOptions.find(({ title }) => title === "Agata BD MT")).toMatchObject({
+      isAvailable: false,
+      disabledReason: "Not available for selected vessel sink style.",
+      disabledReasonCode: "vessel.colorUnavailable",
+    });
   });
 });
