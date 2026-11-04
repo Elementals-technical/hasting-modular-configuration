@@ -1,25 +1,28 @@
 # Checkpoint — Hastings AI-agent setup
 
-Revision 4 · updated 2026-11-01. Running state of the agent layer in this checkout; after restructure stage 2 this file moves to `.work/checkpoint.md` (personal, outside Git).
+Revision 6 · updated 2026-11-03. Running state of the agent layer in this checkout; after restructure stage 2 this file moves to `.work/checkpoint.md` (personal, outside Git).
 
 ## Objective
 One agent workflow for Claude Code and Codex on top of the Hastings knowledge layer (`docs/ai`), the risk-based UI matrix, a real browser baseline and owner handoffs. Agents never commit, push or deploy; backend and PlayCanvas belong to other owners.
 
-## State (2026-11-01, restructure stage 1)
+## State (2026-11-03)
 - Root: `AGENTS.md` (team) + `CLAUDE.md` (`@AGENTS.md`); personal `AGENTS.local.md` / `CLAUDE.local.md` are ignored and recovered with `ai-env.mjs snapshot/restore`.
-- Skills: one root `.agents/skills/` (6 `local-*`, 4 `hastings-*`, 2 `hasting-*` routers); `.claude/skills` and `.claude/rules` are symlinks. Rules: `ai/rules/*.md` with `paths:` frontmatter.
+- Skills: one root `.agents/skills/` (19 skills: 6 `local-*`, 8 `hastings-*`, 2 `hasting-*` routers and 3 additional skills); `.claude/skills` and `.claude/rules` are symlinks. Rules: `ai/rules/*.md` with `paths:` frontmatter.
 - Enforcement: `permissions.deny/ask` in `.claude/settings.json` (team) and `.claude/settings.local.json` (personal); Codex sandbox + `.codex/rules`. The 2026-10-30 hook engine, runtime adapters, generated wrappers and `test-routing` were removed on 2026-11-01.
 - Tooling: `ai-env.mjs`, `validate-guidance.mjs` (13 checks), `test-tooling.mjs` (14), `qa-coverage.mjs`, `mcp-smoke.mjs`, `extract-docx.py`, `extract-xlsx.py`; live routing probes in `tests/probes.md`.
 - MCP: Chrome (`--autoConnect`, user session) and Firefox (own profile) smoke PASS (2026-10-28).
 - Knowledge (2026-10-28 snapshot): 47 sources, 382 rules, 75 conflicts (65 open), 413 comments, 445 backlog rows, 65 oracle rows, 137/313 images reviewed. Originals of the 9 `local-*` sources are not in this checkout.
-- QA: 976 TCs; 29 executed (20 PASS, 9 FAIL), 5 UNKNOWN, 97 BLOCKED; handoffs HO-001…HO-009.
+- QA matrix snapshot: 1298 TCs — 105 PASS, 240 FAIL, 98 BLOCKED, 10 UNKNOWN, 845 NOT_RUN. These are dated evidence records, not acceptance of the current export; handoffs HO-001…HO-012 (HO-012: Class shrink row gap, PlayCanvas, 2026-11-03).
 
 ## Blocked / open
 - Fluting options file `1Kg1_GQi…` 403; resolved comment threads need the Google Docs UI; Hastings Config Guide, Drive recordings, Slack/take.ms/Gyazo links not opened.
 - Scene-pointer scenarios (DnD, in-scene "+", swap) BLOCKED in the scripted harness; Playwright browsers not installed.
 - 3 configuration records created on the dev backend by the Summary auto-save before the write-guard existed (HO-002).
 
-## Tricot client feedback task (2026-10-28, uncommitted)
+## Historical Tricot feedback and follow-ups (2026-10-28…2026-11-03)
+
+The entries below preserve their original verification and commit state. Their dated “uncommitted”, “not fixed” and deployment notes are not the current checkout status; use the resume section below.
+
 - Implemented in the working tree, nothing committed or deployed: vessel Delete (`vesselBasinSelection.ts`, `replayValues.ts` basin fan-out), per-collection price tiers (`ruleData.priceTiers`, Tricot LACM 1 / WDV 2, Class WDV 3), Tricot step order + Faucet Details (default 0).
 - Verified: targeted vitest, `tsc`, eslint/prettier on changed files; Chrome on local dev (evidence `qa/evidence/2026-10-28/tricot-task/README.md`). Wood Veneer loading not reproduced (staging + local).
 - Committed since as `11434e24` (in `origin/phase-2/staging`, PR #497); staging deploy not checked.
@@ -41,3 +44,11 @@ One agent workflow for Claude Code and Codex on top of the Hastings knowledge la
 
 ## Next
 Restructure stage 2 (`docs/ai/qa/evidence` and `docs/qa` out of Git, `docs/records/`, `.work/`); product specifications in `docs/products/` for every collection; review of `docs/` for stale and duplicated material. Then the BLOCKED/NOT_RUN P0 rows with native MCP tools, starting with HO-001…HO-005 regressions.
+
+## Current resume point — 2026-11-03
+
+- Branch `chore/agent-layer-v2`, HEAD `7f19ef1d`, includes `origin/phase-2/staging` at `22e755df`. The old [stage 1 STOP inventory](../records/agent-checkpoints/2026-11-02-presets-stage-1-stop.md) is archived; it does not block work authorized in later tasks. Existing staged and unstaged work remains separate; this documentation cleanup does not stage it.
+- Urban Duplex: PR #538 is included. The five compact Multi-Level presets use nominal Depth 50; the installed PlayCanvas v100 export includes OSS 38 cm support. Remaining table/acceptance checks are in [HO-010](qa/handoffs/HO-010-urban-duplex-oss-38-height.md); the unresolved nominal/physical-depth convention is in [HO-011](qa/handoffs/HO-011-urban-duplex-nominal-depth-geometry.md). This does not close the full preset audit.
+- Tricot: 42 published presets, 93 composition modules and the model 33 card are present. Current package defaults are Satin / Agata 407 MT / BIANCO KOS 250 / integrated VA024. The [live handoff](../../plans/tricot-integration/handoff.md) and [open questions](../../plans/tricot-integration/open-questions.uk.md) distinguish delivered inputs from outstanding panel, basin and pricing acceptance. Complete pricing and both-flow browser acceptance are not established by catalog or adapter tests.
+- Still open: ULH artist-backed size targets and the exact UD 28 cm target list; Lame Fumo/Antracite and LB175/LB440 source conflicts. Preserve the independent client-layout fixtures and the original unknowns in the archived inventory until an owner answer closes them.
+- Prior staging-sync evidence (2026-11-03, Node 22.20.0): build PASS; 44 affected test files, 914 PASS / 6 preexisting FAIL / 2 skipped. All six failures reproduced in the pre-merge worktree. Guidance 13 checks and tooling 14 checks passed; QA schema errors remained 318 before and after sync. These are prior-run results from `.work/staging-sync-20261103/REPORT.md`, not newly executed application tests for this documentation cleanup. Browser DnD, complete SKU/price and save/restore acceptance remain scenario-specific.

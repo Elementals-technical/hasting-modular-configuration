@@ -295,7 +295,27 @@
       "sourceModel": "Tricot 79 2DW 1_70",
       "assetId": "2debefae-fe53-457e-8deb-1414cf11caa7",
       "url": "https://admin-fts.threekit.com/api/files/hash/1d84a42b-50d6-42fc-a5fc-b8f6714504a9",
-      "reason": "The public 2D thumbnail returned HTTP 404 on 2026-10-07."
+      "reason": "The public 2D thumbnail returned HTTP 404 on 2026-10-07.",
+      "resolvedBy": "images/model-3979591210.png"
+    }
+  ],
+  "localOverrides": [
+    {
+      "sourceModel": "Tricot 79 2DW 1_70",
+      "path": "images/model-3979591210.png",
+      "sha256": "331a0757e0e458a6cb99ae1274048d66ad0658ff0e95ae0e9c30f45d949da777",
+      "kind": "client-viewer-capture",
+      "sourceUrl": "https://www.hastingsbathcollection.com/products/vanities/tricot?UI_Model=Tricot%252079%25202DW%25201_70",
+      "capturedUTC": "2026-10-28T14:07:28.516Z",
+      "sourceScreenshot": "docs/qa/tricot-2026-10-28/evidence/preset-add-33/client-front-full.png",
+      "crop": {
+        "x": 123,
+        "y": 380,
+        "width": 519,
+        "height": 139
+      },
+      "outputSize": [300, 300],
+      "reason": "User requested publishing this preset on2026-10-28; original public thumbnail still unavailable. Real client viewer front capture used as catalog card."
     }
   ]
 }

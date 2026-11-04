@@ -28,8 +28,19 @@ import { isReadyCollectionData, type CollectionRuntimeDependencies, type RemoteC
 
 const root = "https://app.test/collections/";
 const masters = presetsSchema.parse(presets);
-/** Models left out of the catalog until their PNG is delivered: their public thumbnail returns HTTP 404. */
-const hiddenModels = images.missing.map(({ sourceModel }) => sourceModel);
+// User-approved initial values for every Tricot model, 2026-11-02; the archived CSV keeps its original finishes.
+const approvedModelValues = {
+  HandleGrooveColor: "Agata 407 MT",
+  CountertopColor: "BIANCO KOS 250",
+  sinkType: "VA024",
+} as const;
+/** Historical thumbnail failures remain hidden only while no matching local override resolves them. */
+const hiddenModels = images.missing
+  .filter(
+    ({ sourceModel, resolvedBy }) =>
+      !images.localOverrides.some((override) => override.sourceModel === sourceModel && override.path === resolvedBy),
+  )
+  .map(({ sourceModel }) => sourceModel);
 const isShown = ({ sourceModel }: { sourceModel?: string }) => !hiddenModels.includes(sourceModel ?? "");
 const modules = [
   {
@@ -84,7 +95,7 @@ describe("Tricot source preparation", () => {
   });
 
   it("preserves distinct numbered layouts and stable IDs after model reordering", () => {
-    expect(new Set(masters.map(({ id }) => id)).size).toBe(41);
+    expect(new Set(masters.map(({ id }) => id)).size).toBe(42);
     const reversed = buildPendingPresets({
       ...sourceCatalogSchema.parse(catalog),
       attributes: { ...catalog.attributes, Model: [...catalog.attributes.Model].reverse() },
@@ -101,8 +112,8 @@ describe("Tricot source preparation", () => {
     expect(pair).toHaveLength(2);
     expect(pair[0].style).toEqual(pair[1].style);
     expect(pair[0].id).not.toBe(pair[1].id);
-    expect(masters.filter((p) => p.img && !p.availability)).toHaveLength(41);
-    expect(hiddenModels).toEqual(["Tricot 79 2DW 1_70"]);
+    expect(masters.filter((p) => p.img && !p.availability)).toHaveLength(42);
+    expect(hiddenModels).toEqual([]);
     expect(masters.filter((p) => !isShown(p))).toEqual([]);
   });
 
@@ -116,23 +127,50 @@ describe("Tricot source preparation", () => {
     expect(() => importMasterCatalog("bad\theader", "tricot", "TRICOT", "test")).toThrow("headers");
   });
 
-  it("imports all 42 explicit recipes and 88 modules with basin positions and stable image mappings", () => {
-    // Every source recipe imports, the hidden model's too; the catalog shows the others.
+  it("starts all models with the approved groove, HPL top and VA024 on sink bases only", () => {
+    const products = masters.flatMap(({ presetProducts }) => presetProducts);
+    expect(products).toHaveLength(93);
+    expect(products.filter(({ name }) => name === "Sink-Base")).toHaveLength(50);
+    for (const product of products) {
+      expect(product).toMatchObject({
+        HandleGrooveColor: approvedModelValues.HandleGrooveColor,
+        CountertopColor: approvedModelValues.CountertopColor,
+      });
+      if (product.name === "Sink-Base") expect(product.sinkType).toBe(approvedModelValues.sinkType);
+      else expect(product).not.toHaveProperty("sinkType");
+    }
+    for (const [attributeId, value] of Object.entries(approvedModelValues)) {
+      expect(tricotProfile.defaults[attributeId]).toBe(value);
+      expect(tricotProfile.attributes.find((attribute) => attribute.attributeId === attributeId)).toMatchObject({
+        initialValue: value,
+        defaultValue: value,
+      });
+    }
+  });
+
+  it("imports all 42 explicit recipes and 93 modules with basin positions and stable image mappings", () => {
+    // Every source recipe imports, including the model resolved by its local thumbnail override.
     const sourcePresets = presetsSchema.parse(buildPendingPresets(sourceCatalogSchema.parse(catalog)));
     const entries = importPresetCompositionCsv(compositionCsv, sourcePresets, tricotProfile, tricotConfigurator);
     expect(entries).toHaveLength(42);
-    expect(entries.reduce((sum, e) => sum + e.presetProducts.length, 0)).toBe(88);
+    expect(entries.reduce((sum, e) => sum + e.presetProducts.length, 0)).toBe(93);
     const shownEntries = entries.filter(isShown);
     // The models are placed in Satin, the collection's default (user, 2026-10-28); the archived source names Cannette.
     const defaultPattern = tricotProfile.defaults.DrawerPanelFluting;
     expect(defaultPattern).toBe("Satin");
     expect(masters.flatMap((p) => p.presetProducts).map((p) => p.DrawerPanelFluting)).toEqual(
-      Array(86).fill(defaultPattern),
+      Array(93).fill(defaultPattern),
     );
     for (const entry of shownEntries) {
       const preset = masters.find((p) => p.sourceModel === entry.sourceModel);
       expect(preset?.presetProducts).toEqual(
-        entry.presetProducts.map((product) => ({ ...product, DrawerPanelFluting: defaultPattern })),
+        entry.presetProducts.map((product) => ({
+          ...product,
+          DrawerPanelFluting: defaultPattern,
+          HandleGrooveColor: approvedModelValues.HandleGrooveColor,
+          CountertopColor: approvedModelValues.CountertopColor,
+          ...(product.name === "Sink-Base" ? { sinkType: approvedModelValues.sinkType } : {}),
+        })),
       );
       expect(entry.basinPositions).toEqual(
         entry.presetProducts.flatMap((p, cabinetIndex) => (p.name === "Sink-Base" ? [{ cabinetIndex }] : [])),
@@ -140,8 +178,19 @@ describe("Tricot source preparation", () => {
     }
     expect(images.models).toHaveLength(41);
     expect(images.missing).toHaveLength(1);
-    for (const model of images.models) {
+    expect(images.localOverrides).toHaveLength(1);
+    expect(images.missing[0]).toMatchObject({
+      sourceModel: "Tricot 79 2DW 1_70",
+      resolvedBy: "images/model-3979591210.png",
+    });
+    expect(images.localOverrides[0]).toMatchObject({
+      sourceModel: images.missing[0].sourceModel,
+      path: images.missing[0].resolvedBy,
+    });
+    expect(masters.find(({ id }) => id === 3979591210)?.sourceModel).toBe("Tricot 79 2DW 1_70");
+    for (const model of [...images.models, ...images.localOverrides]) {
       expect(masters.find((p) => p.sourceModel === model.sourceModel)?.img).toBe(model.path);
+      expect(shippedImages.has(model.path), model.path).toBe(true);
     }
     const modules =
       tricotProfile.ruleData.cabinetModules?.map((m) => ({
@@ -212,7 +261,7 @@ describe("Tricot source preparation", () => {
     if (!resolution.ok) throw new Error("Tricot must resolve");
     const data = await loadResolvedCollection(resolution, dependencies, new AbortController().signal);
     expect(data.id).toBe("tricot");
-    expect(data.catalog.presets).toHaveLength(41);
+    expect(data.catalog.presets).toHaveLength(42);
     expect(data.catalog.sourceCatalog).toEqual(catalog);
     expect(data.catalog.runtimeBindings?.productTypes).toEqual({
       "Sink-Base": "Tricot-sink-cabinet",

@@ -34,6 +34,13 @@ for (const model of manifest.models) {
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, bytes, { flag: "wx" });
 }
+for (const image of manifest.localOverrides ?? []) {
+  if (!/^images\/model-\d+\.png$/.test(image.path) || image.kind !== "client-viewer-capture")
+    throw new Error("Invalid local image provenance");
+  const bytes = await readFile(resolve(root, image.path));
+  if (bytes.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a" || digest(bytes) !== image.sha256)
+    throw new Error(`Local image integrity failed: ${image.sourceModel}`);
+}
 console.log(
-  `Verified ${manifest.models.length} Tricot model images; ${manifest.missing.length} source images remain unavailable.`,
+  `Verified ${manifest.models.length} original Tricot images and ${manifest.localOverrides?.length ?? 0} sourced local captures; ${manifest.missing.length} original source URLs remain unavailable.`,
 );

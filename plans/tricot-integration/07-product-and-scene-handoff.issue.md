@@ -9,7 +9,7 @@ Consume the approved 3D/product/API handoff and replace staged dependencies with
 ## Acceptance criteria
 
 - [x] The product team supplies all 42 ordered nonempty compositions, dimensions, drawer styles and basin positions (received CSV, 88 modules).
-- [ ] All 42 models have usable matching images (41 downloaded; `Tricot 79 2DW 1_70` source returns 404).
+- [x] All42 models have usable matching images (41 original PNGs plus a real client-viewer front capture for `Tricot 79 2DW 1_70`, published at the user's request2026-10-28; original404 provenance retained).
 - [ ] The scene team supplies the complete runtime contract (cabinet product types, cm dimensions, drawer modes and matte lacquer mappings are integrated; remaining visual contracts/readback are tracked in the open-questions file).
 - [x] The user approves Accessories placement, per-active-side panel quantities/inheritance/width offsets, drawer-family mixing, attribute scopes and CSV defaults. No default preset is selected; actual geometry is verified under issue 8.
 - [ ] The API owner supplies complete source identities and metadata (592/593 and reviewed column mappings are integrated; conditional catalog identity and swatches remain in the open-questions file).

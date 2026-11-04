@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import type { ProductProfile } from "@/entities/collection";
 import { productReducer, reset, setActiveProfile } from "@/entities/product/model/store/slice";
+import classProfileDocument from "../../../../../public/collections/class/product-profile.json";
+import { parseProductProfile } from "@/entities/collection/lib/parseProductProfile";
 
 /**
  * Values the slice used to hardcode. They now come from `profile.defaults`; this test is
@@ -24,6 +26,19 @@ const withProfile = (profile: ProductProfile | null) =>
   productReducer(productReducer(undefined, { type: "@@INIT" }), setActiveProfile(profile));
 
 describe("product defaults from the active profile", () => {
+  it("loads the shared Class porcelain, basin and thickness defaults and preserves them on reset", () => {
+    const parsed = parseProductProfile(classProfileDocument);
+    if (!parsed.ok) throw new Error("Invalid Class profile");
+    const initial = withProfile(parsed.profile);
+    for (const state of [initial, productReducer(initial, reset())]) {
+      expect(state.productOptions).toMatchObject({
+        CabinetColor: "INVISIBLE WHITE OPACO 332",
+        CountertopColor: "INVISIBLE WHITE OPACO 332",
+        sinkType: "LV890",
+        Thickness: "0.75",
+      });
+    }
+  });
   it("starts empty until a collection is active", () => {
     const state = productReducer(undefined, { type: "@@INIT" });
 

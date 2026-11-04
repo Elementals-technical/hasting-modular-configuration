@@ -33,6 +33,12 @@ These links use the current portfolio layout; the maps live outside this Git rep
 
 ## Records
 
+- [Archived preset stage 1 checkpoint, 2026-11-02](records/agent-checkpoints/2026-11-02-presets-stage-1-stop.md) — original STOP inventory; superseded by the current checkpoint after later task authorizations and staging sync.
+- [Tricot integration status snapshots, archived 2026-11-03](records/plans/2026-11-03-tricot-integration-status.md) — prior handoff and question list, preserving superseded wood/image/default blockers and dated acceptance evidence.
+
+- [Urban Duplex OSS 38 cm height handoff, 2026-11-03](ai/qa/handoffs/HO-010-urban-duplex-oss-38-height.md) — canonical fix and regression delivered in the installed v100 export; archive and embedded visual checks recorded.
+- [Urban Duplex nominal/physical depth handoff, 2026-11-03](ai/qa/handoffs/HO-011-urban-duplex-nominal-depth-geometry.md) — nominal Depth 50 produces 50.5 cm cabinet geometry beside 50 cm countertops after the preset data correction.
+- [Class shrink row gap handoff, 2026-11-03](ai/qa/handoffs/HO-012-class-shrink-row-gap.md) — shrinking a Class cabinet leaves a gap and drags the countertop off the row; the legacy layout measures the mesh AABB before the CSG rebuild.
 - [`composition.importPreset` needs frames handoff, 2026-11-03](ai/qa/handoffs/HO-013-import-preset-needs-frames.md) — a restore never settles while the tab is unpainted, leaving the whole rule layer on zero cabinets; the command resumes the moment frames resume.
 
 - [`records/plans/`](records/plans/) — Closed PRDs kept as decision records; the live rule they produced lives in `ai/rules/*`. First entry: [Lucide icon unification](records/plans/2026-10-12-svg-icon-unification.prd.md) (closed 2026-10-12).
