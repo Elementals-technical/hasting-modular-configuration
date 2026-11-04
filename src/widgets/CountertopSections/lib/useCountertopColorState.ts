@@ -31,6 +31,7 @@ import {
   annotateMaterialFilters,
   evaluateMaterialOption,
   materialFilterReason,
+  reasonCodeForFailure,
   reasonForFailure,
   type MaterialRuleInputs,
 } from "./materialCompatibility";
@@ -145,7 +146,12 @@ export const useCountertopColorState = (context: CountertopContext) => {
     (option: ProductOptionData) => {
       const { isCompatible, failedBy } = evaluateMaterialOption(option, ruleInputs);
       if (!isCompatible) {
-        return { ...option, isAvailable: false, disabledReason: reasonForFailure(failedBy, messages) };
+        return {
+          ...option,
+          isAvailable: false,
+          disabledReason: reasonForFailure(failedBy, messages),
+          disabledReasonCode: reasonCodeForFailure(failedBy),
+        };
       }
       if (!isRefusedByVessel(option)) return { ...option, isAvailable: true, disabledReason: undefined };
       // The code names the reason the grid shows; the profile's text is its fallback.
