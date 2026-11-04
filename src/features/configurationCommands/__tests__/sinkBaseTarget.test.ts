@@ -5,9 +5,13 @@ import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture"
 import { classRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/classRuntimeBindingsFixture";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
+import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ushRuntimeBindingsFixture";
+import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import datatable438 from "@/entities/collection/__tests__/fixtures/remote/datatable-438.json";
-import { countertopDatatableSchema } from "@/entities/collection/model/schemas";
+import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
+import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import type { RuntimeBindingSet } from "@/entities/collection/model/runtimeBindings";
+import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
 import { parseCountertopMatrix, type CountertopMatrixRule } from "@/features/configurator-rule-core/countertop";
 import {
   getAttributeValue,
@@ -19,6 +23,7 @@ import {
   setAttributeValue,
   syncCabinets,
 } from "@/entities/configuration";
+import { getVesselColor } from "@/entities/product/model/store/selectors";
 import {
   addProductPreset,
   replaceCollectionData,
@@ -26,6 +31,7 @@ import {
   resetProducts,
   setActiveCabinetType,
   setActiveProfile,
+  setVesselColor,
 } from "@/entities/product/model/store/slice";
 import {
   createTestCompositionPort,
@@ -320,3 +326,150 @@ describe("the basin an Urban Low Height field picks", () => {
     expect(harness.skusOf("vessel")).toEqual(["VES-BLD11-X-19.7W-6.1H-15D-CER-OCF"]);
   });
 });
+
+const ushGroups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions;
+const ushConfigurator: ConfiguratorGroupCatalog = {
+  groups: ushGroups,
+  groupsByName: Object.fromEntries(ushGroups.map((group) => [group.proxyName, group])),
+};
+
+/** The vessel a field picks takes its colour in the same set: the scene never shows it without one. */
+describe.each([
+  {
+    label: "Urban Standard Height",
+    collectionId: "urban-standard-height",
+    profile: ushProfile,
+    configurator: ushConfigurator,
+    bindings: ushRuntimeBindings,
+    sinkBases: ["Sink-Base-a1b2c3d4e", "Sink-Base-f5g6h7i8j"],
+    vessel: "Vessel_UrbanModo",
+    defaultColor: "Matte White T1C",
+    refusedColor: "Antracite Matte OCF",
+    allowedColor: "Matte Black T1D",
+    integrated: "Top_HPLPrisma",
+  },
+  {
+    label: "Urban Low Height",
+    collectionId: "urban-low-height",
+    profile: URBAN_LOW_HEIGHT.profile,
+    configurator: URBAN_LOW_HEIGHT.configurator,
+    bindings: ulhRuntimeBindings,
+    sinkBases: ["ULH-sink-cabinet-a1b2c3d4e", "ULH-sink-cabinet-f5g6h7i8j"],
+    vessel: "Vessel_UrbanModo",
+    defaultColor: "Matte White T1C",
+    refusedColor: "Antracite Matte OCF",
+    allowedColor: "Matte Black T1D",
+    integrated: "Top_HPLPrisma",
+  },
+  {
+    label: "Mako",
+    collectionId: "mako",
+    profile: MAKO.profile,
+    configurator: MAKO.configurator,
+    bindings: makoRuntimeBindings,
+    sinkBases: ["Mako-sink-cabinet-a1b2c3d4e", "Mako-sink-cabinet-f5g6h7i8j"],
+    vessel: "Frame",
+    defaultColor: "Fumo 401 MT",
+    refusedColor: "Nero 433 GL",
+    allowedColor: "Salvia 415 MT",
+    integrated: "VA005",
+  },
+])(
+  "the vessel a $label field picks",
+  ({
+    collectionId,
+    profile,
+    configurator,
+    bindings,
+    sinkBases,
+    vessel,
+    defaultColor,
+    refusedColor,
+    allowedColor,
+    integrated,
+  }) => {
+    beforeEach(() => {
+      store.dispatch(reset());
+      store.dispatch(resetConfiguration());
+      store.dispatch(setActiveProfile(profile));
+      store.dispatch(setActiveCollectionId(collectionId));
+      store.dispatch(setActiveRuntimeBindings(bindings));
+      store.dispatch(syncCabinets(sinkBases));
+    });
+
+    /** Picks the basin as a field does; what the scene was sent, set by set. */
+    const pick = async (basin: string) => {
+      const request = resolveChangeRequest(store.getState(), "sinkType", basin);
+      if (!request) throw new Error("a placed Sink Base names the basin");
+      const runtime = createTestRuntimePort();
+
+      const result = await changeAttribute(request, {
+        getState: () => store.getState(),
+        dispatch: (action) => store.dispatch(action),
+        runtime: runtime.port,
+        flow: "custom",
+        configurator,
+      });
+
+      expect(result.status).toBe("applied");
+      return runtime.calls;
+    };
+
+    const sentColors = (sets: Awaited<ReturnType<typeof pick>>) =>
+      sets.flat().filter(({ attributeId }) => attributeId === "VesselColor");
+
+    /** The colour the composition records, then the one each Sink Base records. */
+    const recordedColors = () => {
+      const state = store.getState();
+      return [
+        getAttributeValue(state, "VesselColor", { scope: "basin" }),
+        ...getCabinetEntries(state).map(({ stableKey }) =>
+          getAttributeValue(state, "VesselColor", { scope: "basin", sinkBaseId: stableKey }),
+        ),
+      ];
+    };
+
+    it("takes its default colour in the set that places it, on the composition and every Sink Base", async () => {
+      const sets = await pick(vessel);
+
+      expect(sets).toHaveLength(1);
+      expect(sets[0].map(({ attributeId }) => attributeId)).toEqual([
+        "sinkType",
+        "sinkType",
+        "sinkType",
+        "VesselColor",
+        "VesselColor",
+        "VesselColor",
+      ]);
+      expect(getVesselColor(store.getState())).toBe(defaultColor);
+      expect(recordedColors()).toEqual([defaultColor, defaultColor, defaultColor]);
+    });
+
+    it("replaces a colour it refuses", async () => {
+      store.dispatch(setVesselColor(refusedColor));
+
+      await pick(vessel);
+
+      expect(getVesselColor(store.getState())).toBe(defaultColor);
+      expect(recordedColors()).toEqual([defaultColor, defaultColor, defaultColor]);
+    });
+
+    it("keeps a colour it allows, which the scene already shows", async () => {
+      store.dispatch(setVesselColor(allowedColor));
+
+      const sets = await pick(vessel);
+
+      expect(sentColors(sets)).toEqual([]);
+      expect(getVesselColor(store.getState())).toBe(allowedColor);
+    });
+
+    it("leaves the colour alone for an integrated basin", async () => {
+      store.dispatch(setVesselColor(refusedColor));
+
+      const sets = await pick(integrated);
+
+      expect(sentColors(sets)).toEqual([]);
+      expect(getVesselColor(store.getState())).toBe(refusedColor);
+    });
+  },
+);

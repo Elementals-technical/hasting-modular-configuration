@@ -9,6 +9,7 @@ import {
   selectResetValue,
 } from "@/entities/collection";
 import type { CabinetEntry, StableCabinetKey, ValueTarget } from "@/entities/configuration";
+import { resolveVesselColorForBasin } from "@/features/collectionCustomization/lib/resolveVesselColor";
 import {
   applyConfiguratorRules,
   findPlacedCabinetRule,
@@ -298,6 +299,25 @@ export const buildChangePlan = ({
     for (const cleared of clears) {
       for (const basinTarget of basinTargets) {
         plan.push({ attributeId: cleared, target: basinTarget, value: "", origin: "dependency" });
+      }
+    }
+
+    return { ok: true, plan };
+  }
+
+  // A picked vessel takes its colour in the same set, on the targets the basin goes to. Not while no Sink Base is
+  // placed, which leaves a hosted sink alone.
+  if (attributeId === "sinkType") {
+    const nextVesselColor = resolveVesselColorForBasin({
+      profile,
+      configurator,
+      vesselStyle: value,
+      current: basin?.vesselColor,
+    });
+
+    if (nextVesselColor !== null && nextVesselColor !== (basin?.vesselColor ?? "") && basin?.sinkBaseIds?.length) {
+      for (const colorTarget of resolveBasinTargets(target, basin.sinkBaseIds)) {
+        plan.push({ attributeId: "VesselColor", target: colorTarget, value: nextVesselColor, origin: "dependency" });
       }
     }
 

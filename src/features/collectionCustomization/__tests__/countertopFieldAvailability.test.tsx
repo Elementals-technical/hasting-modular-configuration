@@ -1011,3 +1011,56 @@ describe("Urban Low Height vessel colours follow the chosen vessel, as the USH c
     );
   });
 });
+
+// The Urban vessel compatibility lists the Porcelain TQ2 as unavailable under Urban Modo: the countertop colour and
+// the vessel exclude each other, each field saying why.
+describe.each([
+  ["Urban Low Height", urbanLowHeight],
+  ["Urban Duplex", urbanDuplex],
+] as const)("%s keeps Urban Modo off a Porcelain TQ2 countertop", (_name, collection) => {
+  const { fieldOf } = fieldsOf(collection);
+  const optionOf = (sectionId: string, value: string) =>
+    fieldOf(sectionId)?.options.find((option) => option.value === value);
+
+  beforeEach(() => {
+    startWith(collection);
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setCountertopStyle("vessel"));
+  });
+
+  it("refuses TQ2 under Urban Modo in the vessel's words, and keeps another Porcelain colour", () => {
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanModo"));
+
+    expect(optionOf("countertop-color", "Fokos Rena TQ2")).toMatchObject({
+      enabled: false,
+      reasonCode: "vessel.colorUnavailable",
+    });
+    expect(optionOf("countertop-color", "Avenue Amber TRC")?.enabled).toBe(true);
+  });
+
+  it("offers TQ2 under another vessel", () => {
+    store.dispatch(setActiveBasinStyle("Vessel_Blade11"));
+
+    expect(optionOf("countertop-color", "Fokos Rena TQ2")?.enabled).toBe(true);
+  });
+
+  it("refuses Urban Modo on a TQ2 countertop in the countertop's words, and keeps the other vessels and None", () => {
+    store.dispatch(setActiveCountertopColor("Fokos Rena TQ2"));
+
+    expect(optionOf("basin-style", "Vessel_UrbanModo")).toMatchObject({
+      enabled: false,
+      reasonCode: "vessel.countertopColorUnavailable",
+    });
+    expect(selectMessage(collection.profile, "vessel.countertopColorUnavailable")).toBe(
+      "Not available for selected countertop color.",
+    );
+    expect(optionOf("basin-style", "Vessel_Blade11")?.enabled).toBe(true);
+    expect(optionOf("basin-style", "Vessel")?.enabled).toBe(true);
+  });
+
+  it("offers Urban Modo on another Porcelain countertop", () => {
+    store.dispatch(setActiveCountertopColor("Avenue Amber TRC"));
+
+    expect(optionOf("basin-style", "Vessel_UrbanModo")?.enabled).toBe(true);
+  });
+});

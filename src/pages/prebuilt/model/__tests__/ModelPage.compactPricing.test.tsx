@@ -3,24 +3,42 @@ import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { store } from "@/app/store";
-import { countertopDatatableSchema, parseProductProfile, ReadyCollectionContext, type CollectionPreset } from "@/entities/collection";
+import {
+  configuratorSchema,
+  countertopDatatableSchema,
+  parseProductProfile,
+  ReadyCollectionContext,
+  type CollectionPreset,
+} from "@/entities/collection";
+import configurator10 from "@/entities/collection/__tests__/fixtures/remote/configurator-10.json";
 import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
 import { parseRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/parseRuntimeBindings";
 import {
+  getAttributeValue,
   getCabinetEntries,
+  getRuntimeSyncState,
   getValuesByAttributeId,
   resetConfiguration,
   setActiveCollectionId,
   setActiveRuntimeBindings,
+  setExplicitUserChoice,
+  type ConfigurationRuntimePort,
 } from "@/entities/configuration";
-import { getActiveCountertopThickness, getCountertopStyle, getSinkType } from "@/entities/product/model/store/selectors";
+import {
+  getActiveCountertopThickness,
+  getCountertopStyle,
+  getSinkType,
+  getVesselColor,
+} from "@/entities/product/model/store/selectors";
 import { addProductPreset, reset, setActiveProfile } from "@/entities/product/model/store/slice";
+import { changeAttribute, recordValues, resolveChangeRequest } from "@/features/configurationCommands";
 import type { CabinetsState } from "@/features/configuratorApi";
+import { createTestRuntimePort } from "@/features/playCanvasAdapter";
 import type { CompactPresetSource } from "@/features/playCanvasAdapter/lib/applyCompactPreset";
 import { CabinetBuilderPage } from "@/pages/custom/cabinetBuilder/CabinetBuilderPage";
 import { buildCollectionPricingLines } from "@/shared/lib/pricing";
@@ -48,6 +66,15 @@ vi.mock("@/shared/ui/Accordion/ConfiguratorAccordion", () => ({
 }));
 
 const calls = vi.hoisted(() => ({ imports: vi.fn() }));
+/** A stand-in for the scene the page's commands reach, where a test reads what they send it. */
+const ports = vi.hoisted(() => ({ runtime: null as ConfigurationRuntimePort | null }));
+vi.mock("@/features/configurationCommands/hooks/useChangeAttribute", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/configurationCommands/hooks/useChangeAttribute")>();
+  return {
+    useChangeAttribute: (options?: Parameters<typeof actual.useChangeAttribute>[0]) =>
+      actual.useChangeAttribute({ ...options, ...(ports.runtime ? { runtime: ports.runtime } : {}) }),
+  };
+});
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => true }));
 vi.mock("@/entities/product/ui/ProductModelsGrid/ProductModelsGrid", () => ({
   ProductModelsGrid: ({
@@ -109,6 +136,7 @@ const LocationProbe = () => <output data-testid="route">{useLocation().pathname}
 beforeEach(() => {
   sessionStorage.clear();
   scene.order = [];
+  ports.runtime = null;
   calls.imports.mockClear();
   store.dispatch(reset());
   store.dispatch(resetConfiguration());
@@ -218,4 +246,185 @@ it("hands Custom the compact model's cabinets, so the builder prices them with t
     expect.stringMatching(/^VAN-UROS-/),
     expect.stringMatching(/^VAN-URLH-SB\/1DW\//),
   ]);
+});
+
+// A picked vessel takes its colour from the command, so only the vessel is the user's explicit choice.
+describe("a compact model selected after a vessel was picked", () => {
+  const VESSEL = "Vessel_UrbanModo";
+  const COLOR = "Matte White T1C";
+  const groups = configuratorSchema.parse(configurator10).availableOptions;
+  const withColors = {
+    ...collection,
+    catalog: {
+      ...collection.catalog,
+      configurator: {
+        groups,
+        groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])),
+      },
+    },
+  };
+
+  /** The configuration with the vessel and its colour; `chosen` names what the user picked. */
+  const start = (chosen: string[], style = "vessel", sinkType = VESSEL) => {
+    const runtime = createTestRuntimePort();
+    ports.runtime = runtime.port;
+    recordValues(
+      { CountertopColor: "Bianco Male TFA", CountertopStyle: style, sinkType, VesselColor: COLOR },
+      { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" },
+    );
+    for (const attributeId of chosen) store.dispatch(setExplicitUserChoice({ attributeId, chosen: true }));
+    return runtime;
+  };
+
+  const placeModel = async () => {
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={["/prebuilt/model?collectionId=urban-low-height&preset=28"]}>
+          <ReadyCollectionContext.Provider value={withColors}>
+            <ModelPage />
+          </ReadyCollectionContext.Provider>
+        </MemoryRouter>
+      </Provider>,
+    );
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).toBe(28));
+  };
+
+  const sentColors = (runtime: ReturnType<typeof createTestRuntimePort>) =>
+    runtime.calls.flat().flatMap(({ attributeId, value }) => (attributeId === "VesselColor" ? [value] : []));
+
+  it("shows the vessel's colour once the model holds the vessel, and keeps it", async () => {
+    const runtime = start(["sinkType"]);
+    let sentBeforeImport = -1;
+    calls.imports.mockImplementationOnce(() => {
+      sentBeforeImport = runtime.calls.length;
+    });
+
+    await placeModel();
+
+    expect((calls.imports.mock.calls[0][0] as CompactPresetSource).top?.sinkType).toBe(VESSEL);
+    expect(sentBeforeImport).toBe(0);
+    expect(sentColors(runtime)).toEqual([COLOR]);
+    expect(getVesselColor(store.getState())).toBe(COLOR);
+    expect(getAttributeValue(store.getState(), "VesselColor", { scope: "basin" })).toBe(COLOR);
+    const sinkBase = getCabinetEntries(store.getState()).find(({ runtimeId }) => runtimeId.startsWith("ULH-sink"));
+    expect(
+      getAttributeValue(store.getState(), "VesselColor", { scope: "basin", sinkBaseId: sinkBase?.stableKey }),
+    ).toBe(COLOR);
+    expect(getRuntimeSyncState(store.getState()).needsSync).toBe(false);
+  });
+
+  it("carries the colour with a vessel only the chosen style brings to the model", async () => {
+    const runtime = start(["CountertopStyle"]);
+
+    await placeModel();
+
+    expect((calls.imports.mock.calls[0][0] as CompactPresetSource).top?.sinkType).toBe(VESSEL);
+    expect(sentColors(runtime)).toEqual([COLOR]);
+  });
+
+  it("sends no colour while the vessel is not the user's choice", async () => {
+    const runtime = start([]);
+
+    await placeModel();
+
+    expect(sentColors(runtime)).toEqual([]);
+  });
+
+  // The scene's product holds the colour, as a flat model's `shared` gives it, and paints nothing without a vessel.
+  it("sends the carried colour to a model whose rules put an integrated basin in place of the vessel", async () => {
+    const runtime = start(["sinkType", "CountertopStyle"], "integrated");
+
+    await placeModel();
+
+    expect(getSinkType(store.getState())).not.toBe(VESSEL);
+    expect(sentColors(runtime)).toEqual([COLOR]);
+    expect(getVesselColor(store.getState())).toBe(COLOR);
+  });
+
+  it("finishes the import when the scene does not take the colour", async () => {
+    const runtime = start(["sinkType"]);
+    runtime.failNext(({ attributeId }) => attributeId === "VesselColor");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await placeModel();
+
+    expect(warn).toHaveBeenCalledWith("[Prebuilt] The vessel colour did not reach the scene", expect.anything());
+    expect(getCabinetEntries(store.getState())).toHaveLength(2);
+    warn.mockRestore();
+  });
+
+  it.each([
+    ["fails the colour", "failNext"],
+    ["has no translation for the colour", "rejectNext"],
+  ] as const)("holds Save when the scene %s, and still places the model", async (_label, refuse) => {
+    const runtime = start(["sinkType"]);
+    runtime[refuse](({ attributeId }) => attributeId === "VesselColor");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await placeModel();
+
+    expect(sentColors(runtime)).toEqual([COLOR]);
+    expect(getRuntimeSyncState(store.getState()).needsSync).toBe(true);
+    expect(getCabinetEntries(store.getState())).toHaveLength(2);
+    warn.mockRestore();
+  });
+
+  // Picking None keeps the colour for the next vessel, but a model placed on the empty cutout holds none.
+  const startOnCutout = (chosen = ["sinkType", "CountertopStyle"]) => start(chosen, "vessel", "");
+
+  it("keeps no colour the vessel took with it once a model is placed on the empty cutout", async () => {
+    const runtime = startOnCutout();
+
+    await placeModel();
+
+    expect((calls.imports.mock.calls[0][0] as CompactPresetSource).top?.sinkType).toBe("Vessel");
+    expect(sentColors(runtime)).toEqual([]);
+    expect(getVesselColor(store.getState())).toBe("");
+    expect(getAttributeValue(store.getState(), "VesselColor", { scope: "basin" })).toBe("");
+  });
+
+  /** A vessel picked through the command, as a field picks it. */
+  const pickVessel = async (runtime: ReturnType<typeof createTestRuntimePort>) => {
+    const request = resolveChangeRequest(store.getState(), "sinkType", VESSEL);
+    if (!request) throw new Error("a placed Sink Base names the basin");
+    const picked = await changeAttribute(request, {
+      getState: store.getState,
+      dispatch: store.dispatch,
+      runtime: runtime.port,
+      flow: "prebuilt",
+      configurator: withColors.catalog.configurator,
+    });
+    expect(picked.status).toBe("applied");
+  };
+
+  it("sends the default colour with a vessel picked on that model", async () => {
+    const runtime = startOnCutout();
+    await placeModel();
+
+    await pickVessel(runtime);
+
+    // The composition's and the Sink Base's.
+    expect(sentColors(runtime)).toEqual([COLOR, COLOR]);
+    expect(getVesselColor(store.getState())).toBe(COLOR);
+  });
+
+  it("sends and keeps a colour the user chose on the empty cutout, which a vessel picked later shows", async () => {
+    // Not the vessel's default, which a pick would send by itself.
+    const CHOSEN = "Matte Black T1D";
+    const runtime = startOnCutout(["CountertopStyle", "VesselColor"]);
+    recordValues({ VesselColor: CHOSEN }, { getState: store.getState, dispatch: store.dispatch, flow: "prebuilt" });
+
+    await placeModel();
+
+    expect(sentColors(runtime)).toEqual([CHOSEN]);
+    expect(getVesselColor(store.getState())).toBe(CHOSEN);
+
+    await pickVessel(runtime);
+
+    // The vessel allows it, so the pick sends no colour: the scene's product already holds it from before the vessel.
+    const attributeIds = runtime.calls.flat().map(({ attributeId }) => attributeId);
+    expect(attributeIds.indexOf("VesselColor")).toBeLessThan(attributeIds.indexOf("sinkType"));
+    expect(sentColors(runtime)).toEqual([CHOSEN]);
+    expect(getVesselColor(store.getState())).toBe(CHOSEN);
+  });
 });

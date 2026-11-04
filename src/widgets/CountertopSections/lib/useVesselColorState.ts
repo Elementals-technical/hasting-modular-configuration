@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { getVesselColor } from "@/entities/product/model/store/selectors";
-import { setVesselColor } from "@/entities/product/model/store/slice";
 import {
   isMaterialCompatibleWithVesselStyle,
-  isPreferredVesselFinish,
   normalizeMaterialToken,
 } from "@/features/configurator-rule-core/countertop";
 import {
@@ -13,8 +11,7 @@ import {
   type MaterialFilterSelection,
 } from "@/shared/constants/materialFilters";
 import { buildTierFilterOptions, filterOptionsByTier } from "@/shared/constants/priceFilters";
-import { useAppDispatch, useAppSelector } from "@/shared/hooks/store/redux";
-import { setConfigBatch } from "@/utils/functions/playcanvas/setConfigBatch";
+import { useAppSelector } from "@/shared/hooks/store/redux";
 
 import {
   buildVesselMaterialFilters,
@@ -39,7 +36,6 @@ type VesselColorStateArgs = {
 /** Vessel colours judged by the chosen vessel style, their filters, and the colour the scene shows. */
 export const useVesselColorState = ({ context, vesselColorOptions, defaultMaterialFilters }: VesselColorStateArgs) => {
   const { activeProfile, activeBasinStyle, messages } = context;
-  const dispatch = useAppDispatch();
   const storedVesselColor = useAppSelector(getVesselColor);
   const [activeVesselColor, setActiveVesselColor] = useState(storedVesselColor);
   const [selection, setSelection] = useState<MaterialFilterSelection>({});
@@ -49,9 +45,9 @@ export const useVesselColorState = ({ context, vesselColorOptions, defaultMateri
   }, [storedVesselColor]);
 
   const isCompatibleWithSinkStyle = useCallback(
-    (option: ProductOptionData, vesselStyle = activeBasinStyle) =>
+    (option: ProductOptionData) =>
       isMaterialCompatibleWithVesselStyle({
-        vesselStyle,
+        vesselStyle: activeBasinStyle,
         materialTokens: getVesselOptionMaterialTokens(option),
         colorCode: getVesselOptionColorCode(option),
         profile: activeProfile,
@@ -133,41 +129,6 @@ export const useVesselColorState = ({ context, vesselColorOptions, defaultMateri
     [vesselColorOptions],
   );
 
-  const resolveColorForSinkStyle = useCallback(
-    (vesselStyle: string): string => {
-      const activeOption = activeVesselColor ? findOptionByValue(activeVesselColor) : undefined;
-      if (activeOption && isCompatibleWithSinkStyle(activeOption, vesselStyle)) return activeVesselColor;
-
-      const compatible = vesselColorOptions.filter(
-        (option) => isVesselColorOption(option) && isCompatibleWithSinkStyle(option, vesselStyle),
-      );
-      const preferred =
-        compatible.find((option) =>
-          isPreferredVesselFinish({
-            vesselStyle,
-            materialTokens: getVesselOptionMaterialTokens(option),
-            colorCode: getVesselOptionColorCode(option),
-            profile: activeProfile,
-          }),
-        ) ?? compatible[0];
-
-      if (preferred) return getOptionConfigValue(preferred);
-      return activeOption ? "" : activeVesselColor;
-    },
-    [activeProfile, activeVesselColor, findOptionByValue, isCompatibleWithSinkStyle, vesselColorOptions],
-  );
-
-  const syncColorWithSinkStyle = useCallback(
-    async (vesselStyle: string) => {
-      const next = resolveColorForSinkStyle(vesselStyle);
-      await setConfigBatch({ productType: "Sink-Base" }, { VesselColor: next });
-      setActiveVesselColor(next);
-      dispatch(setVesselColor(next));
-      if (next !== activeVesselColor) setSelection({});
-    },
-    [activeVesselColor, dispatch, resolveColorForSinkStyle],
-  );
-
   return {
     activeVesselColor,
     setActiveVesselColor,
@@ -178,6 +139,5 @@ export const useVesselColorState = ({ context, vesselColorOptions, defaultMateri
     setSelection,
     findOptionByValue,
     isCompatibleWithSinkStyle,
-    syncColorWithSinkStyle,
   };
 };

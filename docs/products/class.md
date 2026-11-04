@@ -22,8 +22,8 @@ Mako (configurator 9), тож пропонують і кольори інших 
 - Countertop integrated/vessel, 10 integrated basin codes + None/Iris/Frame/Plaza.
 - Rule data зараз містить лише matrix adapter і drawer style groups.
 
-Runtime-bound: Height, Width, Depth, Drawers, три cabinet/frame colors, CountertopColor.
-CountertopStyle, basin, vessel color, thickness і faucet details поки state-only. Це означає, що UI
+Runtime-bound: Height, Width, Depth, Drawers, три cabinet/frame colors, CountertopColor, Thickness, sinkType
+(basin) і VesselColor. CountertopStyle і faucet details поки state-only. Це означає, що UI
 може зберігати значення для rules/pricing, але сцена його не візуалізує.
 
 ## Presets і production стан

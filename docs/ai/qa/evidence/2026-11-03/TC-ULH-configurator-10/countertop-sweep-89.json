@@ -1,0 +1,1518 @@
+[
+ {
+  "name": "Bianco Male TFA",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFA",
+  "expected": "Bianco Male TFA",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {},
+  "seconds": 90
+ },
+ {
+  "name": "Cacao Orinoco TFF",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFF",
+  "expected": "Cacao Orinoco TFF",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFF": 1063,
+   "CT-URFX-PRISMA-.5H-FX-TFF": 3108
+  },
+  "seconds": 10
+ },
+ {
+  "name": "Castoro Ottawa TFC",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFC",
+  "expected": "Castoro Ottawa TFC",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFC": 1063,
+   "CT-URFX-PRISMA-.5H-FX-TFC": 3108
+  },
+  "seconds": 10
+ },
+ {
+  "name": "Grigio Bromo TFE",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFE",
+  "expected": "Grigio Bromo TFE",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-PRISMA-.5H-FX-TFE": 3108,
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFE": 1063
+  },
+  "seconds": 10
+ },
+ {
+  "name": "Grigio Efeso TFB",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFB",
+  "expected": "Grigio Efeso TFB",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-PRISMA-.5H-FX-TFB": 3108,
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFB": 1063
+  },
+  "seconds": 9
+ },
+ {
+  "name": "Grigio Londra TFD",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFD",
+  "expected": "Grigio Londra TFD",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-PRISMA-.5H-FX-TFD": 3108,
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFD": 1063
+  },
+  "seconds": 15
+ },
+ {
+  "name": "Nero Ingo TFJ",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFJ",
+  "expected": "Nero Ingo TFJ",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-PRISMA-.5H-FX-TFJ": 3108,
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFJ": 1063
+  },
+  "seconds": 10
+ },
+ {
+  "name": "Rosso Jaipur TFH",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFH",
+  "expected": "Rosso Jaipur TFH",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-PRISMA-.5H-FX-TFH": 3108,
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFH": 1063
+  },
+  "seconds": 14
+ },
+ {
+  "name": "Verde Comodoro TFG",
+  "material": "Fenix",
+  "sku": "FX",
+  "code": "TFG",
+  "expected": "Verde Comodoro TFG",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URFX-INTG-23.6W-.5H-19.7D-FX-TFG": 1063,
+   "CT-URFX-PRISMA-.5H-FX-TFG": 3108
+  },
+  "seconds": 14
+ },
+ {
+  "name": "Ardesia TKF",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKF",
+  "expected": "Ardesia TKF",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TKF": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKF": 1063,
+   "CT-URHPL-FAHO/0": 0
+  },
+  "seconds": 26
+ },
+ {
+  "name": "BIANCO KOS 250",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "250",
+  "expected": "Bianco Kos 250",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-250": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-250": 3108
+  },
+  "seconds": 14
+ },
+ {
+  "name": "Brera Brown TKN",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKN",
+  "expected": "Brera Brown TKN",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TKN": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKN": 1063,
+   "CT-URHPL-FAHO/0": 0
+  },
+  "seconds": 25
+ },
+ {
+  "name": "CALACATTA 259",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "259",
+  "expected": "Calacatta 259",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-259": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-259": 3108
+  },
+  "seconds": 23
+ },
+ {
+  "name": "Cepp Stone TKP",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKP",
+  "expected": "Cepp Stone TKP",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TKP": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKP": 1063
+  },
+  "seconds": 14
+ },
+ {
+  "name": "GRIGIO BROMO 253",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "253",
+  "expected": "Grigio Bromo 253",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-253": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-253": 1063
+  },
+  "seconds": 17
+ },
+ {
+  "name": "GRIGIO LONDON 252",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "252",
+  "expected": "Grigio London 252",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-252": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-252": 1063
+  },
+  "seconds": 15
+ },
+ {
+  "name": "IMPERO 260",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "260",
+  "expected": "Impero 260",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-260": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-260": 3108
+  },
+  "seconds": 18
+ },
+ {
+  "name": "KASPIO ARGENTO 262",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "262",
+  "expected": "Kaspio Argento 262",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-262": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-262": 3108
+  },
+  "seconds": 19
+ },
+ {
+  "name": "KASPIO ORO 261",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "261",
+  "expected": "Kaspio Oro 261",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-261": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-261": 1063
+  },
+  "seconds": 17
+ },
+ {
+  "name": "NERO INGO 251",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "251",
+  "expected": "Nero Ingo 251",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-251": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-251": 1063
+  },
+  "seconds": 13
+ },
+ {
+  "name": "NOCE SAVOIA 256",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "256",
+  "expected": "Noce Savoia 256",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-256": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-256": 1063
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Noce Savoia TKG",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKG",
+  "expected": "Noce Savoia TKG",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TKG": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKG": 1063
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Noce Sinfonia TKM",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKM",
+  "expected": "Noce Sinfonia TKM",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKM": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-TKM": 3108
+  },
+  "seconds": 16
+ },
+ {
+  "name": "Pulpis Chiaro TKH",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKH",
+  "expected": "Pulpis Chiaro TKH",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKH": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-TKH": 3108
+  },
+  "seconds": 52
+ },
+ {
+  "name": "Pulpis Scuro TKJ",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKJ",
+  "expected": "Pulpis Scuro TKJ",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TKJ": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKJ": 1063
+  },
+  "seconds": 37
+ },
+ {
+  "name": "RIVEL 257",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "257",
+  "expected": "Rivel 257",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-257": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-257": 3108
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Rovere Alba TKL",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKL",
+  "expected": "Rovere Alba TKL",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKL": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-TKL": 3108
+  },
+  "seconds": 35
+ },
+ {
+  "name": "Rovere Monet TK3",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TK3",
+  "expected": "Rovere Monet TK3",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TK3": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TK3": 1063
+  },
+  "seconds": 18
+ },
+ {
+  "name": "ROVERE PRUSSIA 255",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "255",
+  "expected": "Rovere Prussia 255",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-255": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-255": 3108
+  },
+  "seconds": 17
+ },
+ {
+  "name": "ROVERE SLAVONIA 254",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "254",
+  "expected": "Rovere Slavonia 254",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-254": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-254": 1063
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Rovere Slavonia TK6",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TK6",
+  "expected": "Rovere Slavonia TK6",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TK6": 1063,
+   "CT-URHPL-PRISMA-.5H-HPL-TK6": 3108
+  },
+  "seconds": 15
+ },
+ {
+  "name": "ROVERE TEXAS 264",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "264",
+  "expected": "Rovere Texas 264",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-264": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-264": 1063
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Rovere Valdweg TKK",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKK",
+  "expected": "Rovere Valdweg TKK",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TKK": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKK": 1063
+  },
+  "seconds": 13
+ },
+ {
+  "name": "Rox Black TKQ",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "TKQ",
+  "expected": "Rox Black TKQ",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-TKQ": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-TKQ": 1063
+  },
+  "seconds": 13
+ },
+ {
+  "name": "SILVER VOYAGE 263",
+  "material": "HPL",
+  "sku": "HPL",
+  "code": "263",
+  "expected": "Silver Voyage 263",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,174.00",
+  "final": {
+   "CT-URHPL-PRISMA-.5H-HPL-263": 3108,
+   "CT-URHPL-INTG-23.6W-.5H-19.7D-HPL-263": 1063
+  },
+  "seconds": 20
+ },
+ {
+  "name": "Aosta Green Marble Lucidato TR4",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR4",
+  "expected": "Aosta Green Marble Lucidato TR4",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR4": 1632,
+   "CT-URPOR-COVER-.5H-POR-TR4": 3420,
+   "CT-URPOR-FAHO/0": 0
+  },
+  "seconds": 25
+ },
+ {
+  "name": "ARDESIA NERA 328",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "328",
+  "expected": "Ardesia Nera 328",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-328": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-328": 1399
+  },
+  "seconds": 15
+ },
+ {
+  "name": "Avenue Amber TRC",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TRC",
+  "expected": "Avenue Amber TRC",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TRC": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TRC": 1399
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Avenue Ivory TR9",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR9",
+  "expected": "Avenue Ivory TR9",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR9": 1399,
+   "CT-URPOR-COVER-.5H-POR-TR9": 3031
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Avenue Plumb TRB",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TRB",
+  "expected": "Avenue Plumb TRB",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TRB": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TRB": 1399
+  },
+  "seconds": 19
+ },
+ {
+  "name": "Avenue Silver TRA",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TRA",
+  "expected": "Avenue Silver TRA",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TRA": 1399,
+   "CT-URPOR-COVER-.5H-POR-TRA": 3031
+  },
+  "seconds": 18
+ },
+ {
+  "name": "Bianco Assoluto Matte TQK",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQK",
+  "expected": "Bianco Assoluto Matte TQK",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQK": 1632,
+   "CT-URPOR-COVER-.5H-POR-TQK": 3420
+  },
+  "seconds": 14
+ },
+ {
+  "name": "Bianco Statuario Venato Lucidato TQC",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQC",
+  "expected": "Bianco Statuario Venato Lucidato TQC",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQC": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQC": 1632
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Bianco Statuario Venato Matte TQV",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQV",
+  "expected": "Bianco Statuario Venato Matte TQV",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQV": 1632,
+   "CT-URPOR-COVER-.5H-POR-TQV": 3420
+  },
+  "seconds": 15
+ },
+ {
+  "name": "Black Marquinia Lucidato TR1",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR1",
+  "expected": "Black Marquinia Lucidato TR1",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR1": 1632,
+   "CT-URPOR-COVER-.5H-POR-TR1": 3420
+  },
+  "seconds": 13
+ },
+ {
+  "name": "Black Marquinia Silky Matte TR7",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR7",
+  "expected": "Black Marquinia Silky Matte TR7",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR7": 1632,
+   "CT-URPOR-COVER-.5H-POR-TR7": 3420
+  },
+  "seconds": 15
+ },
+ {
+  "name": "CALACATTA BLACK 338",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "338",
+  "expected": "Calacatta Black 338",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-338": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-338": 1399,
+   "CT-URPOR-FAHO/0": 0
+  },
+  "seconds": 34
+ },
+ {
+  "name": "CALACATTA ORO OPACO 331",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "331",
+  "expected": "Calacatta Oro Opaco 331",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-331": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-331": 1399
+  },
+  "seconds": 13
+ },
+ {
+  "name": "Calacatta Oro Venato Lucidato TQD",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQD",
+  "expected": "Calacatta Oro Venato Lucidato TQD",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQD": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQD": 1632
+  },
+  "seconds": 16
+ },
+ {
+  "name": "Calacatta Oro Venato Matte TQW",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQW",
+  "expected": "Calacatta Oro Venato Matte TQW",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQD": 1632,
+   "CT-URPOR-COVER-.5H-POR-TQW": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQW": 1632
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Cava Diamond Cream TQE",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQE",
+  "expected": "Cava Diamond Cream TQE",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQE": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQE": 1632
+  },
+  "seconds": 17
+ },
+ {
+  "name": "Cava Noir Desir Lucidato TQJ",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQJ",
+  "expected": "Cava Noir Desir Lucidato TQJ",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQJ": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQJ": 1632
+  },
+  "seconds": 12
+ },
+ {
+  "name": "Cava Noir Desir Matte TQH",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQH",
+  "expected": "Cava Noir Desir Matte TQH",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQH": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQH": 1632
+  },
+  "seconds": 14
+ },
+ {
+  "name": "Emperador Lucidato TR3",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR3",
+  "expected": "Emperador Lucidato TR3",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TR3": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR3": 1632
+  },
+  "seconds": 17
+ },
+ {
+  "name": "EMPERADOR OPACO 322",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "322",
+  "expected": "Emperador Opaco 322",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-322": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-322": 1399
+  },
+  "seconds": 10
+ },
+ {
+  "name": "Fokos Rena TQ2",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQ2",
+  "expected": "Fokos Rena TQ2",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQ2": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQ2": 1399
+  },
+  "seconds": 10
+ },
+ {
+  "name": "Fokos Roccia TQ3",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQ3",
+  "expected": "Fokos Roccia TQ3",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQ3": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQ3": 1399
+  },
+  "seconds": 12
+ },
+ {
+  "name": "Fokos Sale TQ1",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQ1",
+  "expected": "Fokos Sale TQ1",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQ1": 1399,
+   "CT-URPOR-COVER-.5H-POR-TQ1": 3031
+  },
+  "seconds": 13
+ },
+ {
+  "name": "Guadi Stone Lucidato TR5",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR5",
+  "expected": "Guadi Stone Lucidato TR5",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TR5": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR5": 1632
+  },
+  "seconds": 12
+ },
+ {
+  "name": "INVISIBLE WHITE LUCIDO 334",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "334",
+  "expected": "Invisible White Lucido 334",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-334": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-334": 1399
+  },
+  "seconds": 25
+ },
+ {
+  "name": "INVISIBLE WHITE OPACO 332",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "332",
+  "expected": "Invisible White Opaco 332",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-332": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-332": 1399
+  },
+  "seconds": 16
+ },
+ {
+  "name": "Limestone Ash TRF",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TRF",
+  "expected": "Limestone Ash TRF",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TRF": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TRF": 1399
+  },
+  "seconds": 14
+ },
+ {
+  "name": "Limestone Deep TRG",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TRG",
+  "expected": "Limestone Deep TRG",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TRG": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TRG": 1399
+  },
+  "seconds": 12
+ },
+ {
+  "name": "Limestone Moon TRE",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TRE",
+  "expected": "Limestone Moon TRE",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TRE": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TRE": 1399
+  },
+  "seconds": 13
+ },
+ {
+  "name": "Metal Grey TRD",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TRD",
+  "expected": "Metal Grey TRD",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TRD": 1399,
+   "CT-URPOR-COVER-.5H-POR-TRD": 3031
+  },
+  "seconds": 14
+ },
+ {
+  "name": "MINE GOFFRATO 317",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "317",
+  "expected": "Mine Goffrato 317",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-317": 1399,
+   "CT-URPOR-COVER-.5H-POR-317": 3031
+  },
+  "seconds": 19
+ },
+ {
+  "name": "Nero Assoluto Matte TQ9",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQ9",
+  "expected": "Nero Assoluto Matte TQ9",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQ9": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQ9": 1632
+  },
+  "seconds": 9
+ },
+ {
+  "name": "NERO ATLANTE LUCIDO 326",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "326",
+  "expected": "Nero Atlante Lucido 326",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-326": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-326": 1399
+  },
+  "seconds": 16
+ },
+ {
+  "name": "Ossido Bruno TQT",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQT",
+  "expected": "Ossido Bruno TQT",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQT": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQT": 1632
+  },
+  "seconds": 11
+ },
+ {
+  "name": "Ossido Nero TQS",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQS",
+  "expected": "Ossido Nero TQS",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQS": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQS": 1632
+  },
+  "seconds": 12
+ },
+ {
+  "name": "Pietra Di Savoia Antracite TQ6",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQ6",
+  "expected": "Pietra Di Savoia Antracite TQ6",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQ6": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQ6": 1399
+  },
+  "seconds": 9
+ },
+ {
+  "name": "Pietra Di Savoia Grigia TQ4",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQ4",
+  "expected": "Pietra Di Savoia Grigia TQ4",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQ4": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQ4": 1399
+  },
+  "seconds": 9
+ },
+ {
+  "name": "PIETRA GREY GOFFRATO 323",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "323",
+  "expected": "Pietra Grey Goffrato 323",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-323": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-323": 1399
+  },
+  "seconds": 11
+ },
+ {
+  "name": "Pietra Grey Lucidata TQR",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQR",
+  "expected": "Pietra Grey Lucidata TQR",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQR": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQR": 1632
+  },
+  "seconds": 11
+ },
+ {
+  "name": "Pietra Grey Matte TQU",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQU",
+  "expected": "Pietra Grey Matte TQU",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQU": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQU": 1632
+  },
+  "seconds": 8
+ },
+ {
+  "name": "PIETRA PIASENTINA GOFFRATO 324",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "324",
+  "expected": "Pietra Piasentina Goffrato 324",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-324": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-324": 1399
+  },
+  "seconds": 8
+ },
+ {
+  "name": "Pietra Piasentina Grigia Matte TQP",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQP",
+  "expected": "Pietra Piasentina Grigia Matte TQP",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQP": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQP": 1632
+  },
+  "seconds": 12
+ },
+ {
+  "name": "Pietra Piasentina Taupe Matte TQQ",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQQ",
+  "expected": "Pietra Piasentina Taupe Matte TQQ",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQQ": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQQ": 1632
+  },
+  "seconds": 8
+ },
+ {
+  "name": "PORFIDO 337",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "337",
+  "expected": "Porfido 337",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-337": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-337": 1399
+  },
+  "seconds": 12
+ },
+ {
+  "name": "SAHARA NOIR BOCCIARDATO 335",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "335",
+  "expected": "Sahara Noir Bocciardato 335",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-335": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-335": 1399
+  },
+  "seconds": 14
+ },
+ {
+  "name": "Sahara Noir Lucidato TR2",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR2",
+  "expected": "Sahara Noir Lucidato TR2",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TR2": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR2": 1632
+  },
+  "seconds": 10
+ },
+ {
+  "name": "SAHARA NOIR LUCIDO 339",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "339",
+  "expected": "Sahara Noir Lucido 339",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-339": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-339": 1399
+  },
+  "seconds": 9
+ },
+ {
+  "name": "Sahara Noir Silky Matte TR8",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR8",
+  "expected": "Sahara Noir Silky Matte",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TR8": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR8": 1632
+  },
+  "seconds": 12
+ },
+ {
+  "name": "STATUARIO ALTISSIMO LUCIDO 333",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "333",
+  "expected": "Statuario Altissimo Lucido 333",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-333": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-333": 1399
+  },
+  "seconds": 12
+ },
+ {
+  "name": "TERRE DI SATURNIA 336",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "336",
+  "expected": "Terre Di Saturnia 336",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $6,433.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-336": 3031,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-336": 1399
+  },
+  "seconds": 13
+ },
+ {
+  "name": "Travertino Beige Matte TQX",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQX",
+  "expected": "Travertino Beige Matte TQX",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQX": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQX": 1632
+  },
+  "seconds": 8
+ },
+ {
+  "name": "Travertino Lucidato TR6",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TR6",
+  "expected": "Travertino Lucidato TR6",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TR6": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TR6": 1632
+  },
+  "seconds": 12
+ },
+ {
+  "name": "Travertino Silver Matte TQY",
+  "material": "Porcelain",
+  "sku": "POR",
+  "code": "TQY",
+  "expected": "Travertino Silver Matte TQY",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $7,055.00",
+  "final": {
+   "CT-URPOR-COVER-.5H-POR-TQY": 3420,
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-TQY": 1632
+  },
+  "seconds": 9
+ },
+ {
+  "name": "Matte White",
+  "material": "Solid Surface",
+  "sku": "SSTL",
+  "code": "MW",
+  "expected": "Solid Surface Matte White",
+  "disabled": false,
+  "inScene": true,
+  "cabinetInScene": true,
+  "pressed": true,
+  "total": "Total List Price $3,729.00",
+  "final": {
+   "CT-URPOR-INTG-23.6W-.5H-19.7D-POR-White": 1399,
+   "CT-URPOR-COVER-.4H-POR-White": null,
+   "CT-URPOR-INTG-23.6W-.4H-19.7D-POR-White": 1726
+  },
+  "seconds": 31
+ }
+]
