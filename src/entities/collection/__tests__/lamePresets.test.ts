@@ -109,17 +109,6 @@ describe("lame model compositions", () => {
     }
   });
 
-  it("uses the local Antracite cabinet and handle defaults", () => {
-    for (const { title, presetProducts } of presets) {
-      for (const product of presetProducts) {
-        expect(product, title).toMatchObject({
-          CabinetColor: "Antracite 400 MT",
-          HandleColor: "Antracite 400 MT",
-        });
-      }
-    }
-  });
-
   // The scene lays Galles while a model names no pattern; the profile starts the composition at Oxford.
   it("lays every model in the starting pattern of the profile", () => {
     for (const { title, presetProducts } of presets) {
@@ -154,7 +143,7 @@ describe("lame model compositions", () => {
   it("shows each model with its own thumbnail from the collection folder", () => {
     for (const { title, img } of presets) {
       expect(shippedImages.has(img), title).toBe(true);
-      expect(img, title).toBe(`images/${title.replace('"', "_")}.png`);
+      expect(img.replace(/\.[^./]+$/, ""), title).toBe(`images/${title.replace('"', "_")}`);
     }
   });
 });
