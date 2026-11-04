@@ -7,11 +7,12 @@ import { parseProductProfile } from "../lib/parseProductProfile";
 import { selectOptionValues } from "../lib/productProfileSelectors";
 import { presetsSchema } from "../model/schemas";
 
+import clientLayouts from "./fixtures/lame-client-layouts-2026-10-28.json";
+
 /**
- * The Lame models with their compositions: Sink Base and Side Cabinet modules, 40–120 cm wide. No
- * document describes the compositions (GEN-MOD-01); they are read from the pre-render thumbnails the
- * models carry. A model's title names its width, style and legs; the filter tags follow what the
- * composition holds.
+ * Cabinet order and basin positions are pinned to independently captured Hastings scenes (2026-10-28).
+ * Raw inch annotations remain separate from nominal product widths in cm. Model 14 has unresolved
+ * measurement endpoints, so its 51.1in overall label is not treated as a 120cm cabinet specification.
  */
 
 const presets = presetsSchema.parse(lamePresetsDocument);
@@ -38,11 +39,37 @@ const shippedImages = new Set(
 );
 
 describe("lame model compositions", () => {
+  it("covers every client model with one local preset", () => {
+    expect(presets.map(({ id }) => id).sort((a, b) => a - b)).toEqual(
+      clientLayouts.map(({ presetId }) => presetId).sort((a, b) => a - b),
+    );
+  });
+
+  it.each(clientLayouts)("matches the client cabinet order, widths and basin positions of $title", (client) => {
+    const preset = presets.find(({ id }) => id === client.presetId);
+    expect(preset, client.sourceUrl).toBeDefined();
+    if (!preset) throw new Error(`Missing local counterpart: ${client.sourceModel}`);
+    expect(preset.title).toBe(client.title);
+    expect(preset.presetProducts).toHaveLength(client.moduleTypes.length);
+    preset.presetProducts.forEach((product, index) => {
+      expect(product.name).toBe(client.moduleTypes[index] === "sink-base" ? "Sink-Base" : "Sink-Cabinet");
+      expect(product.Drawers).toBe(`${client.drawersPerModule[index]}D`);
+      if (!client.widthBasisUnresolved) {
+        // One-decimal labels are not exact nominal dimensions (e.g.40cm appears as15.8in on Hastings).
+        expect(Math.abs((product.Width ?? 0) / 2.54 - client.moduleWidthsIn[index]), client.sourceUrl).toBeLessThan(
+          0.15,
+        );
+      }
+    });
+    expect(
+      preset.presetProducts.flatMap((product, index) => (product.name === "Sink-Base" ? [index + 1] : [])),
+    ).toEqual(client.basinPositions);
+  });
   it("gives every model a composition of Lame cabinet types", () => {
     const cabinetTypes = selectOptionValues(profile(), "CabinetType");
 
-    // 44 models in the Master File; the pre-render has no thumbnail for Lame 79 2DW w/leg_70.
-    expect(presets).toHaveLength(43);
+    // The previously missing 79in 2-Drawer Legs now has a captured client reference and its own card.
+    expect(presets).toHaveLength(44);
     expect(new Set(presets.map(({ id }) => id)).size).toBe(presets.length);
     for (const { presetProducts } of presets) {
       expect(presetProducts.length).toBeGreaterThan(0);
@@ -82,7 +109,7 @@ describe("lame model compositions", () => {
     }
   });
 
-  it("paints every cabinet and its handles in the Antracite lacquer the thumbnails show", () => {
+  it("uses the local Antracite cabinet and handle defaults", () => {
     for (const { title, presetProducts } of presets) {
       for (const product of presetProducts) {
         expect(product, title).toMatchObject({
@@ -103,13 +130,13 @@ describe("lame model compositions", () => {
   });
 
   // The legs are on without a cap colour: the scene paints the caps in the handle colour.
-  it("stands the models whose titles name legs on them, and no other model", () => {
+  it("requests legs only for the models whose titles name them", () => {
     for (const { title, presetProducts } of presets) {
       for (const product of presetProducts) {
         expect(product.LegColor, title).toBe(titleOf(title).legs ? "None" : undefined);
       }
     }
-    expect(presets.filter(({ title }) => titleOf(title).legs)).toHaveLength(18);
+    expect(presets.filter(({ title }) => titleOf(title).legs)).toHaveLength(19);
   });
 
   it("tags each model by what its composition holds", () => {
