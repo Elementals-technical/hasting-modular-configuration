@@ -119,7 +119,7 @@ describe("selectBroadcastValues", () => {
 
   it("starts an empty composition at the collection's own values", () => {
     // Mako starts its handles in a colour; its legs have no starting value, so none is given.
-    expect(selectBroadcastValues(store.getState())).toEqual({ HandleColor: "Antracite 400 MT" });
+    expect(selectBroadcastValues(store.getState(), null)).toEqual({ HandleColor: "Antracite 400 MT" });
   });
 
   it("gives what the composition holds, over the collection's starting value", () => {
@@ -127,7 +127,7 @@ describe("selectBroadcastValues", () => {
     record("HandleColor", "cab-1", "Gold");
     record("LegColor", "cab-1", "None");
 
-    expect(selectBroadcastValues(store.getState())).toEqual({ HandleColor: "Gold", LegColor: "None" });
+    expect(selectBroadcastValues(store.getState(), null)).toEqual({ HandleColor: "Gold", LegColor: "None" });
   });
 
   it("gives nothing for a value recorded as empty: legs switched off stay off", () => {
@@ -135,13 +135,13 @@ describe("selectBroadcastValues", () => {
     record("LegColor", "cab-1", "");
     record("HandleColor", "cab-1", "");
 
-    expect(selectBroadcastValues(store.getState())).toEqual({});
+    expect(selectBroadcastValues(store.getState(), null)).toEqual({});
   });
 
   it("gives nothing in a collection without such values", () => {
     open(ushProfile, "urban-standard-height", ushRuntimeBindings);
 
-    expect(selectBroadcastValues(store.getState())).toEqual({});
+    expect(selectBroadcastValues(store.getState(), null)).toEqual({});
   });
 });
 
@@ -213,7 +213,7 @@ describe("selectPlacedWithValues", () => {
 
   it("leaves the lateral side to the values every cabinet holds, which are recorded at the new one", () => {
     expect(Object.keys(selectPlacedWithValues(store.getState()))).not.toContain("LateralPanelSide");
-    expect(selectBroadcastValues(store.getState())).toEqual({ LateralPanelSide: "R" });
+    expect(selectBroadcastValues(store.getState(), null)).toEqual({ LateralPanelSide: "R" });
   });
 
   it("starts a Class product in the collection's side and frame colours, which its scene keeps per product", () => {

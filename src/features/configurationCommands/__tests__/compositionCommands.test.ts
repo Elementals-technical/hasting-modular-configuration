@@ -707,6 +707,143 @@ describe("composition commands", () => {
         expect(handleBlocks()).toEqual(["HDL-LACM-400"]);
       });
 
+      it("starts the first cabinet of an empty composition in the colour its G50 starts in", async () => {
+        const { composition, deps } = setup();
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Base", config: { Width: 60, Drawers: "2D", Handle: "G50" } },
+            placement: { kind: "end" },
+          },
+          deps,
+        );
+
+        expect(lastCall(composition)).toMatchObject({
+          op: "add",
+          product: { config: { Handle: "G50", HandleColor: "Silver" } },
+        });
+        expect(heldBy("HandleColor")).toEqual(["Silver"]);
+      });
+
+      it.each([
+        ["a lacquered colour other than the collection's start", "Nebbia 402 MT", "G57", "Nebbia 402 MT"],
+        ["a colour the G50 comes in", "Gold", "G50", "Gold"],
+        // Recorded as empty is not "nothing recorded": a G50 does not start over in Silver.
+        ["a colour recorded as empty", "", "G50", undefined],
+      ])("keeps %s for a cabinet that joins the composition", async (_name, recorded, handle, joinsWith) => {
+        const { composition, deps } = setup(["Mako-sink-cabinet-a"]);
+        const [{ stableKey: cabinetId }] = getCabinetEntries(store.getState());
+        store.dispatch(
+          setAttributeValue({ attributeId: "HandleColor", target: { scope: "cabinet", cabinetId }, value: recorded }),
+        );
+
+        await addCabinet(
+          {
+            product: { productType: "Sink-Cabinet", config: { Width: 40, Drawers: "2D", Handle: handle } },
+            placement: { kind: "end" },
+          },
+          deps,
+        );
+
+        const call = lastCall(composition);
+        expect(call.op === "add" && call.product.config.HandleColor).toBe(joinsWith);
+        expect(heldBy("HandleColor")).toEqual([recorded, joinsWith]);
+      });
+
+      /**
+       * The builder's config keeps the scene config of the cabinet last clicked, so it may still
+       * name a colour the handle chosen since does not come in.
+       */
+      describe("named in the config of a cabinet that joins, when its handle does not come in it", () => {
+        const placeHolding = async (handle: string, color: string) => {
+          const fixture = setup();
+          await applyPreset(
+            {
+              products: makoModel.slice(0, 2).map(({ productType, config }) => ({
+                productType,
+                config: { ...config, Handle: handle, HandleColor: color },
+              })),
+            },
+            fixture.deps,
+          );
+          return fixture;
+        };
+
+        it.each([
+          { handle: "G50", held: "Silver", stale: "Nebbia 402 Lacquered MT" },
+          // What the composition holds, not the colour the handle starts in.
+          { handle: "G50", held: "Gold", stale: "Nebbia 402 Lacquered MT" },
+        ])("gives way to the $held a $handle composition holds", async ({ handle, held, stale }) => {
+          const fixture = await placeHolding(handle, held);
+
+          await addCabinet(
+            {
+              product: {
+                productType: "Sink-Cabinet",
+                config: { Width: 40, Drawers: "2D", Handle: handle, HandleColor: stale },
+              },
+              placement: { kind: "end" },
+            },
+            fixture.deps,
+          );
+
+          expect(lastCall(fixture.composition)).toMatchObject({
+            op: "add",
+            product: { config: { Handle: handle, HandleColor: held } },
+          });
+          expect(heldBy("HandleColor")).toEqual([held, held, held]);
+        });
+
+        it("gives way to the colour a G50 starts in when the composition is empty", async () => {
+          const { composition, deps } = setup();
+
+          await addCabinet(
+            {
+              product: {
+                productType: "Sink-Base",
+                config: { Width: 60, Drawers: "2D", Handle: "G50", HandleColor: "Antracite 400 Lacquered MT" },
+              },
+              placement: { kind: "end" },
+            },
+            deps,
+          );
+
+          expect(lastCall(composition)).toMatchObject({
+            op: "add",
+            product: { config: { Handle: "G50", HandleColor: "Silver" } },
+          });
+          expect(heldBy("HandleColor")).toEqual(["Silver"]);
+        });
+
+        it("gives way in what a drag places and in what adopting that cabinet records", async () => {
+          const { deps } = await placeHolding("G50", "Silver");
+
+          const prepared = prepareCabinet(
+            {
+              productType: "Sink-Cabinet",
+              config: { Width: 40, Drawers: "2D", Handle: "G50", HandleColor: "Nebbia 402 Lacquered MT" },
+            },
+            deps,
+          );
+          if (!prepared) throw new Error("the cabinet must be prepared");
+          expect(prepared.selection).toMatchObject({ Handle: "G50", HandleColor: "Silver" });
+
+          const runtimeIds = [...product().productIds, "Mako-side-cabinet-dragged"];
+          await adoptComposition(
+            {
+              runtimeIds,
+              products: runtimeIds.map(() => ({ productType: "Sink-Cabinet", config: { Width: 40 } })),
+              placed: [
+                { runtimeId: "Mako-side-cabinet-dragged", product: prepared.product, inherited: prepared.inherited },
+              ],
+            },
+            deps,
+          );
+
+          expect(heldBy("HandleColor")).toEqual(["Silver", "Silver", "Silver"]);
+        });
+      });
+
       it("keeps the value a copied cabinet carries, and records the composition's", async () => {
         const fixture = setup();
         await applyPreset({ products: makoModel }, fixture.deps);

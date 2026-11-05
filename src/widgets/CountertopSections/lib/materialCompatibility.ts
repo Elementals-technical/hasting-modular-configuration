@@ -3,6 +3,8 @@ import {
   getCountertopRuleMaxWidthsForStyle,
   matchesDepthForStyle,
   materialMatchesRule,
+  REASON_COUNTERTOP_MATERIAL_BY_FAILURE,
+  REASON_COUNTERTOP_MATERIAL_SELECTION,
   resolveCountertopWidthRuleStyle,
   type CountertopMaterialEvaluation,
   type CountertopMaterialFailure,
@@ -41,6 +43,10 @@ export const reasonForFailure = (failedBy: MaterialFailure, messages: Messages) 
   return messages.selection;
 };
 
+/** The reason code `reasonForFailure` words; a failure no single check explains is the selection's. */
+export const reasonCodeForFailure = (failedBy: MaterialFailure) =>
+  failedBy ? REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] : REASON_COUNTERTOP_MATERIAL_SELECTION;
+
 /** The widest countertop the rules allow for a material at the current depth. */
 const maxMaterialWidth = (materialValue: string, inputs: MaterialRuleInputs): number | null => {
   const widthRuleStyle = resolveCountertopWidthRuleStyle({ ...inputs, profile: inputs.activeProfile });
@@ -75,7 +81,8 @@ export const materialFilterReason = (
       return `${messages.totalWidth}. ${materialValue} max ${maxWidth} cm (${cmToInches(maxWidth)}").`;
     return messages.totalWidth;
   }
-  if (evaluations.some((item) => item.failedBy === "selected")) return messages.width;
+  const refusedForWidth = evaluations.find((item) => item.failedBy === "selected");
+  if (refusedForWidth) return refusedForWidth.widthRefusal?.disabledReason ?? messages.width;
   if (evaluations.some((item) => item.failedBy === "composition")) return messages.syntesiSingleCabinet;
   return messages.size;
 };

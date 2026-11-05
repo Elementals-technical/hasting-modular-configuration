@@ -15,6 +15,7 @@ import {
   findPlacedCabinetRule,
   type Selection,
 } from "@/features/configurator-rule-core/cabinetBuilder";
+import { resolveHandleColor } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleColorRule";
 import { resolveHandleAfterRules } from "@/features/configurator-rule-core/cabinetBuilder/lib/resolveHandleAfterRules";
 import { flutingRule } from "@/features/configurator-rule-core/options/rules/flutingRule";
 import { resolveColorTraits } from "./resolveColorTraits";
@@ -59,6 +60,8 @@ export type BuildChangePlanArgs = {
   profile: ProductProfile;
   /** Current groove colour, to decide whether clearing it is part of the set. */
   handleGrooveColor: string | null | undefined;
+  /** Current handle colour, to decide whether replacing it is part of the set. */
+  handleColor?: string | null;
   /** Current towel bar colour, to decide whether clearing it is part of the set. */
   towelBarColor?: string | null;
   /** Current basin and vessel colour, and the placed Sink Bases a basin reaches. */
@@ -170,6 +173,7 @@ export const buildChangePlan = ({
   catalog,
   profile,
   handleGrooveColor,
+  handleColor,
   cabinetColor,
   patternValues = {},
   towelBarColor,
@@ -431,6 +435,16 @@ export const buildChangePlan = ({
 
   const grooveReset = resolveGrooveReset(profile, previousHandle, nextHandle, handleGrooveColor, target);
   if (grooveReset) plan.push(grooveReset);
+
+  // A new handle that does not come in the held colour takes the one it starts in. No reason code:
+  // the Handle popups show the first reason only.
+  if (nextHandle !== previousHandle) {
+    const heldColor = handleColor ?? "";
+    const nextColor = resolveHandleColor(profile, nextHandle, heldColor);
+    if (nextColor !== heldColor) {
+      plan.push({ attributeId: "HandleColor", target, value: nextColor, origin: "dependency" });
+    }
+  }
 
   return { ok: true, plan };
 };

@@ -178,22 +178,24 @@ const totalWidthAboveMaxReason = (profile: ProductProfile | null | undefined, cu
     { currentCm: currentWidth, currentIn: cmToInches(currentWidth), maxCm: maxWidth, maxIn: cmToInches(maxWidth) },
   );
 
-/**
- * Why an integrated basin is unavailable for the current composition, checked in the order
- * the countertop step shows it: total width over the basin's maximum, sink base under its
- * minimum, sink base outside the exact sizes, and otherwise the selection as a whole.
- */
-export const resolveIntegratedBasinUnavailableReason = ({
-  basinRules,
-  sinkBaseWidth,
-  totalWidth,
-  profile,
-}: {
+type IntegratedWidthRefusalInput = {
   basinRules: CountertopMatrixRule[];
   sinkBaseWidth: number | null;
   totalWidth: number | null;
   profile: ProductProfile | null;
-}): CountertopRuleReason => {
+};
+
+/**
+ * The widths integrated matrix rows need, as a refusal, checked in the order the countertop step shows it: total width
+ * over their maximum, Sink Base under their minimum, Sink Base outside their exact sizes. Null when these widths fit:
+ * something else refuses the rows.
+ */
+export const resolveIntegratedWidthRefusal = ({
+  basinRules,
+  sinkBaseWidth,
+  totalWidth,
+  profile,
+}: IntegratedWidthRefusalInput): CountertopRuleReason | null => {
   const maxIntegrated = basinRules.map((rule) => rule.maxIntegratedCm).filter((value): value is number => value !== null);
   if (typeof totalWidth === "number" && maxIntegrated.length > 0) {
     const maxAllowed = Math.max(...maxIntegrated);
@@ -217,12 +219,17 @@ export const resolveIntegratedBasinUnavailableReason = ({
     return sinkBaseWidthNotAllowedReason(profile, allowedSinkBaseWidths);
   }
 
-  return ruleReason(
-    profile,
+  return null;
+};
+
+/** Why an integrated basin is unavailable for the composition: the widths it needs, else the selection as a whole. */
+export const resolveIntegratedBasinUnavailableReason = (input: IntegratedWidthRefusalInput): CountertopRuleReason =>
+  resolveIntegratedWidthRefusal(input) ??
+  ruleReason(
+    input.profile,
     REASON_COUNTERTOP_MATERIAL_NOT_AVAILABLE_FOR_SELECTION,
     "Not available for selected cabinet width/depth/thickness on scene",
   );
-};
 
 export const isRuleWidthEligibleForIntegratedContext = (
   rule: CountertopMatrixRule,

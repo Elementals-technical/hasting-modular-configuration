@@ -107,6 +107,7 @@ import { NOT_CARRIED_ATTRIBUTE_IDS, selectOwnCabinetValues, useChangeAttribute }
 import { ensureCabinetHeights, restoreCountertopConfigs, readCountertopConfig } from "@/features/playCanvasAdapter";
 import { clearDividerZones } from "@/features/dividers";
 import {
+  compositionLengthReachedReason,
   formatCompositionLengthReachedReason,
   useCabinetRowCapacity,
   useCountertopLengthGuard,
@@ -423,6 +424,8 @@ export const CabinetBuilderPage = () => {
   const maxCountertopLength = lengthGuard.max;
   const remainingCountertopLength = lengthGuard.remaining;
   const compositionExceededReason = formatCompositionLengthReachedReason(maxCountertopLength, activeProfile);
+  // Named by its code, so the card reads the collection's text for it, the text above being the fallback.
+  const compositionExceeded = useMemo(() => compositionLengthReachedReason(maxCountertopLength), [maxCountertopLength]);
 
   const addableCatalogWidths = useMemo(() => {
     return getUniqueCatalogWidths(cabinetCatalog);
@@ -541,7 +544,12 @@ export const CabinetBuilderPage = () => {
             reason: typeLimit && selectMessageOr(activeProfile, typeLimit.code, typeLimit.text),
             code: typeLimit?.code,
           },
-          { when: hasProducts && !hasAddableWidth, reason: compositionExceededReason },
+          {
+            when: hasProducts && !hasAddableWidth,
+            reason: compositionExceededReason,
+            code: compositionExceeded.code,
+            params: compositionExceeded.params,
+          },
           {
             when: !canSwitch,
             reason: selectMessageOr(activeProfile, REASON_STYLE_NOT_WITH_SERIES, STYLE_NOT_WITH_SERIES_TEXT, {
@@ -630,6 +638,7 @@ export const CabinetBuilderPage = () => {
     hasProducts,
     rowCapacity,
     compositionExceededReason,
+    compositionExceeded,
     heightStyles,
     heightChoices,
     selectedDimensions.height,
@@ -694,7 +703,12 @@ export const CabinetBuilderPage = () => {
               // Offered only while this is the reason shown: at the limit of the type another handle makes no room.
               offersPtoSwitch: true,
             },
-            { when: hasProducts && !typeHasFittingWidth, reason: compositionExceededReason },
+            {
+              when: hasProducts && !typeHasFittingWidth,
+              reason: compositionExceededReason,
+              code: compositionExceeded.code,
+              params: compositionExceeded.params,
+            },
           ];
           const blocker = blockers.find(({ when }) => when);
 
@@ -708,6 +722,7 @@ export const CabinetBuilderPage = () => {
             disabledReason: blocker?.reason,
             // Named by its code, so the hint reads the collection's text for it.
             disabledReasonCode: blocker?.code,
+            disabledReasonParams: blocker?.params,
             disabledActionLabel: blocker?.offersPtoSwitch ? "Switch to PTO handle here" : undefined,
             onDisabledAction: blocker?.offersPtoSwitch ? () => setIsPtoSwitchPromptOpen(true) : undefined,
             metadata: {
@@ -738,6 +753,7 @@ export const CabinetBuilderPage = () => {
       remainingCountertopLength,
       rowCapacity,
       compositionExceededReason,
+      compositionExceeded,
     ],
   );
 

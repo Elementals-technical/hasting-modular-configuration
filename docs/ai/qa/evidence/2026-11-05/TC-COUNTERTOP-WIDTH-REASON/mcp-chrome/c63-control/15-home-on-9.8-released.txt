@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"message":null,"overlay":{"status":"clear","alerts":[],"applyDisabled":false},"length":1.71704,"hosted":true,"pose":{"x":0.216,"y":0.212},"cabinets":"side-cabinet:25 side-cabinet:60"}
+```

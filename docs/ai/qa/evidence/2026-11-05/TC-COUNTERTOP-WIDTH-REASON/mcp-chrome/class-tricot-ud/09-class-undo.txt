@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"configs":[{"id":"Class-sink-cabinet","Width":80,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_VA023"}],"colour":{"present":true,"refused":false},"basin":{"present":true,"refused":false}}
+```

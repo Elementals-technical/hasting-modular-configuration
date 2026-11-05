@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"found":true,"tag":"DIV","popup":null,"url":"/prebuilt/model?collectionId=mako"}
+```
+Page navigated to http://localhost:5173/prebuilt/model?collectionId=mako.

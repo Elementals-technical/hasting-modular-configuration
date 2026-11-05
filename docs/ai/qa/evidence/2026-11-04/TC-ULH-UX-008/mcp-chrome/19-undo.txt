@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"enabled":true,"hosted":true,"pose":{"x":0.041,"y":0.275},"cabinets":"side-cabinet:60 side-cabinet:60"}
+```

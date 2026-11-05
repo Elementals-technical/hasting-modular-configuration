@@ -4,6 +4,7 @@ import { getVesselColor } from "@/entities/product/model/store/selectors";
 import {
   isMaterialCompatibleWithVesselStyle,
   normalizeMaterialToken,
+  REASON_VESSEL_COLOR_UNAVAILABLE,
 } from "@/features/configurator-rule-core/countertop";
 import {
   filterOptionsByMaterialSelection,
@@ -115,7 +116,14 @@ export const useVesselColorState = ({ context, vesselColorOptions, defaultMateri
     return filterOptionsByTier(byMaterial, selection.tier)
       .map((option) => {
         const isAvailable = isCompatibleWithSinkStyle(option);
-        return { ...option, isAvailable, disabledReason: isAvailable ? undefined : messages.vesselColorUnavailable };
+        if (isAvailable) return { ...option, isAvailable, disabledReason: undefined };
+        // The code names the reason the grid shows; the profile's text is its fallback.
+        return {
+          ...option,
+          isAvailable,
+          disabledReason: messages.vesselColorUnavailable,
+          disabledReasonCode: REASON_VESSEL_COLOR_UNAVAILABLE,
+        };
       })
       .sort((a, b) => {
         const availabilityDiff = Number(a.isAvailable === false) - Number(b.isAvailable === false);

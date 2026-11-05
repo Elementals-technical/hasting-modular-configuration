@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"walkthrough":"Skip","url":"/prebuilt/model?collectionId=lame","configs":[{"id":"Lame-sink-cabinet","Width":60,"Drawers":"1D","HandleColor":"Fumo 401 Lacquered MT","CabinetColor":"Fumo 401 Lacquered MT","sinkType":"Top_LB175"}],"price":"Total List Price $4,477.00"}
+```
+Page navigated to http://localhost:5173/prebuilt/model?collectionId=lame.

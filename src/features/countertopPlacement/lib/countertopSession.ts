@@ -1,7 +1,9 @@
 import {
   classifyCountertopError,
+  COUNTERTOP_LANDING_GAP_SLUG,
   type CountertopApi,
   type CountertopFailure,
+  type CountertopOverlayFrame,
   type CountertopState,
   type CountertopValidation,
 } from "@/features/configuratorApi";
@@ -167,4 +169,16 @@ export const describeCountertopValidation = (
   }
   if (validation.status === "unknown" || !validation.warnings?.length) return null;
   return { tone: "warning", lines: reasonTexts(validation.warnings, resolveText) };
+};
+
+/**
+ * Why an overlay frame is blocked, in the scene's words. A cut-out no cabinet holds says so in the interface's words,
+ * ahead of the trap clearance the scene lists first: over a cabinet too narrow for the basin, that is what to change.
+ */
+export const describeCountertopFrameReason = (
+  { reasons }: Pick<CountertopOverlayFrame, "reasons">,
+  resolveText: ReasonTextResolver = resolveUiReasonText,
+) => {
+  const landingGap = reasons?.find(({ code }) => code === COUNTERTOP_LANDING_GAP_SLUG);
+  return landingGap ? resolveText({ code: landingGap.code, text: landingGap.message }) : reasons?.[0]?.message;
 };

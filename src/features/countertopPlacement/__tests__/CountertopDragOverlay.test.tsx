@@ -310,3 +310,26 @@ describe("CountertopDragOverlay length ghost", () => {
     expect(screen.queryByTestId("countertop-length-ghost")).toBeNull();
   });
 });
+
+describe("CountertopDragOverlay reason of a blocked frame", () => {
+  const trapClearance = { code: "TRAP_KEEPOUT", message: "A cabinet is inside the sink trap clearance zone" };
+
+  it("says the basin needs a wider cabinet, ahead of the trap clearance it also breaks", () => {
+    // The top snapped to its standard pose over a cabinet resized below the cut-out: the pose itself reads as valid.
+    renderOverlay(
+      frameOf({
+        status: "colliding",
+        canApply: false,
+        reasons: [trapClearance, { code: "SINK_LANDING_GAP", message: "The sink would land over empty space" }],
+      }),
+    );
+
+    expect(screen.getByRole("alert").textContent).toBe("The basin needs one cabinet wide enough for it.");
+  });
+
+  it("keeps the scene's words for any other reason", () => {
+    renderOverlay(frameOf({ status: "colliding", canApply: false, reasons: [trapClearance] }));
+
+    expect(screen.getByRole("alert").textContent).toBe(trapClearance.message);
+  });
+});

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"name":"Ardesia TKF","picked":true,"configs":[{"id":"Sink-Base","Width":60,"Drawers":"2D","Handle":"handle_urban_topcut","CabinetColor":"Pulpis Chiaro TKH","sinkType":"Top_HPLPrisma"}],"basin":"Basin style","strip":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 70 cm (27.6\")."]},"cover":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 70 cm (27.6\")."]},"prisma":{"present":true,"refused":false}}
+```

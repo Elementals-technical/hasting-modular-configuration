@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"next":"Next: Countertop & Basin","url":"/prebuilt/color","n":22,"swatches":["Acqua 419 MT","Agata 407 MT","Ambra 413 MT"],"selected":["Silver"],"groups":[{"group":"Lacquered MT","n":20},{"group":"Metal","n":2}],"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"","sinkType":"Top_LB440"},{"id":"Mako-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"","sinkType":"Top_LB440"}],"price":"Total List Price $11,327.00","lastVan":["VAN-MAKOV-SB/2DW/G50-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV","VAN-MAKOV-SB/2DW/G50-31.5W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV","VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV","VAN-MAKOV-SB/2DW/G57-31.5W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV"]}
+```
+Page navigated to http://localhost:5173/prebuilt/color?collectionId=mako.

@@ -90,7 +90,14 @@ const ColorSectionField = ({
       onOrderSwatches={orderSwatches}
       requestedLevel={isCountertopLevel(requestedLevel) ? requestedLevel : null}
     >
-      <ColorField field={field} title={section.label} onChange={select} onOrderSwatches={orderSwatches} />
+      {/* A filter chosen over options the rules then take away does not outlive them. */}
+      <ColorField
+        key={field.options.map(({ value }) => value).join()}
+        field={field}
+        title={section.label}
+        onChange={select}
+        onOrderSwatches={orderSwatches}
+      />
     </CountertopColorLevelPicker>
   );
 };

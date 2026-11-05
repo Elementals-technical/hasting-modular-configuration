@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+["Not available for current sink base width. Current 60 cm (23.6\"), minimum 80 cm (31.5\")."]
+```

@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"r":{"w":{"offered":["23.6\"","31.5\"","39.4\"","47.2\""],"chose":"23.6\""},"placed":true},"cfg":{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Antracite 400 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"},"refusedColours":[],"basin":"Basin Style","refusedBasins":[]}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=mako.

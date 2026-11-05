@@ -39,6 +39,7 @@ import {
 } from "@/entities/product/model/store/slice";
 import { ReasonTextProvider } from "@/features/collectionCustomization";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
+import type { MessageParams } from "@/shared/lib/reasonText";
 
 import { CabinetBuilderPage } from "../CabinetBuilderPage";
 
@@ -55,6 +56,7 @@ type CardData = {
   isAvailable?: boolean;
   disabledReason?: string;
   disabledReasonCode?: string;
+  disabledReasonParams?: MessageParams;
   disabledActionLabel?: string;
 };
 
@@ -92,6 +94,8 @@ const SINK_BASE_LIMIT = "Vanity configurations allow a maximum of two Sink Base 
 const ADD_BASE_FIRST = "Add at least one Sink Base or Side Cabinet first.";
 const PTO_ONLY = "This cabinet type is only compatible with a PTO handle.";
 const LENGTH_REACHED = 'Maximum composition length reached for the selected countertop setup (270 cm / 106.3").';
+const LENGTH_REACHED_CODE = "countertop.compositionLengthReached";
+const LENGTH_REACHED_PARAMS = { maxCm: 270, maxIn: "106.3" };
 const UF_NEEDS_TALL_CABINET =
   "Add a 2 Drawer Sink Base or Side Cabinet first: the short cabinet stands beside a taller one.";
 /** An Urban Standard Height handle with a groove, which a Side Shelf does not take. */
@@ -194,6 +198,7 @@ const why = (card: CardData | undefined) => ({
   isAvailable: card?.isAvailable,
   reason: card?.disabledReason,
   code: card?.disabledReasonCode,
+  params: card?.disabledReasonParams,
   action: card?.disabledActionLabel,
 });
 const typeCard = (title: string) => why(cards.types.find((card) => card.title === title));
@@ -251,13 +256,14 @@ describe("a greyed type card", () => {
     });
   });
 
-  it("names the countertop's length once no cabinet fits", () => {
+  it("names the countertop's length by its code once no cabinet fits", () => {
     renderBuilder(USH, ["Sink-Base-test1"], { countertopFull: true });
 
     expect(typeCard("Side Cabinet")).toEqual({
       isAvailable: false,
       reason: LENGTH_REACHED,
-      code: undefined,
+      code: LENGTH_REACHED_CODE,
+      params: LENGTH_REACHED_PARAMS,
       action: undefined,
     });
   });
@@ -282,12 +288,17 @@ describe("a greyed style card", () => {
     }
   });
 
-  it("names the countertop's length once no cabinet of the type fits", () => {
+  it("names the countertop's length by its code once no cabinet of the type fits", () => {
     renderBuilder(USH, ["Sink-Base-test1"], { adding: "Sink-Cabinet", countertopFull: true });
 
     expect(styleCards().length).toBeGreaterThan(0);
     for (const card of styleCards()) {
-      expect(card).toMatchObject({ isAvailable: false, reason: LENGTH_REACHED, code: undefined });
+      expect(card).toMatchObject({
+        isAvailable: false,
+        reason: LENGTH_REACHED,
+        code: LENGTH_REACHED_CODE,
+        params: LENGTH_REACHED_PARAMS,
+      });
     }
   });
 

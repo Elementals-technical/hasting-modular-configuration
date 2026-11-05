@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { CountertopRuleReason } from "@/features/configurator-rule-core/countertop";
 import {
   classifyCountertopError,
   createConfiguratorClient,
@@ -11,12 +12,13 @@ import {
   type CabinetsState,
   type ConfiguratorClient,
   type CountertopApi,
+  type CountertopCommandOptions,
   type CountertopSinkLocalM,
 } from "@/features/configuratorApi";
 import { getCountertopRuntimeState, subscribeCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 import type { Reason } from "@/shared/lib/reasonText";
 
-import { registerHostedSinkLanding } from "./hostedSinkLanding";
+import { registerHostedSinkLanding, type HostedLandingGoBack } from "./hostedSinkLanding";
 
 export type SinkLandingClient = Pick<ConfiguratorClient, "moveSink" | "getCabinetsState" | "dispose"> &
   Partial<Pick<ConfiguratorClient, "liftSink" | "landSink">>;
@@ -27,6 +29,8 @@ type Options = {
   getApi: () => CountertopApi | null;
   /** Same UI sync as a committed placement (`adoptCommittedCabinetComposition`). */
   onCommitted: (state: CabinetsState, receipt: SinkCommitReceipt) => void | Promise<void>;
+  /** Why the collection's rules refuse the selected basin on a Sink Base this wide; null when they allow it. */
+  resolveLandingRefusal: (cabinetWidthCm: number) => CountertopRuleReason | null;
   createClient?: () => SinkLandingClient;
 };
 
@@ -57,14 +61,16 @@ const errorCode = (error: unknown) =>
     : null;
 
 /**
- * SB <-> SC sink move (phase 1 §6d): every 'fits' `sink-landing` action commits `cabinets.moveSink` right away
+ * SB <-> SC sink move (phase 1 §6d): a 'fits' `sink-landing` action commits `cabinets.moveSink` right away
  * (the SC under the sink becomes the SB, the old SB becomes an SC) and syncs the UI. A failed commit puts the
  * top back where the drag started, so `sink.pending` never stays set by the UI. One commit runs at a time.
  * A hosted sink (after a `sink-lift` -> `cabinets.liftSink`) lands through `cabinets.landSink` instead.
  * A lift is never left half done: the SB under a top that carries its sink becomes an SC, or the top goes back.
  * A missing `liftSink` (API_METHOD_UNAVAILABLE) is skipped with one warning; a missing move/land reverts.
+ * The scene judges whether the cut-out fits a cabinet, the collection's rules whether the basin may stand on a Sink
+ * Base that wide: a landing they refuse is not committed, and the top goes back with their reason.
  */
-export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Options) => {
+export const useSinkLanding = ({ ready, getApi, onCommitted, resolveLandingRefusal, createClient }: Options) => {
   const [message, setMessage] = useState<Reason | null>(null);
   const poseBeforeRef = useRef<Pose | null>(null);
   const runningRef = useRef(false);
@@ -74,6 +80,8 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
   const createClientRef = useRef(createClient ?? createConfiguratorClient);
   const onCommittedRef = useRef(onCommitted);
   onCommittedRef.current = onCommitted;
+  const resolveLandingRefusalRef = useRef(resolveLandingRefusal);
+  resolveLandingRefusalRef.current = resolveLandingRefusal;
   const getApiRef = useRef(getApi);
   getApiRef.current = getApi;
 
@@ -101,12 +109,12 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
     };
   }, []);
 
-  const revert = useCallback(async (before: Pose | null) => {
+  const revert = useCallback(async (before: Pose | null, ...options: [CountertopCommandOptions?]) => {
     const api = getApiRef.current();
     if (!api) return;
     if (before) {
       try {
-        await api.setOffset({ ...before });
+        await api.setOffset({ ...before }, ...options);
         return;
       } catch (error) {
         // e.g. a locked top cannot return to a lifted pose: the reset below still clears `sink.pending`.
@@ -281,6 +289,35 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
     [carriesWithoutHost, commit, dropCarriedSink, revert],
   );
 
+  const landingRefusal = useCallback(async (cabinetId: string) => {
+    try {
+      const state = await client()?.getCabinetsState();
+      const widthCm = state?.cabinets.find(({ id }) => id === cabinetId)?.selection.Width;
+      return typeof widthCm === "number" ? resolveLandingRefusalRef.current(widthCm) : null;
+    } catch (error) {
+      // The commit that follows meets the same scene: it reports the failure and puts the top back.
+      console.warn("[sink-landing] the width of the cabinet could not be read", errorCode(error), error);
+      return null;
+    }
+  }, []);
+
+  /** Both ways a landing starts. Answers whether it was handed on; a refused one is not, the top is back. */
+  const land = useCallback(
+    async (job: Landing, goBack: HostedLandingGoBack | null = null) => {
+      const refusal = await landingRefusal(job.cabinetId);
+      if (refusal) {
+        setMessage({ code: refusal.reasonCode, params: refusal.reasonParams, text: refusal.disabledReason });
+        // Not judged again: a resized cabinet may have shifted the top to a pose the guard would refuse, and
+        // falling back to Standard would only bring it over the cabinet that refused it.
+        await (goBack ? goBack() : revert(job.before, { validation: "skip" }));
+        return false;
+      }
+      void run(job);
+      return true;
+    },
+    [landingRefusal, revert, run],
+  );
+
   // The scene went away: drop a waiting landing and the drag-start pose (nothing to revert).
   useEffect(() => {
     if (ready) return;
@@ -291,13 +328,13 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
   // API lowerings of a hosted sink emit no 'sink-landing' (see `commitHostedSinkLanding`).
   useEffect(() => {
     if (!ready) return undefined;
-    return registerHostedSinkLanding((cabinetId) => {
+    return registerHostedSinkLanding(async (cabinetId, goBack) => {
       // A commit in flight (e.g. the drag-end landing) clears the pending itself; a second one would revert.
-      if (runningRef.current) return;
+      if (runningRef.current) return true;
       setMessage(null);
-      void run({ kind: "landing", cabinetId, fromCabinetId: null, before: null });
+      return land({ kind: "landing", cabinetId, fromCabinetId: null, before: null }, goBack);
     });
-  }, [ready, run]);
+  }, [land, ready]);
 
   useEffect(() => {
     if (!ready) return undefined;
@@ -318,9 +355,9 @@ export const useSinkLanding = ({ ready, getApi, onCommitted, createClient }: Opt
       const before = poseBeforeRef.current;
       poseBeforeRef.current = null;
       setMessage(null);
-      void run({ kind: "landing", cabinetId, fromCabinetId: fromCabinetId ?? null, before });
+      void land({ kind: "landing", cabinetId, fromCabinetId: fromCabinetId ?? null, before });
     });
-  }, [ready, getApi, run]);
+  }, [ready, getApi, land, run]);
 
   return { message, dismissMessage: () => setMessage(null) };
 };

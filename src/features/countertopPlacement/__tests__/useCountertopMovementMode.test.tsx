@@ -168,7 +168,7 @@ describe("useCountertopMovementMode", () => {
 
   it("goes to Standard, and says so, when the scene takes the lowered pose back", async () => {
     // Urban Duplex, one cabinet: the lowered top would not cover the sink base under the vessel (SINK_BASE_NOT_COVERED).
-    const landing = vi.fn();
+    const landing = vi.fn(async () => true);
     const unregister = registerHostedSinkLanding(landing);
     const hosted = { owner: "countertop" as const, shiftM: 0, landing: null, pending: null, hosted: true };
     try {
@@ -191,7 +191,7 @@ describe("useCountertopMovementMode", () => {
       );
       expect(api.setOffset).toHaveBeenCalledTimes(1);
       // As Position ▸ Standard does, the vessel lands in its Sink Base again.
-      expect(landing).toHaveBeenCalledWith("sc");
+      expect(landing).toHaveBeenCalledWith("sc", null);
     } finally {
       unregister();
     }

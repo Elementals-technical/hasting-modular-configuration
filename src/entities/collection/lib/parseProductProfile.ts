@@ -12,6 +12,7 @@ import {
   type UndeterminedRule,
   type FlutingRuleData,
   type GrainDirectionRuleData,
+  type HandleColorsRuleData,
   type MaterialNormalizationRuleData,
   type OptionCapabilities,
   type ProductProfile,
@@ -513,6 +514,9 @@ const RULE_SECTION_FIELDS = {
       "a map of vessel style to { materialTokens, colorCodes }",
     ],
   },
+  handleColors: {
+    allowedByHandle: [isStringArrayRecord, "a map of handle to the colours it comes in"],
+  },
   priceTiers: {
     bySku: [optional(isPriceTierRecord), "a map of upper-case SKU material code to tier 1-4"],
     byAttribute: [
@@ -722,6 +726,7 @@ const parseRuleSections = (
     countertopFallbacks: parseRuleSection<CountertopFallbacksRuleData>(ruleData, "countertopFallbacks", collect),
     materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
+    handleColors: parseRuleSection<HandleColorsRuleData>(ruleData, "handleColors", collect),
     priceTiers: parseRuleSection<PriceTiersRuleData>(ruleData, "priceTiers", collect),
     cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
     drawerOrganizers: parseRuleSection<DrawerOrganizersRuleData>(ruleData, "drawerOrganizers", collect),

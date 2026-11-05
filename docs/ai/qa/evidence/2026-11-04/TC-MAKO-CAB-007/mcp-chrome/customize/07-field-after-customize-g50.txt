@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"next":"Next: Countertop & Basin","url":"/custom/color","field":{"swatches":["Gold","Silver"],"selected":["Silver"],"groups":[{"group":"Metal","n":2}],"filters":["Material","Price"]},"material":["Show all","Metal"]}
+```
+Page navigated to http://localhost:5173/custom/color?collectionId=mako.

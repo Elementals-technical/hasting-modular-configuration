@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"url":"/prebuilt/model?collectionId=tricot","canvas":true,"price":"Total List Price $8,216.00","blockedWrites":[]}
+```

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"picked":true,"popup":{"title":"Update Handle Style?","text":"Update Handle Style? The handle style will be updated for all drawer cabinets. Cancel Confirm","buttons":["Cancel","Confirm"]},"configsBefore":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Gold","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"},{"id":"Mako-side-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Gold","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF"}]}
+```

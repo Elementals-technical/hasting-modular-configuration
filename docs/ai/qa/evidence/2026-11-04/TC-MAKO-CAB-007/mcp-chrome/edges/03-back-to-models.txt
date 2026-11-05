@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"urls":["/prebuilt/model?collectionId=mako"],"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"","sinkType":"Top_LB440"},{"id":"Mako-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"","sinkType":"Top_LB440"}],"prompts":["Size","Style","Next: Color"]}
+```
+Page navigated to http://localhost:5173/prebuilt/model?collectionId=mako.

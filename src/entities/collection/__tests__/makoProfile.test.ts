@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import makoProfileDocument from "../../../../public/collections/mako/product-profile.json";
 import makoManifest from "../../../../public/collections/mako/manifest.json";
+import configurator9 from "./fixtures/remote/configurator-9.json";
 
 import { parseProductProfile } from "../lib/parseProductProfile";
 import {
@@ -152,11 +153,12 @@ describe("mako product profile", () => {
     expect(attribute("LegColor")?.defaultValue).toBe("Antracite 400 MT");
   });
 
-  it("declares the drawer style groups, the vessel colours, the price tiers and the changes the product has not decided yet", () => {
+  it("declares the drawer style groups, the handle colours, the vessel colours, the price tiers and the changes the product has not decided yet", () => {
     expect(Object.keys(profile().ruleData).sort()).toEqual([
       "cabinetMatrixLegacyAdapter",
       "drawerOrganizers",
       "drawerStyleGroups",
+      "handleColors",
       "priceTiers",
       "undeterminedRules",
       "vesselCompatibility",
@@ -164,6 +166,20 @@ describe("mako product profile", () => {
     expect(profile().ruleData.undeterminedRules).toEqual([
       expect.objectContaining({ ruleId: "MAKO-LEG-002", attributeId: "LegColor", whenCabinet: { Drawers: ["1"] } }),
     ]);
+  });
+
+  // The client says a G50 comes in "Metal"; the profile lists colours, and its configurator says which are Metal.
+  it("lists as the colours of a G50 the Metal variants of its configurator, Silver first", () => {
+    const metalColours = configurator9.availableOptions
+      .filter(({ proxyName }) => proxyName === "Select Handle Color")
+      .flatMap(({ options }) => options)
+      .flatMap(({ variants }) => variants)
+      .filter(({ metadata }) => metadata.Material === "Metal")
+      .map(({ metadata }) => metadata.value);
+    const colours = profile().ruleData.handleColors?.allowedByHandle.G50;
+
+    expect(new Set(colours)).toEqual(new Set(metalColours));
+    expect(colours?.[0]).toBe("Silver");
   });
 
   it("gives each of its vessels, and only them, a palette and a starting colour", () => {
