@@ -73,6 +73,9 @@ import type { ProductDatatable } from "@/entities/product/api";
 import { arePrebuiltModelPresetsEqual } from "@/entities/product/lib/arePrebuiltModelPresetsEqual";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import {
+  getActiveCountertopColor,
+  getActiveCountertopThickness,
+  getCountertopColorSku,
   getCountertopStyle,
   getDrawerPanelFluting,
   getGrainDirection,
@@ -867,21 +870,21 @@ describe("mako: a Prebuilt order opened from its link keeps its handle and leg c
   });
 });
 
-describe("urban-duplex: a Prebuilt order opened from its link keeps each cabinet's series and panel side", () => {
-  const parsedUdProfile = parseProductProfile(udProfileDocument);
-  const parsedUdBindings = parseRuntimeBindings(udBindingsDocument);
-  if (!parsedUdProfile.ok || !parsedUdBindings.ok) throw new Error("the packaged Urban Duplex data must parse");
-  const ud: Case = {
-    collectionId: "urban-duplex",
-    profile: parsedUdProfile.profile,
-    bindings: parsedUdBindings.bindings,
-    sinkBaseSceneType: "UD-sink-cabinet",
-    manifest: udManifestDocument,
-    ui: udUiDocument,
-    presets: udPresetsDocument,
-    countertopTable: datatable595,
-  };
+const parsedUdProfile = parseProductProfile(udProfileDocument);
+const parsedUdBindings = parseRuntimeBindings(udBindingsDocument);
+if (!parsedUdProfile.ok || !parsedUdBindings.ok) throw new Error("the packaged Urban Duplex data must parse");
+const ud: Case = {
+  collectionId: "urban-duplex",
+  profile: parsedUdProfile.profile,
+  bindings: parsedUdBindings.bindings,
+  sinkBaseSceneType: "UD-sink-cabinet",
+  manifest: udManifestDocument,
+  ui: udUiDocument,
+  presets: udPresetsDocument,
+  countertopTable: datatable595,
+};
 
+describe("urban-duplex: a Prebuilt order opened from its link keeps each cabinet's series and panel side", () => {
   beforeEach(() => {
     sessionStorage.clear();
     store.dispatch(reset());
@@ -1356,14 +1359,69 @@ describe("a model selected after a vessel was picked", () => {
     expect(sentColors()).toEqual([]);
   });
 
-  it("sends no colour to a model the user accepted clearing the vessel for", async () => {
-    start(ush, USH_VESSEL, ["sinkType", "CountertopStyle"]);
+  it("keeps the countertop but sends no colour to a model the user accepted dropping the vessel for", async () => {
+    start(ush, USH_VESSEL, ["CountertopColor", "sinkType", "CountertopStyle"]);
 
     // Table 438 makes a vessel top from an 80 cm Sink Base; this model has a 60 cm one.
     await selectModel(ush, 'Urban Standard · 24" 1-Drawer', { confirm: true });
 
+    expect(getActiveCountertopColor(store.getState())).toBe(USH_VESSEL.countertop);
+    expect(getCountertopStyle(store.getState()).toLowerCase()).toBe("integrated");
+    expect(getSinkType(store.getState())).toBe("Top_HPLPrisma");
     expect(sentColors()).toEqual([]);
     expect(getVesselColor(store.getState())).toBe("");
+  });
+
+  // Table 595 makes a vessel top from an 80 cm Sink Base; this model's is 70 cm, and a porcelain top takes an
+  // integrated basin from 60 cm.
+  it("urban-duplex: keeps the porcelain countertop and gives it an integrated basin when the vessel is refused", async () => {
+    const porcelainVessel = { countertop: "Avenue Amber TRC", vessel: "Vessel_UrbanModo", color: "Matte White T1C" };
+    start(ud, porcelainVessel, ["CountertopColor", "Thickness", "sinkType", "CountertopStyle"]);
+    renderAt(ud, `/prebuilt/model?collectionId=${ud.collectionId}`, <ModelPage />, true);
+
+    fireEvent.click(await screen.findByText('Urban Duplex · 48" 2-Drawer'));
+
+    expect(
+      (await screen.findByText(/will clear the incompatible selections\. Not available for selected sink base/))
+        .textContent,
+    ).toContain('Minimum width required 80cm (31.5")');
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).not.toBeNull());
+
+    expect(getActiveCountertopColor(store.getState())).toBe(porcelainVessel.countertop);
+    expect(getCountertopStyle(store.getState()).toLowerCase()).toBe("integrated");
+    expect(getSinkType(store.getState())).toBe("Top_Porcelain_Strip");
+    // Priced as the porcelain top it is, at the thickness the user chose.
+    expect(getCountertopColorSku(store.getState())).toBe("POR");
+    expect(getActiveCountertopThickness(store.getState())).toBe("0.5");
+    expect(getVesselColor(store.getState())).toBe("");
+    expect(sentColors()).toEqual([]);
+    expect(placedWith()[0]).toMatchObject({
+      CountertopColor: porcelainVessel.countertop,
+      CountertopStyle: "Integrated",
+    });
+    expect(placedWith()[0]).not.toHaveProperty("VesselColor");
+  });
+
+  // Table 438 makes a glass top with an integrated basin from a 70 cm Sink Base and with a vessel from an 80 cm
+  // one; this model has a 60 cm one.
+  it("resets the whole countertop on a model the user accepted for a material it refuses", async () => {
+    const glassVessel = { ...USH_VESSEL, countertop: "Acqua 419 GL" };
+    start(ush, glassVessel, ["CountertopColor", "sinkType", "CountertopStyle"]);
+    renderAt(ush, `/prebuilt/model?collectionId=${ush.collectionId}`, <ModelPage />, true);
+
+    fireEvent.click(await screen.findByText('Urban Standard · 24" 1-Drawer'));
+
+    expect((await screen.findByText(/will clear the incompatible selections\./)).textContent).toContain(
+      "The selected countertop material/finish is not available for this model.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }));
+    await waitFor(() => expect(store.getState().rootStateUI.configuration.activePrebuiltPresetId).not.toBeNull());
+
+    expect(getActiveCountertopColor(store.getState())).toBe("Cacao Orinoco FF MT");
+    expect(getSinkType(store.getState())).toBe("Top_Tekorlux_Rectangular");
+    expect(getVesselColor(store.getState())).toBe("");
+    expect(sentColors()).toEqual([]);
   });
 
   it("sends no colour to a model whose rules put an integrated basin in place of the vessel", async () => {
