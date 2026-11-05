@@ -49,6 +49,25 @@ export const resolveScreenTarget = (
   return ref ? { stepId: ref.stepId, path: ref.path } : null;
 };
 
-/** The URL of a target; a section is opened through `?accordion=`, as the step pages read it. */
-export const toTargetUrl = ({ path, sectionId }: CustomizationTarget): string =>
-  sectionId ? `${path}?accordion=${sectionId}` : path;
+/**
+ * The Upper / Lower tab a countertop colour step opens on, named in the URL so the player menu can
+ * lead to the Lower one (`?level=lower`); the step opens on the Upper when nothing names a level.
+ */
+export const COUNTERTOP_LEVEL_PARAM = "level";
+export type CountertopLevel = "upper" | "lower";
+export const isCountertopLevel = (value: string | null | undefined): value is CountertopLevel =>
+  value === "upper" || value === "lower";
+
+/**
+ * The URL of a target; a section is opened through `?accordion=`, as the step pages read it, and
+ * anything the caller adds (the countertop level) rides along as a query of its own.
+ */
+export const toTargetUrl = (
+  { path, sectionId }: CustomizationTarget,
+  params?: Readonly<Record<string, string>>,
+): string => {
+  const query = new URLSearchParams(sectionId ? { accordion: sectionId } : {});
+  for (const [key, value] of Object.entries(params ?? {})) query.set(key, value);
+  const search = query.toString();
+  return search ? `${path}?${search}` : path;
+};

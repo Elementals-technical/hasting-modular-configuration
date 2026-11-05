@@ -11,7 +11,13 @@ import urbanDuplexUi from "../../../../public/collections/urban-duplex/ui.json";
 import urbanFreestandingUi from "../../../../public/collections/urban-freestanding/ui.json";
 import urbanLowHeightUi from "../../../../public/collections/urban-low-height/ui.json";
 import ushUi from "../../../../public/collections/urban-standard-height/ui.json";
-import { resolveAttributeTarget, resolveScreenTarget, toTargetUrl } from "../lib/resolveAttributeTarget";
+import {
+  COUNTERTOP_LEVEL_PARAM,
+  isCountertopLevel,
+  resolveAttributeTarget,
+  resolveScreenTarget,
+  toTargetUrl,
+} from "../lib/resolveAttributeTarget";
 
 const ush = readCustomizationSchema(ushUi);
 const classSchema = readCustomizationSchema(classUi);
@@ -170,5 +176,24 @@ describe("toTargetUrl", () => {
       "/custom/color?accordion=cabinet-color",
     );
     expect(toTargetUrl({ stepId: "accessories", path: "/prebuilt/accessories" })).toBe("/prebuilt/accessories");
+  });
+
+  // The player's Lower countertop action leads to the colour step and names the tab it wants open.
+  it("carries the countertop level the caller asks for, beside the section and on its own", () => {
+    const level = { [COUNTERTOP_LEVEL_PARAM]: "lower" };
+
+    expect(toTargetUrl({ stepId: "countertop", path: "/prebuilt/countertop", sectionId: "color" }, level)).toBe(
+      "/prebuilt/countertop?accordion=color&level=lower",
+    );
+    expect(toTargetUrl({ stepId: "countertop", path: "/prebuilt/countertop" }, level)).toBe(
+      "/prebuilt/countertop?level=lower",
+    );
+  });
+
+  it("knows the levels a step can open on", () => {
+    expect(isCountertopLevel("lower")).toBe(true);
+    expect(isCountertopLevel("upper")).toBe(true);
+    expect(isCountertopLevel(null)).toBe(false);
+    expect(isCountertopLevel("Lower")).toBe(false);
   });
 });

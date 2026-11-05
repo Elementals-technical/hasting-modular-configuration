@@ -1,7 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import type { FieldRuntimeState } from "@/entities/collection";
-import { ColorField } from "@/features/collectionCustomization";
+import { ColorField, type CountertopLevel } from "@/features/collectionCustomization";
 import { SegmentedTabPanel, SegmentedTabs, type SegmentedTab } from "@/shared/ui/SegmentedTabs/SegmentedTabs";
 
 import LowerCountertopIcon from "../assets/lower-countertop.svg?react";
@@ -16,12 +16,24 @@ type Props = {
   error: string | null;
   onLowerChange: (color: string) => Promise<void>;
   onOrderSwatches: () => void;
+  /** The tab the step was asked to open on (the player's Lower countertop action); Upper when none. */
+  requestedLevel?: CountertopLevel | null;
 };
 
-type CountertopLevel = "upper" | "lower";
-
-const CountertopLevelTabs = ({ children, lowerField, processing, error, onLowerChange, onOrderSwatches }: Props) => {
-  const [level, setLevel] = useState<CountertopLevel>("upper");
+const CountertopLevelTabs = ({
+  children,
+  lowerField,
+  processing,
+  error,
+  onLowerChange,
+  onOrderSwatches,
+  requestedLevel,
+}: Props) => {
+  const [level, setLevel] = useState<CountertopLevel>(requestedLevel ?? "upper");
+  // Asked for a level again (the step was already open when the player led here), it opens on it.
+  useEffect(() => {
+    if (requestedLevel) setLevel(requestedLevel);
+  }, [requestedLevel]);
 
   const changeLevel = (value: string) => {
     if (value === "upper" || value === "lower") setLevel(value);

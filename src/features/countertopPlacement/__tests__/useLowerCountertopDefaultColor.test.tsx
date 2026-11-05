@@ -151,18 +151,21 @@ describe("the Urban Duplex Lower in the Lateral Panel colour until another is ch
   });
 });
 
-// The Lower comes in the Upper's colours (user, 2026-10-28): a default off that palette is not one.
-describe("the Lower in the Upper's colours", () => {
-  it("takes the Upper's colour while the Lateral Panel's is not one of the Upper's, and the Lateral's once it is", async () => {
+// The Lower comes in the Upper's colours (user, 2026-10-28) but stands in its cabinet's until another
+// is chosen (user, 2026-11-05): a colour off the Upper's palette is asked of nobody.
+describe("the Lower in its cabinet's colour", () => {
+  it("asks nothing while the Lateral Panel's colour is not one of the Upper's, and asks for it once it is", async () => {
     record("LateralPanelColor", "global", "Agata BD ST");
     record("CountertopColor", "countertop", "Bianco Male TFA");
     render(DUPLEX);
     layCover();
-    await waitFor(() => expect(api.change).toHaveBeenCalledWith("Bianco Male TFA"));
+    await act(async () => {});
+    expect(api.read).not.toHaveBeenCalled();
+    expect(api.change).not.toHaveBeenCalled();
 
     record("LateralPanelColor", "global", "Ardesia TKF");
     await waitFor(() => expect(api.change).toHaveBeenLastCalledWith("Ardesia TKF"));
-    expect(api.change).toHaveBeenCalledTimes(2);
+    expect(api.change).toHaveBeenCalledTimes(1);
   });
 
   it("replaces a colour a restored composition asks for that the Upper does not come in", async () => {
@@ -176,29 +179,28 @@ describe("the Lower in the Upper's colours", () => {
     act(() => {
       store.dispatch(setActiveRuntimeBindings(duplexBindings.bindings));
     });
-    record("LateralPanelColor", "global", "Agata BD ST");
-    record("CountertopColor", "countertop", "Matte White");
+    record("LateralPanelColor", "global", "Matte White");
     render(DUPLEX);
     layCover();
     await waitFor(() => expect(api.change).toHaveBeenCalledWith("Solid Surface Matte White"));
 
     // Read back under the scene's name, it is the colour followed, not one chosen on the Lower tab.
-    record("CountertopColor", "countertop", "Ardesia TKF");
+    record("LateralPanelColor", "global", "Ardesia TKF");
     await waitFor(() => expect(api.change).toHaveBeenLastCalledWith("Ardesia TKF"));
   });
 
-  it("follows the Upper on Urban Low Height, which names no colour of its own for the Lower", async () => {
+  it("leaves Urban Low Height, which names no colour of its own for the Lower, in the scene's", async () => {
     act(() => {
       store.dispatch(setActiveProfile(ulhProfile.profile));
     });
-    // Configurator 10's countertop colours here: Ardesia TKF and Brera Brown TKN.
+    // Configurator 10's countertop colours here: Ardesia TKF and Brera Brown TKN. The Upper's is not
+    // the Lower's: each Lower stands in the colour of the cabinet it covers until one is chosen.
     record("CountertopColor", "countertop", "Ardesia TKF");
     render(LOW_HEIGHT);
     layCover();
-    await waitFor(() => expect(api.change).toHaveBeenCalledWith("Ardesia TKF"));
-
-    record("CountertopColor", "countertop", "Brera Brown TKN");
-    await waitFor(() => expect(api.change).toHaveBeenLastCalledWith("Brera Brown TKN"));
+    await act(async () => {});
+    expect(api.read).not.toHaveBeenCalled();
+    expect(api.change).not.toHaveBeenCalled();
   });
 
   it("asks nothing of a collection without the cover contract", async () => {

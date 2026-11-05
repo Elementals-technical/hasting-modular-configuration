@@ -277,10 +277,12 @@ Countertop Color (`CABINET_COVER_COLOR_ATTRIBUTE_ID`). Це замінює ма�
 - До сцени й назад колір Lower іде через binding `CountertopColor`, як і в Upper: overrides
   (`Sahara Noir Silky Matte TR8` → `Sahara Noir Silky Matte`, у UD також `Matte White` → `Solid Surface Matte White`).
   Матеріал зі сцени, який сам є кольором палітри, читається як є.
-- Поки Lower не вибрано на вкладці, `useLowerCountertopDefaultColor` просить сцену про колір Upper і слідує
-  за його змінами. Колекція може назвати свій атрибут (`cabinetCover.defaultColorAttributeId`, UD: Lateral Panel),
-  якщо його колір є в палітрі Upper; інакше береться колір Upper. Колір, вибраний на вкладці Lower, лишається,
-  а відновлений колір поза палітрою замінюється.
+- **З 2026-11-05 (користувач) Lower за замовчуванням має колір тумби, а не Upper.** Поки Lower не вибрано на
+  вкладці, `useLowerCountertopDefaultColor` нічого в сцени не просить, і кожен сегмент лишається в кольорі,
+  який сцена виводить з `CabinetColor` своєї тумби-підтримки. Колекція може назвати свій атрибут
+  (`cabinetCover.defaultColorAttributeId`, UD: Lateral Panel) — його колір запитується, поки він є в палітрі
+  Upper; поза палітрою або без такого атрибута не запитується нічого. Колір, вибраний на вкладці Lower,
+  лишається, а відновлений колір поза палітрою замінюється лише тоді, коли колекція називає свій атрибут.
 
 SKU Lower читає **фактично опублікований materialId кожного сегмента**, а не колір першої тумби:
 `CT-UR{material}-{style}-{W}W-.5H-{D}D-{material}-{colour}`. Стиль — той самий, що в Upper: Integrated →

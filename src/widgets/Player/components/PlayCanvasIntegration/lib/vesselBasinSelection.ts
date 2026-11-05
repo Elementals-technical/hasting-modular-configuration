@@ -7,6 +7,8 @@ import type {
 
 export const VESSEL_BASIN_SELECTION_TYPE = "vessel-basin";
 export const SINK_BASIN_SELECTION_TYPE = "sink-basin";
+/** A Lower countertop: the composition-owned cover the scene derives over an uncovered cabinet. */
+export const CABINET_COVER_SELECTION_TYPE = "derived-cover";
 export const VESSEL_PLACEHOLDER_SINK_TYPE = "Vessel";
 export const SELECTION_ACTION_COLOR_ID = "color";
 export const SELECTION_ACTION_DELETE_ID = "delete";
@@ -26,8 +28,12 @@ export const isSinkBasinSelectionInfo = (info: SelectionInfo | null | undefined)
 export const isInPlayerBasinSelectionInfo = (info: SelectionInfo | null | undefined): info is SelectionInfo =>
   isVesselBasinSelectionInfo(info) || isSinkBasinSelectionInfo(info);
 
-export const findVesselBasinSelectionInfo = (selectionInfo: SelectionInfo[] | undefined): SelectionInfo | null =>
-  selectionInfo?.find(isInPlayerBasinSelectionInfo) ?? null;
+export const isCabinetCoverSelectionInfo = (info: SelectionInfo | null | undefined): info is SelectionInfo =>
+  info?.selectionType === CABINET_COVER_SELECTION_TYPE;
+
+/** What the scene selects that the player answers with a menu of its own: a basin or a Lower countertop. */
+export const findInPlayerSelectionInfo = (selectionInfo: SelectionInfo[] | undefined): SelectionInfo | null =>
+  selectionInfo?.find((info) => isInPlayerBasinSelectionInfo(info) || isCabinetCoverSelectionInfo(info)) ?? null;
 
 const isSelectionActionConfig = (value: unknown): value is SelectionActionConfig =>
   typeof value === "object" && value !== null && !Array.isArray(value);

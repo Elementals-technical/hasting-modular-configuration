@@ -32,7 +32,11 @@ import { createPlayCanvasRuntimePort } from "@/features/playCanvasAdapter/lib/cr
 import type { SceneBridge } from "@/features/playCanvasAdapter/lib/createPlayCanvasRuntimePort";
 import type { SceneSelector } from "@/utils/functions/playcanvas/sceneBridge";
 
-import { resolveVesselBasinActionValues } from "../vesselBasinSelection";
+import {
+  findInPlayerSelectionInfo,
+  isCabinetCoverSelectionInfo,
+  resolveVesselBasinActionValues,
+} from "../vesselBasinSelection";
 
 /**
  * The scene's Delete action for a vessel sends its placeholder sink type "Vessel". Each collection
@@ -185,5 +189,25 @@ describe("vessel Delete through the PlayCanvas adapter", () => {
 
     expect(await result).toMatchObject({ status: "applied", skipped: [] });
     expect(sentSinkTypes(calls)).toEqual(["Vessel"]);
+  });
+});
+
+// The scene selects a Lower countertop as `derived-cover`; the player answers it with a menu of its own.
+describe("what the player answers with a menu of its own", () => {
+  const cover = { entityName: "Cabinet_Cover-1", selectionType: "derived-cover", actions: [{ id: "color" }] };
+  const product = { entityName: "Sink-Base-1", selectionType: "product", actions: [] };
+  const vessel = { entityName: "Sink_Basin-1", selectionType: "vessel-basin", actions: [] };
+
+  it("finds a Lower countertop, a basin, and nothing in a plain product", () => {
+    expect(findInPlayerSelectionInfo([product, cover])).toBe(cover);
+    expect(findInPlayerSelectionInfo([product, vessel])).toBe(vessel);
+    expect(findInPlayerSelectionInfo([product])).toBeNull();
+    expect(findInPlayerSelectionInfo(undefined)).toBeNull();
+  });
+
+  it("tells a Lower countertop from a basin", () => {
+    expect(isCabinetCoverSelectionInfo(cover)).toBe(true);
+    expect(isCabinetCoverSelectionInfo(vessel)).toBe(false);
+    expect(isCabinetCoverSelectionInfo(null)).toBe(false);
   });
 });

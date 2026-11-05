@@ -166,6 +166,7 @@ import {
   type PlayerMenuResizeId,
 } from "@/entities/collection";
 import {
+  COUNTERTOP_LEVEL_PARAM,
   resolveAttributeTarget,
   toTargetUrl,
   useCollectionNavigation,
@@ -228,12 +229,15 @@ import {
 import { useCollectionNavigate } from "@/features/collectionCustomization";
 import { applyPlayerMenuSupport } from "./lib/applyPlayerMenuSupport";
 import { buildCabinetAttributeMenuItems } from "./lib/buildCabinetAttributeMenuItems";
+import { buildCabinetCoverDropdownItems } from "./lib/buildCabinetCoverDropdownItems";
 import { buildRepositionItems } from "./lib/buildRepositionItems";
 import { buildVesselBasinDropdownItems } from "./lib/buildVesselBasinDropdownItems";
 import { resolvePlayerMenuSupport } from "./lib/playerMenuCatalog";
 import {
   canExecuteSetConfigSelectionAction,
-  findVesselBasinSelectionInfo,
+  findInPlayerSelectionInfo,
+  isCabinetCoverSelectionInfo,
+  isSinkBasinSelectionInfo,
   isVesselBasinSelectionInfo,
   resolveVesselBasinActionValues,
   VESSEL_PLACEHOLDER_SINK_TYPE,
@@ -3112,7 +3116,7 @@ export const PlayCanvasIntegration = ({
         return;
       }
       const firstSelected = Array.isArray(selectedEntity) ? selectedEntity[0] : selectedEntity;
-      const vesselBasinInfo = findVesselBasinSelectionInfo(selectionInfo);
+      const vesselBasinInfo = findInPlayerSelectionInfo(selectionInfo);
 
       if (firstSelected) {
         if (openDrawerButtonsTargetRef.current && firstSelected.name !== openDrawerButtonsTargetRef.current) {
@@ -3822,6 +3826,17 @@ export const PlayCanvasIntegration = ({
     setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
   }, [closeCanvasFullMode, menuSupport, navigateToTarget]);
 
+  // The Lower countertop picked in the player: the countertop colour step, opened on its Lower tab.
+  const handleOpenLowerCountertopColor = useCallback(() => {
+    const target = menuSupport.targets["countertop-color"];
+    if (target) navigate(toTargetUrl(target, { [COUNTERTOP_LEVEL_PARAM]: "lower" }));
+    closeCanvasFullMode();
+    getSelectTool()?.deselectAll();
+    setVesselBasinSelectionInfo(null);
+    setDropdownState((prev) => ({ ...prev, visible: false }));
+    setCountertopPopoverState((prev) => ({ ...prev, visible: false }));
+  }, [closeCanvasFullMode, menuSupport, navigate]);
+
   const handleOpenCountertopStyle = useCallback(() => {
     navigateToTarget(menuSupport.targets["countertop-style"]);
     closeCanvasFullMode();
@@ -3988,14 +4003,25 @@ export const PlayCanvasIntegration = ({
     vesselBasinSelectionInfo?.actions,
   ]);
 
-  const isCountertopBasinDropdown = Boolean(
-    vesselBasinSelectionInfo && !isVesselBasinSelectionInfo(vesselBasinSelectionInfo),
-  );
+  const cabinetCoverDropdownItems: DropdownItem[] = useMemo(() => {
+    const items = buildCabinetCoverDropdownItems({
+      actions: vesselBasinSelectionInfo?.actions ?? [],
+      onOpenColor: handleOpenLowerCountertopColor,
+    });
+    return applyPlayerMenuSupport(items, menuSupport);
+  }, [handleOpenLowerCountertopColor, menuSupport, vesselBasinSelectionInfo?.actions]);
+
+  const isCabinetCoverDropdown = isCabinetCoverSelectionInfo(vesselBasinSelectionInfo);
+  const isCountertopBasinDropdown = isSinkBasinSelectionInfo(vesselBasinSelectionInfo);
   const activeDropdownItems = vesselBasinSelectionInfo
-    ? isCountertopBasinDropdown
-      ? countertopPopoverItems
-      : vesselBasinDropdownItems
+    ? isCabinetCoverDropdown
+      ? cabinetCoverDropdownItems
+      : isCountertopBasinDropdown
+        ? countertopPopoverItems
+        : vesselBasinDropdownItems
     : dropdownItems;
+  // A collection whose flow does not offer the Lower colour leaves its menu empty: nothing opens.
+  const dropdownVisible = dropdownState.visible && (!isCabinetCoverDropdown || activeDropdownItems.length > 0);
 
   return (
     <div ref={placementHostRef} style={{ position: "relative", height: "100%" }}>
@@ -4119,7 +4145,7 @@ export const PlayCanvasIntegration = ({
         </button>
       )}
 
-      {dropdownState.visible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
+      {dropdownVisible && !isDrawerOpen && !isMobileMenu && !isSummaryPage && (
         <div
           style={{
             position: "absolute",
@@ -4256,7 +4282,7 @@ export const PlayCanvasIntegration = ({
         </div>
       </PopupCenterContent>
 
-      {!isDrawerOpen && isMobileMenu && dropdownState.visible && !isSummaryPage && (
+      {!isDrawerOpen && isMobileMenu && dropdownVisible && !isSummaryPage && (
         <div
           style={{
             position: "absolute",

@@ -17,11 +17,12 @@ const colorOf = (state: RootState, attributeId: string): string | null => {
 };
 
 /**
- * The Lower comes in the Upper's colours and takes, until another is chosen, the colour its collection
- * names for it (Urban Duplex: the Lateral Panel's, `cabinetCover.defaultColorAttributeId`) while that is
- * one of the Upper's, else the Upper's own. The scene keeps the Lower's colour with the composition: one
- * it names no colour for, one off the Upper's palette, or one still in the colour it last followed, is
- * asked for that colour; a colour chosen on the Lower tab stays.
+ * The Lower comes in the Upper's colours and stands, until another is chosen, in the colour the scene
+ * paints it — its own cabinet's (user, 2026-11-05; it followed the Upper's between 2026-10-28 and then).
+ * A collection that names a colour of its own for it (Urban Duplex: the Lateral Panel's,
+ * `cabinetCover.defaultColorAttributeId`) is followed while that colour is one of the Upper's; named by
+ * no collection, or off the Upper's palette, nothing is asked of the scene and each Lower keeps its
+ * cabinet's colour. A colour chosen on the Lower tab stays.
  */
 export const useLowerCountertopDefaultColor = () => {
   const hasCover = useActiveCollection((collection) => Boolean(collection.catalog.skuProfile?.cabinetCover));
@@ -32,7 +33,6 @@ export const useLowerCountertopDefaultColor = () => {
   const profile = useAppSelector(getActiveProductProfile);
   const bindings = useAppSelector(getActiveRuntimeBindings);
   const named = useAppSelector((state) => (hasCover && attributeId ? colorOf(state, attributeId) : null));
-  const upper = useAppSelector((state) => (hasCover ? colorOf(state, CABINET_COVER_COLOR_ATTRIBUTE_ID) : null));
   const palette = useMemo(
     () =>
       new Set(
@@ -44,7 +44,7 @@ export const useLowerCountertopDefaultColor = () => {
       ),
     [configurator, hasCover, profile],
   );
-  const defaultColor = [named, upper].find((color) => color !== null && palette.has(color)) ?? null;
+  const defaultColor = named !== null && palette.has(named) ? named : null;
   const covers = useCabinetCovers();
   const bridge = useMemo(() => createConfiguratorBridge(), []);
   // The scene material the Lower was last asked to follow.

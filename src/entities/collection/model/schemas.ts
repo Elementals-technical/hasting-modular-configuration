@@ -446,7 +446,8 @@ export const collectionSkuProfileSchema = z
      * and ordered as `CT-{prefix}{material}-{INTG|VES}-{W}W-{thickness}H-{D}D-{material}-{colour}` in the
      * Upper's style. Its presence is what offers the Upper / Lower countertop colour picker. The Lower
      * comes in the Upper's colours and materials, every collection alike (user, 2026-10-28): the
-     * Countertop Color palette, spelled as the countertop spells it.
+     * Countertop Color palette, spelled as the countertop spells it. It stands in the colour of the
+     * cabinet it covers until one is chosen there (user, 2026-11-05).
      */
     cabinetCover: z
       .object({
@@ -460,7 +461,7 @@ export const collectionSkuProfileSchema = z
         /**
          * The attribute whose colour the cover takes until another is chosen, while that colour is one
          * of the Upper's (Urban Duplex: `LateralPanelColor`); when omitted, or off the Upper's palette,
-         * the Upper's colour.
+         * the colour the scene paints it — its own cabinet's.
          */
         defaultColorAttributeId: z.string().trim().min(1).optional(),
         /**

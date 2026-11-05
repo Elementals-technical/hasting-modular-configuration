@@ -4,8 +4,14 @@ export { buildStepRoutes } from "./lib/buildStepRoutes";
 export type { StepScreen, StepScreens } from "./lib/buildStepRoutes";
 export { useCollectionNavigation } from "./lib/useCollectionNavigation";
 export { buildStepPathById, useStepPathById } from "./lib/useStepPathById";
-export { resolveAttributeTarget, resolveScreenTarget, toTargetUrl } from "./lib/resolveAttributeTarget";
-export type { CustomizationTarget } from "./lib/resolveAttributeTarget";
+export {
+  COUNTERTOP_LEVEL_PARAM,
+  isCountertopLevel,
+  resolveAttributeTarget,
+  resolveScreenTarget,
+  toTargetUrl,
+} from "./lib/resolveAttributeTarget";
+export type { CountertopLevel, CustomizationTarget } from "./lib/resolveAttributeTarget";
 export { useScreenTarget } from "./lib/useScreenTarget";
 export { resolveSummaryEditTargets } from "./lib/summaryEditTargets";
 export type { SummaryEditMenuItem, SummaryEditTargets } from "./lib/summaryEditTargets";

@@ -14,8 +14,10 @@ import {
 } from "@/features/configurationCommands";
 import {
   ColorField,
+  COUNTERTOP_LEVEL_PARAM,
   FieldControl,
   FieldToggle,
+  isCountertopLevel,
   useCollectionNavigation,
   useCustomizationStepSections,
   type ResolvedCustomizationField,
@@ -53,6 +55,9 @@ const ColorSectionField = ({
   const lowerFlows = useActiveCollection((collection) => collection.catalog.skuProfile?.cabinetCover?.flows);
   const offersLower = Boolean(flowId && (lowerFlows ?? ["prebuilt"]).includes(flowId));
   const coverColor = useCoverCountertopColorField(definition.attributeId === "CountertopColor" && offersLower);
+  // The player's Lower countertop action leads here with the tab it wants open.
+  const [colorSearchParams] = useSearchParams();
+  const requestedLevel = colorSearchParams.get(COUNTERTOP_LEVEL_PARAM);
 
   const orderSwatches = () => {
     const configuratorSection = selectConfiguratorSection(profile, definition.attributeId);
@@ -83,6 +88,7 @@ const ColorSectionField = ({
       error={coverColor.error}
       onLowerChange={coverColor.changeColor}
       onOrderSwatches={orderSwatches}
+      requestedLevel={isCountertopLevel(requestedLevel) ? requestedLevel : null}
     >
       <ColorField field={field} title={section.label} onChange={select} onOrderSwatches={orderSwatches} />
     </CountertopColorLevelPicker>

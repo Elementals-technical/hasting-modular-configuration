@@ -431,3 +431,23 @@ it("keeps Lower to the prebuilt flow when the cover contract names no flows", as
   expect(screen.queryByRole("tab", { name: "Lower" })).toBeNull();
   expect(mocks.read).not.toHaveBeenCalled();
 });
+
+// The player's Lower countertop action leads here with `?level=lower` (user, 2026-11-05).
+it("opens on the Lower tab when the URL asks for that level", async () => {
+  renderCountertopStep("/prebuilt/countertop?collectionId=urban-low-height&level=lower", collection);
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" }).getAttribute("aria-selected")).toBe("true"));
+  expect(screen.getByRole("tab", { name: "Upper" }).getAttribute("aria-selected")).toBe("false");
+  const colors = within(screen.getByRole("region", { name: "Countertop Color" }));
+  // The Lower's own colour is the one shown as chosen, not the Upper's.
+  await waitFor(() =>
+    expect(colors.getByRole("button", { name: "Rox Black TKQ" }).getAttribute("aria-pressed")).toBe("true"),
+  );
+});
+
+it("opens on the Upper tab when the URL names no level", async () => {
+  renderCountertopStep("/prebuilt/countertop?collectionId=urban-low-height", collection);
+
+  await waitFor(() => expect(screen.getByRole("tab", { name: "Lower" })).toBeTruthy());
+  expect(screen.getByRole("tab", { name: "Upper" }).getAttribute("aria-selected")).toBe("true");
+});
