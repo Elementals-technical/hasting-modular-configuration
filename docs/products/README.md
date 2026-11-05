@@ -50,10 +50,17 @@ public/collections/registry.json
    Redux, де їх використовують reducers і command layer.
 8. `ui.json` створює маршрути й поля. `product-profile.json` визначає допустимі значення, defaults і
    business rules. `runtime-bindings.json` перекладає semantic attributes у ключі/значення сцени.
-9. Save записує `collectionId`; restore спочатку відкриває відповідну колекцію, а потім відновлює сцену.
+9. Композицію будує лише entry-крок потоку (`entryStepId` в `ui.json`: вибір preset або cabinet builder).
+   Якщо застосунок відкрився (reload, вставлене посилання) на кроці після entry без жодного вибраного
+   продукту, `ColdOpenEntryGuard` у `CollectionStepRoutes` переадресовує на entry-крок із усім query
+   (`collectionId`, `configId` та решта), тож `configId` запускає restore на entry-сторінці. Рішення
+   ухвалюється один раз для history entry, на якому застосунок відкрився: навігація в межах сесії і
+   композиція, спорожнена посеред сесії, не переадресовуються. Detail-маршрути entry-кроку
+   (`/prebuilt/model/:id`, `/custom/cabinet-builder/details/style`) вважаються entry.
+10. Save записує `collectionId`; restore спочатку відкриває відповідну колекцію, а потім відновлює сцену.
 
 Ключові файли коду: `src/entities/collection/lib/loadCollection.ts`,
-`src/entities/collection/ui/ActiveCollectionProvider.tsx`, `src/app/router/CollectionStepRoutes.tsx`,
+`src/entities/collection/ui/ActiveCollectionProvider.tsx`, `src/app/router/CollectionStepRoutes.tsx`, `src/app/router/ColdOpenEntryGuard.tsx`,
 `src/entities/configuration/ui/CollectionStateBridge.tsx`,
 `src/features/playCanvasAdapter/lib/createPlayCanvasRuntimePort.ts`.
 
