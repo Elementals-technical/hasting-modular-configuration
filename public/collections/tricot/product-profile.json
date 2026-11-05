@@ -561,6 +561,8 @@
     "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
     "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
+    "countertop.compositionLengthReached": "Maximum composition length reached for the selected countertop setup ({maxCm} cm / {maxIn}\").",
+    "countertop.compositionLengthReachedNoMax": "Maximum composition length reached for the selected countertop setup.",
     "organizer.hintOpenDrawer": "Click ‘Open Drawer’ on a drawer to add divider columns.",
     "organizer.lockedZone": "Drain area — dividers can't be placed here.",
     "organizer.trimmed": "{n} column(s) no longer fit and were removed.",

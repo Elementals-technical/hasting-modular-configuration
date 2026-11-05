@@ -483,6 +483,8 @@
     "handle.notAvailableForCabinetType": "Not available for selected cabinet type",
     "drawers.requiredHeight": "Required for selected drawers",
     "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "countertop.compositionLengthReached": "Maximum composition length reached for the selected countertop setup ({maxCm} cm / {maxIn}\").",
+    "countertop.compositionLengthReachedNoMax": "Maximum composition length reached for the selected countertop setup.",
     "organizer.hintOpenDrawer": "Click ‘Open Drawer’ on a drawer to add divider columns.",
     "organizer.lockedZone": "Drain area — dividers can't be placed here.",
     "organizer.trimmed": "{n} column(s) no longer fit and were removed.",
