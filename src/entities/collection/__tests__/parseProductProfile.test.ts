@@ -131,12 +131,16 @@ describe("parseProductProfile", () => {
   });
 
   describe("an attribute that follows another", () => {
-    const withFollows = (followsAttribute: unknown) => {
+    /** The USH profile with `followsAttribute` set on the attributes keyed. */
+    const withFollowing = (follows: Record<string, unknown>) => {
       const raw = clone(ushProfile) as { attributes: { attributeId: string; followsAttribute?: unknown }[] };
-      const groove = raw.attributes.find(({ attributeId }) => attributeId === "HandleGrooveColor");
-      if (groove) groove.followsAttribute = followsAttribute;
+      for (const attribute of raw.attributes) {
+        if (attribute.attributeId in follows) attribute.followsAttribute = follows[attribute.attributeId];
+      }
       return parseProductProfile(raw);
     };
+
+    const withFollows = (followsAttribute: unknown) => withFollowing({ HandleGrooveColor: followsAttribute });
 
     it("reads the attribute it follows", () => {
       const result = withFollows("CabinetColor");
@@ -173,6 +177,54 @@ describe("parseProductProfile", () => {
           message: "followsAttribute must be an attributeId",
         },
       ]);
+    });
+
+    it("rejects a follower that is not cabinet-scoped", () => {
+      expect(withFollowing({ CabinetColor: "Handle" })).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/CabinetColor/followsAttribute",
+            message: 'followsAttribute is read only on a cabinet-scoped attribute, not on scope "global"',
+          },
+        ],
+      });
+    });
+
+    it("rejects following an attribute that follows another", () => {
+      expect(withFollowing({ HandleGrooveColor: "CabinetColor", DrawerPanelFluting: "HandleGrooveColor" })).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/DrawerPanelFluting/followsAttribute",
+            message: 'followsAttribute "HandleGrooveColor" follows "CabinetColor" itself; following is one level deep',
+          },
+        ],
+      });
+    });
+
+    it("rejects a cycle on each attribute in it", () => {
+      expect(
+        withFollowing({ HandleGrooveColor: "DrawerPanelFluting", DrawerPanelFluting: "HandleGrooveColor" }),
+      ).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/HandleGrooveColor/followsAttribute",
+            message:
+              'followsAttribute "DrawerPanelFluting" follows "HandleGrooveColor" itself; following is one level deep',
+          },
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/DrawerPanelFluting/followsAttribute",
+            message:
+              'followsAttribute "HandleGrooveColor" follows "DrawerPanelFluting" itself; following is one level deep',
+          },
+        ],
+      });
     });
   });
 

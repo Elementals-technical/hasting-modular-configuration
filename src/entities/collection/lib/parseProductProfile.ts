@@ -47,6 +47,7 @@ export type ProfileDiagnosticCode =
   | "attribute.missing_options_source"
   | "attribute.value_outside_catalog"
   | "attribute.unknown_followed"
+  | "attribute.unsupported_follow"
   | "adapter.missing_column"
   | "ruleData.invalid_section";
 
@@ -826,15 +827,38 @@ export const parseProductProfile = (input: unknown): ParseProductProfileResult =
     attributes.push(attribute);
   });
 
-  for (const { attributeId, followsAttribute } of attributes) {
-    if (followsAttribute === undefined) continue;
-    if (followsAttribute !== attributeId && seenIds.has(followsAttribute)) continue;
+  const followedIdOf = new Map(attributes.map((attribute) => [attribute.attributeId, attribute.followsAttribute]));
 
-    collect.add(
-      "attribute.unknown_followed",
-      `/attributes/${attributeId}/followsAttribute`,
-      `followsAttribute "${followsAttribute}" must name another attribute of this profile`,
-    );
+  for (const { attributeId, scope, followsAttribute } of attributes) {
+    if (followsAttribute === undefined) continue;
+    const followsPath = `/attributes/${attributeId}/followsAttribute`;
+
+    // The change commands move only cabinet-scoped followers, and only the direct followers of a changed attribute.
+    if (scope !== "cabinet") {
+      collect.add(
+        "attribute.unsupported_follow",
+        followsPath,
+        `followsAttribute is read only on a cabinet-scoped attribute, not on scope "${scope}"`,
+      );
+    }
+
+    if (followsAttribute === attributeId || !seenIds.has(followsAttribute)) {
+      collect.add(
+        "attribute.unknown_followed",
+        followsPath,
+        `followsAttribute "${followsAttribute}" must name another attribute of this profile`,
+      );
+      continue;
+    }
+
+    const chainedId = followedIdOf.get(followsAttribute);
+    if (chainedId !== undefined) {
+      collect.add(
+        "attribute.unsupported_follow",
+        followsPath,
+        `followsAttribute "${followsAttribute}" follows "${chainedId}" itself; following is one level deep`,
+      );
+    }
   }
 
   const ruleData = isRecord(raw.ruleData) ? raw.ruleData : null;

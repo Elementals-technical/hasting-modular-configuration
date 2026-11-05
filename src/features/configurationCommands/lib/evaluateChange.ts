@@ -2,7 +2,6 @@ import type { RootState } from "@/app/store";
 import {
   normalizeOptionValue,
   selectConfiguratorGroup,
-  selectFollowedAttribute,
   selectResetValue,
   selectRuntimeBinding,
   semanticValueOf,
@@ -112,9 +111,8 @@ const readFollowState = (
   const followedValues: Record<string, string> = {};
   const heldFollowerValues: Record<string, { value: string; target: ValueTarget }> = {};
 
-  for (const { attributeId, scope } of profile.attributes) {
-    const followedId = selectFollowedAttribute(profile, attributeId);
-    if (followedId === null || scope !== "cabinet") continue;
+  for (const { attributeId, scope, followsAttribute: followedId } of profile.attributes) {
+    if (followedId === undefined || scope !== "cabinet") continue;
 
     const followed = compositionValues[followedId];
     if (typeof followed === "string") followedValues[followedId] = followed;
