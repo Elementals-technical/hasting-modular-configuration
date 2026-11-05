@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"next":"Next: Countertop & Basin","url":"/custom/color","n":22,"selected":["Silver"],"groups":[{"group":"Lacquered MT","n":20},{"group":"Metal","n":2}],"filters":["Material","Color","Price"],"material":["Show all","Lacquered MT","Metal"]}
+```
+Page navigated to http://localhost:5173/custom/color?collectionId=mako.

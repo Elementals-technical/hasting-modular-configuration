@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"names":["Gold","Silver"],"filters":["Material","Price"],"material":["Show all","Metal"],"closed":true}
+```

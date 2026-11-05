@@ -21,6 +21,7 @@ import {
   setCountertopLayoutIntroSeen,
 } from "../lib/countertopLayoutIntroStorage";
 import type { CountertopApi, CountertopState } from "../lib/countertopSession";
+import { registerHostedSinkLanding } from "../lib/hostedSinkLanding";
 import { buildCountertopPositionItems, isCountertopSettingsMode } from "../lib/positionMenuItems";
 import {
   CountertopDragMode,
@@ -488,6 +489,144 @@ describe("CountertopDragMode reports an edit from its start to its end", () => {
   });
 });
 
+describe("CountertopDragMode Standard over a cabinet a hosted sink would land on", () => {
+  const remote = { x: 0.3, y: 0.2 };
+  const remoteLengthM = inches(67.6);
+  type GoBack = (() => Promise<unknown>) | null;
+  /**
+   * A top that hosts its sink at `remote` with a custom length. As in the scene, the reset drops that length and
+   * brings the sink over a cabinet; `land` answers for `useSinkLanding`.
+   */
+  const hostedStandard = (
+    f: ReturnType<typeof fixture>,
+    land: (cabinetId: string, goBack: GoBack) => Promise<boolean>,
+  ) => {
+    f.move(remote);
+    f.api.setSize({ length: remoteLengthM });
+    const reset = f.api.resetOffset.getMockImplementation();
+    f.api.resetOffset.mockImplementation(() => {
+      reset?.();
+      f.api.setSize({ length: null });
+    });
+    f.api.getState.mockImplementation(() => ({
+      ...structuredClone(f.state()),
+      sink: {
+        owner: "countertop",
+        shiftM: 0,
+        landing: null,
+        pending: f.state().attached ? { cabinetId: "sc", fromCabinetId: null, status: "fits" } : null,
+        hosted: true,
+      },
+    }));
+    return registerHostedSinkLanding(land);
+  };
+  const whenAvailable = (f: ReturnType<typeof fixture>) =>
+    waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ available: true })));
+  const refuse = async (_cabinetId: string, goBack: GoBack) => {
+    await goBack?.();
+    return false;
+  };
+
+  it("hands the landing on, and reports no change of its own", async () => {
+    const f = fixture();
+    await whenAvailable(f);
+    const land = vi.fn(async () => true);
+    const unregister = hostedStandard(f, land);
+    try {
+      act(() => f.ref.current!.standard());
+
+      await waitFor(() => expect(land).toHaveBeenCalledWith("sc", expect.any(Function)));
+      await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ busy: false })));
+      expect(f.onCommitted).not.toHaveBeenCalled();
+      expect(f.onSessionDiscarded).not.toHaveBeenCalled();
+    } finally {
+      unregister();
+    }
+  });
+
+  it("puts the top back with its length when the rules refuse the landing, and ends as no change", async () => {
+    const f = fixture();
+    await whenAvailable(f);
+    const unregister = hostedStandard(f, refuse);
+    try {
+      act(() => f.ref.current!.standard());
+
+      await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+      expect(f.state()).toMatchObject({ offset: remote, customLength: remoteLengthM });
+      expect(f.onSessionDiscarded).toHaveBeenCalledOnce();
+      // The pose read after the top went back, not the Standard one it passed through.
+      expect(f.onCommitted).toHaveBeenCalledWith(
+        expect.objectContaining({ offset: remote, customLength: remoteLengthM }),
+      );
+    } finally {
+      unregister();
+    }
+  });
+
+  it("Apply over such a cabinet hands the landing on, as the scene does not announce one twice", async () => {
+    const f = fixture();
+    f.move(remote);
+    f.api.setSize({ length: remoteLengthM });
+    await enter(f);
+    f.emit(frameOf());
+    const land = vi.fn(async () => true);
+    const unregister = hostedStandard(f, land);
+    try {
+      f.api.setOffset({ x: 0, y: 0 });
+
+      fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+      await waitFor(() => expect(land).toHaveBeenCalledWith("sc", expect.any(Function)));
+      await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: false })));
+      expect(f.onCommitted).not.toHaveBeenCalled();
+    } finally {
+      unregister();
+    }
+  });
+
+  it("Apply puts the top back as the session found it when the rules refuse the landing", async () => {
+    const f = fixture();
+    f.move(remote);
+    f.api.setSize({ length: remoteLengthM });
+    await enter(f);
+    f.emit(frameOf());
+    const unregister = hostedStandard(f, refuse);
+    try {
+      f.api.setOffset({ x: 0, y: 0 });
+
+      fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+
+      await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+      expect(f.state()).toMatchObject({ offset: remote, customLength: remoteLengthM });
+      expect(f.onCommitted).toHaveBeenCalledWith(
+        expect.objectContaining({ offset: remote, customLength: remoteLengthM }),
+      );
+      expect(f.onSessionDiscarded).toHaveBeenCalledOnce();
+      await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: false })));
+    } finally {
+      unregister();
+    }
+  });
+
+  it("leaves drag mode as Standard does, with the top back as the session found it", async () => {
+    const f = fixture();
+    f.move(remote);
+    f.api.setSize({ length: remoteLengthM });
+    await enter(f);
+    const unregister = hostedStandard(f, refuse);
+    try {
+      f.move({ x: 0.5, y: 0.2 });
+      act(() => f.ref.current!.standard());
+
+      await waitFor(() => expect(f.onCommitted).toHaveBeenCalledOnce());
+      expect(f.state()).toMatchObject({ offset: remote, customLength: remoteLengthM });
+      await waitFor(() => expect(f.onStatusChange).toHaveBeenLastCalledWith(expect.objectContaining({ active: false })));
+    } finally {
+      unregister();
+    }
+  });
+});
+
 describe("CountertopDragMode Length session (Resize ▸ Length)", () => {
   const enterLength = async (f: ReturnType<typeof fixture>) => {
     await waitFor(() =>
@@ -781,7 +920,7 @@ describe("countertop D&D validation and command errors", () => {
     // A 'validation' change reaches the store through the central subscriber; the overlay re-renders.
     verdict({ status: "invalid", reasons: ["TRAP_KEEPOUT", "SINK_LANDING_GAP"], warnings: [] });
     const alert = screen.getByRole("alert");
-    expect(alert.textContent).toBe("Too close to the sink trap. The sink can't go here.");
+    expect(alert.textContent).toBe("Too close to the sink trap. The basin needs one cabinet wide enough for it.");
     expect(alert.getAttribute("data-validation")).toBe("invalid");
     verdict({ status: "valid", reasons: [], warnings: ["COUNTERTOP_COLLISION"] });
     expect(screen.queryByRole("alert")).toBeNull();

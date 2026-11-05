@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"handle":{"offered":["G57","G50"],"chose":"G57"},"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Antracite 400 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}],"next":"Next: Countertop & Basin","n":22,"selected":["Antracite 400 MT"],"price":"Total List Price $5,371.00","lastSkus":["VAN-MAKOV-SB/2DW/G50-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV","VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400"]}
+```
+Page navigated to http://localhost:5173/custom/color?collectionId=mako.

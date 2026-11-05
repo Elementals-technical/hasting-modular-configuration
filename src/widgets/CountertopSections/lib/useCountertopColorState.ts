@@ -144,13 +144,14 @@ export const useCountertopColorState = (context: CountertopContext) => {
   // The matrix's reason comes first: another vessel would not bring such a colour back.
   const withMaterialAvailability = useCallback(
     (option: ProductOptionData) => {
-      const { isCompatible, failedBy } = evaluateMaterialOption(option, ruleInputs);
+      const { isCompatible, failedBy, widthRefusal } = evaluateMaterialOption(option, ruleInputs);
       if (!isCompatible) {
         return {
           ...option,
           isAvailable: false,
-          disabledReason: reasonForFailure(failedBy, messages),
-          disabledReasonCode: reasonCodeForFailure(failedBy),
+          disabledReason: widthRefusal?.disabledReason ?? reasonForFailure(failedBy, messages),
+          disabledReasonCode: widthRefusal?.reasonCode ?? reasonCodeForFailure(failedBy),
+          disabledReasonParams: widthRefusal?.reasonParams,
         };
       }
       if (!isRefusedByVessel(option)) return { ...option, isAvailable: true, disabledReason: undefined };

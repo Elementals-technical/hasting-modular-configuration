@@ -25,6 +25,7 @@ import {
   getTowelBarOption,
 } from "@/entities/product/model/store/selectors";
 import { isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
+import { selectHandleColors } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleColorRule";
 import {
   canThicknessFloat,
   evaluateCountertopMaterial,
@@ -39,6 +40,7 @@ import {
   REASON_VESSEL_COLOR_UNAVAILABLE,
   REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE,
   resolveCountertopRuleMaterials,
+  resolveIntegratedWidthRefusal,
   selectMaterialAliasTable,
   selectSinkBasesUnavailableWithIntegrated,
   useCountertopRules,
@@ -54,6 +56,7 @@ import { finishOf, resolveVesselColorOptions } from "./resolveVesselColor";
 
 import type { FieldOptionState, ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
+import type { CountertopRuleReason } from "@/features/configurator-rule-core/countertop";
 
 import type { FieldAvailability, FieldAvailabilityResults, ResolvedCustomizationField } from "./resolveSectionState";
 import type { CountertopRuleState } from "./useCountertopRuleState";
@@ -83,13 +86,13 @@ const useAllowedFaucetHoles = (allowedFaucetHoles: CountertopRuleState["allowedF
 
 const COUNTERTOP_STYLES = ["integrated", "vessel"] as const;
 
-// A style's refusal in the field's terms, for the field and for the style's own option.
-const toStyleRefusalReason = (
-  availability: CountertopRuleState["styleAvailability"][(typeof COUNTERTOP_STYLES)[number]] | undefined,
+// A rule's refusal in the field's terms, for the field and for an option of its own.
+const toFieldRefusalReason = (
+  refusal: Partial<CountertopRuleReason> | undefined,
 ): Pick<FieldAvailability, "reason" | "reasonCode" | "reasonParams"> => ({
-  reason: availability?.disabledReason,
-  reasonCode: availability?.reasonCode,
-  reasonParams: availability?.reasonParams,
+  reason: refusal?.disabledReason,
+  reasonCode: refusal?.reasonCode,
+  reasonParams: refusal?.reasonParams,
 });
 
 // The styles the matrix allows for the current colour and sizes. Each refused style says its own reason: the two
@@ -103,9 +106,9 @@ export const resolveCountertopStyleAvailability = ({ styleAvailability }: Counte
     optionReason: ({ value }) => {
       const style = COUNTERTOP_STYLES.find((key) => key === value);
       const availability = style ? styleAvailability[style] : undefined;
-      return availability && !availability.isAvailable ? toStyleRefusalReason(availability) : undefined;
+      return availability && !availability.isAvailable ? toFieldRefusalReason(availability) : undefined;
     },
-    ...toStyleRefusalReason(refused),
+    ...toFieldRefusalReason(refused),
   };
 };
 
@@ -161,7 +164,8 @@ const resolveCountertopColorAvailability = (
     optionReason: (option) => {
       const missing = missingRule(option);
       if (missing) return { reasonCode: "product.missingData", reasonParams: { ruleId: missing.ruleId } };
-      const { failedBy } = judge(option);
+      const { failedBy, widthRefusal } = judge(option);
+      if (widthRefusal) return toFieldRefusalReason(widthRefusal);
       if (failedBy) return { reasonCode: REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] };
       return isRefusedByVessel(option) ? { reasonCode: REASON_VESSEL_COLOR_UNAVAILABLE } : undefined;
     },
@@ -200,10 +204,17 @@ const resolveThicknessAvailability = (
 // Before a colour is chosen every row matches, so no integrated basin is enabled until one is, as
 // the USH screen offers none before a material. A vessel countertop without a basin keeps its
 // cutout: the profile's noneValue, chosen until a vessel is. A vessel that cannot stand on the
-// countertop's colour (its unavailableColorCodesByStyle) is refused for that colour.
+// countertop's colour (its unavailableColorCodesByStyle) is refused for that colour. A basin its
+// widths refuse says the widths it needs.
 export const resolveBasinAvailability = (
   profile: ProductProfile | null,
-  { matchingRules, allowedBasinKeys, activeMaterialTokens, vesselSinkAvailability }: CountertopRuleState,
+  {
+    matchingRules,
+    allowedBasinKeys,
+    activeMaterialTokens,
+    vesselSinkAvailability,
+    materialRuleInputs,
+  }: CountertopRuleState,
   countertopStyle: string | null | undefined,
   countertopColor: string | null | undefined,
 ): FieldAvailability => {
@@ -240,11 +251,23 @@ export const resolveBasinAvailability = (
           Boolean(countertopColor) &&
           rowsOf(basin).some(({ basinStyle }) => allowedBasinKeys.has(normalizeBasinKey(basinStyle))),
     ),
-    // A vessel the Sink Base refuses keeps the field's reason: another countertop colour would not bring it back.
-    optionReason: ({ value }) =>
-      vesselSinkAvailability.isAvailable && isRefusedByCountertopColor(value)
-        ? { reasonCode: REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE }
-        : undefined,
+    optionReason: ({ value }) => {
+      const basin = basins.find((option) => option.value === value);
+      if (!basin) return undefined;
+      if (basin.category === "vessel") {
+        // A vessel the Sink Base refuses keeps the field's reason: another countertop colour would not bring it back.
+        return vesselSinkAvailability.isAvailable && isRefusedByCountertopColor(value)
+          ? { reasonCode: REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE }
+          : undefined;
+      }
+      const refusal = resolveIntegratedWidthRefusal({
+        basinRules: rowsOf(basin),
+        sinkBaseWidth: materialRuleInputs.sinkBaseWidth ?? null,
+        totalWidth: materialRuleInputs.totalWidth ?? null,
+        profile,
+      });
+      return refusal ? toFieldRefusalReason(refusal) : undefined;
+    },
     reasonCode: "change.notAvailable",
     valueWhenEmpty: isVesselStyle ? noneValue : undefined,
   };
@@ -330,12 +353,8 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
   });
 
   const handle = selectedHandle ?? presetHandle;
-  const supportsGrooveColor = hasCapability(
-    profile,
-    "Handle",
-    typeof handle === "string" ? handle : null,
-    "supportsGrooveColor",
-  );
+  const handleValue = typeof handle === "string" ? handle : null;
+  const supportsGrooveColor = hasCapability(profile, "Handle", handleValue, "supportsGrooveColor");
   const hasTowelBar = Boolean(towelBarOption) && towelBarOption !== "None";
   const isCustomizingDividers = dividersOption === "Customize";
   const isVesselStyle = (countertopStyle ?? "").trim().toLowerCase() === "vessel";
@@ -354,6 +373,8 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
         reasonCode: bookMatching.reasonCode,
       },
       "Handle.supportsGrooveColor": { available: supportsGrooveColor, visible: supportsGrooveColor },
+      // Hidden, not refused: the Material filter is built from the field's options, and it must not offer them either.
+      "HandleColor.allowed": { available: true, visibleValues: selectHandleColors(profile, handleValue) },
       "SidePanels.available": {
         available: sidePanels.allowed.size > 0,
         reason: sidePanels.reason,
@@ -396,6 +417,7 @@ const useFieldAvailabilityResults = (configurator: ConfiguratorGroupCatalog | nu
       countertopStyle,
       fluting,
       grainDirection,
+      handleValue,
       hasTowelBar,
       integratedChangesSinkBases,
       isCustomizingDividers,

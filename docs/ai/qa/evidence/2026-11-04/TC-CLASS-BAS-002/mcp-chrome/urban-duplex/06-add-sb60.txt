@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"r":{"w":{"offered":["23.6\"","27.6\"","31.5\"","35.4\"","41.3\"","47.2\""],"chose":"23.6\""},"placed":true},"popup":null,"configs":[{"id":"UD-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Top_HPLPrisma"},{"id":"UD-sink-cabinet-b58c011e-f92f-40a9-9020","Width":60,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Top_HPLPrisma"}],"ct":["CT-URHPL-INTG-55.1W-.5H-18.1D-HPL-TKH","CT-URHPL-STRIP-.5H-HPL-TKH","CT-URHPL-FAHO/0","CT-URHPL-PRISMA-.5H-HPL-TKH"],"price":"Total List Price $16,809.00"}
+```
+Page navigated to http://localhost:5173/custom/cabinet-builder?collectionId=urban-duplex.

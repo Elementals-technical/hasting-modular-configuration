@@ -3,9 +3,11 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CabinetMoveSinkReceipt, CabinetsState, CountertopAction, CountertopApi, CountertopState } from "@/features/configuratorApi";
+import type { CountertopRuleReason } from "@/features/configurator-rule-core/countertop";
 import { ConfiguratorError } from "@/features/configuratorApi";
 import { setCountertopRuntimeState } from "@/shared/lib/countertopRuntimeState";
 
+import { commitHostedSinkLanding } from "../lib/hostedSinkLanding";
 import { useSinkLanding, type SinkLandingClient } from "../lib/useSinkLanding";
 
 const state = (overrides: Partial<CountertopState> = {}): CountertopState => ({
@@ -54,6 +56,7 @@ const invalidInput = () => new ConfiguratorError("INVALID_INPUT", "INVALID_INPUT
 const setup = (
   moveSink: SinkLandingClient["moveSink"] = vi.fn(async () => receipt),
   extra: Partial<Pick<SinkLandingClient, "liftSink" | "landSink">> = {},
+  resolveLandingRefusal: (cabinetWidthCm: number) => CountertopRuleReason | null = () => null,
 ) => {
   let emit: (action: CountertopAction) => void = () => undefined;
   // What `countertop.getState()` answers: a move keeps the sink where it is, Standard puts it home.
@@ -79,6 +82,7 @@ const setup = (
       ready: true,
       getApi: () => api as unknown as CountertopApi,
       onCommitted,
+      resolveLandingRefusal,
       createClient: () => client,
     }),
   );
@@ -124,7 +128,8 @@ describe("useSinkLanding", () => {
     await land();
 
     expect(client.moveSink).toHaveBeenCalledWith("ULH-sink-cabinet-a", "ULH-side-cabinet-b");
-    expect(client.getCabinetsState).toHaveBeenCalledOnce();
+    // Once for the width the landing is judged by, once for the UI sync.
+    expect(client.getCabinetsState).toHaveBeenCalledTimes(2);
     expect(onCommitted).toHaveBeenCalledWith({ ...cabinets, selectedCabinetId: "ULH-sink-cabinet-n2" }, receipt);
     expect(api.setOffset).not.toHaveBeenCalled();
     expect(hook.result.current.message).toBeNull();
@@ -326,5 +331,173 @@ describe("useSinkLanding", () => {
     expect(api.resetOffset).not.toHaveBeenCalled();
     expect(onCommitted).not.toHaveBeenCalled();
     expect(hook.result.current.message).toBeNull();
+  });
+});
+
+describe("useSinkLanding judges a 'fits' landing by the collection's rules", () => {
+  const refusal: CountertopRuleReason = {
+    reasonCode: "countertop.sinkBaseBelowMin",
+    reasonParams: { currentCm: 50, minCm: 60 },
+    disabledReason: "Below the basin's minimum.",
+  };
+  const refusalMessage = { code: refusal.reasonCode, params: refusal.reasonParams, text: refusal.disabledReason };
+  const belowSixtyCm = vi.fn((cabinetWidthCm: number) => (cabinetWidthCm < 60 ? refusal : null));
+  const landReceipt = {
+    ...receipt,
+    idMap: { "ULH-side-cabinet-b": "ULH-sink-cabinet-n3" },
+    sinkHostId: "ULH-sink-cabinet-n3",
+  };
+  const hostedLanding: CountertopAction = {
+    type: "sink-landing",
+    landing: { status: "fits", cabinetId: "ULH-side-cabinet-b", fromCabinetId: null, reason: null, snapDxM: 0 },
+  };
+  const hostedOverCabinet = (offset: { x: number; y: number }) =>
+    state({
+      offset,
+      sink: {
+        owner: "countertop",
+        shiftM: 0,
+        landing: null,
+        pending: { cabinetId: "ULH-side-cabinet-b", fromCabinetId: null, status: "fits" },
+        hosted: true,
+      },
+    });
+  const withSideCabinet = (widthCm: number): CabinetsState =>
+    ({
+      ...cabinets,
+      cabinets: [{ id: "ULH-side-cabinet-b", definitionId: "ULH-side-cabinet", selection: { Width: widthCm } }],
+    }) as unknown as CabinetsState;
+  const setupOver = (widthCm: number) => {
+    const landSink = vi.fn(async () => landReceipt);
+    const fixture = setup(undefined, { landSink }, belowSixtyCm);
+    fixture.client.getCabinetsState.mockImplementation(async () => withSideCabinet(widthCm));
+    return { ...fixture, landSink };
+  };
+
+  it("commits no hosted landing on a cabinet below the basin's minimum, puts the top back and says why", async () => {
+    const { landSink, emitNow, api, hook, onCommitted } = setupOver(50);
+    await emitNow(hostedLanding);
+
+    expect(belowSixtyCm).toHaveBeenLastCalledWith(50);
+    expect(landSink).not.toHaveBeenCalled();
+    expect(onCommitted).not.toHaveBeenCalled();
+    expect(api.setOffset).toHaveBeenCalledWith({ x: 0.1, y: 0 }, { validation: "skip" });
+    expect(api.resetOffset).not.toHaveBeenCalled();
+    expect(hook.result.current.message).toEqual(refusalMessage);
+  });
+
+  it("commits no SB sink move on such a cabinet either", async () => {
+    const { client, land, api, hook, onCommitted } = setupOver(50);
+    await land();
+
+    expect(client.moveSink).not.toHaveBeenCalled();
+    expect(onCommitted).not.toHaveBeenCalled();
+    expect(api.setOffset).toHaveBeenCalledWith({ x: 0.1, y: 0 }, { validation: "skip" });
+    expect(hook.result.current.message).toEqual(refusalMessage);
+  });
+
+  it("commits a landing on a cabinet the rules allow, judged by that cabinet's width", async () => {
+    const { landSink, emitNow, api, hook, onCommitted } = setupOver(60);
+    await emitNow(hostedLanding);
+
+    expect(belowSixtyCm).toHaveBeenLastCalledWith(60);
+    expect(landSink).toHaveBeenCalledWith("ULH-side-cabinet-b");
+    expect(onCommitted).toHaveBeenCalledOnce();
+    expect(api.setOffset).not.toHaveBeenCalled();
+    expect(hook.result.current.message).toBeNull();
+  });
+
+  it("leaves a landing whose cabinet cannot be read to the commit, which reports a failure itself", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { client, landSink, emitNow, onCommitted } = setupOver(50);
+    client.getCabinetsState.mockRejectedValueOnce(new ConfiguratorError("NOT_READY", "not ready", { retryable: true }));
+    await emitNow(hostedLanding);
+
+    expect(landSink).toHaveBeenCalledWith("ULH-side-cabinet-b");
+    expect(onCommitted).toHaveBeenCalledOnce();
+  });
+
+  it("clears a refusal when the next landing goes through", async () => {
+    const { client, landSink, emitNow, hook } = setupOver(50);
+    await emitNow(hostedLanding);
+    expect(hook.result.current.message).toEqual(refusalMessage);
+
+    client.getCabinetsState.mockImplementation(async () => withSideCabinet(60));
+    await emitNow(hostedLanding);
+
+    expect(landSink).toHaveBeenCalledOnce();
+    expect(hook.result.current.message).toBeNull();
+  });
+
+  describe("after an API lowering (Position ▸ Standard)", () => {
+    const goBack = vi.fn(async () => undefined);
+
+    it("answers false for a refused landing, with the top put back by the caller, who knows how it stood", async () => {
+      goBack.mockClear();
+      const { landSink, api, scene, hook } = setupOver(25);
+      scene.current = hostedOverCabinet({ x: 0, y: 0 });
+      let handed: boolean | undefined;
+      await act(async () => {
+        handed = await commitHostedSinkLanding(api as unknown as CountertopApi, goBack);
+      });
+
+      expect(handed).toBe(false);
+      expect(landSink).not.toHaveBeenCalled();
+      expect(goBack).toHaveBeenCalledOnce();
+      expect(api.setOffset).not.toHaveBeenCalled();
+      expect(api.resetOffset).not.toHaveBeenCalled();
+      expect(hook.result.current.message).toEqual(refusalMessage);
+    });
+
+    it("sends a refused landing to Standard where the caller has no way back", async () => {
+      const { landSink, api, scene, hook } = setupOver(25);
+      scene.current = hostedOverCabinet({ x: 0, y: 0 });
+      let handed: boolean | undefined;
+      await act(async () => {
+        handed = await commitHostedSinkLanding(api as unknown as CountertopApi);
+      });
+
+      expect(handed).toBe(false);
+      expect(landSink).not.toHaveBeenCalled();
+      expect(api.resetOffset).toHaveBeenCalledOnce();
+      expect(hook.result.current.message).toEqual(refusalMessage);
+    });
+
+    it("answers true for a landing it hands on, and does not go back", async () => {
+      goBack.mockClear();
+      const { landSink, api, scene } = setupOver(60);
+      scene.current = hostedOverCabinet({ x: 0, y: 0 });
+      let handed: boolean | undefined;
+      await act(async () => {
+        handed = await commitHostedSinkLanding(api as unknown as CountertopApi, goBack);
+      });
+      await flush();
+
+      expect(handed).toBe(true);
+      expect(landSink).toHaveBeenCalledWith("ULH-side-cabinet-b");
+      expect(goBack).not.toHaveBeenCalled();
+      expect(api.setOffset).not.toHaveBeenCalled();
+    });
+
+    it("leaves a landing to the commit in flight, which clears the pending itself", async () => {
+      const releases: Array<() => void> = [];
+      const landSink = vi.fn(async () => {
+        await new Promise<void>((resolve) => releases.push(resolve));
+        return landReceipt;
+      });
+      const { client, emitNow, api, scene } = setup(undefined, { landSink }, belowSixtyCm);
+      client.getCabinetsState.mockImplementation(async () => withSideCabinet(60));
+      await emitNow(hostedLanding);
+      scene.current = hostedOverCabinet({ x: 0, y: 0 });
+      let handed: boolean | undefined;
+      await act(async () => {
+        handed = await commitHostedSinkLanding(api as unknown as CountertopApi, goBack);
+      });
+
+      expect(handed).toBe(true);
+      expect(landSink).toHaveBeenCalledOnce();
+      releases[0]();
+      await flush();
+    });
   });
 });

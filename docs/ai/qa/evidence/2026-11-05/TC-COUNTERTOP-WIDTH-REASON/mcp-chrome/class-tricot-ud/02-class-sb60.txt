@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"r":{"w":{"offered":["23.6\"","31.5\"","39.4\"","47.2\""],"chose":"23.6\""},"placed":true},"configs":[{"id":"Class-sink-cabinet","Width":60,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_LV890"}],"refused":["Matte White 8cm"],"mw8":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 80 cm (31.5\")."]},"mw":{"present":true,"refused":false}}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=class.

@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Antracite 400 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"},{"id":"Mako-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Antracite 400 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}],"n":22,"selected":["Antracite 400 MT"],"price":""}
+```

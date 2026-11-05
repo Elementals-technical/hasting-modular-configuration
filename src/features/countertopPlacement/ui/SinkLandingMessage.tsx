@@ -6,7 +6,7 @@ type Props = {
   onDismiss: () => void;
 };
 
-/** Reports a sink move that failed (the move itself runs without asking, see `useSinkLanding`). */
+/** Reports a sink move that failed or that the rules refuse (the move itself runs without asking, see `useSinkLanding`). */
 export const SinkLandingMessage = ({ message, onDismiss }: Props) => {
   const reasonText = useReasonText();
 

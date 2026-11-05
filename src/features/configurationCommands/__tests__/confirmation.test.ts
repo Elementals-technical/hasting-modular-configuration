@@ -6,11 +6,19 @@ import makoCabinetTable from "@/entities/collection/__tests__/fixtures/remote/da
 import { store } from "@/app/store";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
-import { parseProductProfile } from "@/entities/collection";
+import { parseProductProfile, selectRuntimeBinding } from "@/entities/collection";
 import type { ProductProfile } from "@/entities/collection";
 import { makoRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/makoRuntimeBindingsFixture";
 import { ulhRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__tests__/ulhRuntimeBindingsFixture";
-import { resetConfiguration, setActiveCollectionId, syncCabinets } from "@/entities/configuration";
+import {
+  getAttributeValue,
+  getCabinetEntries,
+  resetConfiguration,
+  setActiveCollectionId,
+  setActiveRuntimeBindings,
+  setAttributeValue,
+  syncCabinets,
+} from "@/entities/configuration";
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import {
@@ -220,6 +228,70 @@ describe.each([
     expect(dispatched).toEqual([]);
     expect(runtime.calls).toHaveLength(0);
     expect(currentHandle()).toBe(config.Handle);
+  });
+});
+
+describe("a Mako handle that does not come in the colour the cabinets hold", () => {
+  const heldHandleColors = () =>
+    getCabinetEntries(store.getState()).map(({ stableKey }) =>
+      getAttributeValue(store.getState(), "HandleColor", { scope: "cabinet", cabinetId: stableKey }),
+    );
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(makoProfile));
+    store.dispatch(setActiveCollectionId("mako"));
+    store.dispatch(setActiveRuntimeBindings(makoRuntimeBindings));
+    store.dispatch(
+      setCabinetCatalog(
+        buildCabinetCatalogFromMatrix(makoCabinetTable as ProductDatatable, makoProfile, makoRuntimeBindings),
+      ),
+    );
+    store.dispatch(setActiveCabinetType("Sink-Base"));
+    store.dispatch(setSelectedProductConfig({ Drawers: "2", Handle: "G57" }));
+    store.dispatch(syncCabinets(["Mako-sink-cabinet-a", "Mako-side-cabinet-b"]));
+    getCabinetEntries(store.getState()).forEach(({ stableKey }) =>
+      store.dispatch(
+        setAttributeValue({
+          attributeId: "HandleColor",
+          target: { scope: "cabinet", cabinetId: stableKey },
+          value: "Antracite 400 MT",
+        }),
+      ),
+    );
+  });
+
+  it("moves every cabinet to the colour the handle starts in once confirmed, the handle first", async () => {
+    const runtime = createTestRuntimePort();
+    const { deps } = createDeps(runtime);
+    const target = { scope: "cabinet", cabinetId: "cab-1" };
+
+    const preview = previewOf(await changeAttribute({ ...HANDLE_TO_PTO, value: "G50" }, deps));
+
+    // The Handle popups show the first reason only, so the colour adds none.
+    expect(preview.reasons.map(({ reasonCode }) => reasonCode)).toEqual(["handle.appliesToAllCabinets"]);
+    expect(runtime.calls).toEqual([]);
+    expect(heldHandleColors()).toEqual(["Antracite 400 MT", "Antracite 400 MT"]);
+
+    const result = await confirmAttributeChange(preview, deps);
+
+    expect(result).toEqual({ status: "applied", plan: preview.plan });
+    expect(runtime.calls).toEqual([
+      [
+        { attributeId: "Handle", target, value: "G50", origin: "requested" },
+        { attributeId: "HandleColor", target, value: "Silver", origin: "dependency" },
+      ],
+    ]);
+    // The port sends a set in the phases of the bindings, which keep the handle before its colour.
+    expect(
+      ["Handle", "HandleColor"].map((attributeId) => {
+        const binding = selectRuntimeBinding(makoRuntimeBindings, attributeId);
+        return binding?.status === "bound" && binding.order;
+      }),
+    ).toEqual([20, 50]);
+    expect(heldHandleColors()).toEqual(["Silver", "Silver"]);
+    expect(currentHandle()).toBe("G50");
   });
 });
 

@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"a":{"w":{"offered":["23.6\"","31.5\"","39.4\"","47.2\""],"chose":"31.5\""},"placed":true},"onSb80":{"present":true,"refused":false},"picked":true,"b":{"w":{"offered":["23.6\"","31.5\"","39.4\"","47.2\""],"chose":"23.6\""},"placed":true},"configs":[{"id":"Class-sink-cabinet","Width":80,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_VA023"},{"id":"Class-sink-cabinet","Width":60,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_VA023"}],"colour":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 80 cm (31.5\")."]},"basin":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 80 cm (31.5\")."]}}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=class.

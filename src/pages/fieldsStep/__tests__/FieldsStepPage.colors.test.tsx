@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
@@ -15,14 +15,21 @@ import ulhUiDocument from "../../../../public/collections/urban-low-height/ui.js
 import { store } from "@/app/store";
 import { parseProductProfile, ReadyCollectionContext } from "@/entities/collection";
 import { buildReadyCollection } from "@/entities/collection/__tests__/fixtures/buildReadyCollection";
+import { configurator10WithLacquerCountertops } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
+import datatable589 from "@/entities/collection/__tests__/fixtures/remote/datatable-589.json";
 import { makoProfile } from "@/entities/collection/__tests__/makoProfileFixture";
+import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import { ReasonTextProvider } from "@/features/collectionCustomization";
+import { parseCountertopMatrix } from "@/features/configurator-rule-core/countertop";
 import colorFieldStyles from "@/features/collectionCustomization/ui/ColorField.module.scss";
 import { getCabinetEntries, resetConfiguration, setAttributeValue, syncCabinets } from "@/entities/configuration";
 import {
   reset,
   setActiveProfile,
+  setCountertopStyle,
   setPlacedCabinetStyle,
+  setSelectedDimensions,
   setSelectedProductConfig,
 } from "@/entities/product/model/store/slice";
 
@@ -155,6 +162,65 @@ describe("FieldsStepPage colour fields", () => {
     );
   };
 
+  // Table 589 makes a glass top from a 70 cm Sink Base, at 50 cm deep.
+  describe("a countertop colour its Sink Base is too narrow for", () => {
+    const hoverGlassColor = (profile = parsedProfile.profile) => {
+      const collection = buildReadyCollection("urban-low-height", ulhManifestDocument, ulhUiDocument);
+      const groups = configuratorSchema.parse(configurator10WithLacquerCountertops).availableOptions;
+      store.dispatch(setActiveProfile(profile));
+      store.dispatch(setSelectedDimensions({ width: 60, depth: 50 }));
+      store.dispatch(setCountertopStyle("integrated"));
+
+      render(
+        <Provider store={store}>
+          <MemoryRouter initialEntries={["/custom/countertop?collectionId=urban-low-height"]}>
+            <ReadyCollectionContext.Provider
+              value={{
+                ...collection,
+                catalog: {
+                  ...collection.catalog,
+                  configurator: {
+                    groups,
+                    groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])),
+                  },
+                  countertops: parseCountertopMatrix(countertopDatatableSchema.parse(datatable589)),
+                },
+              }}
+            >
+              <ReasonTextProvider>
+                <FieldsStepPage stepId="countertop" />
+              </ReasonTextProvider>
+            </ReadyCollectionContext.Provider>
+          </MemoryRouter>
+        </Provider>,
+      );
+      const tile = within(screen.getByRole("region", { name: "Countertop Color" })).getByRole("button", {
+        name: "Bianco 0B GL",
+      });
+      fireEvent.mouseEnter(tile.closest("div") as HTMLElement);
+    };
+
+    it("says the width it stands on and the minimum, where the collection has no words of its own", () => {
+      hoverGlassColor();
+
+      expect(
+        screen.getByText('Not available for current sink base width. Current 60 cm (23.6"), minimum 70 cm (27.6").'),
+      ).toBeTruthy();
+    });
+
+    it("fills the widths into the collection's own words", () => {
+      hoverGlassColor({
+        ...parsedProfile.profile,
+        messages: {
+          ...parsedProfile.profile.messages,
+          "countertop.sinkBaseBelowMin": 'From {minCm} cm ({minIn}"), this one is {currentCm} cm ({currentIn}").',
+        },
+      });
+
+      expect(screen.getByText('From 70 cm (27.6"), this one is 60 cm (23.6").')).toBeTruthy();
+    });
+  });
+
   // Mako's section holds every colour in one option named after the attribute, so the grid can
   // only group them by the material each variant names.
   it("groups a Mako colour by the material its own configurator names", () => {
@@ -174,6 +240,62 @@ describe("FieldsStepPage colour fields", () => {
     const section = within(screen.getByRole("region", { name: "Handle Color" }));
     expect(section.getAllByText("Gold").some(isChosen)).toBe(true);
     expect(section.getAllByText("Silver").some(isChosen)).toBe(false);
+  });
+
+  describe("Mako handle colours", () => {
+    const handleColorSection = () => within(screen.getByRole("region", { name: "Handle Color" }));
+    const shownHandleColors = () =>
+      configurator9.availableOptions
+        .filter(({ proxyName }) => proxyName === "Select Handle Color")
+        .flatMap(({ options }) => options)
+        .flatMap(({ variants }) => variants)
+        .map(({ name }) => name)
+        .filter((color) => handleColorSection().queryAllByText(color).length > 0);
+    // The menu of a filter opens on the body, outside its section.
+    const offeredMaterials = () => {
+      fireEvent.click(handleColorSection().getByRole("button", { name: "Material" }));
+      return within(screen.getByRole("listbox", { name: "Material" }))
+        .getAllByRole("option")
+        .map((option) => option.textContent);
+    };
+
+    it("are Gold and Silver alone for a G50, and its Material filter does not offer Lacquered MT", () => {
+      store.dispatch(setSelectedProductConfig({ Handle: "G50" }));
+      renderMakoColorStep();
+
+      expect(shownHandleColors()).toEqual(["Gold", "Silver"]);
+      expect(handleColorSection().queryByText("Nebbia 402 MT")).toBe(null);
+      expect(offeredMaterials()).toEqual(["Show all", "Metal"]);
+    });
+
+    it("are all 22 for a G57, in both materials", () => {
+      store.dispatch(setSelectedProductConfig({ Handle: "G57" }));
+      renderMakoColorStep();
+
+      expect(shownHandleColors().length).toBe(22);
+      expect(offeredMaterials()).toEqual(["Show all", "Lacquered MT", "Metal"]);
+    });
+
+    // The player menu is open on every step but Summary, so a G50 can arrive under a filter chosen on a G57.
+    it.each([
+      ["Material", "Lacquered MT"],
+      ["Color", "Grey"],
+      ["Price", /Classic \$\$/],
+    ])("leave no %s filter behind when a G50 takes its colours away", (filter, value) => {
+      store.dispatch(setSelectedProductConfig({ Handle: "G57" }));
+      renderMakoColorStep();
+
+      fireEvent.click(handleColorSection().getByRole("button", { name: filter }));
+      fireEvent.click(within(screen.getByRole("listbox", { name: filter })).getByRole("option", { name: value }));
+      expect(shownHandleColors().includes("Silver")).toBe(false);
+
+      act(() => {
+        store.dispatch(setSelectedProductConfig({ Handle: "G50" }));
+      });
+
+      expect(shownHandleColors()).toEqual(["Gold", "Silver"]);
+      expect(handleColorSection().queryByRole("button", { name: "Clear All" })).toBe(null);
+    });
   });
 
   describe("Mako legs", () => {

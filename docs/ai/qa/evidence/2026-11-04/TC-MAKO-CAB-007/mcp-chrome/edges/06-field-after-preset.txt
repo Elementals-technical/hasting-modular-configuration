@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"next":"Next: Countertop & Basin","n":22,"selected":["Antracite 400 MT"],"groups":[{"group":"Lacquered MT","n":20},{"group":"Metal","n":2}],"material":["Show all","Lacquered MT","Metal"],"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"1D","HandleStyle":"G57","HandleColor":"Antracite 400 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}]}
+```
+Page navigated to http://localhost:5173/prebuilt/color?collectionId=mako.

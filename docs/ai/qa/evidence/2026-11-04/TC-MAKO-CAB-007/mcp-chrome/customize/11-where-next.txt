@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"nav":["Mako Models","Color","Countertop & Basin","Accessories","Faucet Details","Summary"],"crumb":"Pre-Built Mako Models Color Countertop & Basin Accessories Faucet Details Summary","arrows":["/prebuilt/model?collectionId=mako","/prebuilt/color?collectionId=mako","/prebuilt/countertop?collectionId=mako","/prebuilt/accessories?collectionId=mako","/prebuilt/faucet-holes?collectionId=mako","/prebuilt/summary?collectionId=mako"]}
+```

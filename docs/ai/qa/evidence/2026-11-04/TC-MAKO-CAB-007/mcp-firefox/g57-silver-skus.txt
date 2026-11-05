@@ -1,0 +1,5 @@
+[network] 4 requests
+2394-a9e0d1a5-253c-4de5-88f4-828b08aaa216 | GET https://renderadmin.vivid3d.tech/pricing-v2/resolve?sku=VAN-MAKOV-SB/2DW/G57-31.5W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV [200 OK] (XHR)
+2393-a9e0d1a5-253c-4de5-88f4-828b08aaa216 | GET https://renderadmin.vivid3d.tech/pricing-v2/resolve?sku=VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-MTL-SLV [200 OK] (XHR)
+2382-a9e0d1a5-253c-4de5-88f4-828b08aaa216 | GET https://renderadmin.vivid3d.tech/pricing-v2/resolve?sku=VAN-MAKOV-SB/2DW/G57-31.5W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400 [200 OK] (XHR)
+2381-a9e0d1a5-253c-4de5-88f4-828b08aaa216 | GET https://renderadmin.vivid3d.tech/pricing-v2/resolve?sku=VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-400 [200 OK] (XHR)

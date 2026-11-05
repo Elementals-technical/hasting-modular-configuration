@@ -26,6 +26,9 @@ export const COUNTERTOP_REASON_SLUGS: readonly CountertopReasonSlug[] = [
   "COUNTERTOP_BELOW_COVER",
 ];
 
+/** The cut-out would land on no single cabinet: across two, over empty space, or over one too narrow to hold it. */
+export const COUNTERTOP_LANDING_GAP_SLUG: CountertopReasonSlug = "SINK_LANDING_GAP";
+
 /** Standard = no custom length and no offset; `placementState` alone is not enough (see the step above). */
 export const isStandardCountertop = (state: Pick<CountertopState, "customLength" | "offset"> | null | undefined) =>
   !!state &&

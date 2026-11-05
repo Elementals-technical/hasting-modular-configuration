@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"lowered":{"status":"colliding","alerts":["Too close to the sink trap. The basin needs one cabinet wide enough for it."],"applyDisabled":true},"atHome":{"hit":true,"off":{"x":0,"y":0},"landing":"gap","pending":null,"valid":"valid","overlay":{"status":"colliding","alerts":["The basin needs one cabinet wide enough for it."],"applyDisabled":true}}}
+```

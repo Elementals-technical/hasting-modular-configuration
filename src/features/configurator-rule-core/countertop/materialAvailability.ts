@@ -8,6 +8,7 @@ import {
   parseThicknessValue,
   selectMaterialAliasTable,
 } from "./parse";
+import { resolveIntegratedWidthRefusal, type CountertopRuleReason } from "./rules";
 import { isCountertopRuleWidthAllowed, resolveCountertopWidthRuleStyle } from "./sizeFilters";
 import { canThicknessFloat } from "./thicknessCapabilities";
 import type { CountertopMatrixRule } from "./types";
@@ -18,7 +19,12 @@ import type { CountertopMatrixRule } from "./types";
  */
 export type CountertopMaterialFailure = "total" | "selected" | "depth" | "composition" | "offSinkBase" | null;
 
-export type CountertopMaterialEvaluation = { isCompatible: boolean; failedBy: CountertopMaterialFailure };
+export type CountertopMaterialEvaluation = {
+  isCompatible: boolean;
+  failedBy: CountertopMaterialFailure;
+  /** With `failedBy: "selected"`, the Sink Base widths the colour's rows need; null where they name none. */
+  widthRefusal?: CountertopRuleReason | null;
+};
 
 /** What the countertop matrix is judged against for one colour: sizes, style and composition. */
 export type CountertopMaterialRuleInputs = {
@@ -130,7 +136,21 @@ export const evaluateCountertopMaterial = (
       }),
     );
   if (typeof inputs.sinkBaseWidth === "number" && !matchesWidth(inputs.sinkBaseWidth, "sink-base")) {
-    return { isCompatible: false, failedBy: "selected" };
+    return {
+      isCompatible: false,
+      failedBy: "selected",
+      // Only an integrated top reads the rows' Sink Base widths: a vessel's minimum is its own, and it is refused
+      // on its style's tile, which leaves a Sink Base that narrow (`useAvailabilityResets`).
+      widthRefusal:
+        widthRuleStyle === "integrated"
+          ? resolveIntegratedWidthRefusal({
+              basinRules: rulesForTop,
+              sinkBaseWidth: inputs.sinkBaseWidth,
+              totalWidth: null,
+              profile: inputs.activeProfile,
+            })
+          : null,
+    };
   }
   if (typeof inputs.totalWidth === "number" && !matchesWidth(inputs.totalWidth, "generic")) {
     return { isCompatible: false, failedBy: "total" };

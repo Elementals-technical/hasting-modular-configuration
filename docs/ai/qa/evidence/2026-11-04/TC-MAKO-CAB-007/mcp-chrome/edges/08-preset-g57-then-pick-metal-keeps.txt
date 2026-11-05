@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"picked":true,"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"1D","HandleStyle":"G57","HandleColor":"Nebbia 402 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}],"skus":["VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-402"]}
+```

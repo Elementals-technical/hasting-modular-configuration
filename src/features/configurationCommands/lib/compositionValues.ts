@@ -11,6 +11,7 @@ import {
 } from "@/entities/configuration";
 import type { AttributeValue } from "@/entities/configuration";
 import type { ProductProfile, RuntimeBindingSet } from "@/entities/collection";
+import { resolveHandleColor } from "@/features/configurator-rule-core/cabinetBuilder/lib/handleColorRule";
 
 import { isBroadcastCabinetValue, TYPED_COMMIT_ATTRIBUTE_IDS } from "./commitChange";
 
@@ -66,14 +67,20 @@ export const selectOwnCabinetValues = (
   );
 };
 
+/** What a broadcast value starts at: the collection's own, and a handle colour that `handle` comes in. */
+const startingValue = (profile: ProductProfile, attributeId: string, handle: string | null): string => {
+  const value = selectDefaultValue(profile, attributeId);
+  return attributeId === "HandleColor" ? resolveHandleColor(profile, handle, value) : value;
+};
+
 /**
- * The values every cabinet of the composition holds, for a cabinet that joins it.
+ * The values every cabinet of the composition holds, for a cabinet with `handle` that joins it.
  *
  * For each value the scene gives all cabinets at once (`isBroadcastCabinetValue`): what the
- * composition holds, or the collection's starting value while nothing was recorded yet. A value
- * recorded as empty stays empty: legs that were switched off are not put back by a default.
+ * composition holds, or its starting value while nothing was recorded yet. A value recorded as
+ * empty stays empty: legs that were switched off are not put back by a default.
  */
-export const selectBroadcastValues = (state: RootState): Record<string, AttributeValue> => {
+export const selectBroadcastValues = (state: RootState, handle: string | null): Record<string, AttributeValue> => {
   const profile = getActiveProductProfile(state);
   const bindings = getActiveRuntimeBindings(state);
   if (!profile || !bindings) return {};
@@ -86,7 +93,7 @@ export const selectBroadcastValues = (state: RootState): Record<string, Attribut
       if (!isBroadcastCabinetValue(profile, bindings, attributeId)) return [];
 
       const held = compositionValueOf(recorded[attributeId], firstCabinetId);
-      const value = held === undefined ? selectDefaultValue(profile, attributeId) : held;
+      const value = held === undefined ? startingValue(profile, attributeId, handle) : held;
       return value === null || value === "" ? [] : [[attributeId, value]];
     }),
   );

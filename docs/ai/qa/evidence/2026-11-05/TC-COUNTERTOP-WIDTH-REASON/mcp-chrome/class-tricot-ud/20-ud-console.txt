@@ -1,0 +1,25 @@
+## Console messages
+Showing 1-1 of 1 (Page 1 of 1).
+msgid=892 [error] Warning: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.%s /HastingCabinetsParametrization/index.html?v=041 
+    at div
+    at PlayCanvasIntegration (http://localhost:5173/src/widgets/Player/components/PlayCanvasIntegration/PlayCanvasIntegration.tsx?t=1793829522089:337:3)
+    at div
+    at Player (http://localhost:5173/src/widgets/Player/ui/Player.tsx?t=1793829522089:38:20)
+    at div
+    at div
+    at HomePage (http://localhost:5173/src/pages/home/HomePage.tsx?t=1793829532272:31:71)
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d5e7b69b:6092:26)
+    at Outlet (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d5e7b69b:6816:26)
+    at ReasonTextProvider (http://localhost:5173/src/features/collectionCustomization/ui/ReasonTextProvider.tsx?t=1793821750559:11:38)
+    at CollectionReadinessGate (http://localhost:5173/src/entities/collection/ui/CollectionReadinessGate.tsx:137:3)
+    at ActiveCollectionProvider (http://localhost:5173/src/entities/collection/ui/ActiveCollectionProvider.tsx?t=1793821750559:13:44)
+    at CollectionRouterRoot
+    at RenderedRoute (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d5e7b69b:6092:26)
+    at RenderErrorBoundary (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d5e7b69b:6048:5)
+    at DataRoutes (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d5e7b69b:6739:3)
+    at Router (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d5e7b69b:6825:13)
+    at RouterProvider (http://localhost:5173/node_modules/.vite/deps/react-router-dom.js?v=d5e7b69b:6542:11)
+    at RouterProvider2
+    at AppRouter (http://localhost:5173/src/app/router/AppRouter.tsx?t=1793829532272:4:27)
+    at App
+    at Provider (http://localhost:5173/node_modules/.vite/deps/chunk-ZTFBIRB2.js?v=d5e7b69b:923:11) (3 args) [79 times]

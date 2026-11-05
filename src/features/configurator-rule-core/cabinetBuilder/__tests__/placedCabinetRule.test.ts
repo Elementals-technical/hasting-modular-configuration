@@ -21,7 +21,7 @@ import { ushRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/__
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 
-import { findPlacedCabinetRule } from "../lib/placedCabinetRule";
+import { findPlacedCabinetRule, findSelectedCabinetRule } from "../lib/placedCabinetRule";
 
 /**
  * The builder rules read a placed cabinet's type from its runtime id as the rest of the
@@ -96,5 +96,42 @@ describe("findPlacedCabinetRule", () => {
 
     expect(findPlacedCabinetRule(catalog, "Sink-Cabinet-2")?.code).toBe("Sink-Cabinet");
     expect(findPlacedCabinetRule(catalog, "rt-1")).toBeNull();
+  });
+});
+
+describe("findSelectedCabinetRule", () => {
+  const ulhCatalog = buildCabinetCatalogFromMatrix(
+    cabinetTable580 as ProductDatatable,
+    parse(ulhProfileDocument),
+    ulhRuntimeBindings,
+  );
+
+  it("reads a Sink Base turned Side Cabinet by its new id, though its scene config still says sink", () => {
+    const rule = findSelectedCabinetRule(ulhCatalog, "ULH-side-cabinet-n4", { ProductType: "ULH-sink-cabinet" });
+
+    expect(rule?.code).toBe("Side-Cabinet");
+    // What the size menu then offers: the sizes a Sink Base does not come in as well.
+    expect(rule?.widths).toEqual([25, 35, 50, 60, 70, 80, 90, 105, 120]);
+  });
+
+  it("reads a Side Cabinet turned Sink Base by its new id, though its scene config still says side", () => {
+    const rule = findSelectedCabinetRule(ulhCatalog, "ULH-sink-cabinet-n3", { ProductType: "ULH-side-cabinet" });
+
+    expect(rule?.code).toBe("Sink-Base");
+    expect(rule?.widths).toEqual([60, 70, 80, 90, 105, 120]);
+  });
+
+  it("reads the scene config only for an id the catalog does not know, productType first", () => {
+    const config = { productType: "ULH-side-cabinet", ProductType: "ULH-sink-cabinet", type: "ULH-Open-Shelf" };
+
+    expect(findSelectedCabinetRule(ulhCatalog, "rt-1", config)?.code).toBe("Side-Cabinet");
+    expect(findSelectedCabinetRule(ulhCatalog, "rt-1", { ProductType: "ULH-sink-cabinet" })?.code).toBe("Sink-Base");
+    expect(findSelectedCabinetRule(ulhCatalog, "rt-1", { type: "ULH-Open-Shelf" })?.code).toBe("Open-Shelf");
+  });
+
+  it("finds no rule where neither the id nor the scene config names a type of the catalog", () => {
+    expect(findSelectedCabinetRule(ulhCatalog, "rt-1", {})).toBeNull();
+    expect(findSelectedCabinetRule(ulhCatalog, "rt-1", { ProductType: "" })).toBeNull();
+    expect(findSelectedCabinetRule(ulhCatalog, "rt-1", { ProductType: "rt-2" })).toBeNull();
   });
 });
