@@ -24,6 +24,7 @@ import { buildCountertopRuleState, resolveDefaultThicknessFromRules } from "../r
 import { findSyntesiCountertopUiValue, isSyntesiCountertopMaterialSku } from "../syntesiOptions";
 import {
   getAllowedVesselMaterialTokens,
+  isColorCodeUnavailableForVesselStyle,
   isMaterialCompatibleWithVesselStyle,
   isPreferredVesselFinish,
   isVisibleVesselSinkStyle,
@@ -333,6 +334,34 @@ describe("vessel compatibility", () => {
     expect(isMaterialCompatibleWithVesselStyle({ vesselStyle, materialTokens, colorCode, profile: ushProfile })).toBe(
       compatible,
     );
+  });
+
+  // The same list judges a countertop colour under the vessel: TQ2 is a Porcelain countertop colour only.
+  it.each([
+    ["the Porcelain TQ2 under Urban Modo", "Vessel_UrbanModo", ["porcelain"], "TQ2", true],
+    ["the Porcelain TQ2 through the style prefix", "Vessel_UrbanModo_Seam", ["Porcelain"], "TQ2", true],
+    ["another Porcelain colour under Urban Modo", "Vessel_UrbanModo", ["porcelain"], "TRC", false],
+    ["TQ2 listed under another material", "Vessel_UrbanModo", ["hpl"], "TQ2", false],
+    ["the Porcelain TQ2 under another vessel", "Vessel_Blade11", ["porcelain"], "TQ2", false],
+    ["the Porcelain TQ2 with no vessel", "None", ["porcelain"], "TQ2", false],
+    ["a Porcelain colour without a code", "Vessel_UrbanModo", ["porcelain"], null, false],
+  ])("lists %s as unavailable: %j", (_label, vesselStyle, materialTokens, colorCode, unavailable) => {
+    expect(isColorCodeUnavailableForVesselStyle({ vesselStyle, materialTokens, colorCode, profile: ushProfile })).toBe(
+      unavailable,
+    );
+  });
+
+  it("lists no colour as unavailable in a collection without the section", () => {
+    const profile = withRuleData({ vesselCompatibility: undefined });
+
+    expect(
+      isColorCodeUnavailableForVesselStyle({
+        vesselStyle: "Vessel_UrbanModo",
+        materialTokens: ["porcelain"],
+        colorCode: "TQ2",
+        profile,
+      }),
+    ).toBe(false);
   });
 
   it("follows the styles and materials the collection declares", () => {

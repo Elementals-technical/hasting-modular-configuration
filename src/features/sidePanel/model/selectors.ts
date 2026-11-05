@@ -4,7 +4,11 @@ import type { ProductProfile } from "@/entities/collection";
 import { selectMessage, selectRuleData } from "@/entities/collection";
 import { normalizeMaterialToken } from "@/features/configurator-rule-core/countertop/parse";
 import { getCountertopMaterialTokensBySku } from "@/shared/lib/sku";
-import { mapSidePanelDrawersToHandleType, sidePanelAvailabilityRule } from "../lib/sidePanelRules";
+import {
+  mapSidePanelDrawersToHandleType,
+  REASON_SYNTESI_SIDE_PANELS,
+  sidePanelAvailabilityRule,
+} from "../lib/sidePanelRules";
 
 // ── Plain selectors ────────────────────────────────────────────────────
 
@@ -70,8 +74,9 @@ export const selectSidePanelAvailability = createSelector(
       if (countertopMaterialTokens.some((token) => normalizeMaterialToken(token) === syntesiToken)) {
         return {
           allowed: new Set<"NoG" | "UpperG" | "CenterG" | "DoubleG">(),
-          reason: selectMessage(profile, "syntesi.sidePanelsUnavailable"),
+          reason: selectMessage(profile, REASON_SYNTESI_SIDE_PANELS),
           reasonCode: "syntesi-countertop" as const,
+          messageCode: REASON_SYNTESI_SIDE_PANELS,
         };
       }
     }

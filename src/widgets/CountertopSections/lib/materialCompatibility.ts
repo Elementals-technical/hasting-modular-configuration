@@ -3,6 +3,8 @@ import {
   getCountertopRuleMaxWidthsForStyle,
   matchesDepthForStyle,
   materialMatchesRule,
+  REASON_COUNTERTOP_MATERIAL_BY_FAILURE,
+  REASON_COUNTERTOP_MATERIAL_SELECTION,
   resolveCountertopWidthRuleStyle,
   type CountertopMaterialEvaluation,
   type CountertopMaterialFailure,
@@ -40,6 +42,10 @@ export const reasonForFailure = (failedBy: MaterialFailure, messages: Messages) 
   if (failedBy === "composition") return messages.syntesiSingleCabinet;
   return messages.selection;
 };
+
+/** The reason code `reasonForFailure` words; a failure no single check explains is the selection's. */
+export const reasonCodeForFailure = (failedBy: MaterialFailure) =>
+  failedBy ? REASON_COUNTERTOP_MATERIAL_BY_FAILURE[failedBy] : REASON_COUNTERTOP_MATERIAL_SELECTION;
 
 /** The widest countertop the rules allow for a material at the current depth. */
 const maxMaterialWidth = (materialValue: string, inputs: MaterialRuleInputs): number | null => {

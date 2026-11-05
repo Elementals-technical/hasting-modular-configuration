@@ -33,10 +33,12 @@ import {
   findIntegratedBasinRules,
   getSupportedCountertopFaucetHoles,
   INTEGRATED_DRAWERS_REASON,
+  isColorCodeUnavailableForVesselStyle,
   normalizeBasinKey,
   REASON_COUNTERTOP_MATERIAL_BY_FAILURE,
   REASON_COUNTERTOP_MATERIAL_SELECTION,
   REASON_VESSEL_COLOR_UNAVAILABLE,
+  REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE,
   resolveCountertopRuleMaterials,
   resolveIntegratedWidthRefusal,
   selectMaterialAliasTable,
@@ -46,10 +48,11 @@ import {
 import { selectSidePanelAvailability } from "@/features/sidePanel/model/selectors";
 import { useAppSelector } from "@/shared/hooks/store/redux";
 import { useCountertopRuntimeValue } from "@/shared/hooks/useCountertopRuntimeState";
+import { extractColorCode } from "@/shared/lib/sku";
 
 import { useCountertopRuleState } from "./useCountertopRuleState";
 import { resolveConfiguratorOptions, resolveSectionFields } from "./resolveSectionState";
-import { resolveVesselColorOptions } from "./resolveVesselColor";
+import { finishOf, resolveVesselColorOptions } from "./resolveVesselColor";
 
 import type { FieldOptionState, ProductProfile } from "@/entities/collection";
 import type { ConfiguratorGroupCatalog } from "@/entities/collection/model/types";
@@ -114,7 +117,8 @@ export const resolveCountertopStyleAvailability = ({ styleAvailability }: Counte
 // materials list (an MT lacquer, as Tekorlux and as Glass MT) is refused where only one of them is
 // made, and says the check its own material failed, as the USH screen says it: off its Sink Base a
 // glass colour is refused for the floating top while a Tekormud one is for the depth. The field's
-// reason names the check every refused colour failed, or the selection when they differ.
+// reason names the check every refused colour failed, or the selection when they differ. A colour the
+// chosen vessel cannot stand on (its unavailableColorCodesByStyle) is refused for the vessel.
 const resolveCountertopColorAvailability = (
   profile: ProductProfile | null,
   configurator: ConfiguratorGroupCatalog | null,
@@ -144,6 +148,9 @@ const resolveCountertopColorAvailability = (
     }
     return verdict;
   };
+  // Judged per option, not per material list: the colour code is the option's own.
+  const isRefusedByVessel = (option: FieldOptionState) =>
+    isColorCodeUnavailableForVesselStyle(finishOf(profile, materialRuleInputs.activeBasinStyle, option));
   const failures = new Set(
     resolveConfiguratorOptions(profile, "CountertopColor", configurator).flatMap(
       (option) => judge(option).failedBy ?? [],
@@ -153,7 +160,7 @@ const resolveCountertopColorAvailability = (
 
   return {
     available: true,
-    isOptionAllowed: (option) => !missingRule(option) && judge(option).isCompatible,
+    isOptionAllowed: (option) => !missingRule(option) && judge(option).isCompatible && !isRefusedByVessel(option),
     optionReason: (option) => {
       const missing = missingRule(option);
       if (missing) return { reasonCode: "product.missingData", reasonParams: { ruleId: missing.ruleId } };
@@ -218,6 +225,15 @@ export const resolveBasinAvailability = (
   // The matrix names a basin by its label, as the USH countertop step reads it ("HPL Cover 50").
   const rowsOf = ({ value, label }: (typeof basins)[number]) =>
     findIntegratedBasinRules({ name: value, title: label }, matchingRules, activeMaterialTokens, aliasTable);
+  const countertopColorCode = extractColorCode(countertopColor);
+  const isRefusedByCountertopColor = (value: string) =>
+    value !== noneValue &&
+    isColorCodeUnavailableForVesselStyle({
+      vesselStyle: value,
+      materialTokens: activeMaterialTokens,
+      colorCode: countertopColorCode,
+      profile,
+    });
 
   return {
     available: true,
@@ -226,7 +242,9 @@ export const resolveBasinAvailability = (
     ),
     allowedValues: valuesWhere((basin) =>
       basin.category === "vessel"
-        ? isVesselStyle && (basin.value === noneValue || vesselSinkAvailability.isAvailable)
+        ? isVesselStyle &&
+          (basin.value === noneValue ||
+            (vesselSinkAvailability.isAvailable && !isRefusedByCountertopColor(basin.value)))
         : !isVesselStyle &&
           Boolean(countertopColor) &&
           rowsOf(basin).some(({ basinStyle }) => allowedBasinKeys.has(normalizeBasinKey(basinStyle))),

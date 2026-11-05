@@ -620,6 +620,7 @@
     "fluting.sidePanelUnavailable": "Fluting is not available for side panels.",
     "fluting.requiresLacquerMatte": "Fluting is available only for Lacquer Matte (LACM).",
     "vessel.colorUnavailable": "Not available for selected vessel sink style.",
+    "vessel.countertopColorUnavailable": "Not available for selected countertop color.",
     "syntesi.singleCabinetOnly": "Syntesi is available for single cabinet configurations only.",
     "syntesi.sidePanelsUnavailable": "Syntesi is not available with side panels.",
     "sidePanel.sideShelfUnavailable": "Side panels are not available for Side-Shelf cabinets.",

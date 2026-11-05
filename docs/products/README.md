@@ -126,6 +126,16 @@ flowchart TD
 отримує кожен Sink Base. Urban Duplex: Aquarius не має default finish, тож його перший сумісний колір залежить від
 порядку в configurator (на live — Agata BD MT).
 
+У колекціях Urban `ruleData.vesselCompatibility.unavailableColorCodesByStyle` читається в обидва боки. Колір
+стільниці з цього списку (для Urban Modo — Porcelain TQ2) вимкнений у Countertop Color, поки обрано цей vessel
+(`vessel.colorUnavailable`), а сам vessel вимкнений у Vessel Sink Style на такій стільниці
+(`vessel.countertopColorUnavailable`). `allowedMaterialsByStyle` і `allowedColorCodesByStyle` судять лише власний
+колір vessel. Обмеження діє тільки в UI: у Urban Freestanding, Urban Duplex і Urban Low Height його дають
+schema-driven resolvers, в Urban Standard Height — legacy віджет CountertopSections; команди нічого не відмовляють.
+У Urban Freestanding, Urban Duplex і Urban Low Height `autoSelect: "firstAllowed"` на `sinkType` переносить
+збережений vessel, який правило відмовляє (restore, preset), на перший дозволений; Urban Standard Height такого
+auto-select не має, тож збережений vessel там лишається, доки користувач його не змінить.
+
 Зміна моделі переносить колір разом із vessel: на flat-моделі колір іде в нову сцену через `shared` та
 `afterPlacement`, на compact — повторним replay. Колір, який не переноситься, очищується, щоб стан не стверджував
 колір, якого нова сцена не тримає. Колекції з `prebuiltModelSelection.resetSelections` (Class) нічого не
