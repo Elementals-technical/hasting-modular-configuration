@@ -124,11 +124,11 @@ export const useBasinState = ({ context, styleField, basinField }: BasinStateArg
         sinkBaseWidth: sinkBaseDims.width ?? selectedDimensions.width ?? null,
         totalWidth: sceneTotalWidth ?? selectedDimensions.width ?? null,
       },
-      fallbackReason: messages.selection,
-      profile: context.activeProfile,
+      profile: activeProfile,
     });
   }, [
     activeMaterialTokens,
+    activeProfile,
     activeThickness,
     basinCatalog,
     basinField,

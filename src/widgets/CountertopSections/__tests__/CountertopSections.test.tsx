@@ -35,6 +35,7 @@ import { CountertopPage } from "@/pages/countertop/CountertopPage";
 
 import { useCountertopColorState } from "../lib/useCountertopColorState";
 import { useCountertopContext } from "../lib/useCountertopContext";
+import { useVesselColorState } from "../lib/useVesselColorState";
 
 // The countertop step reads its sections from ui.json and its options from the profile; the pick goes to the command.
 
@@ -568,5 +569,209 @@ describe("the countertop step's colours under an integrated top on every Sink Ba
     placeSinkBases(80, 60);
 
     expect(await isColorRefused("Ardesia TKF")).toBe(false);
+  });
+});
+
+// The USH vessel compatibility lists the Porcelain TQ2 as unavailable under Urban Modo: the countertop colour and the
+// vessel exclude each other, each grid saying why.
+describe("the countertop step keeps Urban Modo off a Porcelain TQ2 countertop", () => {
+  // Configurator 4 with two of the Porcelain countertop colours the live one offers (2026-11-04); the recorded
+  // sample keeps HPL only.
+  const porcelain = (id: number, name: string, codeColor: string, color: string) => ({
+    id,
+    name,
+    image: null,
+    enabled: true,
+    sort: 0,
+    description: "",
+    metadata: {
+      sku: "POR",
+      codeColor,
+      Color: color,
+      Material: "Porcelain",
+      Look: "Cement-Look",
+      label: name,
+      value: name,
+    },
+  });
+  const groups = configuratorSchema.parse({
+    ...configurator4WithLiveVessels,
+    availableOptions: configurator4WithLiveVessels.availableOptions.map((group) =>
+      group.proxyName === "Countertop Color"
+        ? {
+            ...group,
+            options: [
+              ...group.options,
+              {
+                id: 293,
+                name: "Porcelain",
+                resource: null,
+                paramString: "",
+                playcanvasString: "",
+                variants: [
+                  porcelain(3269, "Avenue Amber TRC", "TRC", "Brown"),
+                  porcelain(3283, "Fokos Rena TQ2", "TQ2", "Beige"),
+                ],
+              },
+            ],
+          }
+        : group,
+    ),
+  }).availableOptions;
+  const withPorcelainColors = {
+    ...withCountertopRules,
+    catalog: {
+      ...withCountertopRules.catalog,
+      configurator: { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) },
+    },
+  };
+  const SINK_BASE = "Sink-Base-placed";
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(addProductId(SINK_BASE));
+    store.dispatch(syncCabinets([SINK_BASE]));
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+    store.dispatch(setActiveCountertopThickness("0.5"));
+    store.dispatch(setCountertopStyle("vessel"));
+    basinPlan = [];
+    changeMock.mockClear();
+  });
+
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <ReadyCollectionContext.Provider value={withPorcelainColors}>
+      <Provider store={store}>
+        <ReasonTextProvider>{children}</ReasonTextProvider>
+      </Provider>
+    </ReadyCollectionContext.Provider>
+  );
+  const renderPorcelainStep = async () => {
+    render(
+      <MemoryRouter initialEntries={["/prebuilt/countertop"]}>
+        <CountertopPage stepId="countertop" />
+      </MemoryRouter>,
+      { wrapper },
+    );
+    await act(async () => {});
+  };
+  const regionOf = (name: string) => within(screen.getByRole("region", { name }));
+  const isEnabled = (region: ReturnType<typeof regionOf>, label: string) =>
+    region.getByRole("button", { name: label }).getAttribute("aria-disabled") !== "true";
+  const hoverOption = (region: ReturnType<typeof regionOf>, label: string) => {
+    fireEvent.mouseEnter(region.getByRole("button", { name: label }).closest("div") as HTMLElement);
+  };
+
+  it("refuses TQ2 under Urban Modo in the vessel's words, and keeps another Porcelain colour", async () => {
+    store.dispatch(setActiveCountertopColor("Avenue Amber TRC"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanModo"));
+    await renderPorcelainStep();
+    const colors = regionOf("Countertop Color");
+
+    expect(isEnabled(colors, "Fokos Rena TQ2")).toBe(false);
+    expect(isEnabled(colors, "Avenue Amber TRC")).toBe(true);
+    hoverOption(colors, "Fokos Rena TQ2");
+    expect(screen.getByText("Not available for selected vessel sink style.")).toBeTruthy();
+  });
+
+  it("keeps a refused colour from the command, whichever grid picked it", () => {
+    store.dispatch(setActiveCountertopColor("Avenue Amber TRC"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanModo"));
+    const { result } = renderHook(() => useCountertopColorState(useCountertopContext()), { wrapper });
+
+    expect(result.current.isColorCompatible("Fokos Rena TQ2")).toBe(false);
+    expect(result.current.isColorCompatible("Avenue Amber TRC")).toBe(true);
+  });
+
+  it("offers TQ2 under another vessel", async () => {
+    store.dispatch(setActiveCountertopColor("Avenue Amber TRC"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanMorris"));
+    await renderPorcelainStep();
+
+    expect(isEnabled(regionOf("Countertop Color"), "Fokos Rena TQ2")).toBe(true);
+  });
+
+  it("refuses Urban Modo on a TQ2 countertop in the countertop's words, and keeps another vessel and None", async () => {
+    store.dispatch(setActiveCountertopColor("Fokos Rena TQ2"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanMorris"));
+    await renderPorcelainStep();
+    const basins = regionOf("Vessel Sink Style");
+
+    expect(isEnabled(basins, "Vessel Urban Modo")).toBe(false);
+    expect(isEnabled(basins, "Vessel Urban Morris")).toBe(true);
+    expect(isEnabled(basins, "None")).toBe(true);
+    hoverOption(basins, "Vessel Urban Modo");
+    expect(screen.getByText("Not available for selected countertop color.")).toBeTruthy();
+  });
+
+  it("offers Urban Modo on another Porcelain countertop", async () => {
+    store.dispatch(setActiveCountertopColor("Avenue Amber TRC"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanMorris"));
+    await renderPorcelainStep();
+
+    expect(isEnabled(regionOf("Vessel Sink Style"), "Vessel Urban Modo")).toBe(true);
+  });
+});
+
+// Without a code the grid shows the generic "not available": a refused colour names its reason by code.
+describe("the countertop step's refused colours carry their reason codes", () => {
+  const groups = configuratorSchema.parse(configurator4WithLiveVessels).availableOptions;
+  const withVesselColors = {
+    ...withCountertopRules,
+    catalog: {
+      ...withCountertopRules.catalog,
+      configurator: { groups, groupsByName: Object.fromEntries(groups.map((group) => [group.proxyName, group])) },
+    },
+  };
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <ReadyCollectionContext.Provider value={withVesselColors}>
+      <Provider store={store}>{children}</Provider>
+    </ReadyCollectionContext.Provider>
+  );
+  const colorStates = () =>
+    renderHook(
+      () => {
+        const context = useCountertopContext();
+        const countertop = useCountertopColorState(context);
+        const vessel = useVesselColorState({
+          context,
+          vesselColorOptions: countertop.vesselColorOptions,
+          defaultMaterialFilters: countertop.defaultMaterialFilters,
+        });
+        return { countertop, vessel };
+      },
+      { wrapper },
+    ).result.current;
+
+  beforeEach(() => {
+    store.dispatch(reset());
+    store.dispatch(resetConfiguration());
+    store.dispatch(setActiveProfile(ushProfile));
+    store.dispatch(setActiveCountertopColor("Ardesia TKF"));
+    store.dispatch(setActiveCountertopThickness("0.5"));
+  });
+
+  it("refuses a countertop colour the matrix has no row for at the depth with the depth's code", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 46 }));
+    store.dispatch(setCountertopStyle("integrated"));
+
+    expect(colorStates().countertop.fullModeOptions.find(({ title }) => title === "Bianco Gloss TAN")).toMatchObject({
+      isAvailable: false,
+      disabledReason: "Not available for current cabinet depth",
+      disabledReasonCode: "countertop.materialNotAvailableForDepth",
+    });
+  });
+
+  it("refuses a vessel colour the vessel style does not take with the vessel colour's code", () => {
+    store.dispatch(setSelectedDimensions({ width: 80, depth: 50.5 }));
+    store.dispatch(setCountertopStyle("vessel"));
+    store.dispatch(setActiveBasinStyle("Vessel_UrbanModo"));
+
+    expect(colorStates().vessel.visibleOptions.find(({ title }) => title === "Agata BD MT")).toMatchObject({
+      isAvailable: false,
+      disabledReason: "Not available for selected vessel sink style.",
+      disabledReasonCode: "vessel.colorUnavailable",
+    });
   });
 });

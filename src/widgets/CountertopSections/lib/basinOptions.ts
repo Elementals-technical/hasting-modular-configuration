@@ -7,12 +7,15 @@ import {
   normalizeBasinKey,
   parseThicknessValue,
   REASON_COUNTERTOP_VESSEL_SINK_BASE_MIN,
-  resolveIntegratedWidthRefusal,
+  REASON_VESSEL_COUNTERTOP_COLOR_UNAVAILABLE,
+  resolveIntegratedBasinUnavailableReason,
 } from "@/features/configurator-rule-core/countertop";
+import { extractColorCode } from "@/shared/lib/sku";
 
 import { VESSEL_SINK_NONE_OPTION } from "./countertopColorOptions";
 
 import type { CountertopContext } from "./useCountertopContext";
+import type { ProductProfile } from "@/entities/collection";
 import type { ProductOptionData } from "@/entities/product/ui/ProductOptionsGrid/ProductOptionsGrid";
 
 type MatrixRule = CountertopContext["countertopRules"][number];
@@ -85,8 +88,7 @@ type IntegratedBasinArgs = {
   activeMaterials: string[];
   activeThickness: number | null;
   widthContext: IntegratedWidthContext;
-  fallbackReason: string;
-  profile: CountertopContext["activeProfile"];
+  profile: ProductProfile | null;
 };
 
 /**
@@ -101,7 +103,6 @@ export const resolveIntegratedBasinOptions = ({
   activeMaterials,
   activeThickness,
   widthContext,
-  fallbackReason,
   profile,
 }: IntegratedBasinArgs): ProductOptionData[] => {
   const applicableRules = matchingRules.filter((rule) => matchesThickness(rule.topThicknesses, activeThickness));
@@ -132,15 +133,16 @@ export const resolveIntegratedBasinOptions = ({
     if (!basinRules.length) return [];
 
     const isAvailable = basinRules.some((rule) => isRuleWidthEligibleForIntegratedContext(rule, widthContext));
-    const refusal = isAvailable ? null : resolveIntegratedWidthRefusal({ basinRules, ...widthContext, profile });
+    const reason = isAvailable
+      ? null
+      : resolveIntegratedBasinUnavailableReason({ basinRules, ...widthContext, profile });
     return [
       {
         ...option,
         isAvailable,
-        disabledReason: isAvailable ? undefined : (refusal?.disabledReason ?? fallbackReason),
-        // A tile words a reason by its code: without one it says the option is unavailable and no more.
-        disabledReasonCode: refusal?.reasonCode,
-        disabledReasonParams: refusal?.reasonParams,
+        disabledReason: reason?.disabledReason,
+        disabledReasonCode: reason?.reasonCode,
+        disabledReasonParams: reason?.reasonParams,
       },
     ];
   });
