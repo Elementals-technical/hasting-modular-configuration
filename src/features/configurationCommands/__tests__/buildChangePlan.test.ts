@@ -5,6 +5,7 @@ import ulhProfileDocument from "../../../../public/collections/urban-low-height/
 import { configurator4WithLiveVessels } from "@/entities/collection/__tests__/fixtures/configurator4LiveVessels";
 import cabinetTable580 from "@/entities/collection/__tests__/fixtures/remote/datatable-580.json";
 import cabinetTable581 from "@/entities/collection/__tests__/fixtures/remote/datatable-581.json";
+import configurator9 from "@/entities/collection/__tests__/fixtures/remote/configurator-9.json";
 import { ushProfile } from "@/entities/collection/__tests__/ushProfileFixture";
 import {
   configuratorSchema,
@@ -15,6 +16,8 @@ import {
 import type { ProductDatatable } from "@/entities/product/api";
 import { buildCabinetCatalogFromMatrix } from "@/entities/product/lib/matrixCabinet";
 import type { CabinetEntry, ValueTarget } from "@/entities/configuration";
+import type { ConfiguratorAvailableOption } from "@/entities/configurator/api/types";
+import { resolveConfiguratorOptions } from "@/features/collectionCustomization";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 
 import {
@@ -681,5 +684,97 @@ describe("buildChangePlan: the colour a handle comes in", () => {
     if (!result.ok) throw new Error(result.reason);
 
     expect(result.plan.filter(({ attributeId }) => attributeId === "HandleColor")).toEqual(expected);
+  });
+});
+
+/**
+ * Mako's legs follow the handle colour (`followsAttribute`): while they hold the colour the handle had, they take
+ * the new one in the same set. Which cabinet holds them and whether a colour is offered come from state; here they
+ * are given as `evaluateChange` gives them, the offer read from the Leg Color section of configurator 9.
+ */
+describe("buildChangePlan: legs that follow the handle colour", () => {
+  const parsedMako = parseProductProfile(makoProfileDocument);
+  if (!parsedMako.ok) throw new Error("Mako profile must parse");
+  const makoProfile = parsedMako.profile;
+  const makoCatalog = buildCabinetCatalogFromMatrix(cabinetTable581 as ProductDatatable, makoProfile);
+  const makoGroups = configurator9.availableOptions as unknown as ConfiguratorAvailableOption[];
+  const makoConfigurator: ConfiguratorGroupCatalog = {
+    groups: makoGroups,
+    groupsByName: Object.fromEntries(makoGroups.map((group) => [group.proxyName, group])),
+  };
+  const isOfferedToLegs = (attributeId: string, value: string) =>
+    resolveConfiguratorOptions(makoProfile, attributeId, makoConfigurator).some(
+      (option) => option.enabled && option.value === value,
+    );
+  const legsTarget: ValueTarget = { scope: "cabinet", cabinetId: "cab-2" };
+
+  const followPlan = ({
+    attributeId = "HandleColor",
+    value = "Gold",
+    handleColor = "Antracite 400 MT",
+    legColor = "Antracite 400 MT",
+  }: { attributeId?: string; value?: string; handleColor?: string; legColor?: string } = {}) => {
+    const result = buildChangePlan({
+      attributeId,
+      value,
+      target: cabinetTarget,
+      selection: { cabinetType: "Sink-Base", width: 60, depth: 52, height: 52, drawers: "2", handle: "G57" },
+      selectedProductIds: [],
+      catalog: makoCatalog,
+      profile: makoProfile,
+      handleGrooveColor: null,
+      handleColor,
+      followedValues: { HandleColor: handleColor },
+      heldFollowerValues: { LegColor: { value: legColor, target: legsTarget } },
+      canFollow: isOfferedToLegs,
+    });
+    if (!result.ok) throw new Error(result.reason);
+
+    return result.plan;
+  };
+  const legsOf = (entries: ReturnType<typeof followPlan>) =>
+    entries.filter(({ attributeId }) => attributeId === "LegColor");
+
+  it("carries legs in the handle colour to the new one, where the legs are held, with no reason code", () => {
+    expect(legsOf(followPlan())).toEqual([
+      { attributeId: "LegColor", target: legsTarget, value: "Gold", origin: "dependency" },
+    ]);
+  });
+
+  it("keeps legs in a colour of their own", () => {
+    expect(legsOf(followPlan({ legColor: "Silver" }))).toEqual([]);
+  });
+
+  it("keeps legs switched off off", () => {
+    expect(legsOf(followPlan({ legColor: "" }))).toEqual([]);
+    expect(legsOf(followPlan({ handleColor: "", legColor: "" }))).toEqual([]);
+  });
+
+  it("carries the legs along with the colour a new handle forces", () => {
+    // A G50 does not come in the lacquers: the handle colour moves to Silver, and the legs with it.
+    expect(legsOf(followPlan({ attributeId: "Handle", value: "G50" }))).toEqual([
+      { attributeId: "LegColor", target: legsTarget, value: "Silver", origin: "dependency" },
+    ]);
+  });
+
+  it("leaves the legs as they are in a handle colour the legs do not come in", () => {
+    expect(legsOf(followPlan({ value: "Agata BD MT" }))).toEqual([]);
+  });
+
+  it("moves no legs when nothing says what they can take", () => {
+    const result = buildChangePlan({
+      attributeId: "HandleColor",
+      value: "Gold",
+      target: cabinetTarget,
+      selection: { cabinetType: "Sink-Base", width: 60, depth: 52, height: 52, drawers: "2", handle: "G57" },
+      selectedProductIds: [],
+      catalog: makoCatalog,
+      profile: makoProfile,
+      handleGrooveColor: null,
+      followedValues: { HandleColor: "Antracite 400 MT" },
+      heldFollowerValues: { LegColor: { value: "Antracite 400 MT", target: legsTarget } },
+    });
+
+    expect(result.ok && legsOf(result.plan)).toEqual([]);
   });
 });

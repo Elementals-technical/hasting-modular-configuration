@@ -2,6 +2,8 @@ import type { RootState } from "@/app/store";
 import {
   normalizeOptionValue,
   selectConfiguratorGroup,
+  selectFollowedAttribute,
+  selectResetValue,
   selectRuntimeBinding,
   semanticValueOf,
   type ProductProfile,
@@ -13,14 +15,19 @@ import {
   getAttributeValue,
   getCabinetEntries,
   getCompositionValues,
+  isSameTarget,
   isSinkBase,
 } from "@/entities/configuration";
+import type { CabinetEntry, ValueTarget } from "@/entities/configuration";
 import { getCabinetCatalog, getSinkType, getVesselColor } from "@/entities/product/model/store/selectors";
+import { findUndeterminedRule, isUndeterminedAt } from "@/entities/product/model/store/undeterminedRules";
+import { resolveConfiguratorOptions } from "@/features/collectionCustomization";
 import type { Selection } from "@/features/configurator-rule-core/cabinetBuilder";
 import { seriesOfConfig } from "@/shared/config/configurator/typeCabinetCatalog";
 
 import { checkAvailability } from "./availabilityGates";
 import { buildChangePlan } from "./buildChangePlan";
+import type { BuildChangePlanArgs } from "./buildChangePlan";
 import { resolveConfirmation } from "./confirmationPolicy";
 import { findSinkBaseKeys } from "./isSinkBase";
 import { resolveTarget } from "./resolveTarget";
@@ -87,6 +94,61 @@ const isOfferedValue = (
       variants.some((variant) => (variant.metadata?.value ?? variant.name) === value),
     ),
   );
+
+/**
+ * What an attribute that follows another needs from state: the value the followed one holds before the change, and
+ * the follower's own value at the first cabinet the product decided it for, where a field reads it. A cabinet with
+ * nothing decided (a one-drawer Mako cabinet has no legs) is passed over, so a composition that starts with one reads
+ * the legs of the next. The follower takes a new value only where a pick of it could: offered as a choice of its
+ * field, not its reset value, allowed by the current rules and decided at the cabinet as the set leaves it.
+ */
+const readFollowState = (
+  state: RootState,
+  profile: ProductProfile,
+  cabinets: readonly CabinetEntry[],
+  configurator: ConfiguratorGroupCatalog | null,
+): Pick<BuildChangePlanArgs, "followedValues" | "heldFollowerValues" | "canFollow"> => {
+  const compositionValues = getCompositionValues(state);
+  const followedValues: Record<string, string> = {};
+  const heldFollowerValues: Record<string, { value: string; target: ValueTarget }> = {};
+
+  for (const { attributeId, scope } of profile.attributes) {
+    const followedId = selectFollowedAttribute(profile, attributeId);
+    if (followedId === null || scope !== "cabinet") continue;
+
+    const followed = compositionValues[followedId];
+    if (typeof followed === "string") followedValues[followedId] = followed;
+
+    const target: ValueTarget | undefined = cabinets
+      .map(({ stableKey }): ValueTarget => ({ scope: "cabinet", cabinetId: stableKey }))
+      .find((cabinetTarget) => !isUndeterminedAt(state, profile, attributeId, cabinetTarget));
+    const held = target ? getAttributeValue(state, attributeId, target) : undefined;
+    // Switched off (empty or the reset value) stays off.
+    if (target && typeof held === "string" && held.trim() && held !== selectResetValue(profile, attributeId)) {
+      heldFollowerValues[attributeId] = { value: held, target };
+    }
+  }
+
+  const canFollow: NonNullable<BuildChangePlanArgs["canFollow"]> = (attributeId, value, target, plan) => {
+    // The cabinet as the set leaves it: drawers changed in the same set can leave the follower undecided there.
+    const planned = Object.fromEntries(
+      plan
+        .filter((entry) => isSameTarget(entry.target, target))
+        .map((entry) => [entry.attributeId, String(entry.value ?? "")]),
+    );
+
+    return (
+      value !== selectResetValue(profile, attributeId) &&
+      resolveConfiguratorOptions(profile, attributeId, configurator).some(
+        (option) => option.enabled && option.value === value,
+      ) &&
+      !checkAvailability(attributeId, value, state, profile) &&
+      !findUndeterminedRule(state, profile, attributeId, value, target, planned)
+    );
+  };
+
+  return { followedValues, heldFollowerValues, canFollow };
+};
 
 export const evaluateChange = (
   requested: AttributeChange,
@@ -187,6 +249,7 @@ export const evaluateChange = (
     configurator,
     placedCabinetStyles: state.rootStateUI.product.placedCabinetStyles,
     runtimeBindings: getActiveRuntimeBindings(state),
+    ...readFollowState(state, activeProfile, cabinets, configurator),
   });
 
   if (!planResult.ok) {

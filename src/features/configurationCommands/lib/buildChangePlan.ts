@@ -4,6 +4,7 @@ import {
   normalizeOptionValue,
   resolveRuntimeBinding,
   selectAttribute,
+  selectFollowers,
   selectMessage,
   selectOption,
   selectResetValue,
@@ -74,6 +75,15 @@ export type BuildChangePlanArgs = {
   configurator?: ConfiguratorGroupCatalog | null;
   /** Runtime bindings of the active collection, for a groove colour the scene could not take. */
   runtimeBindings?: RuntimeBindingSet | null;
+  /** Value each attribute that others follow (`followsAttribute`) holds before the change. */
+  followedValues?: Readonly<Record<string, string>>;
+  /** Value each follower holds and the cabinet it is read at; absent where no decided cabinet holds one. */
+  heldFollowerValues?: Readonly<Record<string, { value: string; target: ValueTarget }>>;
+  /**
+   * Whether a follower can take the value at the target, with the set as planned: offered to it and decided there.
+   * Absent: no follower moves.
+   */
+  canFollow?: (attributeId: string, value: string, target: ValueTarget, plan: readonly PlannedChange[]) => boolean;
 };
 
 export type BuildChangePlanResult = { ok: true; plan: PlannedChange[] } | ({ ok: false } & ChangeBlockedReason);
@@ -164,7 +174,7 @@ const resolveGrooveReset = (
   };
 };
 
-export const buildChangePlan = ({
+const planRequestedSet = ({
   attributeId,
   value,
   target,
@@ -447,6 +457,41 @@ export const buildChangePlan = ({
   }
 
   return { ok: true, plan };
+};
+
+/**
+ * An attribute that follows another moves with it while it still holds the value the followed one had: legs in the
+ * handle colour take the new handle colour, legs in a colour of their own keep it, and legs switched off stay off.
+ * Every entry of the set counts, so the colour a new handle forces carries the legs as well. No reason code, as for
+ * the handle colour itself: the Handle popups show the first reason only.
+ */
+const planFollowers = (
+  plan: readonly PlannedChange[],
+  { profile, followedValues = {}, heldFollowerValues = {}, canFollow }: BuildChangePlanArgs,
+): PlannedChange[] => {
+  const followers: PlannedChange[] = [];
+  if (!canFollow) return followers;
+
+  for (const { attributeId, value } of plan) {
+    const previous = followedValues[attributeId];
+    // An empty value would switch the follower off rather than carry it along.
+    if (typeof value !== "string" || !value.trim() || !previous || value === previous) continue;
+
+    for (const followerId of selectFollowers(profile, attributeId)) {
+      const held = heldFollowerValues[followerId];
+      const isPlanned = [...plan, ...followers].some((entry) => entry.attributeId === followerId);
+      if (!held || held.value !== previous || isPlanned || !canFollow(followerId, value, held.target, plan)) continue;
+
+      followers.push({ attributeId: followerId, target: held.target, value, origin: "dependency" });
+    }
+  }
+
+  return followers;
+};
+
+export const buildChangePlan = (args: BuildChangePlanArgs): BuildChangePlanResult => {
+  const result = planRequestedSet(args);
+  return result.ok ? { ok: true, plan: [...result.plan, ...planFollowers(result.plan, args)] } : result;
 };
 
 /** Scene token meaning "no groove colour", for I to apply alongside the empty state value. */
