@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"items":["Resize","Reposition","Color","Add","Details","Duplicate","Open","Delete","Size","Style","Next: ColorColor"],"picked":true,"buttons":["Size","Style","Next: Color","Cancel","Switch to Custom Mode"],"text":[]}
+```

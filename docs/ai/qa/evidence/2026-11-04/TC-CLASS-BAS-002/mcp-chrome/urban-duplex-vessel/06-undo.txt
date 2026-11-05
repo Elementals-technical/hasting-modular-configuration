@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"before":2,"configs":[{"id":"UD-sink-cabinet-ba2c0750-e9f8-41ea-92d1","Width":80,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Vessel"}],"after":{"secs":["Countertop Color","Thickness","Countertop Style","Vessel Sink Style"],"style":[{"n":"Integrated","off":false,"on":false},{"n":"Vessel","off":false,"on":true}],"basin":null,"vesselColor":false},"price":"Total List Price $6,337.00"}
+```

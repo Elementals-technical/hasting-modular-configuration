@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"secs":["Cabinet Color","Material","Color","Look","Price","Cabinet Side Color","Frame Color"],"cabinet":{"title":"Cabinet Color","nAll":68,"options":["Show all","Lacquered GL","Lacquered MT","Laminate","Porcelain","Smoke Glass"],"chosen":{"chose":"Lacquered GL","label":"Lacquered GL"},"nFiltered":20,"picked":"Acqua 419 GL","ok":true,"selected":["Acqua 419 GL"],"filterAfterPick":["Lacquered GL","Color","Look","Price"],"nAfterPick":20}}
+```
+Page navigated to http://localhost:5173/prebuilt/color?collectionId=class.

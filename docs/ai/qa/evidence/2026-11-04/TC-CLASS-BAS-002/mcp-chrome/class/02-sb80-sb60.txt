@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"a":{"w":{"offered":["23.6\"","31.5\"","39.4\"","47.2\""],"chose":"31.5\""},"placed":true},"b":{"w":{"offered":["23.6\"","31.5\"","39.4\"","47.2\""],"chose":"23.6\""},"placed":true},"configs":[{"id":"Class-sink-cabinet","Width":80,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_LV890"},{"id":"Class-sink-cabinet","Width":60,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_LV890"}],"price":"Total List Price $15,573.00"}
+```

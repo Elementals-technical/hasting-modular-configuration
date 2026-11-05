@@ -177,6 +177,7 @@ import {
   filterDepthValuesByCountertopRules,
   filterWidthValuesByCountertopRules,
   findThicknessOption,
+  resolveSinkLandingRefusal,
   useCabinetRowCapacity,
   useCountertopLengthGuard,
   useCountertopRules,
@@ -195,6 +196,7 @@ import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfigurati
 import { resolveRuntimeProductType } from "@/entities/product/lib/resolveRuntimeProductType";
 import {
   findPlacedCabinetRule,
+  findSelectedCabinetRule,
   getUniqueCatalogWidths,
   resolveMoveSwaps,
   resolveSteppedEndPlacement,
@@ -816,11 +818,21 @@ export const PlayCanvasIntegration = ({
     },
     [adoptCommittedCabinetComposition, deferredSnapshot],
   );
-  // SB <-> SC sink move: every 'fits' landing commits cabinets.moveSink right away and syncs like a placement.
+  // SB <-> SC sink move: a 'fits' landing the rules allow commits right away and syncs like a placement.
   const sinkLanding = useSinkLanding({
     // `supported`: CountertopDragMode discovered the countertop API, so `getApi()` is not null.
     ready: isPlayCanvasReady && cabinetPlacementDebugEnabled && countertopDragStatus.supported,
     getApi: getCountertopApi,
+    resolveLandingRefusal: (cabinetWidthCm) =>
+      resolveSinkLandingRefusal({
+        rules: countertopRules,
+        activeMaterialTokens,
+        activeThickness: activeCountertopThickness,
+        activeBasinStyle,
+        cabinetWidthCm,
+        depth: selectedDimensions.depth ?? null,
+        profile: activeProfile,
+      }),
     onCommitted: async (state, receipt) => {
       // The sink moved with the countertop: both are one entry, written by whichever is applied first.
       deferredSnapshot.commit("countertop");
@@ -1479,18 +1491,6 @@ export const PlayCanvasIntegration = ({
       profile: activeProfile,
     });
   }, [activeMaterialTokens, activeProfile, countertopRules, countertopStyle, activeBasinStyle, dimensionOptions.depth]);
-
-  const resolveCabinetTypeId = useCallback(
-    (productType: string | null, runtimeId: string) => {
-      if (!productType) return null;
-
-      // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
-      // The cabinet's drawer style tells a short cabinet from the tall type of its scene product.
-      const placedDrawers = getPlacedCabinetStyles(store.getState())[runtimeId];
-      return findPlacedCabinetRule(cabinetCatalog, productType, placedDrawers)?.code ?? null;
-    },
-    [cabinetCatalog, store],
-  );
 
   const showDropdownForEntity = useCallback(
     (entityName: string) => {
@@ -3380,20 +3380,13 @@ export const PlayCanvasIntegration = ({
       const config = await getConfig(selectedSceneProduct);
       if (!config) return;
 
-      // The runtime id names what the cabinet is now. A sink lift or landing re-creates the cabinet under a new
-      // id but keeps the `ProductType` of what it was in its scene config (a Sink Base turned Side Cabinet still
-      // says sink), so the config is read only for an id the catalog does not know, `productType` first.
-      const configType =
-        (typeof config.productType === "string" && config.productType) ||
-        (typeof config.ProductType === "string" && config.ProductType) ||
-        (typeof config.type === "string" && config.type) ||
-        null;
-      const resolvedCabinetTypeId =
-        resolveCabinetTypeId(selectedSceneProduct, selectedSceneProduct) ??
-        resolveCabinetTypeId(configType, selectedSceneProduct);
+      // Through the scene products of the catalog: a scene id need not contain the type ("UF-open-shelves-…").
+      // The cabinet's drawer style tells a short cabinet from the tall type of its scene product.
+      const placedDrawers = getPlacedCabinetStyles(store.getState())[selectedSceneProduct];
+      const selectedRule = findSelectedCabinetRule(cabinetCatalog, selectedSceneProduct, config, placedDrawers);
 
-      if (resolvedCabinetTypeId !== null) {
-        dispatch(setActiveCabinetType(resolvedCabinetTypeId));
+      if (selectedRule) {
+        dispatch(setActiveCabinetType(selectedRule.code));
       }
 
       // With what is the cabinet's alone and the scene config does not name: its series, which
@@ -3415,7 +3408,7 @@ export const PlayCanvasIntegration = ({
     };
 
     loadConfig();
-  }, [dispatch, resolveCabinetTypeId, selectedSceneProduct, store]);
+  }, [cabinetCatalog, dispatch, selectedSceneProduct, store]);
 
   useEffect(() => {
     if (!selectedSceneProduct) return;

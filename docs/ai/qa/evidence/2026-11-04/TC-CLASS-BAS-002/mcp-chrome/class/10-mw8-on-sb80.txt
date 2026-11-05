@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"picked":true,"popup":null,"top":{"selectedColor":["Matte White 8cm"],"mw8Disabled":false,"reason":null,"basin":{"swatches":["VA023"],"selected":["VA023"]}},"configs":[{"id":"Class-sink-cabinet","Width":80,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_VA023"}],"ct":["CT-GBSSTMT-INTG-31.5W-.8H-20.7D","CT-GBSSTMT-LV890-.8H","CT-GBSSTMT-FAHO/0","CT-GBSSTMT-INTG-31.5W-3.1H-20.7D","CT-GBSSTMT-LV890-3.1H","CT-GB-BRKT","CT-GBSSTMT-VA023-3.1H"],"price":"Total List Price $5,283.00"}
+```

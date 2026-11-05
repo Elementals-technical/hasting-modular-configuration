@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"resized":true,"clicked":true,"poseBefore":{"x":0.216,"y":0.274},"lengthBefore":1.71704,"message":"Not available for current sink base width. Current 25 cm (9.8\"), minimum 60 cm (23.","poseAfter":{"x":0.216,"y":0.274},"lengthAfter":1.71704,"hosted":true,"valid":"valid","cabinets":"side-cabinet:25 side-cabinet:60"}
+```

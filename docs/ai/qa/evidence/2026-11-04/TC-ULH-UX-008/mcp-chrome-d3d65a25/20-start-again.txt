@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"walkthroughDismissed":false,"cabinets":"sink-cabinet:60[Top_HPL/Fenix_Prisma_Gres] side-cabinet:60","top":{"id":"Top_Solid-59fa01d2-1274-474a-860b-17b3692f0473","off":{"x":0.041,"y":0},"hosted":false,"pending":null,"landing":"none","valid":"valid","reasons":[],"dragEnabled":false,"ready":"ready"}}
+```

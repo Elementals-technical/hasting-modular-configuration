@@ -32,3 +32,24 @@ export const findPlacedCabinetRule = (
 
   return rules.find(({ code }) => code === cabinetType) ?? null;
 };
+
+/**
+ * The catalog rule of a selected cabinet. Its runtime id names what the cabinet is now. A sink lift or landing
+ * re-creates the cabinet under a new id but keeps the `ProductType` of what it was in its scene config (a Sink Base
+ * turned Side Cabinet still says sink), so the config is read only for an id the catalog does not know, `productType` first.
+ */
+export const findSelectedCabinetRule = (
+  catalog: ConfiguratorCatalog,
+  runtimeId: string,
+  config: Readonly<Record<string, unknown>>,
+  placedDrawers?: string | null,
+): TypeCabinetRuleConfig | null => {
+  const configType = [config.productType, config.ProductType, config.type].find(
+    (value): value is string => typeof value === "string" && value !== "",
+  );
+
+  return (
+    findPlacedCabinetRule(catalog, runtimeId, placedDrawers) ??
+    (configType ? findPlacedCabinetRule(catalog, configType, placedDrawers) : null)
+  );
+};

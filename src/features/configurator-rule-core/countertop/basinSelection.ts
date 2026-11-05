@@ -1,4 +1,5 @@
 import type { ProductProfile } from "@/entities/collection";
+import { selectOption } from "@/entities/collection";
 import {
   extractCountertopBasinMaterialScopeTokens,
   getMaterialAliases,
@@ -10,7 +11,11 @@ import {
   selectMaterialAliasTable,
   type MaterialAliasTable,
 } from "./parse";
-import { isRuleWidthEligibleForIntegratedContext } from "./rules";
+import {
+  isRuleWidthEligibleForIntegratedContext,
+  resolveIntegratedBasinUnavailableReason,
+  type CountertopRuleReason,
+} from "./rules";
 import type { CountertopMatrixRule } from "./types";
 
 export type CountertopBasinOptionLike = {
@@ -39,6 +44,18 @@ type ResolveIntegratedCountertopBasinFallbackInput = ResolveIntegratedCountertop
   preferredBasinStyle?: string | null;
 };
 
+type ApplicableIntegratedRulesInput = Pick<
+  ResolveIntegratedCountertopBasinOptionsInput,
+  "rules" | "activeMaterialTokens" | "activeThickness" | "profile"
+> & {
+  depth: number | null;
+};
+
+type ResolveSinkLandingRefusalInput = ApplicableIntegratedRulesInput & {
+  activeBasinStyle: string | null;
+  cabinetWidthCm: number;
+};
+
 const getBasinOptionValue = (option: CountertopBasinOptionLike): string | null => option.name ?? option.title ?? null;
 
 const matchesThickness = (rule: CountertopMatrixRule, activeThickness?: string | null): boolean => {
@@ -53,6 +70,22 @@ const matchesThickness = (rule: CountertopMatrixRule, activeThickness?: string |
     .some((value) => Math.abs(value - activeThicknessValue) < 0.001);
 };
 
+const selectApplicableIntegratedRules = ({
+  rules,
+  activeMaterialTokens,
+  activeThickness,
+  depth,
+  profile,
+}: ApplicableIntegratedRulesInput): CountertopMatrixRule[] => {
+  const aliasTable = selectMaterialAliasTable(profile ?? null);
+  return rules.filter((rule) => {
+    if (!matchesDepthForStyle(rule, depth, "integrated")) return false;
+    if (!matchesThickness(rule, activeThickness)) return false;
+    if (!activeMaterialTokens.length) return true;
+    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable));
+  });
+};
+
 export const resolveAvailableIntegratedCountertopBasinOptions = ({
   basinOptions,
   rules,
@@ -62,11 +95,12 @@ export const resolveAvailableIntegratedCountertopBasinOptions = ({
   profile,
 }: ResolveIntegratedCountertopBasinOptionsInput): CountertopBasinOptionLike[] => {
   const aliasTable = selectMaterialAliasTable(profile ?? null);
-  const applicableRules = rules.filter((rule) => {
-    if (!matchesDepthForStyle(rule, dimensions.depth, "integrated")) return false;
-    if (!matchesThickness(rule, activeThickness)) return false;
-    if (!activeMaterialTokens.length) return true;
-    return activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable));
+  const applicableRules = selectApplicableIntegratedRules({
+    rules,
+    activeMaterialTokens,
+    activeThickness,
+    depth: dimensions.depth,
+    profile,
   });
 
   if (!applicableRules.length) return [];
@@ -115,6 +149,34 @@ export const findIntegratedBasinRules = (
   );
 
   return rules.filter((rule) => normalizedBasinLabelCandidates.has(normalizeBasinKey(rule.basinStyle)));
+};
+
+/**
+ * Why the selected basin cannot come down on a cabinet this wide, which would become its Sink Base; null when it can,
+ * and for a basin with no matrix row (a vessel). Only that width is judged: a landing leaves the top's length as it is.
+ * A resized Sink Base takes another basin instead (`useAvailabilityResets`); a landing keeps the basin the user chose.
+ */
+export const resolveSinkLandingRefusal = ({
+  activeBasinStyle,
+  cabinetWidthCm,
+  ...scope
+}: ResolveSinkLandingRefusalInput): CountertopRuleReason | null => {
+  const profile = scope.profile ?? null;
+  const basin = activeBasinStyle ? selectOption(profile, "sinkType", activeBasinStyle) : null;
+  if (!basin) return null;
+
+  const basinRules = findIntegratedBasinRules(
+    { name: basin.value, title: basin.label },
+    selectApplicableIntegratedRules(scope),
+    scope.activeMaterialTokens,
+    selectMaterialAliasTable(profile),
+  );
+  const widthContext = { sinkBaseWidth: cabinetWidthCm, totalWidth: null };
+  if (!basinRules.length || basinRules.some((rule) => isRuleWidthEligibleForIntegratedContext(rule, widthContext))) {
+    return null;
+  }
+
+  return resolveIntegratedBasinUnavailableReason({ basinRules, ...widthContext, profile });
 };
 
 export const resolveIntegratedCountertopBasinFallback = ({

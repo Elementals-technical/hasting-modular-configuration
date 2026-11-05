@@ -72,6 +72,7 @@ const toProductOptionData = (option: FieldOptionState, index: number): ProductOp
   isAvailable: option.enabled,
   disabledReason: option.reason,
   disabledReasonCode: option.reasonCode,
+  disabledReasonParams: option.reasonParams,
   isShortDesc: false,
   metadata: { ...option.traits, value: option.value, image: option.image },
 });

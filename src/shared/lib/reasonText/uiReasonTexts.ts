@@ -20,7 +20,7 @@ export const UI_REASON_TEXTS: Record<string, string> = {
   TRAP_KEEPOUT: "Too close to the sink trap.",
   BASIN_EDGE_TOO_CLOSE: "Sink too close to the countertop edge.",
   SINK_BASE_NOT_COVERED: "The countertop must cover the sink cabinet.",
-  SINK_LANDING_GAP: "The sink can't go here.",
+  SINK_LANDING_GAP: "The basin needs one cabinet wide enough for it.",
   SINK_LANDING_UNFIT: "The sink can't go on this cabinet.",
   COUNTERTOP_COLLISION: "The countertop overlaps another object.",
   COUNTERTOP_VERTICAL_LOCKED: "This countertop can only slide left or right.",

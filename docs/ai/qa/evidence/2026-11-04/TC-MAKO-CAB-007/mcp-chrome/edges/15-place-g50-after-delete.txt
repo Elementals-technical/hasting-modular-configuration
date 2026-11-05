@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"shown":"G50","configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}],"price":"Total List Price $5,371.00"}
+```

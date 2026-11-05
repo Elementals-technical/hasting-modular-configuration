@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"url":"/custom/cabinet-builder","configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"},{"id":"Mako-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"G50","HandleColor":"Silver","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}]}
+```
+Page navigated to http://localhost:5173/custom/cabinet-builder?accordion=cabinet-style&collectionId=mako.

@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"style":"2 Drawer","r":{"w":{"offered":["23.6\"","27.6\"","31.5\"","35.4\"","41.3\"","47.2\""],"chose":"31.5\""},"placed":true},"configs":[{"id":"UD-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Top_HPLStrip"}],"price":"Total List Price $9,741.00","nav":["Cabinet Builder","Color","Countertop & Basin","Accessories","Faucet Details","Summary"],"secs":["Countertop Color","Material","Color","Look","Price","Thickness","Countertop Style","Basin Style"],"basin":{"name":"Basin Style","selected":["HPL Strip 48"],"swatches":["HPL Strip 48","HPL Cover 50","HPL Prisma 50","HPL Quadra 50"],"buttons":[{"n":"HPL Strip 48","disabled":false},{"n":"HPL Cover 50","disabled":false},{"n":"HPL Prisma 50","disabled":false},{"n":"HPL Quadra 50","disabled":false}],"styles":[{"n":"Integrated","disabled":false},{"n":"Vessel","disabled":false}],"panelText":"HPL Strip 48HPL Cover 50HPL Prisma 50HPL Quadra 50"}}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=urban-duplex.

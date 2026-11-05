@@ -1,0 +1,106 @@
+{
+ "description": "Chrome smoke in a new agent tab with the write guard, closed at the end; the runbook variant needs an open staging tab",
+ "steps": [
+  {
+   "tool": "new_page",
+   "args": {
+    "url": "about:blank",
+    "timeout": 60000
+   },
+   "capture": {
+    "pageId": "(\\d+): about:blank[^\\n]*\\[selected\\]"
+   },
+   "stopOnFail": true
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "url",
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=tricot",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n"
+   },
+   "stopOnFail": true
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_snapshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "03-snapshot.txt"
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "04-screenshot.png"
+  },
+  {
+   "tool": "list_console_messages",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 120,
+    "types": [
+     "error"
+    ]
+   },
+   "save": "05-console.txt"
+  },
+  {
+   "tool": "list_network_requests",
+   "args": {
+    "pageId": "${pageId}",
+    "pageSize": 300
+   },
+   "save": "06-network.txt"
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "url",
+    "url": "https://hasting-modular-phase-2-staging-ar3wz.ondigitalocean.app/prebuilt/model?collectionId=urban-low-height",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n"
+   }
+  },
+  {
+   "sleep": 15000
+  },
+  {
+   "tool": "take_screenshot",
+   "args": {
+    "pageId": "${pageId}"
+   },
+   "save": "08-after-navigation.png"
+  },
+  {
+   "tool": "navigate_page",
+   "args": {
+    "pageId": "${pageId}",
+    "type": "back",
+    "initScript": "// QA write-guard (navigate_page initScript, agent tab only): blocks every non-GET/HEAD/OPTIONS request\n// from the top document (fetch, XHR, sendBeacon) and records it in window.__blockedWrites.\n// Needed because the Summary page saves the configuration automatically (POST /modular/configurations/store).\n(() => {\n  if (window.__qaWriteGuard) return;\n  window.__qaWriteGuard = true;\n  window.__blockedWrites = [];\n  const isWrite = (m) => m && !/^(GET|HEAD|OPTIONS)$/i.test(m);\n  const note = (method, url) => window.__blockedWrites.push({ method: String(method).toUpperCase(), url: String(url).split('?')[0].slice(0, 160), at: new Date().toISOString() });\n  const origFetch = window.fetch.bind(window);\n  window.fetch = (input, init = {}) => {\n    const url = typeof input === 'string' ? input : input?.url;\n    const method = init.method || (typeof input === 'object' && input?.method) || 'GET';\n    if (isWrite(method)) { note(method, url); return Promise.reject(new TypeError('blocked by QA write-guard')); }\n    return origFetch(input, init);\n  };\n  const open = XMLHttpRequest.prototype.open;\n  const send = XMLHttpRequest.prototype.send;\n  XMLHttpRequest.prototype.open = function (m, u, ...rest) { this.__qaM = m; this.__qaU = u; return open.call(this, m, u, ...rest); };\n  XMLHttpRequest.prototype.send = function (body) { if (isWrite(this.__qaM)) { note(this.__qaM, this.__qaU); this.abort(); return; } return send.call(this, body); };\n  if (navigator.sendBeacon) navigator.sendBeacon = (url) => { note('BEACON', url); return true; };\n})();\n"
+   }
+  },
+  {
+   "sleep": 8000
+  },
+  {
+   "tool": "evaluate_script",
+   "args": {
+    "pageId": "${pageId}",
+    "function": "() => ({ url: location.pathname + location.search, canvas: !!document.querySelector('iframe'), price: (document.body.innerText.match(/Total List Price\\s*\\$[\\d,]+(\\.\\d+)?/) || [''])[0].replace(/\\s+/g, ' '), blockedWrites: window.__blockedWrites || [] })"
+   },
+   "save": "10-eval.txt"
+  },
+  {
+   "tool": "close_page",
+   "args": {
+    "pageId": "${pageId}"
+   }
+  }
+ ]
+}

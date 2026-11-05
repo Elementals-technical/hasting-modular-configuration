@@ -13,7 +13,7 @@ import { useReasonText } from "@/shared/lib/reasonText";
 
 import { formatInches, metresToDisplayInches } from "../lib/countertopLength";
 import type { CountertopOverlayStore } from "../lib/countertopOverlayStore";
-import { describeCountertopValidation } from "../lib/countertopSession";
+import { describeCountertopFrameReason, describeCountertopValidation } from "../lib/countertopSession";
 import { clearEditSizeButton } from "../lib/editSizeButtonClearance";
 import {
   actionRowBox,
@@ -89,7 +89,8 @@ export function CountertopDragOverlay({
   const runtime = useCountertopRuntimeState();
   const resizeBoundsM = runtime?.resizeBoundsM;
   const rootRef = useRef<HTMLDivElement>(null);
-  const validation = describeCountertopValidation(runtime?.validation, useReasonText());
+  const reasonText = useReasonText();
+  const validation = describeCountertopValidation(runtime?.validation, reasonText);
   const [openEditor, setOpenEditor] = useState<DimensionEditor | null>(null);
   // No scene command takes a typed length with an alignment, or a depth, yet: a popover's Apply only
   // closes it, nothing is sent and the session goes on as it was.
@@ -142,7 +143,8 @@ export function CountertopDragOverlay({
   const depthIn = typeof frame.depthM === "number" ? metresToDisplayInches(frame.depthM) : null;
   const action = actionAnchor(frame);
   const actionRow = action ? actionRowPositions(action) : null;
-  const frameReason = !frame.canApply || frame.status === "colliding" ? frame.reasons?.[0]?.message : undefined;
+  const frameReason =
+    !frame.canApply || frame.status === "colliding" ? describeCountertopFrameReason(frame, reasonText) : undefined;
   // Invalid verdict first; else the overlay's reason; else the warning (amber, does not block Apply).
   const reason = invalid ? validation.lines.join(" ") : (frameReason ?? validation?.lines.join(" "));
   const warning = !invalid && !frameReason && validation?.tone === "warning";

@@ -61,7 +61,14 @@ Cabinet. A Sink Base added while the top is remote is not refused.
   carries both basins and both cabinets stay Sink Bases, as before this rule, until the scene can lift both
   sinks (then both cabinets become Side Cabinets).
 - **Back.** Standard, or the basin lowered over a Side Cabinet, lands it (`landSink`): that cabinet becomes the
-  Sink Base again.
+  Sink Base again, at the width it has.
+- **Too narrow for the basin.** The scene judges only whether the cut-out fits a cabinet, and at Standard takes the
+  nearest one regardless. A cabinet below the minimum of the selected integrated basin (`min_sb_cm`) refuses the
+  landing on both ways (`resolveSinkLandingRefusal`): nothing is committed, the top goes back as it stood (after
+  Standard with its custom length too, which `resetOffset` drops), and `SinkLandingMessage` gives the reason
+  (`countertop.sinkBaseBelowMin`). A cut-out no cabinet holds stays the scene's `SINK_LANDING_GAP`, shown by Apply.
+  A vessel has no such rule yet. The scene does not announce a landing twice on one cabinet at an exact pose
+  (`_landingAnnounced`): a drop there after a refusal waits for Apply, which judges it the same way.
 - **The basin waits.** While the top hosts the basin (`sink.hosted`), the Countertop step refuses Countertop Style,
   the basin and the vessel colour, each option with its reason (`countertop.hostedSink.style`, `.basin`,
   `.vesselColor`: "Lower the countertop onto a sink cabinet to change …"). Scene v79 does not rebuild a basin the

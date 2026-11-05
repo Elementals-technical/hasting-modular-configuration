@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"lifted":{"x":0.041,"y":0.274},"hosted":true,"sessionClosed":true,"cabinets":"side-cabinet:60 side-cabinet:60","top":{"id":"Top_Solid-0bc31128-93d0-4557-bde4-ab4fcaf86a8f","off":{"x":0.041,"y":0.274},"hosted":true,"pending":null,"landing":"fits","valid":"valid","reasons":[],"dragEnabled":false,"ready":"ready"}}
+```
