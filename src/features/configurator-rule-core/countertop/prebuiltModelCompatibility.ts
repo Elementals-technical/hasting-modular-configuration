@@ -5,7 +5,7 @@ import type { PresetProduct } from "@/entities/product/types";
 import { resolveCountertopCabinetCompositionConstraint } from "./compositionConstraints";
 import { evaluateCountertopMaterial } from "./materialAvailability";
 import { materialMatchesRule, selectMaterialAliasTable, normalizeMaterialToken } from "./parse";
-import { buildCountertopRuleState } from "./rules";
+import { buildCountertopRuleState, resolveCountertopStyleKey } from "./rules";
 import type { CountertopRuleResult, CountertopStyleKey } from "./rules";
 import type { CountertopMatrixRule } from "./types";
 
@@ -34,15 +34,21 @@ export type PrebuiltModelCountertopCompatibilityInput = {
  */
 export type PrebuiltModelCountertopRefusal = "material" | "style";
 
+type PrebuiltModelCountertopRefusalReason = {
+  reason?: string;
+  /** Stable code of `reason`; the text comes from the collection's `messages`. */
+  reasonCode?: string;
+};
+
 export type PrebuiltModelCountertopCompatibilityResult =
   | { isCompatible: true }
-  | {
+  | ({ isCompatible: false; refusal: "material" } & PrebuiltModelCountertopRefusalReason)
+  | ({
       isCompatible: false;
-      refusal: PrebuiltModelCountertopRefusal;
-      reason?: string;
-      /** Stable code of `reason`; the text comes from the collection's `messages`. */
-      reasonCode?: string;
-    };
+      refusal: "style";
+      /** The active countertop style the model refused. */
+      refusedStyle: CountertopStyleKey;
+    } & PrebuiltModelCountertopRefusalReason);
 
 const normalizeProductName = (value?: string | null): string => value?.toLowerCase().replace(/[^a-z0-9]+/g, "") ?? "";
 
@@ -80,12 +86,6 @@ const resolvePresetDimensions = (presetProducts: PresetProduct[]): PrebuiltPrese
   };
 };
 
-const resolveStyleKey = (value?: string | null): "integrated" | "vessel" | "undermount" | null => {
-  const normalized = value?.trim().toLowerCase();
-  if (normalized === "integrated" || normalized === "vessel" || normalized === "undermount") return normalized;
-  return null;
-};
-
 /**
  * Whether the new model takes the countertop material under some style the collection offers. The active style's
  * own limits (a vessel's Sink Base minimum) refuse that style, not the material; the active thickness still
@@ -107,7 +107,7 @@ const isMaterialAcceptedByModel = ({
   if (!activeMaterialTokens.length) return true;
 
   const offeredStyles = selectOptionValues(profile, "CountertopStyle")
-    .map((value) => resolveStyleKey(value))
+    .map((value) => resolveCountertopStyleKey(value))
     .filter((style): style is CountertopStyleKey => style !== null);
   // A collection that offers no countertop style judges the material by the table alone, under no style.
   if (!offeredStyles.length) {
@@ -187,11 +187,12 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
   }
 
   // The material stays; only the active style is refused, with the reason its tile gives.
-  const styleKey = resolveStyleKey(activeCountertopStyle);
+  const styleKey = resolveCountertopStyleKey(activeCountertopStyle);
   if (styleKey && !ruleState.styleAvailability[styleKey].isAvailable) {
     return {
       isCompatible: false,
       refusal: "style",
+      refusedStyle: styleKey,
       reasonCode: ruleState.styleAvailability[styleKey].reasonCode,
       reason: ruleState.styleAvailability[styleKey].disabledReason,
     };

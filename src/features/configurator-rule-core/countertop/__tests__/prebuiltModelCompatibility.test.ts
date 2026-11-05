@@ -88,6 +88,7 @@ describe("an Urban Duplex porcelain countertop and a model with a 70 cm Sink Bas
     expect(result).toEqual({
       isCompatible: false,
       refusal: "style",
+      refusedStyle: "vessel",
       reasonCode: "countertop.vesselSinkBaseMin",
       reason: 'Not available for selected sink base cabinet width. Minimum width required 80cm (31.5")',
     });

@@ -81,7 +81,7 @@ import {
   resolvePrebuiltModelCountertopCompatibility,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
-import type { PrebuiltModelCountertopRefusal } from "@/features/configurator-rule-core/countertop";
+import type { CountertopStyleKey, PrebuiltModelCountertopRefusal } from "@/features/configurator-rule-core/countertop";
 import { BaseButton, ROUTES } from "@/shared";
 import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
@@ -154,8 +154,8 @@ type PendingModelSelection = {
   presetId?: number;
   modelTitle: string;
   refusal: PrebuiltModelCountertopRefusal;
-  /** The countertop style chosen when the model refused it. */
-  refusedStyle: string;
+  /** The countertop style the model refused; null when it refused the material. */
+  refusedStyle: CountertopStyleKey | null;
   reason?: string;
 };
 
@@ -1094,7 +1094,7 @@ export const ModelPage = () => {
             presetId,
             modelTitle,
             refusal: compatibility.refusal,
-            refusedStyle: countertopStyle,
+            refusedStyle: compatibility.refusal === "style" ? compatibility.refusedStyle : null,
             reason: compatibility.reason,
           });
           return;
@@ -1208,7 +1208,7 @@ export const ModelPage = () => {
     setPendingModelSelection(null);
     // A refused vessel drops alone: the integrated basin is what the model offers in its place. Any other refusal
     // leaves no countertop known to fit, so it is reset whole.
-    const isVesselRefused = selection.refusal === "style" && selection.refusedStyle.trim().toLowerCase() === "vessel";
+    const isVesselRefused = selection.refusal === "style" && selection.refusedStyle === "vessel";
     void applyPresetSelection(
       selection.presetProducts,
       selection.presetId,
