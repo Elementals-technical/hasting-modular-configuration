@@ -130,6 +130,52 @@ describe("parseProductProfile", () => {
     expect(diagnostic?.dataPath).toBe("/attributes/Handle/scope");
   });
 
+  describe("an attribute that follows another", () => {
+    const withFollows = (followsAttribute: unknown) => {
+      const raw = clone(ushProfile) as { attributes: { attributeId: string; followsAttribute?: unknown }[] };
+      const groove = raw.attributes.find(({ attributeId }) => attributeId === "HandleGrooveColor");
+      if (groove) groove.followsAttribute = followsAttribute;
+      return parseProductProfile(raw);
+    };
+
+    it("reads the attribute it follows", () => {
+      const result = withFollows("CabinetColor");
+      if (!result.ok) throw new Error(`profile must parse: ${JSON.stringify(result.diagnostics)}`);
+
+      expect(
+        result.profile.attributes.find(({ attributeId }) => attributeId === "HandleGrooveColor")?.followsAttribute,
+      ).toBe("CabinetColor");
+    });
+
+    it.each([
+      ["an attribute the profile does not declare", "NoSuchColor"],
+      ["itself", "HandleGrooveColor"],
+    ])("rejects following %s", (_case, followsAttribute) => {
+      expect(withFollows(followsAttribute)).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unknown_followed",
+            dataPath: "/attributes/HandleGrooveColor/followsAttribute",
+            message: `followsAttribute "${followsAttribute}" must name another attribute of this profile`,
+          },
+        ],
+      });
+    });
+
+    it("rejects a value that is not an attribute id", () => {
+      const result = withFollows(7);
+
+      expect(result.ok ? [] : result.diagnostics).toEqual([
+        {
+          code: "profile.invalid_field_type",
+          dataPath: "/attributes/HandleGrooveColor/followsAttribute",
+          message: "followsAttribute must be an attributeId",
+        },
+      ]);
+    });
+  });
+
   it("turns malformed JSON into a diagnostic instead of throwing", () => {
     const result = parseProductProfile("{ not json");
 

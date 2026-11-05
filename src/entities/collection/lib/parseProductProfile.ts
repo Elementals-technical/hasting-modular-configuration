@@ -46,6 +46,7 @@ export type ProfileDiagnosticCode =
   | "attribute.duplicate_option"
   | "attribute.missing_options_source"
   | "attribute.value_outside_catalog"
+  | "attribute.unknown_followed"
   | "adapter.missing_column"
   | "ruleData.invalid_section";
 
@@ -244,6 +245,22 @@ const parseConfirmation = (
   return { when: raw.when, reasonCode: raw.reasonCode };
 };
 
+/** The id of the attribute this one follows; whether the profile declares it is checked once all are read. */
+const parseFollowsAttribute = (raw: unknown, attributePath: string, collect: Collector): string | undefined => {
+  if (raw === undefined) return undefined;
+
+  if (!isNonEmptyString(raw)) {
+    collect.add(
+      "profile.invalid_field_type",
+      `${attributePath}/followsAttribute`,
+      "followsAttribute must be an attributeId",
+    );
+    return undefined;
+  }
+
+  return raw;
+};
+
 const parseAttribute = (raw: unknown, index: number, collect: Collector): ProfileAttribute | null => {
   const path = `/attributes/${index}`;
 
@@ -290,6 +307,7 @@ const parseAttribute = (raw: unknown, index: number, collect: Collector): Profil
     effectiveFallbackValue: typeof raw.effectiveFallbackValue === "string" ? raw.effectiveFallbackValue : undefined,
     resetValue: typeof raw.resetValue === "string" ? raw.resetValue : undefined,
     noneValue: typeof raw.noneValue === "string" ? raw.noneValue : undefined,
+    followsAttribute: parseFollowsAttribute(raw.followsAttribute, attributePath, collect),
   };
 
   if (options) {
@@ -807,6 +825,17 @@ export const parseProductProfile = (input: unknown): ParseProductProfileResult =
     seenIds.add(attribute.attributeId);
     attributes.push(attribute);
   });
+
+  for (const { attributeId, followsAttribute } of attributes) {
+    if (followsAttribute === undefined) continue;
+    if (followsAttribute !== attributeId && seenIds.has(followsAttribute)) continue;
+
+    collect.add(
+      "attribute.unknown_followed",
+      `/attributes/${attributeId}/followsAttribute`,
+      `followsAttribute "${followsAttribute}" must name another attribute of this profile`,
+    );
+  }
 
   const ruleData = isRecord(raw.ruleData) ? raw.ruleData : null;
   if (!ruleData) {

@@ -123,6 +123,7 @@
       "scope": "cabinet",
       "defaultValue": "Antracite 400 MT",
       "resetValue": "",
+      "followsAttribute": "HandleColor",
       "optionsSource": "configurator:Select Leg Color"
     },
     {

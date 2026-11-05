@@ -90,6 +90,11 @@ export type ProfileAttribute = {
   resetValue?: string;
   /** Value meaning "not chosen" inside the catalog itself (e.g. SidePanels -> ""). */
   noneValue?: string;
+  /**
+   * Another attribute of the profile whose current value this one takes when its switch turns it on (Mako: the
+   * legs start in the handle colour). A value this attribute does not offer leaves it at `defaultValue`.
+   */
+  followsAttribute?: string;
 };
 
 /**
