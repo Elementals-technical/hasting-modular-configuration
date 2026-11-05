@@ -90,6 +90,15 @@ export type ProfileAttribute = {
   resetValue?: string;
   /** Value meaning "not chosen" inside the catalog itself (e.g. SidePanels -> ""). */
   noneValue?: string;
+  /**
+   * Another attribute of the profile whose current value this one takes when its switch turns it on, and whose new
+   * value it takes in the same set while it still holds the old one (Mako: the legs start in the handle colour and
+   * move with it). A value of its own, or none (switched off), stays. A value this attribute does not offer leaves it
+   * at `defaultValue` when switched on and as it is otherwise. Only a cabinet-scoped attribute follows, and only one
+   * level deep: a change moves the attributes that follow it, not the ones that follow those. So the parser rejects
+   * this field on an attribute of another scope and naming an attribute that declares it itself.
+   */
+  followsAttribute?: string;
 };
 
 /**

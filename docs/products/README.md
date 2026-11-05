@@ -224,6 +224,14 @@ Urban Duplex і Lame — material configurators 11–14 (`modular-config-phase-2
   `playerMenu.resize`); висоту нової композиції задає `defaultValue` attribute `Height`. Стиль, якого
   немає у висоті вже поставлених шаф (Urban Duplex: 1DWID поруч зі Slim), перемикає їх усі після
   підтвердження — так само, як стиль іншої групи `drawerStyleGroups`.
+- Значення, яке йде за іншим attribute (Mako: legs у кольорі handle), оголошує profile: `followsAttribute:
+  "<AttributeId>"` на attribute-послідовнику, а не код команд. Перемикач поля (`toggle` у `ui.json`) вмикає
+  послідовник у поточному значенні ведучого attribute, якщо поле його пропонує, інакше в `defaultValue`;
+  зміна ведучого переносить послідовник у тому ж наборі змін, поки той тримає попереднє значення ведучого
+  і нове значення йому доступне. Власне значення послідовника й порожнє (вимкнене) лишаються. Послідовник
+  має scope `cabinet`, ланцюжка немає (ведучий сам нікого не слідує); ведучий — інший attribute profile із
+  будь-яким scope. Parser відхиляє порушення діагностиками `attribute.unsupported_follow` і
+  `attribute.unknown_followed`.
 - Product type існує в `productTypes` або свідомо прихований у `unplacedProductTypes`. Тип переноситься
   в `productTypes` лише після того, як сцена реєструє його продукт (`sceneKeysInExport.test.ts`
   перевіряє це для Urban Freestanding і Urban Duplex): на невідомий тип сцена відповідає порожньою

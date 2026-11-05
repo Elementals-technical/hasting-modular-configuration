@@ -9,6 +9,8 @@ import {
   isDrawerStyleMixingRestricted,
   selectBasinOptions,
   selectDefaultValue,
+  selectFollowedAttribute,
+  selectFollowers,
   selectOptionValues,
 } from "../lib/productProfileSelectors";
 
@@ -151,6 +153,11 @@ describe("mako product profile", () => {
     // stay undetermined (MAKO-LEG-002).
     expect(attribute("LegColor")?.resetValue).toBe("");
     expect(attribute("LegColor")?.defaultValue).toBe("Antracite 400 MT");
+  });
+
+  it("switches the legs on in the handle colour, the client's default for Leg Color", () => {
+    expect(selectFollowedAttribute(profile(), "LegColor")).toBe("HandleColor");
+    expect(selectFollowers(profile(), "HandleColor")).toEqual(["LegColor"]);
   });
 
   it("declares the drawer style groups, the handle colours, the vessel colours, the price tiers and the changes the product has not decided yet", () => {

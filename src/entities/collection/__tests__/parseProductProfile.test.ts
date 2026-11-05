@@ -130,6 +130,104 @@ describe("parseProductProfile", () => {
     expect(diagnostic?.dataPath).toBe("/attributes/Handle/scope");
   });
 
+  describe("an attribute that follows another", () => {
+    /** The USH profile with `followsAttribute` set on the attributes keyed. */
+    const withFollowing = (follows: Record<string, unknown>) => {
+      const raw = clone(ushProfile) as { attributes: { attributeId: string; followsAttribute?: unknown }[] };
+      for (const attribute of raw.attributes) {
+        if (attribute.attributeId in follows) attribute.followsAttribute = follows[attribute.attributeId];
+      }
+      return parseProductProfile(raw);
+    };
+
+    const withFollows = (followsAttribute: unknown) => withFollowing({ HandleGrooveColor: followsAttribute });
+
+    it("reads the attribute it follows", () => {
+      const result = withFollows("CabinetColor");
+      if (!result.ok) throw new Error(`profile must parse: ${JSON.stringify(result.diagnostics)}`);
+
+      expect(
+        result.profile.attributes.find(({ attributeId }) => attributeId === "HandleGrooveColor")?.followsAttribute,
+      ).toBe("CabinetColor");
+    });
+
+    it.each([
+      ["an attribute the profile does not declare", "NoSuchColor"],
+      ["itself", "HandleGrooveColor"],
+    ])("rejects following %s", (_case, followsAttribute) => {
+      expect(withFollows(followsAttribute)).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unknown_followed",
+            dataPath: "/attributes/HandleGrooveColor/followsAttribute",
+            message: `followsAttribute "${followsAttribute}" must name another attribute of this profile`,
+          },
+        ],
+      });
+    });
+
+    it("rejects a value that is not an attribute id", () => {
+      const result = withFollows(7);
+
+      expect(result.ok ? [] : result.diagnostics).toEqual([
+        {
+          code: "profile.invalid_field_type",
+          dataPath: "/attributes/HandleGrooveColor/followsAttribute",
+          message: "followsAttribute must be an attributeId",
+        },
+      ]);
+    });
+
+    it("rejects a follower that is not cabinet-scoped", () => {
+      expect(withFollowing({ CabinetColor: "Handle" })).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/CabinetColor/followsAttribute",
+            message: 'followsAttribute is read only on a cabinet-scoped attribute, not on scope "global"',
+          },
+        ],
+      });
+    });
+
+    it("rejects following an attribute that follows another", () => {
+      expect(withFollowing({ HandleGrooveColor: "CabinetColor", DrawerPanelFluting: "HandleGrooveColor" })).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/DrawerPanelFluting/followsAttribute",
+            message: 'followsAttribute "HandleGrooveColor" follows "CabinetColor" itself; following is one level deep',
+          },
+        ],
+      });
+    });
+
+    it("rejects a cycle on each attribute in it", () => {
+      expect(
+        withFollowing({ HandleGrooveColor: "DrawerPanelFluting", DrawerPanelFluting: "HandleGrooveColor" }),
+      ).toEqual({
+        ok: false,
+        diagnostics: [
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/HandleGrooveColor/followsAttribute",
+            message:
+              'followsAttribute "DrawerPanelFluting" follows "HandleGrooveColor" itself; following is one level deep',
+          },
+          {
+            code: "attribute.unsupported_follow",
+            dataPath: "/attributes/DrawerPanelFluting/followsAttribute",
+            message:
+              'followsAttribute "HandleGrooveColor" follows "DrawerPanelFluting" itself; following is one level deep',
+          },
+        ],
+      });
+    });
+  });
+
   it("turns malformed JSON into a diagnostic instead of throwing", () => {
     const result = parseProductProfile("{ not json");
 
