@@ -1,19 +1,12 @@
 import type { ProductProfile } from "@/entities/collection";
-import { selectMessageOr } from "@/entities/collection";
+import { selectMessageOr, selectOptionValues } from "@/entities/collection";
 import type { PresetProduct } from "@/entities/product/types";
 
 import { resolveCountertopCabinetCompositionConstraint } from "./compositionConstraints";
-import {
-  materialMatchesRule,
-  selectMaterialAliasTable,
-  matchesDepthForStyle,
-  normalizeBasinKey,
-  normalizeBasinToken,
-  normalizeMaterialToken,
-  parseThicknessValue,
-} from "./parse";
-import { buildCountertopRuleState } from "./rules";
-import { isCountertopRuleWidthAllowed, resolveCountertopWidthRuleStyle } from "./sizeFilters";
+import { evaluateCountertopMaterial } from "./materialAvailability";
+import { materialMatchesRule, selectMaterialAliasTable, normalizeMaterialToken } from "./parse";
+import { buildCountertopRuleState, resolveCountertopStyleKey } from "./rules";
+import type { CountertopRuleResult, CountertopStyleKey } from "./rules";
 import type { CountertopMatrixRule } from "./types";
 
 type PrebuiltPresetDimensions = {
@@ -35,12 +28,27 @@ export type PrebuiltModelCountertopCompatibilityInput = {
   profile: ProductProfile | null;
 };
 
-export type PrebuiltModelCountertopCompatibilityResult = {
-  isCompatible: boolean;
+/**
+ * What the new model refuses: the countertop material itself, or only the active countertop style (and the
+ * basin that depends on it), while the material stays acceptable under another style.
+ */
+export type PrebuiltModelCountertopRefusal = "material" | "style";
+
+type PrebuiltModelCountertopRefusalReason = {
   reason?: string;
   /** Stable code of `reason`; the text comes from the collection's `messages`. */
   reasonCode?: string;
 };
+
+export type PrebuiltModelCountertopCompatibilityResult =
+  | { isCompatible: true }
+  | ({ isCompatible: false; refusal: "material" } & PrebuiltModelCountertopRefusalReason)
+  | ({
+      isCompatible: false;
+      refusal: "style";
+      /** The active countertop style the model refused. */
+      refusedStyle: CountertopStyleKey;
+    } & PrebuiltModelCountertopRefusalReason);
 
 const normalizeProductName = (value?: string | null): string => value?.toLowerCase().replace(/[^a-z0-9]+/g, "") ?? "";
 
@@ -78,89 +86,42 @@ const resolvePresetDimensions = (presetProducts: PresetProduct[]): PrebuiltPrese
   };
 };
 
-const resolveStyleKey = (value?: string | null): "integrated" | "vessel" | "undermount" | null => {
-  const normalized = value?.trim().toLowerCase();
-  if (normalized === "integrated" || normalized === "vessel" || normalized === "undermount") return normalized;
-  return null;
-};
-
-const matchesThickness = (rule: CountertopMatrixRule, activeThickness?: string | null): boolean => {
-  if (!activeThickness) return true;
-
-  const activeThicknessValue = parseThicknessValue(activeThickness);
-  if (activeThicknessValue === null) return true;
-
-  return rule.topThicknesses
-    .map((value) => parseThicknessValue(value))
-    .filter((value): value is number => value !== null)
-    .some((value) => Math.abs(value - activeThicknessValue) < 0.001);
-};
-
-const getBasinScopedRules = ({
-  rules,
-  activeBasinStyle,
-  widthRuleStyle,
-}: {
-  rules: CountertopMatrixRule[];
-  activeBasinStyle?: string | null;
-  widthRuleStyle: ReturnType<typeof resolveCountertopWidthRuleStyle>;
-}): CountertopMatrixRule[] => {
-  if (widthRuleStyle !== "integrated" || !activeBasinStyle) return rules;
-
-  const activeBasinKey = normalizeBasinKey(activeBasinStyle);
-  if (activeBasinKey) {
-    const keyMatched = rules.filter((rule) => normalizeBasinKey(rule.basinStyle) === activeBasinKey);
-    if (keyMatched.length > 0) return keyMatched;
-  }
-
-  const activeBasinToken = normalizeBasinToken(activeBasinStyle);
-  if (!activeBasinToken) return [];
-
-  return rules.filter((rule) => normalizeBasinToken(rule.basinStyle) === activeBasinToken);
-};
-
-const scopeRulesBySelection = ({
-  rules,
-  activeBasinStyle,
-  activeThickness,
-  widthRuleStyle,
-}: {
-  rules: CountertopMatrixRule[];
-  activeBasinStyle?: string | null;
-  activeThickness?: string | null;
-  widthRuleStyle: ReturnType<typeof resolveCountertopWidthRuleStyle>;
-}): CountertopMatrixRule[] => {
-  const basinScopedRules = getBasinScopedRules({
-    rules,
-    activeBasinStyle,
-    widthRuleStyle,
-  });
-  const thicknessScopedRules = basinScopedRules.filter((rule) => matchesThickness(rule, activeThickness));
-
-  const activeThicknessValue = activeThickness ? parseThicknessValue(activeThickness) : null;
-  if (activeThicknessValue !== null) return thicknessScopedRules;
-
-  return thicknessScopedRules.length > 0 ? thicknessScopedRules : basinScopedRules;
-};
-
-const isMaterialCompatible = ({
+/**
+ * Whether the new model takes the countertop material under some style the collection offers. The active style's
+ * own limits (a vessel's Sink Base minimum) refuse that style, not the material; the active thickness still
+ * counts, as `styleAvailability` is scoped by it.
+ */
+const isMaterialAcceptedByModel = ({
   rules,
   activeMaterialTokens,
-  activeCountertopStyle,
-  activeBasinStyle,
-  activeThickness,
   dimensions,
+  styleAvailability,
   profile,
 }: {
   rules: CountertopMatrixRule[];
   activeMaterialTokens: string[];
-  activeCountertopStyle?: string | null;
-  activeBasinStyle?: string | null;
-  activeThickness?: string | null;
   dimensions: PrebuiltPresetDimensions;
+  styleAvailability: CountertopRuleResult["styleAvailability"];
   profile: ProductProfile | null;
 }): boolean => {
   if (!activeMaterialTokens.length) return true;
+
+  const offeredStyles = selectOptionValues(profile, "CountertopStyle")
+    .map((value) => resolveCountertopStyleKey(value))
+    .filter((style): style is CountertopStyleKey => style !== null);
+  // A collection that offers no countertop style judges the material by the table alone, under no style.
+  if (!offeredStyles.length) {
+    return evaluateCountertopMaterial(activeMaterialTokens, {
+      activeBasinStyle: null,
+      activeCountertopStyle: null,
+      activeProfile: profile,
+      cabinetCompositionCount: dimensions.cabinetCount,
+      countertopRules: rules,
+      depth: dimensions.sinkBaseDepth,
+      sinkBaseWidth: dimensions.sinkBaseWidth,
+      totalWidth: dimensions.totalWidth,
+    }).isCompatible;
+  }
 
   const compositionConstraint = resolveCountertopCabinetCompositionConstraint({
     materialTokens: activeMaterialTokens,
@@ -169,49 +130,14 @@ const isMaterialCompatible = ({
   });
   if (!compositionConstraint.isWithinCabinetLimit) return false;
 
-  const widthRuleStyle = resolveCountertopWidthRuleStyle({
-    activeCountertopStyle,
-    activeBasinStyle,
-    profile,
-  });
-
   const aliasTable = selectMaterialAliasTable(profile);
-  const materialMatchingRules = rules.filter((rule) =>
+  const hasMaterialRules = rules.some((rule) =>
     activeMaterialTokens.some((material) => materialMatchesRule(material, rule.material, aliasTable)),
   );
-  const applicableRules = materialMatchingRules.filter((rule) =>
-    matchesDepthForStyle(rule, dimensions.sinkBaseDepth, widthRuleStyle),
-  );
+  // A material the table has no row for is refused, except ceramic, which is accepted without one.
+  if (!hasMaterialRules) return activeMaterialTokens.some((token) => normalizeMaterialToken(token) === "ceramic");
 
-  if (!applicableRules.length) {
-    return materialMatchingRules.length === 0 && activeMaterialTokens.some((token) => normalizeMaterialToken(token) === "ceramic");
-  }
-
-  const selectionScopedRules = scopeRulesBySelection({
-    rules: applicableRules,
-    activeBasinStyle,
-    activeThickness,
-    widthRuleStyle,
-  });
-
-  if (!selectionScopedRules.length) return false;
-
-  const matchesWidth = (width: number, context: "total" | "sb") =>
-    selectionScopedRules.some((rule) =>
-      isCountertopRuleWidthAllowed({
-        rule,
-        width,
-        style: widthRuleStyle,
-        context: context === "sb" ? "sink-base" : "generic",
-        activeBasinStyle,
-        profile,
-      }),
-    );
-
-  if (dimensions.sinkBaseWidth !== null && !matchesWidth(dimensions.sinkBaseWidth, "sb")) return false;
-  if (dimensions.totalWidth !== null && !matchesWidth(dimensions.totalWidth, "total")) return false;
-
-  return true;
+  return offeredStyles.some((style) => styleAvailability[style].isAvailable);
 };
 
 export const resolvePrebuiltModelCountertopCompatibility = ({
@@ -227,27 +153,6 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
   if (!activeMaterialTokens.length && !activeCountertopStyle) return { isCompatible: true };
 
   const dimensions = resolvePresetDimensions(presetProducts);
-  const materialCompatible = isMaterialCompatible({
-    rules,
-    activeMaterialTokens,
-    activeCountertopStyle,
-    activeBasinStyle,
-    activeThickness,
-    dimensions,
-    profile,
-  });
-  if (!materialCompatible) {
-    return {
-      isCompatible: false,
-      reasonCode: REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
-      reason: selectMessageOr(
-        profile,
-        REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
-        "The selected countertop material/finish is not available for this model.",
-      ),
-    };
-  }
-
   const ruleState = buildCountertopRuleState({
     rules,
     activeMaterialTokens,
@@ -261,10 +166,33 @@ export const resolvePrebuiltModelCountertopCompatibility = ({
     profile,
   });
 
-  const styleKey = resolveStyleKey(activeCountertopStyle);
+  const isMaterialAccepted = isMaterialAcceptedByModel({
+    rules,
+    activeMaterialTokens,
+    dimensions,
+    styleAvailability: ruleState.styleAvailability,
+    profile,
+  });
+  if (!isMaterialAccepted) {
+    return {
+      isCompatible: false,
+      refusal: "material",
+      reasonCode: REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
+      reason: selectMessageOr(
+        profile,
+        REASON_MATERIAL_NOT_AVAILABLE_FOR_MODEL,
+        "The selected countertop material/finish is not available for this model.",
+      ),
+    };
+  }
+
+  // The material stays; only the active style is refused, with the reason its tile gives.
+  const styleKey = resolveCountertopStyleKey(activeCountertopStyle);
   if (styleKey && !ruleState.styleAvailability[styleKey].isAvailable) {
     return {
       isCompatible: false,
+      refusal: "style",
+      refusedStyle: styleKey,
       reasonCode: ruleState.styleAvailability[styleKey].reasonCode,
       reason: ruleState.styleAvailability[styleKey].disabledReason,
     };

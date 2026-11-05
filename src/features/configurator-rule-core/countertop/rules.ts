@@ -259,7 +259,7 @@ export const isRuleWidthEligibleForVesselSinkContext = (
   return sinkBaseWidth + STYLE_WIDTH_EPSILON >= rule.minVesselCm;
 };
 
-const resolveCountertopStyleKey = (style?: string | null): CountertopStyleKey | null => {
+export const resolveCountertopStyleKey = (style?: string | null): CountertopStyleKey | null => {
   const normalized = style?.trim().toLowerCase();
   if (normalized === "integrated" || normalized === "vessel" || normalized === "undermount") return normalized;
   return null;
