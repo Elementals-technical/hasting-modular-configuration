@@ -57,7 +57,12 @@ public/collections/registry.json
    ухвалюється один раз для history entry, на якому застосунок відкрився: навігація в межах сесії і
    композиція, спорожнена посеред сесії, не переадресовуються. Detail-маршрути entry-кроку
    (`/prebuilt/model/:id`, `/custom/cabinet-builder/details/style`) вважаються entry.
-10. Save записує `collectionId`; restore спочатку відкриває відповідну колекцію, а потім відновлює сцену.
+10. «Create Your Own» на кроці Model записує модель, яку цей крок показує, у query поточного history
+    entry (`preset`, із заміною entry), тож браузерний Back із Custom знову ставить цю модель: сцена,
+    підсвічена картка й ціна. Кольори з кроку Color не повертаються (Create Your Own скидає явні вибори,
+    а Class скидає вибори при кожному застосуванні моделі). Якщо модель не показується (змінена
+    композиція, збережена конфігурація), нічого не записується. У URL Custom `preset` не потрапляє.
+11. Save записує `collectionId`; restore спочатку відкриває відповідну колекцію, а потім відновлює сцену.
 
 Ключові файли коду: `src/entities/collection/lib/loadCollection.ts`,
 `src/entities/collection/ui/ActiveCollectionProvider.tsx`, `src/app/router/CollectionStepRoutes.tsx`, `src/app/router/ColdOpenEntryGuard.tsx`,
