@@ -392,12 +392,14 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
     // A countertop priced as Urban Standard Height's (Urban Low Height): its SKUs and rules, on this
     // composition — as deep as its cabinets, as wide as they are with their side panels.
     const firstSize = dimensionsByCabinet[cabinets[0].stableKey];
-    // A lifted top that carries the sink (`cabinets.liftSink`) leaves no sink base: its own basin is
-    // the composition's, ordered once, and sized by the cabinet it was lifted from — the first one here.
-    const hostedSink = sinkBases.length === 0 && input.hostedSink?.sinkType ? input.hostedSink : null;
-    const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : (hostedSink?.sinkType ?? null);
-    const basinCabinet = sinkBases[0] ?? (hostedSink ? cabinets[0] : null);
-    const basinCount = hostedSink ? 1 : sinkBases.length;
+    // A lifted top that carries the basins (`cabinets.liftSink`) leaves no sink base: they are the composition's,
+    // ordered one each, and sized by the cabinet the first was lifted from — the first one here. A top holds two
+    // once a deleted sink base hands its basin over, so this counts them instead of assuming one.
+    const hostedSinks = sinkBases.length === 0 ? (input.hostedSinks ?? []).filter((entry) => entry.sinkType) : [];
+    const firstHosted = hostedSinks[0] ?? null;
+    const sinkType = sinkBases.length > 0 ? basinOf(sinkBases[0]) : (firstHosted?.sinkType ?? null);
+    const basinCabinet = sinkBases[0] ?? (firstHosted ? cabinets[0] : null);
+    const basinCount = hostedSinks.length || sinkBases.length;
     // The countertop table sizes the top by the sink base of that basin (its minimum sink base width).
     const sinkBaseWidth = basinCabinet ? (dimensionsByCabinet[basinCabinet.stableKey]?.width ?? null) : null;
     const compositionWidthCm =
@@ -418,8 +420,8 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       sinkType,
       widthCm: hasCommittedCountertopLength ? committedCountertopLengthCm : compositionWidthCm,
       depthCm: firstSize?.depth ?? null,
-      sinkBases: hostedSink
-        ? [{ id: "hosted", sinkType: hostedSink.sinkType }]
+      sinkBases: hostedSinks.length
+        ? hostedSinks.map((entry, index) => ({ id: `hosted-${index}`, sinkType: entry.sinkType }))
         : sinkBases.map((entry) => ({ id: entry.stableKey, sinkType: basinOf(entry) })),
       sinkBaseCount: basinCount,
       tandemWidthsCm: input.tandemCountertopLengthsCm ?? [],
@@ -432,7 +434,7 @@ export const buildCollectionPricingLines = (input: PricingInput): CollectionPric
       gaps.push({ group: "countertop", blocksTotal: true, owner: "product", reason: UNPRICED_USH_COUNTERTOP });
     }
     const vesselColor =
-      sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : (hostedSink?.vesselColor ?? null);
+      sinkBases.length > 0 ? basinValueOf(sinkBases[0], "VesselColor") : (firstHosted?.vesselColor ?? null);
     buildUshVesselLines({
       profile,
       countertop,

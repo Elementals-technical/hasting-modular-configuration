@@ -80,7 +80,7 @@ describe("buildPricingLines", () => {
       pricingInput({
         sceneConfigs,
         sinkType: "Top_HPLPrisma",
-        hostedSink: { sinkType: "Top_Tekorlux_Rectangular", vesselColor: null },
+        hostedSinks: [{ sinkType: "Top_Tekorlux_Rectangular", vesselColor: null }],
       }),
     );
     const expected = buildPricingLines(pricingInput({ sceneConfigs, sinkType: "Top_Tekorlux_Rectangular" }));

@@ -1030,7 +1030,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
       size: { width: 60, height: 38, depth: 46 },
     };
 
-    const integrated = ulhOrder([sideCabinet], {}, { hostedSink: { sinkType: "Top_HPLPrisma", vesselColor: null } });
+    const integrated = ulhOrder([sideCabinet], {}, { hostedSinks: [{ sinkType: "Top_HPLPrisma", vesselColor: null }] });
     expect(skusOf(integrated.lines, "basin")).toEqual([{ sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 }]);
     expect(integrated.lines.find(({ group }) => group === "countertop")?.sku).toBe(
       "CT-URHPL-INTG-23.6W-.5H-18.1D-HPL-TKF",
@@ -1039,7 +1039,7 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     const vessel = ulhOrder(
       [sideCabinet],
       { CountertopStyle: [at(countertop, "vessel")] },
-      { hostedSink: { sinkType: "Vessel_Blade11", vesselColor: "Antracite Matte OCF" } },
+      { hostedSinks: [{ sinkType: "Vessel_Blade11", vesselColor: "Antracite Matte OCF" }] },
     );
     expect(skusOf(vessel.lines, "holeCut")).toEqual([{ sku: "CT-URHPL-HCUT", quantity: 1 }]);
     expect(skusOf(vessel.lines, "vessel")).toEqual([{ sku: "VES-BLD11-X-19.7W-6.1H-15D-CER-OCF", quantity: 1 }]);
@@ -1048,11 +1048,38 @@ describe("Urban Low Height countertop, priced as Urban Standard Height's", () =>
     expect(skusOf(ulhOrder([sideCabinet]).lines, "basin")).toEqual([]);
   });
 
+  // A top holds two basins once a deleted sink base hands its own over (M11/S16): the order counts both.
+  it("orders both basins a top carries, not one", () => {
+    const sideCabinet = {
+      stableKey: "ulh-sc",
+      runtimeId: "Side-Cabinet-ulh-sc",
+      size: { width: 60, height: 38, depth: 46 },
+    };
+
+    const { lines } = ulhOrder([sideCabinet], {}, {
+      hostedSinks: [
+        { sinkType: "Top_HPLPrisma", vesselColor: null },
+        { sinkType: "Top_HPLPrisma", vesselColor: null },
+      ],
+    });
+    // One line per basin, as two sink bases of one style already give.
+    expect(skusOf(lines, "basin")).toEqual([
+      { sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 },
+      { sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 },
+    ]);
+
+    // An entry with no style is not a basin and is not ordered.
+    const partial = ulhOrder([sideCabinet], {}, {
+      hostedSinks: [{ sinkType: "Top_HPLPrisma", vesselColor: null }, { sinkType: null, vesselColor: null }],
+    });
+    expect(skusOf(partial.lines, "basin")).toEqual([{ sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 }]);
+  });
+
   it("keeps the sink bases' basins while one is placed, whatever the top reports as hosted", () => {
     const { lines } = ulhOrder(
       [sinkBase("ulh-sb")],
       { sinkType: [at({ scope: "basin" }, "Top_HPLPrisma")] },
-      { hostedSink: { sinkType: "Vessel_Blade11", vesselColor: null } },
+      { hostedSinks: [{ sinkType: "Vessel_Blade11", vesselColor: null }] },
     );
 
     expect(skusOf(lines, "basin")).toEqual([{ sku: "CT-URHPL-PRISMA-.5H-HPL-TKF", quantity: 1 }]);

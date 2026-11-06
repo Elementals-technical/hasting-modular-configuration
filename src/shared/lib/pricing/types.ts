@@ -95,8 +95,12 @@ export type PricingInput = {
   orderedProductIds: readonly string[];
   productsPresets: ProductState["productsPresets"];
   sceneConfigs: readonly NormalizedProductConfigSnapshot[];
-  /** The countertop's sink while it hosts one (after `cabinets.liftSink`): its basin replaces the global one. */
-  hostedSink?: { sinkType: string | null; vesselColor: string | null } | null;
+  /**
+   * The basins the countertop itself carries (after `cabinets.liftSink`, or once a deleted sink base handed its
+   * basin over), in slot order — a top holds at most two. They replace the global sink; empty in the usual case,
+   * where the basins sit in sink bases. Each entry is ordered once.
+   */
+  hostedSinks?: readonly { sinkType: string | null; vesselColor: string | null }[];
   /** The cover slabs the scene lays on the cabinet tops while the countertop is lifted; null when it is not. */
   cabinetCovers?: readonly CabinetCoverSize[] | null;
   cabinetEntries: readonly CabinetEntry[];

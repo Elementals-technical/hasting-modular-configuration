@@ -431,12 +431,32 @@ export type CountertopState = {
    * priced as a countertop of its own length. `lengthM` is null until the clone is laid out.
    */
   tandemTops?: readonly CountertopTandemTop[];
+  /**
+   * The basins the countertop itself carries (HR-CT-05), in slot order — a top holds at most two.
+   * Listed by what the top OWNS, so a basin is here from the moment it is added; `widthM` and `span`
+   * stay null/empty until the scene has measured its cut-out.
+   */
+  basins?: readonly CountertopBasin[];
 };
 export type CountertopTandemTop = {
   productId: string;
   lengthM: number | null;
   sinkBaseId: string | null;
   cabinetIds: readonly string[];
+};
+export type CountertopBasin = {
+  slotIndex: number;
+  style: string | null;
+  /** Its centre in the top's own frame (0 = the top's middle), null until it is placed. */
+  xM: number | null;
+  widthM: number | null;
+  /** Where its centre may be dragged to: several stretches when the other basin splits the free space. */
+  span: {
+    segments: readonly { minXM: number; maxXM: number }[];
+    minXM: number | null;
+    maxXM: number | null;
+    fits: boolean;
+  };
 };
 export type CountertopChangeReason =
   | "current"
