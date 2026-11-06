@@ -46,6 +46,7 @@ export {
   COLLECTION_ID_QUERY_PARAM,
   CONFIGURATION_ID_QUERY_PARAM,
   HOST_URL_QUERY_PARAM,
+  PRESET_QUERY_PARAM,
   buildConfigurationRestoreSearch,
   buildPublicConfigurationShareUrl,
   clearPersistedHostUrl,

@@ -104,7 +104,7 @@ import {
   useRestoreSavedConfiguration,
 } from "@/features/configurationRestore";
 import type { RestorePlan } from "@/features/configurationRestore";
-import { readFragmentValue } from "@/features/saveConfiguration";
+import { PRESET_QUERY_PARAM, readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
@@ -1173,10 +1173,18 @@ export const ModelPage = () => {
 
   // "Create Your Own" starts Custom from an empty scene, without the preset's add-ons.
   const handleCreateOwnComposition = useCallback(async () => {
+    // The page is leaving for Custom: the preset written below must not be placed again on the scene being cleared.
+    isDefinedProductsRef.current = true;
+    // Back from Custom finds the model in this entry's URL, which a step arrow leaves without one, and places it again.
+    if (activePresetId !== null && searchParams.get(PRESET_QUERY_PARAM) !== String(activePresetId)) {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      nextSearchParams.set(PRESET_QUERY_PARAM, String(activePresetId));
+      setSearchParams(nextSearchParams, { replace: true });
+    }
     const cleared = await composition.clear({ resetAddOns: true });
     if (cleared.status === "error") console.warn("[Prebuilt] The scene was not cleared", cleared);
     dispatch(resetPrebuiltProducts());
-  }, [composition, dispatch]);
+  }, [activePresetId, composition, dispatch, searchParams, setSearchParams]);
 
   const handleNavigate = useCallback(
     (tab: "prebuilt" | "custom") => {
