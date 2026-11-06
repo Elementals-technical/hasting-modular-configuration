@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Nebbia 402 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"},{"id":"Mako-side-cabinet","Width":60,"Drawers":"2D","HandleStyle":"G57","HandleColor":"Nebbia 402 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF"}],"skus":["VAN-MAKOV-SB/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-402","VAN-MAKOV-SC/2DW/G57-23.6W-20.5H-20.5D-CAB-LACM-400-HDL-LACM-402"],"price":"Total List Price $8,813.00","n":22,"selected":["Nebbia 402 MT"],"filters":["Material","Color","Price"]}
+```

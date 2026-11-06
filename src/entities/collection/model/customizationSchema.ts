@@ -156,8 +156,10 @@ export type CustomizationFieldDefinition = {
   /** Text under the control, keyed by the selected option value. */
   hints?: Record<string, string>;
   /**
-   * An On / Off switch above the control, under its `label`: On sets the attribute's profile
-   * `defaultValue`, Off its `resetValue` (Mako legs: their starting colour / none).
+   * An On / Off switch above the control, under its `label`: On sets the current value of the
+   * attribute its profile attribute names in `followsAttribute` when the field offers that value as
+   * a choice, else the attribute's profile `defaultValue`; Off sets its `resetValue` (Mako legs: the
+   * handle colour / none).
    */
   toggle?: { label: string };
   /**

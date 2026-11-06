@@ -12,6 +12,7 @@ import {
   type UndeterminedRule,
   type FlutingRuleData,
   type GrainDirectionRuleData,
+  type HandleColorsRuleData,
   type MaterialNormalizationRuleData,
   type OptionCapabilities,
   type ProductProfile,
@@ -45,6 +46,8 @@ export type ProfileDiagnosticCode =
   | "attribute.duplicate_option"
   | "attribute.missing_options_source"
   | "attribute.value_outside_catalog"
+  | "attribute.unknown_followed"
+  | "attribute.unsupported_follow"
   | "adapter.missing_column"
   | "ruleData.invalid_section";
 
@@ -243,6 +246,22 @@ const parseConfirmation = (
   return { when: raw.when, reasonCode: raw.reasonCode };
 };
 
+/** The id of the attribute this one follows; whether the profile declares it is checked once all are read. */
+const parseFollowsAttribute = (raw: unknown, attributePath: string, collect: Collector): string | undefined => {
+  if (raw === undefined) return undefined;
+
+  if (!isNonEmptyString(raw)) {
+    collect.add(
+      "profile.invalid_field_type",
+      `${attributePath}/followsAttribute`,
+      "followsAttribute must be an attributeId",
+    );
+    return undefined;
+  }
+
+  return raw;
+};
+
 const parseAttribute = (raw: unknown, index: number, collect: Collector): ProfileAttribute | null => {
   const path = `/attributes/${index}`;
 
@@ -289,6 +308,7 @@ const parseAttribute = (raw: unknown, index: number, collect: Collector): Profil
     effectiveFallbackValue: typeof raw.effectiveFallbackValue === "string" ? raw.effectiveFallbackValue : undefined,
     resetValue: typeof raw.resetValue === "string" ? raw.resetValue : undefined,
     noneValue: typeof raw.noneValue === "string" ? raw.noneValue : undefined,
+    followsAttribute: parseFollowsAttribute(raw.followsAttribute, attributePath, collect),
   };
 
   if (options) {
@@ -513,6 +533,9 @@ const RULE_SECTION_FIELDS = {
       "a map of vessel style to { materialTokens, colorCodes }",
     ],
   },
+  handleColors: {
+    allowedByHandle: [isStringArrayRecord, "a map of handle to the colours it comes in"],
+  },
   priceTiers: {
     bySku: [optional(isPriceTierRecord), "a map of upper-case SKU material code to tier 1-4"],
     byAttribute: [
@@ -722,6 +745,7 @@ const parseRuleSections = (
     countertopFallbacks: parseRuleSection<CountertopFallbacksRuleData>(ruleData, "countertopFallbacks", collect),
     materialNormalization: parseRuleSection<MaterialNormalizationRuleData>(ruleData, "materialNormalization", collect),
     vesselCompatibility: parseRuleSection<VesselCompatibilityRuleData>(ruleData, "vesselCompatibility", collect),
+    handleColors: parseRuleSection<HandleColorsRuleData>(ruleData, "handleColors", collect),
     priceTiers: parseRuleSection<PriceTiersRuleData>(ruleData, "priceTiers", collect),
     cabinetColorTraits: parseRuleSection<CabinetColorTraitsRuleData>(ruleData, "cabinetColorTraits", collect),
     drawerOrganizers: parseRuleSection<DrawerOrganizersRuleData>(ruleData, "drawerOrganizers", collect),
@@ -802,6 +826,40 @@ export const parseProductProfile = (input: unknown): ParseProductProfileResult =
     seenIds.add(attribute.attributeId);
     attributes.push(attribute);
   });
+
+  const followedIdOf = new Map(attributes.map((attribute) => [attribute.attributeId, attribute.followsAttribute]));
+
+  for (const { attributeId, scope, followsAttribute } of attributes) {
+    if (followsAttribute === undefined) continue;
+    const followsPath = `/attributes/${attributeId}/followsAttribute`;
+
+    // The change commands move only cabinet-scoped followers, and only the direct followers of a changed attribute.
+    if (scope !== "cabinet") {
+      collect.add(
+        "attribute.unsupported_follow",
+        followsPath,
+        `followsAttribute is read only on a cabinet-scoped attribute, not on scope "${scope}"`,
+      );
+    }
+
+    if (followsAttribute === attributeId || !seenIds.has(followsAttribute)) {
+      collect.add(
+        "attribute.unknown_followed",
+        followsPath,
+        `followsAttribute "${followsAttribute}" must name another attribute of this profile`,
+      );
+      continue;
+    }
+
+    const chainedId = followedIdOf.get(followsAttribute);
+    if (chainedId !== undefined) {
+      collect.add(
+        "attribute.unsupported_follow",
+        followsPath,
+        `followsAttribute "${followsAttribute}" follows "${chainedId}" itself; following is one level deep`,
+      );
+    }
+  }
 
   const ruleData = isRecord(raw.ruleData) ? raw.ruleData : null;
   if (!ruleData) {

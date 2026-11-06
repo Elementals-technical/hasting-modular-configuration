@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"walkthrough":null,"url":"/prebuilt/model?collectionId=tricot&preset=1","configs":[{"id":"Tricot-sink-cabinet","Width":60,"Drawers":"1D","CabinetColor":"Rovere Oro 932","sinkType":"Top_VA024"}],"price":"Total List Price $8,216.00"}
+```

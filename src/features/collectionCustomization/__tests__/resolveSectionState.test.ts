@@ -199,6 +199,62 @@ describe("resolveSectionFields", () => {
         expect(field?.options.map(({ value }) => value)).toContain("Gold");
       }
     });
+
+    // Client, Mako › Accessories: Leg Color matches the handle colour by default.
+    it("switches on in the handle colour the composition holds", () => {
+      expect(legColor({ HandleColor: "Gold" })?.toggle).toMatchObject({ on: false, onValue: "Gold", offValue: "" });
+      expect(legColor({ HandleColor: "Gold", LegColor: "Silver" })?.toggle).toMatchObject({
+        on: true,
+        onValue: "Gold",
+      });
+    });
+
+    it("switches on in the profile default without a handle colour", () => {
+      const withoutHandleColor: Record<string, string>[] = [{}, { HandleColor: "" }];
+
+      for (const values of withoutHandleColor) {
+        expect(legColor(values)?.toggle?.onValue, JSON.stringify(values)).toBe("Antracite 400 MT");
+      }
+    });
+
+    it("switches on in the profile default when the legs do not offer the handle colour", () => {
+      expect(legColor({ HandleColor: "Agata BD MT" })?.toggle?.onValue).toBe("Antracite 400 MT");
+
+      const refusingGold = resolveSectionFields(
+        makoSchema,
+        "leg-color",
+        makoProfile,
+        { HandleColor: "Gold" },
+        {
+          "LegColor.determined": {
+            available: true,
+            isOptionAllowed: (option) => option.value !== "Gold",
+          },
+        },
+        makoConfigurator,
+      )[0]?.field;
+
+      expect(refusingGold?.toggle?.onValue).toBe("Antracite 400 MT");
+    });
+
+    it("keeps the profile default for a switch that follows no attribute", () => {
+      const withoutFollow = {
+        ...makoProfile,
+        attributes: makoProfile.attributes.map((attribute) =>
+          attribute.attributeId === "LegColor" ? { ...attribute, followsAttribute: undefined } : attribute,
+        ),
+      };
+      const field = resolveSectionFields(
+        makoSchema,
+        "leg-color",
+        withoutFollow,
+        { HandleColor: "Gold" },
+        {},
+        makoConfigurator,
+      )[0]?.field;
+
+      expect(field?.toggle?.onValue).toBe("Antracite 400 MT");
+    });
   });
 
   it("keeps only the options listed in allowedValues enabled and carries the reason on the rest", () => {

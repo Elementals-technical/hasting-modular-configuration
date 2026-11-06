@@ -467,7 +467,9 @@
     "countertop.materialNotAvailableForWidth": "Not available for current cabinet width",
     "countertop.materialNotAvailableForDepth": "Not available for current cabinet depth",
     "countertop.materialNotAvailableOffSinkBase": "Not available when the basin is not over a sink base",
-    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene"
+    "countertop.materialNotAvailableForSelection": "Not available for selected cabinet width/depth/thickness on scene",
+    "countertop.compositionLengthReached": "Maximum composition length reached for the selected countertop setup ({maxCm} cm / {maxIn}\").",
+    "countertop.compositionLengthReachedNoMax": "Maximum composition length reached for the selected countertop setup."
   },
   "excludedFromThisProfile": {
     "handle": "Class has no handle choice: the grip is part of the frame (CLS-WGL-003). No Handle attribute is declared.",

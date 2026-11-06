@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"r":{"w":{"offered":["23.6\"","27.6\"","31.5\"","35.4\"","41.3\"","47.2\""],"chose":"23.6\""},"d":null,"placed":true},"cfg":{"id":"Sink-Base","Width":60,"Drawers":"2D","Handle":"handle_urban_topcut","CabinetColor":"Pulpis Chiaro TKH","sinkType":"Top_Tekorlux_Rectangular"},"glassName":"Agata BD GL","glass":{"present":true,"refused":true,"hint":["Not available for selected configuration"]}}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=urban-standard-height.

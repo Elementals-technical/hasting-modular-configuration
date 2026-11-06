@@ -40,6 +40,12 @@ export const compositionLengthReachedReason = (maxCm: number | null): Reason =>
     ? { code: REASON_COMPOSITION_LENGTH_REACHED_NO_MAX }
     : { code: REASON_COMPOSITION_LENGTH_REACHED, params: { maxCm, maxIn: cmToInches(maxCm) } };
 
+/** The side panel length reason as a code and its params, for a resolver that reads the collection's `messages`. */
+export const sidePanelsExceedMaxReason = (withPanelsCm: number, maxCm: number): Reason => ({
+  code: REASON_SIDE_PANELS_EXCEED_MAX_LENGTH,
+  params: { withPanelsCm, withPanelsIn: cmToInches(withPanelsCm), maxCm, maxIn: cmToInches(maxCm) },
+});
+
 export const formatSidePanelsExceedMaxReason = (
   withPanelsCm: number,
   maxCm: number,
@@ -49,7 +55,7 @@ export const formatSidePanelsExceedMaxReason = (
     profile,
     REASON_SIDE_PANELS_EXCEED_MAX_LENGTH,
     `Enabling side panels would exceed max countertop length (with panels: ${withPanelsCm} cm / ${cmToInches(withPanelsCm)}", max ${maxCm} cm / ${cmToInches(maxCm)}").`,
-    { withPanelsCm, withPanelsIn: cmToInches(withPanelsCm), maxCm, maxIn: cmToInches(maxCm) },
+    sidePanelsExceedMaxReason(withPanelsCm, maxCm).params,
   );
 
 export const resolveMaxResizableCabinetWidthCm = ({

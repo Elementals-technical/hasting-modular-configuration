@@ -4,6 +4,7 @@ import {
   selectConfiguratorGroup,
   selectConfiguratorSection,
   selectDefaultValue,
+  selectFollowedAttribute,
   selectOptions,
   selectResetValue,
 } from "@/entities/collection";
@@ -114,17 +115,28 @@ export const resolveConfiguratorOptions = (
     : options;
 };
 
-// A field that declares `toggle` switches between its profile default (On) and reset value (Off),
-// and is on while it holds anything else than the reset value.
+// A field that declares `toggle` switches between its On value and its reset value (Off), and is on while it holds
+// anything else than the reset value. On is the current value of the attribute it follows where the field offers
+// that value as a choice, else the profile default.
 const resolveFieldToggle = (
   profile: ProductProfile | null,
   { attributeId, toggle }: CustomizationFieldDefinition,
   value: FieldRuntimeState["value"],
+  values: Record<string, unknown>,
+  options: readonly FieldOptionState[],
 ): FieldToggleState | undefined => {
   const attribute = selectAttribute(profile, attributeId);
   if (!toggle || attribute?.defaultValue === undefined || attribute.resetValue === undefined) return undefined;
 
-  const { defaultValue: onValue, resetValue: offValue } = attribute;
+  const { defaultValue, resetValue: offValue } = attribute;
+  const followedAttribute = selectFollowedAttribute(profile, attributeId);
+  const followedValue = followedAttribute === null ? undefined : values[followedAttribute];
+  const isFollowedOffered =
+    typeof followedValue === "string" &&
+    followedValue !== "" &&
+    followedValue !== offValue &&
+    options.some((option) => option.enabled && option.value === followedValue);
+  const onValue = isFollowedOffered ? followedValue : defaultValue;
   return { label: toggle.label, on: value !== null && value !== "" && value !== offValue, onValue, offValue };
 };
 
@@ -160,7 +172,6 @@ export const resolveSectionFields = (
   return definitions.map((definition) => {
     const availability = resolveFieldAvailability(definition.availabilityRef, availabilityResults);
     const storedValue = readFieldValue(values, definition.attributeId);
-    const toggle = resolveFieldToggle(profile, definition, storedValue);
     const declaredOptions: FieldOptionState[] = definition.optionsRef
       ? resolveConfiguratorOptions(profile, definition.attributeId, configurator)
       : selectOptions(profile, definition.attributeId).map(({ value, label, category }) => ({
@@ -205,6 +216,7 @@ export const resolveSectionFields = (
       };
     });
 
+    const toggle = resolveFieldToggle(profile, definition, storedValue, values, options);
     const shownValue = resolveShownValue(profile, definition, values, storedValue);
     const value = shownValue === null || shownValue === "" ? (availability.valueWhenEmpty ?? shownValue) : shownValue;
     const field: FieldRuntimeState = {

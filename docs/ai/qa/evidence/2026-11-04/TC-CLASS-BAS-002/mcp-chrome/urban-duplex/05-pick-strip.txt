@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"clicked":{"n":"HPL Strip 48","disabled":false},"popup":null,"configs":[{"id":"UD-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Top_HPLStrip"}],"ct":[],"basin":{"name":"Basin Style","selected":["HPL Strip 48"],"swatches":["HPL Strip 48","HPL Cover 50","HPL Prisma 50","HPL Quadra 50"],"buttons":[{"n":"HPL Strip 48","disabled":false},{"n":"HPL Cover 50","disabled":false},{"n":"HPL Prisma 50","disabled":false},{"n":"HPL Quadra 50","disabled":false}],"styles":[{"n":"Integrated","disabled":false},{"n":"Vessel","disabled":false}],"panelText":"HPL Strip 48HPL Cover 50HPL Prisma 50HPL Quadra 50"},"price":"Total List Price $9,741.00"}
+```

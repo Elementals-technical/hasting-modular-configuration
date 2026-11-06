@@ -17,6 +17,8 @@ import { parseRuntimeBindings } from "@/entities/collection/lib/runtimeBindings/
 import { configuratorSchema, countertopDatatableSchema } from "@/entities/collection/model/schemas";
 import {
   finishRestore,
+  getAttributeValue,
+  getCabinetEntries,
   resetConfiguration,
   setActiveCollectionId,
   setActiveRuntimeBindings,
@@ -25,6 +27,7 @@ import {
 } from "@/entities/configuration";
 import { getCountertopStyle, getSinkType } from "@/entities/product/model/store/selectors";
 import {
+  addProductId,
   reset,
   setActiveBasinStyle,
   setActiveCountertopColor,
@@ -48,6 +51,12 @@ import ushUi from "../../../../public/collections/urban-standard-height/ui.json"
 import { useAvailabilityResets } from "../hooks/useAvailabilityResets";
 
 vi.mock("@/shared/hooks/usePlayCanvasReady", () => ({ usePlayCanvasReady: () => true }));
+
+/** The size the scene reads for a placed cabinet; with one not listed it answers as with no scene. */
+const sceneSizes = vi.hoisted(() => new Map<string, { Width: number; Depth: number }>());
+vi.mock("@/utils/functions/playcanvas/getConfig", () => ({
+  getConfig: async (runtimeId: string) => sceneSizes.get(runtimeId) ?? null,
+}));
 
 const parsedProfile = parseProductProfile(udProfileDocument);
 if (!parsedProfile.ok) throw new Error("Packaged Urban Duplex profile failed validation");
@@ -130,6 +139,7 @@ const startOnVesselTop = ({
 };
 
 afterEach(cleanup);
+afterEach(() => sceneSizes.clear());
 
 // Table 595 makes a vessel top on a Sink Base of at least min_vsl_cm (80 cm) and an HPL Strip 48 basin from 70 cm.
 describe("useAvailabilityResets on a vessel countertop", () => {
@@ -320,6 +330,37 @@ describe("useAvailabilityResets on an integrated countertop", () => {
     expect(commandsOf(runtime).filter((batch) => batch.some((command) => command.startsWith("sinkType=")))).toEqual([
       ["sinkType=Top_HPLPrisma"],
     ]);
+  });
+
+  // The selected cabinet stays the 80 cm one, so only the scene's read moves the basin; every Sink Base takes it.
+  it("sets an allowed basin once a 60 cm Sink Base joins the 80 cm one", async () => {
+    const place = (runtimeId: string, width: number) => {
+      sceneSizes.set(runtimeId, { Width: width, Depth: 50 });
+      store.dispatch(addProductId(runtimeId));
+    };
+    place("UD-sink-cabinet-a1", 80);
+    const runtime = createTestRuntimePort();
+
+    renderHook(() => useAvailabilityResets({ runtime: runtime.port }), { wrapper: wrapperOf() });
+    await act(async () => Promise.resolve());
+
+    expect(getSinkType(store.getState())).toBe("Top_HPLStrip");
+    expect(callsOf(runtime, "sinkType")).toEqual([]);
+
+    act(() => {
+      place("UD-sink-cabinet-b2", 60);
+      store.dispatch(syncCabinets(["UD-sink-cabinet-a1", "UD-sink-cabinet-b2"]));
+    });
+
+    await waitFor(() => expect(getSinkType(store.getState())).toBe("Top_HPLPrisma"));
+    expect(commandsOf(runtime).filter((batch) => batch.some((command) => command.startsWith("sinkType=")))).toEqual([
+      ["sinkType=Top_HPLPrisma"],
+    ]);
+    expect(
+      getCabinetEntries(store.getState()).map(({ stableKey }) =>
+        getAttributeValue(store.getState(), "sinkType", { scope: "basin", sinkBaseId: stableKey }),
+      ),
+    ).toEqual(["Top_HPLPrisma", "Top_HPLPrisma"]);
   });
 
   it("waits for a restore to finish before resetting the basin", async () => {

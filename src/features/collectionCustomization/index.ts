@@ -14,7 +14,7 @@ export { useEntryStep } from "./lib/useEntryStep";
 export { useStepNavigate, withPreservedCollectionId } from "./lib/useStepNavigate";
 export { useCollectionNavigate } from "./lib/useCollectionNavigate";
 export { withPreservedEntrySearch } from "./lib/withPreservedEntrySearch";
-export { resolveSectionFields } from "./lib/resolveSectionState";
+export { resolveConfiguratorOptions, resolveSectionFields } from "./lib/resolveSectionState";
 export {
   resolveBasinAvailability,
   resolveCountertopStyleAvailability,

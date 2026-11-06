@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"resized":true,"step":"/custom/countertop","picked":true,"cabinets":"sink-cabinet:70[Top_HPL/Fenix_Cover_Gres] side-cabinet:60","top":{"id":"Top_Solid-ac2ab2e3-77ee-4ade-9f65-b5af528ba98e","off":{"x":-0.009,"y":0},"hosted":false,"pending":null,"landing":"none","valid":"valid","reasons":[],"dragEnabled":false,"ready":"ready"}}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=urban-low-height.

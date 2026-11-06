@@ -1,6 +1,6 @@
 # Product integration map
 
-Актуально для `phase-2/staging` станом на 2026-09-28. Це операційний опис того, як у застосунок
+Актуально для `phase-2/staging` станом на 2026-11-05. Це операційний опис того, як у застосунок
 підключені Urban Standard Height (USH), Urban Low Height (ULH), Class і Mako. Документи
 `docs/*-profile.md` залишаються корисними як provenance та історія рішень, але при розбіжності з ними
 джерелом істини є поточні `public/collections/**` і код завантажувача.
@@ -50,10 +50,22 @@ public/collections/registry.json
    Redux, де їх використовують reducers і command layer.
 8. `ui.json` створює маршрути й поля. `product-profile.json` визначає допустимі значення, defaults і
    business rules. `runtime-bindings.json` перекладає semantic attributes у ключі/значення сцени.
-9. Save записує `collectionId`; restore спочатку відкриває відповідну колекцію, а потім відновлює сцену.
+9. Композицію будує лише entry-крок потоку (`entryStepId` в `ui.json`: вибір preset або cabinet builder).
+   Якщо застосунок відкрився (reload, вставлене посилання) на кроці після entry без жодного вибраного
+   продукту, `ColdOpenEntryGuard` у `CollectionStepRoutes` переадресовує на entry-крок із усім query
+   (`collectionId`, `configId` та решта), тож `configId` запускає restore на entry-сторінці. Рішення
+   ухвалюється один раз для history entry, на якому застосунок відкрився: навігація в межах сесії і
+   композиція, спорожнена посеред сесії, не переадресовуються. Detail-маршрути entry-кроку
+   (`/prebuilt/model/:id`, `/custom/cabinet-builder/details/style`) вважаються entry.
+10. «Create Your Own» на кроці Model записує модель, яку цей крок показує, у query поточного history
+    entry (`preset`, із заміною entry), тож браузерний Back із Custom знову ставить цю модель: сцена,
+    підсвічена картка й ціна. Кольори з кроку Color не повертаються (Create Your Own скидає явні вибори,
+    а Class скидає вибори при кожному застосуванні моделі). Якщо модель не показується (змінена
+    композиція, збережена конфігурація), нічого не записується. У URL Custom `preset` не потрапляє.
+11. Save записує `collectionId`; restore спочатку відкриває відповідну колекцію, а потім відновлює сцену.
 
 Ключові файли коду: `src/entities/collection/lib/loadCollection.ts`,
-`src/entities/collection/ui/ActiveCollectionProvider.tsx`, `src/app/router/CollectionStepRoutes.tsx`,
+`src/entities/collection/ui/ActiveCollectionProvider.tsx`, `src/app/router/CollectionStepRoutes.tsx`, `src/app/router/ColdOpenEntryGuard.tsx`,
 `src/entities/configuration/ui/CollectionStateBridge.tsx`,
 `src/features/playCanvasAdapter/lib/createPlayCanvasRuntimePort.ts`.
 
@@ -91,11 +103,23 @@ Urban Standard Height, Urban Low Height, Urban Freestanding і Urban Duplex ви
 виконується, поки vessel стоїть поза своїм Sink Base, і під час restore/undo; воно не додає крок undo. Це
 спільна поведінка всіх колекцій; якщо матриця не дозволяє жодного іншого стилю, Vessel лишається.
 
+Композиція має один басейн. Правила стільниці (кольори, thickness, басейни, vessel) судять її за найвужчим
+поставленим Sink Base: ширину й глибину для них дає `useSinkBaseDimensions`, і це найвужчий Sink Base, а не
+найширший. Тому на SB 80 + SB 60 Urban Duplex відмовляє HPL Strip і Cover, лишає Prisma і Quadra та відмовляє
+Vessel з мінімумом у підказці; Class відмовляє Matte White 8cm (єдиний його басейн VA023 починається з 80 cm).
+
+Підказка кольору чи integrated басейну, яким відмовляє ширина, називає потрібну ширину
+(`resolveIntegratedWidthRefusal`): «Not available for current sink base width. Current 60 cm (23.6"), minimum 80 cm
+(31.5").», а для рядка матриці лише з точними розмірами — їхній перелік. Колекція формулює це своїм
+`countertop.sinkBaseBelowMin`; без нього діє той самий текст rule core. Відмови за глибиною, загальною довжиною чи
+товщиною лишаються загальними.
+
 Той самий хук скидає й integrated basin, який правила відмовляють, з будь-якого кроку: після скидання стилю і
 після Resize чи «+» Sink Base. Приклад — Urban Duplex: HPL Strip і Cover вимагають Sink Base від 70 cm
-(`min_sb_cm`), тож 60 cm Sink Base, поставлений через «+» або змінений у сцені, отримує default басейн
-матеріалу, якщо матриця його дозволяє, інакше перший дозволений (Prisma). Вердикт дає лише `allowedBasinKeys`
-rule core; хук мінімум не перераховує. Якщо жоден басейн не дозволений, басейн лишається. Умови ті самі, що в
+(`min_sb_cm`), тож Strip на SB 80 після «+» 60 cm Sink Base (або зміни в сцені) отримує default басейн
+матеріалу, якщо матриця його дозволяє, інакше перший дозволений (Prisma), на обох Sink Base. Вердикт дає лише
+`allowedBasinKeys` rule core; хук мінімум не перераховує. Якщо жоден басейн не дозволений, басейн лишається:
+Class, Matte White 8cm на SB 80, потім SB 60 — VA023 лишається, а колір показано відмовленим. Умови ті самі, що в
 скидання стилю: Sink Base поставлений, sink не винесений, не restore/undo.
 
 Вибраний vessel бере колір у тій самій команді, у всіх 8 колекціях.
@@ -128,6 +152,18 @@ auto-select не має, тож збережений vessel там лишаєт�
 `afterPlacement`, на compact — повторним replay. Колір, який не переноситься, очищується, щоб стан не стверджував
 колір, якого нова сцена не тримає. Колекції з `prebuiltModelSelection.resetSelections` (Class) нічого не
 переносять: модель скидається на integrated.
+
+Якщо нова модель не приймає поточну стільницю, перед заміною з'являється підтвердження з конкретною причиною
+(`resolvePrebuiltModelCountertopCompatibility`). Відмову за матеріал (композиція не вміщується в ліміт, у countertop
+table немає рядка для матеріалу — кераміка виняток — або жоден запропонований стиль не доступний з цим матеріалом
+у `styleAvailability`) судять без обмежень активного стилю; вона має загальну причину
+`countertop.materialNotAvailableForModel`, а підтвердження скидає стільницю повністю. Активна thickness, якої в моделі
+немає, теж лишається відмовою за матеріал. Відмову за стиль пояснює причина самого стилю
+(Urban Duplex, Porcelain Avenue Amber TRC з Vessel на моделі з Sink Base 70: `countertop.vesselSinkBaseMin`). Якщо
+відмовлено Vessel, підтвердження лишає колір і матеріал, thickness та кількість отворів під змішувач, а
+позначки явного вибору `CountertopStyle`, `sinkType` і `VesselColor` знімає: модель ставить свій integrated basin,
+який правила за потреби замінюють дозволеним для цієї стільниці. Відмова Integrated скидає стільницю повністю:
+integrated basin, на який можна було б перейти, немає.
 
 Списки ширин Sink Base у Cabinet Builder, «+» і Resize у сцені не відкидають ширини нижче `min_sb_cm` басейну:
 басейн підлаштовується під шафу, а не навпаки (Urban Duplex пропонує 60–120 cm). Матеріал і модель, навпаки,
@@ -212,6 +248,14 @@ Urban Duplex і Lame — material configurators 11–14 (`modular-config-phase-2
   `playerMenu.resize`); висоту нової композиції задає `defaultValue` attribute `Height`. Стиль, якого
   немає у висоті вже поставлених шаф (Urban Duplex: 1DWID поруч зі Slim), перемикає їх усі після
   підтвердження — так само, як стиль іншої групи `drawerStyleGroups`.
+- Значення, яке йде за іншим attribute (Mako: legs у кольорі handle), оголошує profile: `followsAttribute:
+  "<AttributeId>"` на attribute-послідовнику, а не код команд. Перемикач поля (`toggle` у `ui.json`) вмикає
+  послідовник у поточному значенні ведучого attribute, якщо поле його пропонує, інакше в `defaultValue`;
+  зміна ведучого переносить послідовник у тому ж наборі змін, поки той тримає попереднє значення ведучого
+  і нове значення йому доступне. Власне значення послідовника й порожнє (вимкнене) лишаються. Послідовник
+  має scope `cabinet`, ланцюжка немає (ведучий сам нікого не слідує); ведучий — інший attribute profile із
+  будь-яким scope. Parser відхиляє порушення діагностиками `attribute.unsupported_follow` і
+  `attribute.unknown_followed`.
 - Product type існує в `productTypes` або свідомо прихований у `unplacedProductTypes`. Тип переноситься
   в `productTypes` лише після того, як сцена реєструє його продукт (`sceneKeysInExport.test.ts`
   перевіряє це для Urban Freestanding і Urban Duplex): на невідомий тип сцена відповідає порожньою

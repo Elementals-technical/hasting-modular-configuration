@@ -191,6 +191,16 @@ export const selectEffectiveFallback = (profile: ProductProfile | null, attribut
 export const selectResetValue = (profile: ProductProfile | null, attributeId: string): string | null =>
   selectAttribute(profile, attributeId)?.resetValue ?? null;
 
+/** The attribute whose value this one follows (`followsAttribute`); null when it follows none. */
+export const selectFollowedAttribute = (profile: ProductProfile | null, attributeId: string): string | null =>
+  selectAttribute(profile, attributeId)?.followsAttribute ?? null;
+
+/** The attributes that follow this one's value, in profile order; empty when none does. */
+export const selectFollowers = (profile: ProductProfile | null, attributeId: string): string[] =>
+  (profile?.attributes ?? [])
+    .filter(({ followsAttribute }) => followsAttribute === attributeId)
+    .map((follower) => follower.attributeId);
+
 export type { MessageParams };
 
 /**

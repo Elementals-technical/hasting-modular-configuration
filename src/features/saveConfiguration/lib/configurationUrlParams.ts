@@ -1,6 +1,7 @@
 export const HOST_URL_QUERY_PARAM = "hostUrl";
 export const CONFIGURATION_ID_QUERY_PARAM = "configId";
 export const COLLECTION_ID_QUERY_PARAM = "collectionId";
+export const PRESET_QUERY_PARAM = "preset";
 
 const HOST_URL_STORAGE_KEY = "hastingsModularConfiguratorHostUrl";
 

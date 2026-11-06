@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"deleted":[true,true],"left":0,"price":"Total List Price $0.00","buttons":["Cabinet Type","Sink Base Cabinet with a basin (SB)","Side Cabinet Cabinet without a basin (SC)","Cabinet Style","Next: Color"]}
+```

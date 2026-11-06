@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"prompt":["Size","Style","Next: Color"],"url":"/prebuilt/model?collectionId=mako&preset=1","configs":[{"id":"Mako-sink-cabinet","Width":60,"Drawers":"1D","HandleStyle":"G57","HandleColor":"Antracite 400 Lacquered MT","CabinetColor":"Antracite 400 Lacquered MT","LegColor":"Antracite Matte OCF","sinkType":"Top_LB440"}],"skus":["VAN-MAKOV-SB/1DW/G57-23.6W-10.2H-20.5D-CAB-LACM-400-HDL-LACM-400"],"price":"Total List Price $4,348.00"}
+```
+Page navigated to http://localhost:5173/prebuilt/model?collectionId=mako&preset=1.

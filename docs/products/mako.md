@@ -18,9 +18,16 @@
   записує значення в кожної шафи, а додана шафа (plus, Add Cabinet, duplicate) успадковує його і в сцені,
   і в state. Стартовий HandleColor — `Antracite 400 MT` (`defaults`), як у 42 моделях; LegColor стартового
   значення не має. Правило читається з даних (`isBroadcastCabinetValue`), а не з назви attribute.
-- `LegColor` також керує `ShowLegs`; empty ховає legs. Моделі на legs і перемикач «Enable Legs, Then Color»
-  дають власний колір `Antracite 400 MT` (`defaultValue` атрибута), тож зміна Cabinet Color legs не
-  перефарбовує. `None` показує legs у cabinet color і лишається тільки для збережених раніше конфігурацій.
+- `LegColor` також керує `ShowLegs`; empty ховає legs. Моделі на legs мають власний колір
+  `Antracite 400 MT`, тож зміна Cabinet Color legs не перефарбовує. `None` показує legs у cabinet color і
+  лишається тільки для збережених раніше конфігурацій.
+- Legs ідуть за кольором handle (`followsAttribute: "HandleColor"` на `LegColor`). Перемикач «Enable Legs,
+  Then Color» вмикає legs у поточному кольорі handle; якщо legs цього кольору не пропонують, то в
+  `Antracite 400 MT` (`defaultValue` атрибута). Legs, що тримають колір handle, переходять на кожен
+  наступний колір handle в тому ж наборі змін, зокрема й на повторний вибір, який змушує зміна стилю
+  handle (G50 → Silver/Gold). Колір legs, обраний користувачем, лишається; вимкнені legs лишаються
+  вимкненими; колір handle, якого legs не пропонують, їх не рухає. Звичайний вибір кольору legs handle не
+  змінює. Шафам 1DW legs не планують (`MAKO-LEG-002`).
 - Шафа, яку переводять на 1DW, втрачає LegColor у тому ж наборі змін (`planUndeterminedResets` за
   `MAKO-LEG-002`): сцена, state і ціна стоять без legs, і повернення на 2DW їх не відновлює.
 - Стартова стільниця — `Matte White` (Solid Surface, SSTL .5″) з basin `LB440`, як на картинках моделей
@@ -58,4 +65,6 @@ configurator 9) дають не SKU, а gap «Incomplete price». Так configu
 Mako profile/runtime tests, table 581 catalog, placed-cabinet tests, collection SKU/pricing tests,
 save/restore roundtrip і build. Для HandleColor/LegColor: вибрати колір, додати шафу, видалити першу шафу —
 сцена і SKU кожної шафи мають називати той самий колір (`compositionCommands.test.ts`). Для legs перевірити порядок Drawers → LegColor, бо binding навмисно
-спочатку ховає legs при зміні drawer style, а потім відновлює їх обраним color.
+спочатку ховає legs при зміні drawer style, а потім відновлює їх обраним color. Для legs, що йдуть за
+handle: увімкнути legs, змінити колір handle, змінити стиль handle на G50 — legs мають лишитися в кольорі
+handle (`followsAttribute.test.ts`, `buildChangePlan.test.ts`).

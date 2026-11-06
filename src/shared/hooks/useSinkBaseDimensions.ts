@@ -15,8 +15,8 @@ const toFiniteNumber = (value: unknown): number | null => {
 };
 
 /**
- * Returns { width, depth } of the largest Sink Base cabinet on the scene.
- * When multiple SB cabinets exist, picks the one with the greatest width.
+ * Returns { width, depth } of the narrowest Sink Base cabinet on the scene: a composition's basin goes on every Sink
+ * Base, so the countertop rules judge it by the one that limits it.
  * Returns { width: null, depth: null } when no SB is present.
  * `isSinkBase` tells a Sink Base by its runtime id, which only the collection's bindings can read.
  */
@@ -38,8 +38,8 @@ export function useSinkBaseDimensions(
 
       const configs = await Promise.all(orderedIds.map((id) => getConfig(id)));
 
-      let bestWidth: number | null = null;
-      let bestDepth: number | null = null;
+      let narrowestWidth: number | null = null;
+      let narrowestDepth: number | null = null;
 
       configs.forEach((config, index) => {
         if (!config || !isSinkBase(orderedIds[index])) return;
@@ -47,17 +47,17 @@ export function useSinkBaseDimensions(
         const w = toFiniteNumber((config as Record<string, unknown>).Width);
         const d = toFiniteNumber((config as Record<string, unknown>).Depth);
 
-        if (w !== null && (bestWidth === null || w > bestWidth)) {
-          bestWidth = w;
-          bestDepth = d;
+        if (w !== null && (narrowestWidth === null || w < narrowestWidth)) {
+          narrowestWidth = w;
+          narrowestDepth = d;
         }
       });
 
       if (cancelled) return;
 
       setDims((prev) => {
-        if (prev.width === bestWidth && prev.depth === bestDepth) return prev;
-        return { width: bestWidth, depth: bestDepth };
+        if (prev.width === narrowestWidth && prev.depth === narrowestDepth) return prev;
+        return { width: narrowestWidth, depth: narrowestDepth };
       });
     };
 

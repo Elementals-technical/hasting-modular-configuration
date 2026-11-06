@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"b":{"w":{"offered":["23.6\"","31.5\"","39.4\"","47.2\""],"chose":"23.6\""},"placed":true},"popup":null,"configs":[{"id":"Class-sink-cabinet","Width":80,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_VA023"},{"id":"Class-sink-cabinet","Width":60,"Drawers":"1D","CabinetColor":"Invisible White Opaco 332","sinkType":"Top_VA023"}],"ct":["CT-GBSSTMT-INTG-55.1W-3.1H-20.7D","CT-GBSSTMT-VA023-3.1H","CT-GBSSTMT-FAHO/0","CT-GB-BRKT"],"price":"Total List Price $9,207.00"}
+```
+Page navigated to http://localhost:5173/custom/cabinet-builder?collectionId=class.

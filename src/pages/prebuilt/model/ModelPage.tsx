@@ -81,6 +81,7 @@ import {
   resolvePrebuiltModelCountertopCompatibility,
   useCountertopRules,
 } from "@/features/configurator-rule-core/countertop";
+import type { CountertopStyleKey, PrebuiltModelCountertopRefusal } from "@/features/configurator-rule-core/countertop";
 import { BaseButton, ROUTES } from "@/shared";
 import { findCabinetRule } from "@/shared/config/configurator/typeCabinetCatalog";
 import type { ConfiguratorCatalog } from "@/shared/config/configurator/typeCabinetCatalog";
@@ -103,7 +104,7 @@ import {
   useRestoreSavedConfiguration,
 } from "@/features/configurationRestore";
 import type { RestorePlan } from "@/features/configurationRestore";
-import { readFragmentValue } from "@/features/saveConfiguration";
+import { PRESET_QUERY_PARAM, readFragmentValue } from "@/features/saveConfiguration";
 import { buildPresetFromConfiguration } from "@/utils/buildPresetFromConfiguration";
 import { getOrderedProductIds } from "@/utils/functions/playcanvas/getOrderedProductIds";
 import {
@@ -152,6 +153,9 @@ type PendingModelSelection = {
   presetProducts: PresetProduct[];
   presetId?: number;
   modelTitle: string;
+  refusal: PrebuiltModelCountertopRefusal;
+  /** The countertop style the model refused; null when it refused the material. */
+  refusedStyle: CountertopStyleKey | null;
   reason?: string;
 };
 
@@ -159,7 +163,12 @@ type ApplyPresetSelectionOptions = {
   syncUrl?: boolean;
   preserveSelections?: boolean;
   preserveCountertopSelections?: boolean;
+  /** Carries the countertop colour and thickness, but leaves the style and the basin to the new model. */
+  releaseCountertopStyle?: boolean;
 };
+
+/** The choices a refused vessel takes with it: its style, the vessel, and the vessel's colour. */
+const VESSEL_STYLE_CHOICES = ["CountertopStyle", "sinkType", "VesselColor"] as const;
 
 /** The scene values of a preset as configuration values, without the ones it leaves unset. */
 const toConfigurationValues = (config: PresetSceneDefaults): Record<string, string> =>
@@ -879,6 +888,13 @@ export const ModelPage = () => {
 
         const preserveSelections = options?.preserveSelections !== false && activeProfileRef.current?.ruleData.prebuiltModelSelection?.resetSelections !== true;
         const preserveCountertopSelections = preserveSelections && options?.preserveCountertopSelections !== false;
+        // No longer the user's choices, so neither path carries them: the model gives its integrated basin, which
+        // the rules replace with one the countertop allows, and a colour left from the vessel is cleared.
+        if (preserveCountertopSelections && options?.releaseCountertopStyle) {
+          for (const attributeId of VESSEL_STYLE_CHOICES) {
+            dispatch(setExplicitUserChoice({ attributeId, chosen: false }));
+          }
+        }
         const current = getCommandState().rootStateUI.product.productOptions;
         const fields = !preserveSelections ? [] : preserveCountertopSelections
           ? [...PREBUILT_MODEL_COLOR_TRANSFERABLE_FIELDS, ...PREBUILT_MODEL_COUNTERTOP_TRANSFERABLE_FIELDS]
@@ -1077,6 +1093,8 @@ export const ModelPage = () => {
             presetProducts,
             presetId,
             modelTitle,
+            refusal: compatibility.refusal,
+            refusedStyle: compatibility.refusal === "style" ? compatibility.refusedStyle : null,
             reason: compatibility.reason,
           });
           return;
@@ -1155,10 +1173,18 @@ export const ModelPage = () => {
 
   // "Create Your Own" starts Custom from an empty scene, without the preset's add-ons.
   const handleCreateOwnComposition = useCallback(async () => {
+    // The page is leaving for Custom: the preset written below must not be placed again on the scene being cleared.
+    isDefinedProductsRef.current = true;
+    // Back from Custom finds the model in this entry's URL, which a step arrow leaves without one, and places it again.
+    if (activePresetId !== null && searchParams.get(PRESET_QUERY_PARAM) !== String(activePresetId)) {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      nextSearchParams.set(PRESET_QUERY_PARAM, String(activePresetId));
+      setSearchParams(nextSearchParams, { replace: true });
+    }
     const cleared = await composition.clear({ resetAddOns: true });
     if (cleared.status === "error") console.warn("[Prebuilt] The scene was not cleared", cleared);
     dispatch(resetPrebuiltProducts());
-  }, [composition, dispatch]);
+  }, [activePresetId, composition, dispatch, searchParams, setSearchParams]);
 
   const handleNavigate = useCallback(
     (tab: "prebuilt" | "custom") => {
@@ -1188,9 +1214,14 @@ export const ModelPage = () => {
 
     const selection = pendingModelSelection;
     setPendingModelSelection(null);
-    void applyPresetSelection(selection.presetProducts, selection.presetId, {
-      preserveCountertopSelections: false,
-    });
+    // A refused vessel drops alone: the integrated basin is what the model offers in its place. Any other refusal
+    // leaves no countertop known to fit, so it is reset whole.
+    const isVesselRefused = selection.refusal === "style" && selection.refusedStyle === "vessel";
+    void applyPresetSelection(
+      selection.presetProducts,
+      selection.presetId,
+      isVesselRefused ? { releaseCountertopStyle: true } : { preserveCountertopSelections: false },
+    );
   }, [applyPresetSelection, pendingModelSelection]);
 
   const canvasReady = usePlayCanvasReady();
@@ -1571,7 +1602,7 @@ export const ModelPage = () => {
         content={
           <p>
             Model "{pendingModelSelection?.modelTitle ?? "Selected model"}" is not compatible with your current
-            countertop selections. Selecting this model will clear those selections.
+            countertop selections. Selecting this model will clear the incompatible selections.
             {pendingModelSelection?.reason ? ` ${pendingModelSelection.reason}` : ""}
           </p>
         }

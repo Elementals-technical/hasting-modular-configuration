@@ -21,7 +21,7 @@ import type {
 export const REASON_SIDE_PANEL_NOT_IN_COLLECTION = "sidePanel.notInCollection";
 export const REASON_SIDE_PANEL_SIDE_SHELF = "sidePanel.sideShelfUnavailable";
 export const REASON_SIDE_PANEL_OPEN_SHELF = "sidePanel.openShelfUnavailable";
-const REASON_SYNTESI_SIDE_PANELS = "syntesi.sidePanelsUnavailable";
+export const REASON_SYNTESI_SIDE_PANELS = "syntesi.sidePanelsUnavailable";
 
 type SidePanelGroove = SidePanelAvailabilityResult["allowed"] extends Set<infer Groove> ? Groove : never;
 type SidePanelCabinetType = NonNullable<SidePanelAvailabilityInput["cabinetType"]>;

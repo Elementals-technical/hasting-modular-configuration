@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"tiles":["1 Drawer","1 Drawer Slim"],"r":{"w":{"offered":["23.6\"","27.6\"","31.5\"","35.4\"","41.3\"","47.2\""],"chose":"23.6\""},"d":null,"placed":true},"cfg":{"id":"ULH-sink-cabinet","Width":60,"Drawers":"1D","Handle":"handle_urban_topcut","CabinetColor":"Rox Black TKQ","sinkType":"Top_HPL/Fenix_Prisma_Gres"},"refusedColours":0,"colour":null,"basin":"Basin style","basinTiles":[{"n":"Fenix Cover 50","off":true},{"n":"Fenix Prisma 50","off":false},{"n":"Fenix Quadra 50","off":false},{"n":"Fenix Strip 48","off":true}],"offBasin":{"present":true,"refused":true,"hint":["Not available for current sink base width. Current 60 cm (23.6\"), minimum 70 cm (27.6\")."]}}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=urban-low-height.

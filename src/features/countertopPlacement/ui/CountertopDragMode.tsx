@@ -84,6 +84,16 @@ const quiet = <T,>(promise: Promise<T> | undefined, fallback: T) =>
   (promise ?? Promise.resolve(fallback)).catch(() => fallback);
 
 /**
+ * How a top returns as `snapshot` found it, for a hosted landing the rules refuse: its pose and its custom length,
+ * which Standard has dropped.
+ */
+const goBackTo = (api: CountertopApi, snapshot: CountertopSnapshot) => () =>
+  restoreCountertopSnapshot(api, snapshot, {
+    read: async () => api.getState(),
+    settled: async () => api.whenSettled(),
+  });
+
+/**
  * Countertop Drag & Drop mode: the before-state is captured on enter; Apply keeps the live edits
  * (drag off, settle, sync), Cancel / × restores the captured offset and length. PlayCanvas tints
  * the countertop and publishes the anchors; without `countertopOverlay` (older builds) Apply and
@@ -279,8 +289,10 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       await drainLength();
       await read(session);
       await session.api.setDragEnabled(false);
+      await settled(session);
+      if (await commitHostedSinkLanding(session.api, goBackTo(session.api, session.snapshot))) return teardown(session);
+      // Read after the landing: one the rules refuse has put the top back where it was.
       const next = await settled(session);
-      if (await commitHostedSinkLanding(session.api)) return teardown(session);
       if (isSameCountertopPose(next, session.snapshot)) onSessionDiscarded?.();
       await onCommitted?.(next);
       await teardown(session);
@@ -315,11 +327,13 @@ export const CountertopDragMode = forwardRef<CountertopDragModeHandle, Props>(fu
       if (!session) await onSessionStart?.();
       await api.setDragEnabled(false);
       await api.resetOffset();
-      const next = await api.whenSettled();
-      if (await commitHostedSinkLanding(api)) {
+      await api.whenSettled();
+      if (await commitHostedSinkLanding(api, before && goBackTo(api, before))) {
         if (session) await teardown(session);
         return;
       }
+      // Read after the landing: one the rules refuse has put the top back where it was.
+      const next = await api.whenSettled();
       if (before && isSameCountertopPose(next, before)) onSessionDiscarded?.();
       await onCommitted?.(next);
       if (session) await teardown(session);

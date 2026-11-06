@@ -74,6 +74,8 @@ export {
   selectConfiguratorVariant,
   selectDefaultValue,
   selectEffectiveFallback,
+  selectFollowedAttribute,
+  selectFollowers,
   selectInitialValue,
   selectLegacySpelling,
   selectMessage,

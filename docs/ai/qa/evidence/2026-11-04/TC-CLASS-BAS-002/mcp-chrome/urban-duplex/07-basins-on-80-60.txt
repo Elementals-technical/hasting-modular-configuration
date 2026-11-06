@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"basin":{"name":"Basin Style","selected":["HPL Prisma 50"],"swatches":["HPL Strip 48","HPL Cover 50","HPL Prisma 50","HPL Quadra 50"],"buttons":[{"n":"HPL Strip 48","disabled":true},{"n":"HPL Cover 50","disabled":true},{"n":"HPL Prisma 50","disabled":false},{"n":"HPL Quadra 50","disabled":false}],"styles":[{"n":"Integrated","disabled":false},{"n":"Vessel","disabled":true}],"panelText":"HPL Strip 48HPL Cover 50HPL Prisma 50HPL Quadra 50"},"configs":[{"id":"UD-sink-cabinet","Width":80,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Top_HPLPrisma"},{"id":"UD-sink-cabinet-b58c011e-f92f-40a9-9020","Width":60,"Drawers":"2D","HandleStyle":"Duplex","CabinetColor":"Bianco Calce DA ST","sinkType":"Top_HPLPrisma"}],"price":"Total List Price $16,809.00"}
+```
+Page navigated to http://localhost:5173/custom/countertop?collectionId=urban-duplex.

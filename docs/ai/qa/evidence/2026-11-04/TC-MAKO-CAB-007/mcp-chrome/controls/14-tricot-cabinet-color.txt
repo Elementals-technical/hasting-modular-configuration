@@ -1,0 +1,5 @@
+Script ran on page and returned:
+```json
+{"secs":["Cabinet Color","Material","Color","Price","Cabinet Pattern","Handle Groove Color"],"cabinet":{"title":"Cabinet Color","nAll":23,"options":["Show all","Lacquered MT","Wood Veneer"],"chosen":{"chose":"Lacquered MT","label":"Lacquered MT"},"nFiltered":20,"picked":"Acqua 419 MT","ok":true,"selected":["Acqua 419 MT"],"filterAfterPick":["Lacquered MT","Color","Price"],"nAfterPick":20},"price":"Total List Price $7,677.00"}
+```
+Page navigated to http://localhost:5173/prebuilt/color?collectionId=tricot.

@@ -1,0 +1,8 @@
+Snapshot [selector: [role=listbox]]
+
+uid=e326 listbox "Price" tag=div
+  uid=e322 option tag=button
+    uid=e321 span text="Show all"
+  uid=e325 option tag=button
+    uid=e323 span text="Standard $"
+    uid=e324 span text="Quality finishes offered at..."

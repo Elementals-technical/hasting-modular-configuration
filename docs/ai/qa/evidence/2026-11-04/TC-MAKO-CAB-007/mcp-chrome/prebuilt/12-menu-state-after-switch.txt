@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"handleLabels":[{"t":"G57","check":false},{"t":"G50","check":false}]}
+```
